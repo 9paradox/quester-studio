@@ -83,9 +83,8 @@ function FitViewOnLoad({ flowId }: { flowId: string }) {
 					void setViewport(saved, { duration: 0 });
 					return;
 				}
-				void fitView({ padding: 0.2, maxZoom: 1, duration: 0 }).then(() => {
-					viewportsByFlowId.set(flowId, getViewport());
-				});
+				void fitView({ padding: 0.2, maxZoom: 1, duration: 0 });
+				viewportsByFlowId.set(flowId, getViewport());
 			});
 		});
 	}, [flowId, nodesInitialized, fitView, getViewport, setViewport]);
