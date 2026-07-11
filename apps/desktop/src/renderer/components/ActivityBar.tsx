@@ -5,13 +5,8 @@ import {
 } from "@/components/ui/tooltip.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
 import { cn } from "@/lib/utils.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
 import { IconBox, IconFiles, IconKey, IconStack2 } from "@tabler/icons-react";
-
-type ActivityBarProps = {
-	activeView: ActivityView;
-	sidebarOpen: boolean;
-	onViewChange: (view: ActivityView) => void;
-};
 
 const items: Array<{
 	view: ActivityView;
@@ -24,11 +19,11 @@ const items: Array<{
 	{ view: "nodes", label: "Nodes", icon: IconBox },
 ];
 
-export function ActivityBar({
-	activeView,
-	sidebarOpen,
-	onViewChange,
-}: ActivityBarProps) {
+export function ActivityBar() {
+	const activeView = useQuesterStore((s) => s.activityView);
+	const sidebarOpen = useQuesterStore((s) => s.sidebarOpen);
+	const handleActivityView = useQuesterStore((s) => s.handleActivityView);
+
 	return (
 		<nav className="flex w-12 shrink-0 flex-col items-center gap-1 border-r bg-sidebar py-2">
 			{items.map(({ view, label, icon: Icon }) => {
@@ -37,7 +32,7 @@ export function ActivityBar({
 					<Tooltip key={view}>
 						<TooltipTrigger
 							className={cn(buttonClass(active))}
-							onClick={() => onViewChange(view)}
+							onClick={() => handleActivityView(view)}
 							aria-label={label}
 							aria-pressed={active}
 						>

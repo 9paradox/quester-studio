@@ -1,26 +1,23 @@
-type StatusBarProps = {
-	workspaceName: string;
-	flowName: string | null;
-	env: string;
-	nodeCount: number;
-	edgeCount: number;
-	openTabCount: number;
-	isRunning: boolean;
-	zoom: number;
-	dirty: boolean;
-};
+import { useQuesterStore } from "@/stores/quester-store.js";
+import {
+	selectActiveFlowTab,
+	selectAnyDirty,
+	selectStatusLabel,
+} from "@/stores/selectors.js";
 
-export function StatusBar({
-	workspaceName,
-	flowName,
-	env,
-	nodeCount,
-	edgeCount,
-	openTabCount,
-	isRunning,
-	zoom,
-	dirty,
-}: StatusBarProps) {
+export function StatusBar() {
+	const workspaceName = useQuesterStore((s) => s.workspaceName);
+	const flowName = useQuesterStore(selectStatusLabel);
+	const env = useQuesterStore((s) => s.selectedEnv);
+	const activeFlowTab = useQuesterStore(selectActiveFlowTab);
+	const openTabCount = useQuesterStore((s) => s.openTabs.length);
+	const isRunning = useQuesterStore((s) => s.isRunning);
+	const zoom = useQuesterStore((s) => s.zoom);
+	const dirty = useQuesterStore(selectAnyDirty);
+
+	const nodeCount = activeFlowTab?.flow.nodes.length ?? 0;
+	const edgeCount = activeFlowTab?.flow.edges.length ?? 0;
+
 	return (
 		<footer className="flex h-6 shrink-0 items-center justify-between border-t bg-muted/30 px-2 text-[11px] text-muted-foreground">
 			<div className="flex min-w-0 items-center gap-2 truncate">
@@ -28,8 +25,8 @@ export function StatusBar({
 					{workspaceName || "—"}
 				</span>
 				<span className="text-border">|</span>
-				<span className="truncate" title={flowName ?? undefined}>
-					{flowName ?? "No flow"}
+				<span className="truncate" title={flowName}>
+					{flowName}
 				</span>
 				<span className="text-border">|</span>
 				<span>{env}</span>

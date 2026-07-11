@@ -7,6 +7,7 @@ import {
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
 import { cn } from "@/lib/utils.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	IconChevronUp,
 	IconCopy,
@@ -14,36 +15,24 @@ import {
 	IconTrash,
 } from "@tabler/icons-react";
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { ExecutionLogEntry } from "../../shared/rpc.js";
-
-type PanelProps = {
-	open: boolean;
-	height: number;
-	activeTab: "console" | "logs";
-	consoleLines: string[];
-	logs: ExecutionLogEntry[];
-	runError: string | null;
-	onTabChange: (tab: "console" | "logs") => void;
-	onToggle: () => void;
-	onResize: (height: number) => void;
-	onClearConsole: () => void;
-};
 
 const MIN_HEIGHT = 80;
 const MAX_HEIGHT = 480;
 
-export function Panel({
-	open,
-	height,
-	activeTab,
-	consoleLines,
-	logs,
-	runError,
-	onTabChange,
-	onToggle,
-	onResize,
-	onClearConsole,
-}: PanelProps) {
+export function Panel() {
+	const open = useQuesterStore((s) => s.panelOpen);
+	const height = useQuesterStore((s) => s.panelHeight);
+	const activeTab = useQuesterStore((s) => s.panelTab);
+	const consoleLines = useQuesterStore((s) => s.consoleLines);
+	const runResult = useQuesterStore((s) => s.runResult);
+	const runError = useQuesterStore((s) => s.runError);
+
+	const setPanelTab = useQuesterStore((s) => s.setPanelTab);
+	const togglePanel = useQuesterStore((s) => s.togglePanel);
+	const setPanelHeight = useQuesterStore((s) => s.setPanelHeight);
+	const clearConsole = useQuesterStore((s) => s.clearConsole);
+
+	const logs = runResult?.logs ?? [];
 	const dragging = useRef(false);
 	const startY = useRef(0);
 	const startHeight = useRef(height);
@@ -88,9 +77,9 @@ export function Panel({
 				MAX_HEIGHT,
 				Math.max(MIN_HEIGHT, startHeight.current + delta),
 			);
-			onResize(next);
+			setPanelHeight(next);
 		},
-		[onResize],
+		[setPanelHeight],
 	);
 
 	const onPointerUp = useCallback(() => {
@@ -120,7 +109,7 @@ export function Panel({
 			<button
 				type="button"
 				className="flex h-7 shrink-0 items-center border-t bg-background px-3 text-xs text-muted-foreground hover:bg-muted/50"
-				onClick={onToggle}
+				onClick={togglePanel}
 			>
 				&gt;_ Panel
 			</button>
@@ -143,7 +132,7 @@ export function Panel({
 			</button>
 			<Tabs
 				value={activeTab}
-				onValueChange={(v) => onTabChange(v as "console" | "logs")}
+				onValueChange={(v) => setPanelTab(v as "console" | "logs")}
 				className="flex min-h-0 flex-1 flex-col"
 			>
 				<div className="flex shrink-0 items-center gap-2 border-b px-2">
@@ -177,7 +166,7 @@ export function Panel({
 									type="button"
 									variant="ghost"
 									size="icon-xs"
-									onClick={onClearConsole}
+									onClick={clearConsole}
 									aria-label="Clear console"
 								>
 									<IconTrash />
@@ -217,7 +206,7 @@ export function Panel({
 					<button
 						type="button"
 						className={cn("rounded p-1 text-muted-foreground hover:bg-muted")}
-						onClick={onToggle}
+						onClick={togglePanel}
 						aria-label="Collapse panel"
 					>
 						<IconChevronUp className="size-4" />

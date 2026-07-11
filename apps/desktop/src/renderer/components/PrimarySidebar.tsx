@@ -6,7 +6,8 @@ import { envTabId, flowTabId, secretsTabId } from "@/lib/editorTabs.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
 import { nodeCatalogGroups } from "@/lib/nodeCatalog.js";
 import { cn } from "@/lib/utils.js";
-import type { BuiltinNodeType } from "@quester/schema";
+import { useQuesterStore } from "@/stores/quester-store.js";
+import { selectActiveTab, selectDirtyTabIds } from "@/stores/selectors.js";
 import {
 	IconDeviceFloppy,
 	IconFolderOpen,
@@ -15,57 +16,34 @@ import {
 	IconTrash,
 } from "@tabler/icons-react";
 import type { ReactNode } from "react";
-import type { FlowMeta, SecretFileMeta } from "../../shared/rpc.js";
+import { useShallow } from "zustand/react/shallow";
 
-type PrimarySidebarProps = {
-	width: number;
-	view: ActivityView;
-	workspaceName: string;
-	flows: FlowMeta[];
-	activeTabId: string | null;
-	dirtyTabIds: string[];
-	envs: string[];
-	secretFiles: SecretFileMeta[];
-	search: string;
-	canSave: boolean;
-	onSearchChange: (value: string) => void;
-	onOpenWorkspace: () => void;
-	onSelectFlow: (flowId: string) => void;
-	onSelectEnv: (envName: string) => void;
-	onSelectSecretsFile: (envName: string) => void;
-	onCreateFlow: () => void;
-	onCreateEnv: () => void;
-	onCreateSecretsFile: () => void;
-	onRenameFlow: (flowId: string) => void;
-	onDeleteFlow: (flowId: string) => void;
-	onSaveActive: () => void;
-	onAddNode: (type: BuiltinNodeType) => void;
-};
+export function PrimarySidebar() {
+	const width = useQuesterStore((s) => s.sidebarWidth);
+	const view = useQuesterStore((s) => s.activityView);
+	const workspaceName = useQuesterStore((s) => s.workspaceName);
+	const workspacePath = useQuesterStore((s) => s.workspacePath);
+	const flows = useQuesterStore((s) => s.flows);
+	const activeTabId = useQuesterStore((s) => s.activeTabId);
+	const dirtyTabIds = useQuesterStore(useShallow(selectDirtyTabIds));
+	const envs = useQuesterStore((s) => s.envs);
+	const secretFiles = useQuesterStore((s) => s.secretFiles);
+	const search = useQuesterStore((s) => s.sidebarSearch);
+	const activeTab = useQuesterStore(selectActiveTab);
+	const canSave = Boolean(activeTab?.dirty);
 
-export function PrimarySidebar({
-	width,
-	view,
-	workspaceName,
-	flows,
-	activeTabId,
-	dirtyTabIds,
-	envs,
-	secretFiles,
-	search,
-	canSave,
-	onSearchChange,
-	onOpenWorkspace,
-	onSelectFlow,
-	onSelectEnv,
-	onSelectSecretsFile,
-	onCreateFlow,
-	onCreateEnv,
-	onCreateSecretsFile,
-	onRenameFlow,
-	onDeleteFlow,
-	onSaveActive,
-	onAddNode,
-}: PrimarySidebarProps) {
+	const setSidebarSearch = useQuesterStore((s) => s.setSidebarSearch);
+	const openWorkspacePicker = useQuesterStore((s) => s.openWorkspacePicker);
+	const loadFlow = useQuesterStore((s) => s.loadFlow);
+	const loadEnvironment = useQuesterStore((s) => s.loadEnvironment);
+	const loadSecretsFile = useQuesterStore((s) => s.loadSecretsFile);
+	const createFlow = useQuesterStore((s) => s.createFlow);
+	const createEnv = useQuesterStore((s) => s.createEnv);
+	const createSecretsFile = useQuesterStore((s) => s.createSecretsFile);
+	const renameFlow = useQuesterStore((s) => s.renameFlow);
+	const deleteFlow = useQuesterStore((s) => s.deleteFlow);
+	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
+	const handleAddNode = useQuesterStore((s) => s.handleAddNode);
 	const filteredFlows = flows.filter((f) => {
 		const q = search.trim().toLowerCase();
 		if (!q) return true;
@@ -100,11 +78,11 @@ export function PrimarySidebar({
 			{view === "flows" ? (
 				<SidebarFileList
 					search={search}
-					onSearchChange={onSearchChange}
+					onSearchChange={setSidebarSearch}
 					workspaceName={workspaceName}
-					onOpenWorkspace={onOpenWorkspace}
-					onCreate={onCreateFlow}
-					onSave={onSaveActive}
+					onOpenWorkspace={() => void openWorkspacePicker()}
+					onCreate={() => void createFlow()}
+					onSave={() => void saveActiveTab()}
 					canSave={canSave}
 					createLabel="New"
 					searchPlaceholder="Search flows…"
@@ -115,9 +93,9 @@ export function PrimarySidebar({
 							label={flow.name}
 							selected={activeTabId === flowTabId(flow.id)}
 							dirty={dirtyTabIds.includes(flowTabId(flow.id))}
-							onSelect={() => onSelectFlow(flow.id)}
-							onRename={() => onRenameFlow(flow.id)}
-							onDelete={() => onDeleteFlow(flow.id)}
+							onSelect={() => void loadFlow(flow.id, workspacePath)}
+							onRename={() => void renameFlow(flow.id)}
+							onDelete={() => void deleteFlow(flow.id)}
 						/>
 					))}
 					{filteredFlows.length === 0 ? (
@@ -131,9 +109,9 @@ export function PrimarySidebar({
 			{view === "envs" ? (
 				<SidebarFileList
 					search={search}
-					onSearchChange={onSearchChange}
-					onCreate={onCreateEnv}
-					onSave={onSaveActive}
+					onSearchChange={setSidebarSearch}
+					onCreate={() => void createEnv()}
+					onSave={() => void saveActiveTab()}
 					canSave={canSave}
 					createLabel="New env"
 					searchPlaceholder="Search environments…"
@@ -144,7 +122,7 @@ export function PrimarySidebar({
 							label={`${env}.json`}
 							selected={activeTabId === envTabId(env)}
 							dirty={dirtyTabIds.includes(envTabId(env))}
-							onSelect={() => onSelectEnv(env)}
+							onSelect={() => void loadEnvironment(env, workspacePath)}
 						/>
 					))}
 					{filteredEnvs.length === 0 ? (
@@ -158,9 +136,9 @@ export function PrimarySidebar({
 			{view === "secrets" ? (
 				<SidebarFileList
 					search={search}
-					onSearchChange={onSearchChange}
-					onCreate={onCreateSecretsFile}
-					onSave={onSaveActive}
+					onSearchChange={setSidebarSearch}
+					onCreate={() => void createSecretsFile()}
+					onSave={() => void saveActiveTab()}
 					canSave={canSave}
 					createLabel="New secrets"
 					searchPlaceholder="Search secrets files…"
@@ -171,7 +149,7 @@ export function PrimarySidebar({
 							label={file.fileName}
 							selected={activeTabId === secretsTabId(file.envName)}
 							dirty={dirtyTabIds.includes(secretsTabId(file.envName))}
-							onSelect={() => onSelectSecretsFile(file.envName)}
+							onSelect={() => void loadSecretsFile(file.envName, workspacePath)}
 						/>
 					))}
 					{filteredSecrets.length === 0 ? (
@@ -196,7 +174,7 @@ export function PrimarySidebar({
 										type="button"
 										variant="ghost"
 										className="h-auto flex-col items-start gap-0 px-2 py-1.5 text-left font-normal"
-										onClick={() => onAddNode(node.type)}
+										onClick={() => handleAddNode(node.type)}
 									>
 										<span className="text-sm">{node.label}</span>
 										<span className="text-xs text-muted-foreground">

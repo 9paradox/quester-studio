@@ -4,6 +4,7 @@ import {
 	editorTabLabel,
 } from "@/lib/editorTabs.js";
 import { cn } from "@/lib/utils.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	IconFile,
 	IconKey,
@@ -11,13 +12,6 @@ import {
 	IconX,
 } from "@tabler/icons-react";
 import { useLayoutEffect, useRef } from "react";
-
-type TopBarProps = {
-	openTabs: EditorTab[];
-	activeTabId: string | null;
-	onSelectTab: (tabId: string) => void;
-	onCloseTab: (tabId: string) => void;
-};
 
 function TabIcon({ tab }: { tab: EditorTab }) {
 	const kind = editorTabIcon(tab);
@@ -27,12 +21,11 @@ function TabIcon({ tab }: { tab: EditorTab }) {
 	return <IconKey className={className} />;
 }
 
-export function TopBar({
-	openTabs,
-	activeTabId,
-	onSelectTab,
-	onCloseTab,
-}: TopBarProps) {
+export function TopBar() {
+	const openTabs = useQuesterStore((s) => s.openTabs);
+	const activeTabId = useQuesterStore((s) => s.activeTabId);
+	const setActiveTabId = useQuesterStore((s) => s.setActiveTabId);
+	const closeTab = useQuesterStore((s) => s.closeTab);
 	const scrollRef = useRef<HTMLDivElement>(null);
 
 	const scrollTabIntoView = (tabId: string) => {
@@ -102,7 +95,7 @@ export function TopBar({
 									type="button"
 									className="flex h-9 max-w-[180px] min-w-0 items-center gap-1.5 px-2.5 text-xs"
 									onClick={() => {
-										onSelectTab(tab.id);
+										setActiveTabId(tab.id);
 										scrollTabIntoView(tab.id);
 									}}
 								>
@@ -115,7 +108,7 @@ export function TopBar({
 								<button
 									type="button"
 									className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm opacity-0 hover:bg-muted group-hover:opacity-100"
-									onClick={() => onCloseTab(tab.id)}
+									onClick={() => closeTab(tab.id)}
 									aria-label={`Close ${label}`}
 								>
 									<IconX className="size-3" />

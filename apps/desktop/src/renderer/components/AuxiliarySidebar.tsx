@@ -5,38 +5,31 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
-import type { FlowV1 } from "@quester/schema";
-import type { ExecuteFlowRpcResult } from "../../shared/rpc.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
+import {
+	selectActiveFlowTab,
+	selectRightPanelVisible,
+} from "@/stores/selectors.js";
 import { NodeInspector } from "./NodeInspector.js";
 import { ResponseViewScroll } from "./ResponseView.js";
 
-export type RightPanelTab = "inspector" | "response";
+export type { RightPanelTab } from "@/stores/quester-store.js";
 
-type AuxiliarySidebarProps = {
-	width: number;
-	open: boolean;
-	activeTab: RightPanelTab;
-	onTabChange: (tab: RightPanelTab) => void;
-	flow: FlowV1 | null;
-	selectedNodeId: string | null;
-	onUpdateNode: (nodeId: string, data: Record<string, unknown>) => void;
-	runResult: ExecuteFlowRpcResult | null;
-	runError: string | null;
-};
+export function AuxiliarySidebar() {
+	const width = useQuesterStore((s) => s.rightPanelWidth);
+	const open = useQuesterStore(selectRightPanelVisible);
+	const activeTab = useQuesterStore((s) => s.rightPanelTab);
+	const flowTab = useQuesterStore(selectActiveFlowTab);
+	const selectedNodeId = useQuesterStore((s) => s.selectedNodeId);
+	const runResult = useQuesterStore((s) => s.runResult);
+	const runError = useQuesterStore((s) => s.runError);
 
-export function AuxiliarySidebar({
-	width,
-	open,
-	activeTab,
-	onTabChange,
-	flow,
-	selectedNodeId,
-	onUpdateNode,
-	runResult,
-	runError,
-}: AuxiliarySidebarProps) {
+	const setRightPanelTab = useQuesterStore((s) => s.setRightPanelTab);
+	const handleUpdateNode = useQuesterStore((s) => s.handleUpdateNode);
+
 	if (!open) return null;
 
+	const flow = flowTab?.flow ?? null;
 	const selectedNode = flow?.nodes.find((n) => n.id === selectedNodeId) ?? null;
 
 	return (
@@ -46,7 +39,7 @@ export function AuxiliarySidebar({
 		>
 			<Tabs
 				value={activeTab}
-				onValueChange={(v) => onTabChange(v as RightPanelTab)}
+				onValueChange={(v) => setRightPanelTab(v as "inspector" | "response")}
 				className="flex min-h-0 flex-1 flex-col"
 			>
 				<TabsList
@@ -69,7 +62,7 @@ export function AuxiliarySidebar({
 							{selectedNode ? (
 								<NodeInspector
 									node={selectedNode}
-									onUpdate={(data) => onUpdateNode(selectedNode.id, data)}
+									onUpdate={(data) => handleUpdateNode(selectedNode.id, data)}
 								/>
 							) : (
 								<p className="text-sm text-muted-foreground">
