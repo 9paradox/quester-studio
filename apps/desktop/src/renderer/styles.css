@@ -133,4 +133,28 @@
 	html {
 		@apply font-sans;
 	}
+
+	html,
+	body,
+	#root {
+		height: 100%;
+		margin: 0;
+	}
+
+	#root {
+		overflow: hidden;
+	}
+
+	/* React Flow: remove default node chrome so custom cards render cleanly */
+	.react-flow__node {
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+		padding: 0 !important;
+		border-radius: 0 !important;
+	}
+
+	.react-flow__node.selected {
+		box-shadow: none !important;
+	}
 }
