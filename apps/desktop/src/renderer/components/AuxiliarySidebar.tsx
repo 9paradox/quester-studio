@@ -1,3 +1,5 @@
+import { NodeInspector } from "@/components/NodeInspector.js";
+import { ResponseViewScroll } from "@/components/ResponseView.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import {
 	Tabs,
@@ -10,8 +12,6 @@ import {
 	selectActiveFlowTab,
 	selectRightPanelVisible,
 } from "@/stores/selectors.js";
-import { NodeInspector } from "./NodeInspector.js";
-import { ResponseViewScroll } from "./ResponseView.js";
 
 export type { RightPanelTab } from "@/stores/quester-store.js";
 
@@ -62,7 +62,9 @@ export function AuxiliarySidebar() {
 							{selectedNode ? (
 								<NodeInspector
 									node={selectedNode}
-									onUpdate={(data) => handleUpdateNode(selectedNode.id, data)}
+									onUpdate={(data: Record<string, unknown>) =>
+										handleUpdateNode(selectedNode.id, data)
+									}
 								/>
 							) : (
 								<p className="text-sm text-muted-foreground">
