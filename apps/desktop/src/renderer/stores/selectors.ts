@@ -1,5 +1,3 @@
-import type { KeyValueRow } from "@/components/KeyValueEditor.js";
-import { recordToRows } from "@/components/KeyValueEditor.js";
 import { type EditorTab, editorTabLabel } from "@/lib/editorTabs.js";
 import type { QuesterState } from "./quester-store.js";
 
@@ -14,18 +12,6 @@ export function selectActiveFlowTab(state: QuesterState) {
 
 export function selectDirtyTabIds(state: QuesterState): string[] {
 	return state.openTabs.filter((t) => t.dirty).map((t) => t.id);
-}
-
-export function selectEnvRows(state: QuesterState): KeyValueRow[] {
-	const tab = selectActiveTab(state);
-	if (tab?.kind !== "env") return [];
-	return recordToRows(tab.environment.variables);
-}
-
-export function selectSecretRows(state: QuesterState): KeyValueRow[] {
-	const tab = selectActiveTab(state);
-	if (tab?.kind !== "secrets") return [];
-	return recordToRows(tab.secrets.secrets);
 }
 
 export function selectAnyDirty(state: QuesterState): boolean {

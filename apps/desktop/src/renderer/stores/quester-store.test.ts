@@ -1,6 +1,11 @@
 import { beforeAll, describe, expect, mock, test } from "bun:test";
-import { createFlowEditorTab, flowTabId } from "@/lib/editorTabs.js";
-import type { FlowV1 } from "@quester/schema";
+import {
+	createEnvEditorTab,
+	createFlowEditorTab,
+	createSecretsEditorTab,
+	flowTabId,
+} from "@/lib/editorTabs.js";
+import type { EnvironmentV1, FlowV1, SecretsV1 } from "@quester/schema";
 import type { useQuesterStore as UseQuesterStore } from "./quester-store.js";
 import {
 	selectActiveFlowTab,
@@ -116,6 +121,52 @@ describe("useQuesterStore", () => {
 		useQuesterStore.getState().handleActivityView("envs");
 		expect(useQuesterStore.getState().activityView).toBe("envs");
 		expect(useQuesterStore.getState().sidebarOpen).toBe(true);
+	});
+
+	test("handleEnvRowsChange keeps empty draft rows", () => {
+		resetStore();
+		const environment: EnvironmentV1 = {
+			version: "v1",
+			name: "local",
+			variables: { API_BASE: "http://localhost" },
+		};
+		const tab = createEnvEditorTab(environment);
+		useQuesterStore.setState({ openTabs: [tab], activeTabId: tab.id });
+
+		const draft = [...tab.rows, { id: "draft-1", key: "", value: "" }];
+		useQuesterStore.getState().handleEnvRowsChange(draft);
+
+		const next = useQuesterStore.getState().openTabs[0];
+		expect(next?.kind).toBe("env");
+		if (next?.kind !== "env") return;
+		expect(next.rows).toHaveLength(draft.length);
+		expect(next.rows.at(-1)?.id).toBe("draft-1");
+		expect(next.environment.variables).toEqual({
+			API_BASE: "http://localhost",
+		});
+		expect(next.dirty).toBe(true);
+	});
+
+	test("handleSecretRowsChange keeps row ids across updates", () => {
+		resetStore();
+		const secrets: SecretsV1 = {
+			version: "v1",
+			secrets: { TOKEN: "abc" },
+		};
+		const tab = createSecretsEditorTab("local", secrets);
+		useQuesterStore.setState({ openTabs: [tab], activeTabId: tab.id });
+
+		const updated = tab.rows.map((row) =>
+			row.key === "TOKEN" ? { ...row, value: "xyz" } : row,
+		);
+		useQuesterStore.getState().handleSecretRowsChange(updated);
+
+		const next = useQuesterStore.getState().openTabs[0];
+		expect(next?.kind).toBe("secrets");
+		if (next?.kind !== "secrets") return;
+		expect(next.rows[0]?.id).toBe(tab.rows[0]?.id);
+		expect(next.rows[0]?.value).toBe("xyz");
+		expect(next.secrets.secrets).toEqual({ TOKEN: "xyz" });
 	});
 });
 

@@ -2,21 +2,12 @@ import type { EditorTab } from "@/lib/editorTabs.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectActiveTab, selectCanRun } from "@/stores/selectors.js";
 import type { FlowV1 } from "@quester/schema";
-import { useMemo } from "react";
 import { CanvasControls } from "./CanvasControls.js";
 import { FlowCanvas } from "./FlowCanvas.js";
-import { KeyValueEditor, recordToRows } from "./KeyValueEditor.js";
+import { KeyValueEditor } from "./KeyValueEditor.js";
 
 export function EditorArea() {
 	const activeTab = useQuesterStore(selectActiveTab);
-	const envRows = useMemo(() => {
-		if (activeTab?.kind !== "env") return [];
-		return recordToRows(activeTab.environment.variables);
-	}, [activeTab]);
-	const secretRows = useMemo(() => {
-		if (activeTab?.kind !== "secrets") return [];
-		return recordToRows(activeTab.secrets.secrets);
-	}, [activeTab]);
 	const envs = useQuesterStore((s) => s.envs);
 	const selectedEnv = useQuesterStore((s) => s.selectedEnv);
 	const isRunning = useQuesterStore((s) => s.isRunning);
@@ -46,7 +37,7 @@ export function EditorArea() {
 				<KeyValueEditor
 					title={`${activeTab.envName}.json`}
 					description="Environment variables available as {{env.KEY}} in flows."
-					rows={envRows}
+					rows={activeTab.rows}
 					onChange={handleEnvRowsChange}
 				/>
 			</div>
@@ -59,7 +50,7 @@ export function EditorArea() {
 				<KeyValueEditor
 					title={`${activeTab.envName}.secrets.json`}
 					description="Secrets are loaded at runtime and never committed to git."
-					rows={secretRows}
+					rows={activeTab.rows}
 					onChange={handleSecretRowsChange}
 					valuePlaceholder="Secret value"
 				/>
@@ -91,5 +82,3 @@ export function EditorArea() {
 export function flowFromTab(tab: EditorTab): FlowV1 | null {
 	return tab.kind === "flow" ? tab.flow : null;
 }
-
-export { recordToRows };

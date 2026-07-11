@@ -6,6 +6,7 @@ import {
 	editorTabLabel,
 	envTabId,
 	flowTabId,
+	secretsTabId,
 } from "@/lib/editorTabs.js";
 import { desktopRpc } from "@/lib/electrobun.js";
 import { addNodeToFlow, reactFlowToFlow } from "@/lib/flowEditor.js";
@@ -247,16 +248,34 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	loadFlow: async (flowId, workspace) => {
+		const tabId = flowTabId(flowId);
+		const existing = get().openTabs.find((t) => t.id === tabId);
+		if (existing) {
+			set({ activeTabId: tabId, selectedNodeId: null });
+			return;
+		}
 		const flow = await desktopRpc.loadFlow(flowId, workspace);
 		get().openTab(createFlowEditorTab(flow));
 	},
 
 	loadEnvironment: async (envName, workspace) => {
+		const tabId = envTabId(envName);
+		const existing = get().openTabs.find((t) => t.id === tabId);
+		if (existing) {
+			set({ activeTabId: tabId });
+			return;
+		}
 		const environment = await desktopRpc.loadEnvironment(workspace, envName);
 		get().openTab(createEnvEditorTab(environment));
 	},
 
 	loadSecretsFile: async (envName, workspace) => {
+		const tabId = secretsTabId(envName);
+		const existing = get().openTabs.find((t) => t.id === tabId);
+		if (existing) {
+			set({ activeTabId: tabId });
+			return;
+		}
 		const secrets = await desktopRpc.loadSecretsFile(workspace, envName);
 		get().openTab(createSecretsEditorTab(envName, secrets));
 	},
@@ -348,6 +367,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				t.id === activeTabId && t.kind === "env"
 					? {
 							...t,
+							rows,
 							environment: {
 								...t.environment,
 								variables: rowsToEnvVariables(rows),
@@ -367,6 +387,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				t.id === activeTabId && t.kind === "secrets"
 					? {
 							...t,
+							rows,
 							secrets: {
 								version: SECRETS_VERSION,
 								secrets: rowsToStringRecord(rows),
@@ -456,11 +477,12 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				);
 				set((s) => ({
 					openTabs: s.openTabs.map((t) =>
-						t.id === tab.id
+						t.id === tab.id && t.kind === "env"
 							? {
 									...t,
 									environment: saved,
 									envName: saved.name,
+									rows: t.rows,
 									id: envTabId(saved.name),
 									dirty: false,
 								}
@@ -478,7 +500,9 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				);
 				set((s) => ({
 					openTabs: s.openTabs.map((t) =>
-						t.id === tab.id ? { ...t, secrets: saved, dirty: false } : t,
+						t.id === tab.id && t.kind === "secrets"
+							? { ...t, secrets: saved, rows: t.rows, dirty: false }
+							: t,
 					),
 				}));
 				appendConsole(`Saved ${tab.envName}.secrets.json`);
