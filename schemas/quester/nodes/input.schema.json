@@ -1,14 +1,14 @@
 {
-	"type": "object",
-	"properties": {
-		"label": {
-			"type": "string"
-		},
-		"schema": {
-			"type": "object",
-			"additionalProperties": {}
-		}
-	},
-	"additionalProperties": false,
-	"$schema": "http://json-schema.org/draft-07/schema#"
+  "type": "object",
+  "properties": {
+    "label": {
+      "type": "string"
+    },
+    "schema": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
 }

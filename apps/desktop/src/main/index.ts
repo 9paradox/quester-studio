@@ -1,14 +1,25 @@
 import { BrowserView, BrowserWindow } from "electrobun/bun";
 import type { DesktopRPC } from "../shared/rpc.js";
 
+const VITE_DEV_URL = "http://127.0.0.1:5173/";
+
 async function getMainViewUrl(): Promise<string> {
-	try {
-		const response = await fetch("http://localhost:5173", {
-			signal: AbortSignal.timeout(500),
-		});
-		if (response.ok) return "http://localhost:5173";
-	} catch {
-		// Vite dev server not running — use bundled views
+	if (process.env.ELECTROBUN_HMR === "1") {
+		try {
+			const response = await fetch(VITE_DEV_URL, {
+				signal: AbortSignal.timeout(2000),
+			});
+			const html = await response.text();
+			if (
+				response.ok &&
+				html.includes('id="root"') &&
+				html.includes("Quester")
+			) {
+				return VITE_DEV_URL;
+			}
+		} catch {
+			// Vite dev server not ready — use bundled views
+		}
 	}
 	return "views://mainview/index.html";
 }
@@ -59,6 +70,10 @@ mainWindow.on("close", () => {
 
 mainWindow.webview.on("dom-ready", () => {
 	console.log("Quester webview ready");
+	if (process.env.DEV === "1") {
+		// Defer DevTools so WebView2 finishes the first paint (avoids blank window on Windows).
+		setTimeout(() => mainWindow.webview.openDevTools(), 500);
+	}
 });
 
 console.log("Quester desktop started");

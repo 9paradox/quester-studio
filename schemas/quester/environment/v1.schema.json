@@ -1,23 +1,30 @@
 {
-	"type": "object",
-	"properties": {
-		"name": {
-			"type": "string",
-			"minLength": 1
-		},
-		"version": {
-			"type": "string",
-			"const": "v1"
-		},
-		"variables": {
-			"type": "object",
-			"additionalProperties": {
-				"type": ["string", "number", "boolean"]
-			},
-			"default": {}
-		}
-	},
-	"required": ["name", "version"],
-	"additionalProperties": false,
-	"$schema": "http://json-schema.org/draft-07/schema#"
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "variables": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean"
+        ]
+      },
+      "default": {}
+    }
+  },
+  "required": [
+    "name",
+    "version"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
 }

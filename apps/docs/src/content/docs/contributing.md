@@ -15,6 +15,10 @@ bun run build
 bun run test
 ```
 
+## Debugging
+
+See [DEBUGGING.md](https://github.com/9paradox/quester-studio/blob/main/DEBUGGING.md) for VS Code / Cursor launch configs (engine, CLI, desktop main process, React renderer).
+
 ## Pull requests
 
 - Use Conventional Commits for PR titles (squash merge to `main`)

@@ -5,7 +5,10 @@
 	"type": "module",
 	"scripts": {
 		"dev": "node scripts/patch-electrobun-win.mjs && vite build && electrobun dev",
-		"dev:hmr": "node scripts/patch-electrobun-win.mjs && concurrently \"vite --port 5173\" \"vite build && electrobun dev\"",
+		"dev:hmr": "node scripts/patch-electrobun-win.mjs && node scripts/dev-hmr.mjs",
+		"dev:stop": "node scripts/stop-dev.mjs",
+		"dev:debug": "node scripts/patch-electrobun-win.mjs && node scripts/dev-debug.mjs",
+		"dev:hmr:debug": "node scripts/patch-electrobun-win.mjs && node scripts/dev-debug.mjs --hmr",
 		"build": "vite build",
 		"typecheck": "tsc --noEmit",
 		"test": "bun test src",
@@ -36,8 +39,9 @@
 		"@types/three": "^0.165.0",
 		"@vitejs/plugin-react": "^4.4.1",
 		"concurrently": "^9.2.1",
+		"lightningcss": "^1.32.0",
 		"tailwindcss": "^4",
 		"typescript": "^5.8.3",
-		"vite": "^6.3.5"
+		"vite": "6.4.3"
 	}
 }

@@ -26,6 +26,10 @@ bun run --filter @quester/schema test
 
 After changing `@quester/schema`, confirm `schemas/` was regenerated (do not hand-edit JSON Schema files).
 
+### Debugging
+
+VS Code / Cursor launch configs for engine, CLI, desktop main process, and React renderer are documented in [DEBUGGING.md](./DEBUGGING.md). Install the [Bun extension](https://marketplace.visualstudio.com/items?itemName=oven.bun-vscode) (`oven.bun-vscode`) for breakpoints and attach.
+
 ## Branching
 
 - `main` is protected and always releasable.

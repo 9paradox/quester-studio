@@ -16,6 +16,25 @@ For HMR during UI work:
 bun run --filter @quester/desktop dev:hmr
 ```
 
+Stop leftover Vite / launcher processes if the window is blank or port 5173 is stuck:
+
+```bash
+bun run --filter @quester/desktop dev:stop
+```
+
+## Debugging
+
+Use VS Code / Cursor **Run and Debug** with the configs in [`.vscode/launch.json`](../../.vscode/launch.json). Full guide: [DEBUGGING.md](../../DEBUGGING.md).
+
+| Goal | Launch config |
+|------|----------------|
+| Main process (handlers, RPC) | **Desktop: Attach Main Process** |
+| Main + live React HMR | **Desktop: Attach Main (HMR + DevTools)** |
+| React components only (Chrome) | **Debug Desktop Renderer** |
+| Handler unit tests | **Debug Desktop Handlers** |
+
+Install the Bun extension (`oven.bun-vscode`) for breakpoints and attach.
+
 ## Demo flow
 
 1. Launch the app — it opens `examples/sample-workspace` by default
