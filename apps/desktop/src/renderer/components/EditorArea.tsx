@@ -1,47 +1,37 @@
 import type { EditorTab } from "@/lib/editorTabs.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
+import { selectActiveTab, selectCanRun } from "@/stores/selectors.js";
 import type { FlowV1 } from "@quester/schema";
-import type { Edge, Node } from "reactflow";
+import { useMemo } from "react";
 import { CanvasControls } from "./CanvasControls.js";
 import { FlowCanvas } from "./FlowCanvas.js";
-import {
-	KeyValueEditor,
-	type KeyValueRow,
-	recordToRows,
-} from "./KeyValueEditor.js";
+import { KeyValueEditor, recordToRows } from "./KeyValueEditor.js";
 
-type EditorAreaProps = {
-	activeTab: EditorTab | null;
-	envRows: KeyValueRow[];
-	secretRows: KeyValueRow[];
-	envs: string[];
-	selectedEnv: string;
-	onEnvChange: (env: string) => void;
-	isRunning: boolean;
-	canRun: boolean;
-	onRun: () => void;
-	onEnvRowsChange: (rows: KeyValueRow[]) => void;
-	onSecretRowsChange: (rows: KeyValueRow[]) => void;
-	onGraphChange: (nodes: Node[], edges: Edge[]) => void;
-	onSelectNode: (nodeId: string | null) => void;
-	onZoomChange: (zoom: number) => void;
-};
+export function EditorArea() {
+	const activeTab = useQuesterStore(selectActiveTab);
+	const envRows = useMemo(() => {
+		if (activeTab?.kind !== "env") return [];
+		return recordToRows(activeTab.environment.variables);
+	}, [activeTab]);
+	const secretRows = useMemo(() => {
+		if (activeTab?.kind !== "secrets") return [];
+		return recordToRows(activeTab.secrets.secrets);
+	}, [activeTab]);
+	const envs = useQuesterStore((s) => s.envs);
+	const selectedEnv = useQuesterStore((s) => s.selectedEnv);
+	const isRunning = useQuesterStore((s) => s.isRunning);
+	const canRun = useQuesterStore(selectCanRun);
 
-export function EditorArea({
-	activeTab,
-	envRows,
-	secretRows,
-	envs,
-	selectedEnv,
-	onEnvChange,
-	isRunning,
-	canRun,
-	onRun,
-	onEnvRowsChange,
-	onSecretRowsChange,
-	onGraphChange,
-	onSelectNode,
-	onZoomChange,
-}: EditorAreaProps) {
+	const setSelectedEnv = useQuesterStore((s) => s.setSelectedEnv);
+	const runFlow = useQuesterStore((s) => s.runFlow);
+	const handleEnvRowsChange = useQuesterStore((s) => s.handleEnvRowsChange);
+	const handleSecretRowsChange = useQuesterStore(
+		(s) => s.handleSecretRowsChange,
+	);
+	const handleGraphChange = useQuesterStore((s) => s.handleGraphChange);
+	const handleSelectNode = useQuesterStore((s) => s.handleSelectNode);
+	const setZoom = useQuesterStore((s) => s.setZoom);
+
 	if (!activeTab) {
 		return (
 			<div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center text-sm text-muted-foreground">
@@ -57,7 +47,7 @@ export function EditorArea({
 					title={`${activeTab.envName}.json`}
 					description="Environment variables available as {{env.KEY}} in flows."
 					rows={envRows}
-					onChange={onEnvRowsChange}
+					onChange={handleEnvRowsChange}
 				/>
 			</div>
 		);
@@ -70,7 +60,7 @@ export function EditorArea({
 					title={`${activeTab.envName}.secrets.json`}
 					description="Secrets are loaded at runtime and never committed to git."
 					rows={secretRows}
-					onChange={onSecretRowsChange}
+					onChange={handleSecretRowsChange}
 					valuePlaceholder="Secret value"
 				/>
 			</div>
@@ -82,17 +72,17 @@ export function EditorArea({
 		<div className="relative min-h-0 min-w-0 flex-1">
 			<FlowCanvas
 				flow={flow}
-				onGraphChange={onGraphChange}
-				onSelectNode={onSelectNode}
-				onZoomChange={onZoomChange}
+				onGraphChange={handleGraphChange}
+				onSelectNode={handleSelectNode}
+				onZoomChange={setZoom}
 			/>
 			<CanvasControls
 				envs={envs}
 				selectedEnv={selectedEnv}
-				onEnvChange={onEnvChange}
+				onEnvChange={setSelectedEnv}
 				isRunning={isRunning}
 				canRun={canRun}
-				onRun={onRun}
+				onRun={() => void runFlow()}
 			/>
 		</div>
 	);

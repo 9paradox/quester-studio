@@ -33,10 +33,13 @@ function SelectionBridge({
 }: {
 	onSelectNode?: (nodeId: string | null) => void;
 }) {
+	const onSelectNodeRef = useRef(onSelectNode);
+	onSelectNodeRef.current = onSelectNode;
+
 	useOnSelectionChange({
-		onChange: ({ nodes }) => {
-			onSelectNode?.(nodes[0]?.id ?? null);
-		},
+		onChange: useCallback(({ nodes }) => {
+			onSelectNodeRef.current?.(nodes[0]?.id ?? null);
+		}, []),
 	});
 	return null;
 }
@@ -47,9 +50,13 @@ function ViewportBridge({
 	onZoomChange?: (zoom: number) => void;
 }) {
 	const { getZoom } = useReactFlow();
+	const onZoomChangeRef = useRef(onZoomChange);
+	onZoomChangeRef.current = onZoomChange;
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: mount-only initial zoom sync
 	useEffect(() => {
-		onZoomChange?.(getZoom());
-	}, [getZoom, onZoomChange]);
+		onZoomChangeRef.current?.(getZoom());
+	}, []);
 	return null;
 }
 
@@ -63,7 +70,7 @@ function FitViewOnLoad({ flowId }: { flowId: string }) {
 		if (fittedFlowRef.current === flowId) return;
 		fittedFlowRef.current = flowId;
 		requestAnimationFrame(() => {
-			void fitView({ padding: 0.35, maxZoom: 1, duration: 200 });
+			void fitView({ padding: 0.35, maxZoom: 1, duration: 0 });
 		});
 	}, [flowId, nodesInitialized, fitView]);
 
@@ -132,10 +139,12 @@ function FlowCanvasInner({
 
 	const handleNodesChange = useCallback(
 		(changes: NodeChange[]) => {
-			const userChange = changes.some((change) => change.type !== "select");
+			const graphEdit = changes.some(
+				(change) => change.type !== "select" && change.type !== "dimensions",
+			);
 			setNodes((current) => {
 				const next = applyNodeChanges(changes, current);
-				if (userChange) {
+				if (graphEdit) {
 					emitGraphChange(next, edgesRef.current);
 				}
 				return next;
@@ -146,9 +155,12 @@ function FlowCanvasInner({
 
 	const handleEdgesChange = useCallback(
 		(changes: EdgeChange[]) => {
+			const graphEdit = changes.some((change) => change.type !== "select");
 			setEdges((current) => {
 				const next = applyEdgeChanges(changes, current);
-				emitGraphChange(nodesRef.current, next);
+				if (graphEdit) {
+					emitGraphChange(nodesRef.current, next);
+				}
 				return next;
 			});
 		},

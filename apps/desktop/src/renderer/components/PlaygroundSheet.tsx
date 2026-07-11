@@ -8,28 +8,20 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet.js";
 import { Textarea } from "@/components/ui/textarea.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
 
-type PlaygroundSheetProps = {
-	open: boolean;
-	inputJson: string;
-	inputError: string | null;
-	onOpenChange: (open: boolean) => void;
-	onInputChange: (value: string) => void;
-	onRun: () => void;
-	isRunning: boolean;
-};
+export function PlaygroundSheet() {
+	const open = useQuesterStore((s) => s.playgroundOpen);
+	const inputJson = useQuesterStore((s) => s.inputJson);
+	const inputError = useQuesterStore((s) => s.inputError);
+	const isRunning = useQuesterStore((s) => s.isRunning);
 
-export function PlaygroundSheet({
-	open,
-	inputJson,
-	inputError,
-	onOpenChange,
-	onInputChange,
-	onRun,
-	isRunning,
-}: PlaygroundSheetProps) {
+	const setPlaygroundOpen = useQuesterStore((s) => s.setPlaygroundOpen);
+	const setInputJson = useQuesterStore((s) => s.setInputJson);
+	const runFlow = useQuesterStore((s) => s.runFlow);
+
 	return (
-		<Sheet open={open} onOpenChange={onOpenChange}>
+		<Sheet open={open} onOpenChange={setPlaygroundOpen}>
 			<SheetContent side="right" className="w-full sm:max-w-md">
 				<SheetHeader>
 					<SheetTitle>Playground input</SheetTitle>
@@ -39,24 +31,21 @@ export function PlaygroundSheet({
 					<Textarea
 						id="playground-input"
 						value={inputJson}
-						onChange={(e) => onInputChange(e.target.value)}
-						className="min-h-48 font-mono text-xs"
+						onChange={(e) => setInputJson(e.target.value)}
+						className="min-h-[200px] font-mono text-xs"
 						spellCheck={false}
 					/>
 					{inputError ? (
-						<p className="text-xs text-destructive">{inputError}</p>
+						<p className="text-sm text-destructive">{inputError}</p>
 					) : null}
 				</div>
 				<SheetFooter>
 					<Button
 						type="button"
-						variant="outline"
-						onClick={() => onOpenChange(false)}
+						onClick={() => void runFlow()}
+						disabled={isRunning}
 					>
-						Close
-					</Button>
-					<Button type="button" onClick={onRun} disabled={isRunning}>
-						{isRunning ? "Running…" : "Run"}
+						{isRunning ? "Running…" : "Run flow"}
 					</Button>
 				</SheetFooter>
 			</SheetContent>
