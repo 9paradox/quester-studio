@@ -1,0 +1,100 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "bun",
+			"request": "launch",
+			"name": "Debug Current Test File",
+			"program": "${file}",
+			"cwd": "${workspaceFolder}",
+			"runtimeArgs": ["test"],
+			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"type": "bun",
+			"request": "launch",
+			"name": "Debug Current File",
+			"program": "${file}",
+			"cwd": "${workspaceFolder}",
+			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"type": "bun",
+			"request": "attach",
+			"name": "Attach to Bun",
+			"url": "ws://localhost:6499/",
+			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"type": "bun",
+			"request": "attach",
+			"name": "Desktop: Attach Main Process",
+			"url": "ws://localhost:6499/",
+			"preLaunchTask": "desktop: dev:debug",
+			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"type": "bun",
+			"request": "attach",
+			"name": "Desktop: Attach Main (HMR + DevTools)",
+			"url": "ws://localhost:6499/",
+			"preLaunchTask": "desktop: dev:hmr:debug",
+			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"type": "bun",
+			"request": "launch",
+			"name": "Debug Desktop Handlers",
+			"program": "${workspaceFolder}/apps/desktop/src/main/index.test.ts",
+			"cwd": "${workspaceFolder}/apps/desktop",
+			"runtimeArgs": ["test"],
+			"preLaunchTask": "build:pkgs",
+			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"type": "bun",
+			"request": "launch",
+			"name": "Debug CLI: validate sample workspace",
+			"program": "${workspaceFolder}/packages/cli/src/cli.ts",
+			"args": ["validate", "examples/sample-workspace"],
+			"cwd": "${workspaceFolder}",
+			"preLaunchTask": "build:pkgs",
+			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"type": "bun",
+			"request": "launch",
+			"name": "Debug CLI: run sample flow",
+			"program": "${workspaceFolder}/packages/cli/src/cli.ts",
+			"args": [
+				"run",
+				"examples/sample-workspace/flows/login-and-profile.flow.json",
+				"--workspace",
+				"examples/sample-workspace",
+				"--env",
+				"local",
+				"--input",
+				"{\"username\":\"demo\",\"email\":\"demo@example.com\"}"
+			],
+			"cwd": "${workspaceFolder}",
+			"preLaunchTask": "build:pkgs",
+			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"type": "chrome",
+			"request": "launch",
+			"name": "Debug Desktop Renderer",
+			"url": "http://127.0.0.1:5173",
+			"webRoot": "${workspaceFolder}/apps/desktop/src/renderer",
+			"preLaunchTask": "desktop: dev:hmr"
+		},
+		{
+			"type": "chrome",
+			"request": "launch",
+			"name": "Debug Desktop Renderer (HMR debug)",
+			"url": "http://127.0.0.1:5173",
+			"webRoot": "${workspaceFolder}/apps/desktop/src/renderer",
+			"preLaunchTask": "desktop: dev:hmr:debug"
+		}
+	]
+}

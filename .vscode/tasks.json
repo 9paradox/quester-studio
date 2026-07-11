@@ -1,0 +1,78 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build:pkgs",
+			"type": "shell",
+			"command": "bun run build:pkgs",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"group": "build",
+			"presentation": {
+				"reveal": "silent",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "desktop: dev:hmr",
+			"type": "shell",
+			"command": "bun run build:pkgs; bun run --filter @quester/desktop dev:hmr",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"isBackground": true,
+			"problemMatcher": {
+				"owner": "vite",
+				"pattern": {
+					"regexp": "^$"
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": ".",
+					"endsPattern": "(Local:|ready in)"
+				}
+			}
+		},
+		{
+			"label": "desktop: dev:debug",
+			"type": "shell",
+			"command": "bun run build:pkgs; bun run --filter @quester/desktop dev:debug",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"isBackground": true,
+			"problemMatcher": {
+				"owner": "bun",
+				"pattern": {
+					"regexp": "^$"
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": ".",
+					"endsPattern": "(Waiting for debugger|Quester desktop started)"
+				}
+			}
+		},
+		{
+			"label": "desktop: dev:hmr:debug",
+			"type": "shell",
+			"command": "bun run build:pkgs; bun run --filter @quester/desktop dev:hmr:debug",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"isBackground": true,
+			"problemMatcher": {
+				"owner": "bun",
+				"pattern": {
+					"regexp": "^$"
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": ".",
+					"endsPattern": "(Waiting for debugger|Quester desktop started|Local:)"
+				}
+			}
+		}
+	]
+}

@@ -40,9 +40,10 @@
         "@types/three": "^0.165.0",
         "@vitejs/plugin-react": "^4.4.1",
         "concurrently": "^9.2.1",
+        "lightningcss": "^1.32.0",
         "tailwindcss": "^4",
         "typescript": "^5.8.3",
-        "vite": "^6.3.5",
+        "vite": "6.4.3",
       },
     },
     "apps/docs": {
@@ -123,6 +124,9 @@
       "name": "@quester/tsconfig",
       "version": "0.0.0",
     },
+  },
+  "overrides": {
+    "vite": "6.4.3",
   },
   "packages": {
     "@astrojs/compiler": ["@astrojs/compiler@2.13.1", "", {}, "sha512-f3FN83d2G/v32ipNClRKgYv30onQlMZX1vCeZMjPsMMPl1mDpmbl0+N5BYo4S/ofzqJyS5hvwacEo0CCVDn/Qg=="],
