@@ -4,6 +4,14 @@
 	"linter": { "enabled": true },
 	"formatter": { "enabled": true, "indentStyle": "tab" },
 	"files": {
-		"ignore": ["dist", "node_modules", ".turbo", ".astro", "**/*.css"]
+		"ignore": [
+			"dist",
+			"node_modules",
+			".turbo",
+			".astro",
+			"**/*.css",
+			"apps/desktop/build",
+			"schemas"
+		]
 	}
 }
