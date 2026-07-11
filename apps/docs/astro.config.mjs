@@ -2,9 +2,13 @@
 import { defineConfig } from "astro/config";
 
 const base = process.env.BASE_PATH ?? "/";
+const homeRedirect = `${base.replace(/\/$/, "")}/getting-started/`;
 
 export default defineConfig({
 	base,
+	redirects: {
+		"/": homeRedirect,
+	},
 	integrations: [
 		starlight({
 			title: "Quester Docs",
