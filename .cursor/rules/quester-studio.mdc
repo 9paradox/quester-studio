@@ -45,3 +45,4 @@ Use project skills in `.cursor/skills/` for detailed workflows:
 - `release-workflow` — versioning and releases
 - `feature-planning` — roadmap and issues
 - `security-review` — security checklist
+- `git-tidy` — audit and clean merged branches
