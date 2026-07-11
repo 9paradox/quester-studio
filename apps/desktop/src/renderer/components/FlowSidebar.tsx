@@ -1,3 +1,7 @@
+import { Button } from "@/components/ui/button.js";
+import { ScrollArea } from "@/components/ui/scroll-area.js";
+import { Separator } from "@/components/ui/separator.js";
+import { cn } from "@/lib/utils.js";
 import type { FlowMeta } from "../../shared/rpc.js";
 
 type FlowSidebarProps = {
@@ -12,31 +16,38 @@ export function FlowSidebar({
 	onSelectFlow,
 }: FlowSidebarProps) {
 	return (
-		<aside className="flex w-48 shrink-0 flex-col border-r bg-gray-50">
-			<div className="border-b px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+		<aside className="flex w-52 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground">
+			<div className="px-3 py-2 text-xs font-medium text-sidebar-foreground/70">
 				Flows
 			</div>
-			<ul className="flex-1 overflow-y-auto p-2">
-				{flows.length === 0 ? (
-					<li className="px-2 py-1 text-sm text-gray-400">No flows found</li>
-				) : (
-					flows.map((flow) => (
-						<li key={flow.id}>
-							<button
-								type="button"
-								onClick={() => onSelectFlow(flow.id)}
-								className={`w-full rounded px-2 py-1.5 text-left text-sm hover:bg-gray-200 ${
-									selectedFlowId === flow.id
-										? "bg-blue-100 font-medium text-blue-900"
-										: "text-gray-700"
-								}`}
-							>
-								{flow.name}
-							</button>
+			<Separator className="bg-sidebar-border" />
+			<ScrollArea className="flex-1">
+				<ul className="flex flex-col gap-0.5 p-2">
+					{flows.length === 0 ? (
+						<li className="px-2 py-1.5 text-sm text-muted-foreground">
+							No flows found
 						</li>
-					))
-				)}
-			</ul>
+					) : (
+						flows.map((flow) => (
+							<li key={flow.id}>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									onClick={() => onSelectFlow(flow.id)}
+									className={cn(
+										"w-full justify-start font-normal",
+										selectedFlowId === flow.id &&
+											"bg-sidebar-accent text-sidebar-accent-foreground",
+									)}
+								>
+									{flow.name}
+								</Button>
+							</li>
+						))
+					)}
+				</ul>
+			</ScrollArea>
 		</aside>
 	);
 }

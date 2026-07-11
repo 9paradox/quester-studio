@@ -1,0 +1,37 @@
+---
+description: shadcn/ui components and styling for desktop renderer
+globs: apps/desktop/src/renderer/**/*
+alwaysApply: false
+---
+
+# shadcn/ui (desktop renderer)
+
+Use shadcn/ui components, layouts, and theme tokens. Do not build custom UI primitives unless required for domain-specific UI (React Flow nodes, canvas).
+
+## Do
+
+- Import from `@/components/ui/*` (Button, Select, Textarea, Alert, Card, ScrollArea, etc.)
+- Use semantic tokens: `bg-background`, `text-foreground`, `bg-sidebar`, `text-muted-foreground`, `border-border`
+- Add new components via CLI: `npx shadcn@latest add <name> -y` in `apps/desktop`
+- Use `@tabler/icons-react` for icons
+- Use `cn()` from `@/lib/utils` for conditional classes
+
+## Don't
+
+- Raw `<button>`, `<select>`, `<textarea>` with hand-rolled Tailwind when shadcn exists
+- Hardcoded palette classes (`gray-500`, `blue-600`, `red-50`) for app chrome
+- Copy/paste shadcn source from the web — always use the CLI
+- Mix icon libraries
+
+## Example
+
+```tsx
+// ✅ GOOD
+import { Button } from "@/components/ui/button.js";
+<Button variant="outline" size="sm">Open</Button>
+
+// ❌ BAD
+<button className="rounded border border-gray-300 px-3 py-1">Open</button>
+```
+
+Read skill `shadcn-ui` for preset, paths, and CLI commands.

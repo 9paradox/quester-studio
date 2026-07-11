@@ -29,7 +29,7 @@ function FlowCanvasInner({ flow }: { flow: FlowV1 }) {
 export function FlowCanvas({ flow }: FlowCanvasProps) {
 	if (!flow) {
 		return (
-			<div className="flex h-full items-center justify-center text-sm text-gray-500">
+			<div className="flex h-full items-center justify-center text-sm text-muted-foreground">
 				Select a flow to view the canvas
 			</div>
 		);
@@ -37,7 +37,7 @@ export function FlowCanvas({ flow }: FlowCanvasProps) {
 
 	return (
 		<ReactFlowProvider>
-			<div className="h-full w-full">
+			<div className="h-full w-full bg-background">
 				<FlowCanvasInner flow={flow} />
 			</div>
 		</ReactFlowProvider>

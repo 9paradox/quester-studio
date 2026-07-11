@@ -13,5 +13,17 @@
 			"apps/desktop/build",
 			"schemas"
 		]
-	}
+	},
+	"overrides": [
+		{
+			"include": ["**/renderer/components/ui/**"],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"noLabelWithoutControl": "off"
+					}
+				}
+			}
+		}
+	]
 }

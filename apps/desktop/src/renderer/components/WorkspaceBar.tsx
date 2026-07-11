@@ -1,3 +1,7 @@
+import { Button } from "@/components/ui/button.js";
+import { Separator } from "@/components/ui/separator.js";
+import { IconFolderOpen } from "@tabler/icons-react";
+
 type WorkspaceBarProps = {
 	workspaceName: string;
 	workspacePath: string;
@@ -12,19 +16,24 @@ export function WorkspaceBar({
 	isLoading,
 }: WorkspaceBarProps) {
 	return (
-		<header className="flex items-center gap-4 border-b px-4 py-2">
+		<header className="flex h-12 shrink-0 items-center gap-3 border-b bg-background px-4">
 			<span className="text-sm font-semibold">Quester</span>
-			<button
+			<Separator orientation="vertical" className="h-4" />
+			<Button
 				type="button"
+				variant="outline"
+				size="sm"
 				onClick={onOpenWorkspace}
 				disabled={isLoading}
-				className="rounded border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50"
 			>
+				<IconFolderOpen />
 				Open workspace
-			</button>
+			</Button>
 			<div className="min-w-0 flex-1">
 				<div className="truncate text-sm font-medium">{workspaceName}</div>
-				<div className="truncate text-xs text-gray-500">{workspacePath}</div>
+				<div className="truncate text-xs text-muted-foreground">
+					{workspacePath}
+				</div>
 			</div>
 		</header>
 	);

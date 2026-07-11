@@ -1,4 +1,29 @@
+import { Alert, AlertDescription } from "@/components/ui/alert.js";
+import { Button } from "@/components/ui/button.js";
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card.js";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible.js";
+import { Label } from "@/components/ui/label.js";
+import { ScrollArea } from "@/components/ui/scroll-area.js";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select.js";
+import { Separator } from "@/components/ui/separator.js";
+import { Textarea } from "@/components/ui/textarea.js";
 import type { ExecuteFlowResult } from "@quester/engine";
+import { IconPlayerPlay } from "@tabler/icons-react";
 
 const DEFAULT_INPUT = JSON.stringify(
 	{ username: "demo", email: "demo@example.com" },
@@ -33,78 +58,93 @@ export function RunPanel({
 	inputError,
 	selectedFlowId,
 }: RunPanelProps) {
+	const envOptions = envs.length === 0 ? ["local"] : envs;
+
 	return (
-		<aside className="flex w-72 shrink-0 flex-col border-l bg-gray-50">
-			<div className="border-b px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+		<aside className="flex w-72 shrink-0 flex-col border-l bg-sidebar text-sidebar-foreground">
+			<div className="px-3 py-2 text-xs font-medium text-sidebar-foreground/70">
 				Run
 			</div>
-			<div className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
-				<label className="flex flex-col gap-1 text-sm">
-					<span className="font-medium text-gray-700">Environment</span>
-					<select
-						value={selectedEnv}
-						onChange={(e) => onEnvChange(e.target.value)}
-						className="rounded border border-gray-300 bg-white px-2 py-1.5 text-sm"
-					>
-						{envs.length === 0 ? (
-							<option value="local">local</option>
-						) : (
-							envs.map((env) => (
-								<option key={env} value={env}>
-									{env}
-								</option>
-							))
-						)}
-					</select>
-				</label>
-
-				<label className="flex flex-1 flex-col gap-1 text-sm">
-					<span className="font-medium text-gray-700">Input (JSON)</span>
-					<textarea
-						value={inputJson}
-						onChange={(e) => onInputChange(e.target.value)}
-						className="min-h-28 flex-1 resize-none rounded border border-gray-300 bg-white p-2 font-mono text-xs"
-						spellCheck={false}
-					/>
-					{inputError ? (
-						<span className="text-xs text-red-600">{inputError}</span>
-					) : null}
-				</label>
-
-				<button
-					type="button"
-					onClick={onRun}
-					disabled={isRunning || !selectedFlowId}
-					className="rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-				>
-					{isRunning ? "Running…" : "Run"}
-				</button>
-
-				{runError ? (
-					<div className="rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700">
-						{runError}
-					</div>
-				) : null}
-
-				{runResult ? (
+			<Separator className="bg-sidebar-border" />
+			<ScrollArea className="flex-1">
+				<div className="flex flex-col gap-4 p-3">
 					<div className="flex flex-col gap-2">
-						<div className="flex flex-col gap-1 text-sm">
-							<span className="font-medium text-gray-700">Output</span>
-							<pre className="max-h-48 overflow-auto rounded border border-gray-200 bg-white p-2 font-mono text-xs">
-								{JSON.stringify(runResult.output, null, 2)}
-							</pre>
-						</div>
-						<details className="text-sm">
-							<summary className="cursor-pointer font-medium text-gray-700">
-								Node outputs
-							</summary>
-							<pre className="mt-1 max-h-40 overflow-auto rounded border border-gray-200 bg-white p-2 font-mono text-xs">
-								{JSON.stringify(runResult.nodeOutputs, null, 2)}
-							</pre>
-						</details>
+						<Label htmlFor="run-env">Environment</Label>
+						<Select
+							value={selectedEnv}
+							onValueChange={(value) => {
+								if (value) onEnvChange(value);
+							}}
+						>
+							<SelectTrigger id="run-env" className="w-full">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								{envOptions.map((env) => (
+									<SelectItem key={env} value={env}>
+										{env}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 					</div>
-				) : null}
-			</div>
+
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="run-input">Input (JSON)</Label>
+						<Textarea
+							id="run-input"
+							value={inputJson}
+							onChange={(e) => onInputChange(e.target.value)}
+							className="min-h-28 font-mono"
+							spellCheck={false}
+						/>
+						{inputError ? (
+							<p className="text-xs text-destructive">{inputError}</p>
+						) : null}
+					</div>
+
+					<Button
+						type="button"
+						onClick={onRun}
+						disabled={isRunning || !selectedFlowId}
+						className="w-full"
+					>
+						<IconPlayerPlay />
+						{isRunning ? "Running…" : "Run"}
+					</Button>
+
+					{runError ? (
+						<Alert variant="destructive">
+							<AlertDescription>{runError}</AlertDescription>
+						</Alert>
+					) : null}
+
+					{runResult ? (
+						<div className="flex flex-col gap-3">
+							<Card>
+								<CardHeader className="p-3 pb-0">
+									<CardTitle className="text-sm">Output</CardTitle>
+								</CardHeader>
+								<CardContent className="p-3 pt-2">
+									<pre className="max-h-48 overflow-auto rounded-md border bg-muted/30 p-2 font-mono text-xs">
+										{JSON.stringify(runResult.output, null, 2)}
+									</pre>
+								</CardContent>
+							</Card>
+							<Collapsible>
+								<CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted/50">
+									Node outputs
+								</CollapsibleTrigger>
+								<CollapsibleContent>
+									<pre className="mt-2 max-h-40 overflow-auto rounded-md border bg-muted/30 p-2 font-mono text-xs">
+										{JSON.stringify(runResult.nodeOutputs, null, 2)}
+									</pre>
+								</CollapsibleContent>
+							</Collapsible>
+						</div>
+					) : null}
+				</div>
+			</ScrollArea>
 		</aside>
 	);
 }
