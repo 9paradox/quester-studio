@@ -10,6 +10,16 @@ description: >-
 
 Desktop renderer at `apps/desktop` uses **shadcn/ui v4** with preset `b1D3m6L2` (style: `base-mira`, icons: Tabler, font: Geist).
 
+## Official skill (read first for generic rules)
+
+This repo also ships the upstream shadcn agent skill at `.agents/skills/shadcn/` (installed via `bunx skills add shadcn/ui`). Use it for:
+
+- CLI reference (`init`, `apply`, `add`, presets)
+- Styling, composition, forms, and icon rules
+- Base UI vs Radix patterns
+
+**This skill** adds Quester-specific paths, preset, and exceptions on top of the official skill.
+
 ## Rules
 
 1. **Use shadcn components** — prefer `@/components/ui/*` over raw HTML + custom Tailwind.
@@ -66,3 +76,11 @@ bun run --filter @quester/desktop lint
 bun run --filter @quester/desktop typecheck
 bun run --filter @quester/desktop build
 ```
+
+## Refresh official skills
+
+```bash
+bunx skills add shadcn/ui
+```
+
+Updates `.agents/skills/shadcn/` and `skills-lock.json`.
