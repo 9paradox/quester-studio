@@ -117,6 +117,7 @@ Run all tests: `bun run test`
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — branches, commits, PRs
 - [ROADMAP.md](../../ROADMAP.md) — planned work
 - Architecture details: [architecture.md](architecture.md)
+- Dev loop (debug → merge): skill `dev-workflow`
 - Adding nodes: skill `add-flow-node`
 - Desktop app: skill `quester-desktop`
 - Releases: skill `release-workflow`
