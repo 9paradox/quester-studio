@@ -1,0 +1,32 @@
+---
+description: Git branching, commits, and merge workflow for Quester Studio
+alwaysApply: true
+---
+
+# Git workflow
+
+Read [CONTRIBUTING.md](../../CONTRIBUTING.md) for full details.
+
+## Branches
+
+- `main` — protected, squash-merge only
+- `feat/<topic>`, `fix/<topic>`, `chore/<topic>`, `hotfix/<version>`
+- Never force-push `main`
+
+## Commits
+
+- Conventional Commits: `feat(scope):`, `fix(scope):`, `chore(scope):`, etc.
+- Commit after local `lint` + affected tests pass
+- Never commit secrets, `.env`, or hand-edited `schemas/`
+- Agents: **do not create git commits unless the user explicitly asks**
+
+## Pull requests
+
+- PR title = squash commit message (Conventional Commit format)
+- Reference issues: `Fixes #N` or `Refs #N`
+- User-facing changes need `.changeset/*.md` in the same PR
+- New features: check [ROADMAP.md](../../ROADMAP.md) alignment
+
+## Changesets
+
+Add a changeset file with every user-facing PR. Run `bun run changeset` when needed.

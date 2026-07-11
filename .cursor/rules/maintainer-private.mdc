@@ -1,0 +1,41 @@
+---
+description: Maintainer tooling policy — OSS defaults, no paid SaaS in repo workflows
+alwaysApply: true
+---
+
+# Maintainer policy (agents)
+
+Apply these defaults when proposing CI, release, or infrastructure changes.
+
+## Use
+
+- GitHub Actions, Issues, Projects, Pages, Releases
+- Biome, Bun, Lefthook, Changesets, Turborepo (local cache)
+- Dependabot, `bun audit`
+- Public npm packages (`@quester/*`)
+- Unsigned desktop builds on GitHub Releases
+- GitHub Pages for docs and web
+
+## Do not add
+
+- Code signing pipelines or certificate dependencies
+- Third-party coverage SaaS (Codecov, Coveralls, SonarCloud)
+- Snyk, Socket.dev, Datadog, Sentry, or similar paid monitors
+- npm private packages / Teams
+- Vercel/Netlify Pro, Turbo Remote Cache, paid CI runners
+- API keys or paid MCP integrations in the repository
+
+## Public documentation rule
+
+Never write budget, cost, or pricing rationale in README, CONTRIBUTING, SECURITY, ROADMAP, CHANGELOG, apps/docs, issues, or PR text. State technical policy only (e.g. "unsigned builds", "GitHub Pages hosting").
+
+## CI efficiency
+
+- Default CI to `ubuntu-latest` single job
+- Release workflow: `workflow_dispatch` (manual trigger)
+- Changesets version PR can be created locally if automation is heavy
+
+## Cursor
+
+- Run `bun run lint && bun run test` locally before agent commits
+- Prefer focused package-scoped changes

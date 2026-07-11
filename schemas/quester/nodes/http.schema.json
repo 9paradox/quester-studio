@@ -1,48 +1,38 @@
 {
-  "type": "object",
-  "properties": {
-    "label": {
-      "type": "string"
-    },
-    "method": {
-      "type": "string",
-      "enum": [
-        "GET",
-        "POST",
-        "PUT",
-        "PATCH",
-        "DELETE",
-        "HEAD",
-        "OPTIONS"
-      ],
-      "default": "GET"
-    },
-    "url": {
-      "type": "string",
-      "minLength": 1
-    },
-    "headers": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "string"
-      },
-      "default": {}
-    },
-    "body": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "object",
-          "additionalProperties": {}
-        }
-      ]
-    }
-  },
-  "required": [
-    "url"
-  ],
-  "additionalProperties": false,
-  "$schema": "http://json-schema.org/draft-07/schema#"
+	"type": "object",
+	"properties": {
+		"label": {
+			"type": "string"
+		},
+		"method": {
+			"type": "string",
+			"enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+			"default": "GET"
+		},
+		"url": {
+			"type": "string",
+			"minLength": 1
+		},
+		"headers": {
+			"type": "object",
+			"additionalProperties": {
+				"type": "string"
+			},
+			"default": {}
+		},
+		"body": {
+			"anyOf": [
+				{
+					"type": "string"
+				},
+				{
+					"type": "object",
+					"additionalProperties": {}
+				}
+			]
+		}
+	},
+	"required": ["url"],
+	"additionalProperties": false,
+	"$schema": "http://json-schema.org/draft-07/schema#"
 }

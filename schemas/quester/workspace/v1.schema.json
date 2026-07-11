@@ -1,27 +1,24 @@
 {
-  "type": "object",
-  "properties": {
-    "name": {
-      "type": "string",
-      "minLength": 1
-    },
-    "version": {
-      "type": "string",
-      "const": "v1"
-    },
-    "flowsDir": {
-      "type": "string",
-      "default": "flows"
-    },
-    "environmentsDir": {
-      "type": "string",
-      "default": "environments"
-    }
-  },
-  "required": [
-    "name",
-    "version"
-  ],
-  "additionalProperties": false,
-  "$schema": "http://json-schema.org/draft-07/schema#"
+	"type": "object",
+	"properties": {
+		"name": {
+			"type": "string",
+			"minLength": 1
+		},
+		"version": {
+			"type": "string",
+			"const": "v1"
+		},
+		"flowsDir": {
+			"type": "string",
+			"default": "flows"
+		},
+		"environmentsDir": {
+			"type": "string",
+			"default": "environments"
+		}
+	},
+	"required": ["name", "version"],
+	"additionalProperties": false,
+	"$schema": "http://json-schema.org/draft-07/schema#"
 }

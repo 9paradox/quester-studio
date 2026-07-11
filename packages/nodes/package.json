@@ -1,29 +1,33 @@
 {
-    "name":  "@quester/nodes",
-    "version":  "0.1.0",
-    "type":  "module",
-    "main":  "./dist/index.js",
-    "types":  "./dist/index.d.ts",
-    "exports":  {
-                    ".":  {
-                              "types":  "./dist/index.d.ts",
-                              "import":  "./dist/index.js"
-                          }
-                },
-    "scripts":  {
-                    "build":  "tsc",
-                    "test":  "bun test src",
-                    "lint":  "biome check src"
-                },
-    "dependencies":  {
-                         "@quester/schema":  "workspace:*",
-                         "eta":  "^3.5.0",
-                         "jmespath":  "^0.16.0"
-                     },
-    "devDependencies":  {
-                            "@quester/tsconfig":  "workspace:*",
-                            "@types/jmespath":  "^0.15.2",
-                            "typescript":  "^5.8.3",
-                            "@types/node":  "^22.15.3"
-                        }
+	"name": "@quester/nodes",
+	"version": "0.1.0",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test src",
+		"lint": "biome check src"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"@quester/schema": "workspace:*",
+		"eta": "^3.5.0",
+		"jmespath": "^0.16.0"
+	},
+	"devDependencies": {
+		"@quester/tsconfig": "workspace:*",
+		"@types/jmespath": "^0.15.2",
+		"typescript": "^5.8.3",
+		"@types/node": "^22.15.3"
+	}
 }

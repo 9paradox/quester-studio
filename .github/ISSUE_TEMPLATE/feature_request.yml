@@ -1,0 +1,52 @@
+name: Feature request
+description: Suggest a new capability for Quester Studio
+title: "[feat]: "
+labels: ["type:feature"]
+body:
+  - type: markdown
+    attributes:
+      value: See [ROADMAP.md](../../ROADMAP.md) for planned work. Search issues before duplicating.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should it work?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - schema
+        - nodes
+        - engine
+        - cli
+        - desktop
+        - docs
+        - infra
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority suggestion
+      options:
+        - high — current milestone
+        - medium — next milestone
+        - low — backlog / idea
+    validations:
+      required: true
+  - type: checkboxes
+    id: roadmap
+    attributes:
+      label: Roadmap alignment
+      options:
+        - label: I checked ROADMAP.md — this is not already planned (or I am proposing a change to the plan)

@@ -1,0 +1,30 @@
+---
+description: Security conventions for engine, nodes, and desktop code
+globs: packages/**,apps/desktop/**
+alwaysApply: false
+---
+
+# Security
+
+Read [SECURITY.md](../../SECURITY.md).
+
+## Secrets
+
+- Never commit `*.secrets.json`, `.env`, or API tokens
+- Use `*.secrets.json.example` for templates
+- Every execution path must call `loadSecrets` and pass `secrets` to `executeFlow`
+
+## HTTP nodes
+
+- Resolved URLs must be `http:` or `https:` only
+- Reject `file:`, `ftp:`, and URLs without a host at execute time
+- Quester does not sandbox egress — document in SECURITY.md, do not add silent blocks for localhost
+
+## Desktop
+
+- Validate flows in main process before execution
+- Renderer must not execute HTTP directly — use RPC to main process
+
+## In-code TODOs
+
+Use `TODO(#issue)` referencing an open GitHub issue. No orphan TODOs.

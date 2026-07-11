@@ -1,0 +1,47 @@
+---
+description: Quester Studio monorepo conventions — Bun, package boundaries, flow format
+alwaysApply: true
+---
+
+# Quester Studio
+
+Monorepo for **Quester** (local-first visual API flows). Use **Bun 1.3.14**.
+
+## Packages
+
+- `@quester/schema` — Zod validation only
+- `@quester/nodes` — node `execute()` plugins
+- `@quester/engine` — workspace load + flow execution
+- `@quester/cli` — `quester validate` / `quester run`
+
+Do not put execution logic in schema or UI in engine.
+
+## Code style
+
+- ESM with `.js` import suffixes in TypeScript
+- Biome for lint/format (`bun run lint`)
+- `bun:test` for tests in `src/**/*.test.ts` — add tests with every feature
+- Minimal diffs; reuse existing patterns
+
+## Flow files
+
+- `*.flow.json` version `v1`, git-friendly workspace under `quester.json`
+- Templates: `{{env.*}}`, `{{input.*}}`, `{{nodes.id}}`, `{{vars.*}}`
+- Rebuild `@quester/schema` after schema changes (updates `schemas/`)
+
+## Governance
+
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — branches, commits, PRs
+- [ROADMAP.md](../../ROADMAP.md) — planned work
+- [SECURITY.md](../../SECURITY.md) — secrets and trust model
+- New features: issue ref + tests + changeset when user-facing
+
+## Skills
+
+Use project skills in `.cursor/skills/` for detailed workflows:
+- `quester-studio` — monorepo dev
+- `add-flow-node` — new node types
+- `quester-desktop` — desktop app
+- `release-workflow` — versioning and releases
+- `feature-planning` — roadmap and issues
+- `security-review` — security checklist

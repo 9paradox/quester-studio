@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version tag (e.g. 0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Build
+        run: bun run build
+      - name: Publish to npm
+        run: bun run release:pkgs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  release-desktop:
+    needs: publish-npm
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Build packages
+        run: bun run build:pkgs
+      - name: Build desktop
+        run: bun run --filter @quester/desktop build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.os }}
+          path: apps/desktop/dist/**
+
+  github-release:
+    needs: release-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
+          body: |
+            Development build — see [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md) for download verification.
+
+            ## npm packages
+
+            `@quester/schema`, `@quester/nodes`, `@quester/engine`, `@quester/cli` at v${{ inputs.version }}.
+          files: artifacts/**
+          draft: false

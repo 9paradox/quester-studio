@@ -8,6 +8,14 @@ Local-first, privacy-first visual API flows. **Quester** is the desktop product;
 
 Legacy [apitester](https://github.com/9paradox/apitester) remains separate.
 
+## Docs
+
+- [Contributing](./CONTRIBUTING.md)
+- [Security](./SECURITY.md)
+- [Roadmap](./ROADMAP.md)
+- [Changelog](./CHANGELOG.md)
+- [Documentation site](https://9paradox.github.io/quester-studio/) (GitHub Pages)
+
 ## Structure
 
 ```
