@@ -1,6 +1,7 @@
 ﻿node_modules/
 .turbo/
 dist/
+apps/desktop/build/
 *.log
 .DS_Store
 .env
