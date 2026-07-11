@@ -4,6 +4,11 @@
 		"jsx": "react-jsx",
 		"noEmit": true
 	},
-	"include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"],
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"vite.config.ts",
+		"electrobun.config.ts"
+	],
 	"exclude": ["src/**/*.test.ts"]
 }
