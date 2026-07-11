@@ -1,0 +1,27 @@
+---
+export const prerender = true;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Redirecting…</title>
+		<meta http-equiv="cache-control" content="no-cache" />
+		<meta http-equiv="refresh" content="0;url=./getting-started/" />
+		<script is:inline>
+			(function () {
+				var target =
+					location.pathname.replace(/\/?$/, "/") + "getting-started/";
+				location.replace(target + location.search + location.hash);
+			})();
+		</script>
+	</head>
+	<body>
+		<p><a id="continue">Continue to Getting Started</a></p>
+		<script is:inline>
+			document.getElementById("continue").href =
+				location.pathname.replace(/\/?$/, "/") + "getting-started/";
+		</script>
+	</body>
+</html>
