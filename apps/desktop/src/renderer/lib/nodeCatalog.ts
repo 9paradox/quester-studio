@@ -1,11 +1,26 @@
 import type { BuiltinNodeType } from "@quester/schema";
+import {
+	IconArrowBarToDown,
+	IconArrowBarToUp,
+	IconBraces,
+	IconCode,
+	IconGitBranch,
+	IconVariable,
+	IconWorld,
+} from "@tabler/icons-react";
+import type { ComponentType, SVGProps } from "react";
 
 export type ActivityView = "flows" | "envs" | "secrets" | "nodes";
+
+type CatalogIcon = ComponentType<
+	SVGProps<SVGSVGElement> & { className?: string }
+>;
 
 export type NodeCatalogEntry = {
 	type: BuiltinNodeType;
 	label: string;
 	description: string;
+	icon: CatalogIcon;
 };
 
 export type NodeCatalogGroup = {
@@ -17,22 +32,59 @@ export const nodeCatalogGroups: NodeCatalogGroup[] = [
 	{
 		title: "Input & Output",
 		nodes: [
-			{ type: "input", label: "Input", description: "Flow entry point" },
-			{ type: "output", label: "Output", description: "Flow result" },
+			{
+				type: "input",
+				label: "Input",
+				description: "Flow entry point",
+				icon: IconArrowBarToDown,
+			},
+			{
+				type: "output",
+				label: "Output",
+				description: "Flow result",
+				icon: IconArrowBarToUp,
+			},
 		],
 	},
 	{
 		title: "HTTP & Data",
 		nodes: [
-			{ type: "http", label: "HTTP", description: "HTTP request" },
-			{ type: "extract", label: "Extract", description: "Extract JSON field" },
-			{ type: "template", label: "Template", description: "Render template" },
-			{ type: "set", label: "Set", description: "Set variables" },
+			{
+				type: "http",
+				label: "HTTP",
+				description: "HTTP request",
+				icon: IconWorld,
+			},
+			{
+				type: "extract",
+				label: "Extract",
+				description: "Extract JSON field",
+				icon: IconBraces,
+			},
+			{
+				type: "template",
+				label: "Template",
+				description: "Render template",
+				icon: IconCode,
+			},
+			{
+				type: "set",
+				label: "Set",
+				description: "Set variables",
+				icon: IconVariable,
+			},
 		],
 	},
 	{
 		title: "Logic",
-		nodes: [{ type: "if", label: "If", description: "Conditional branch" }],
+		nodes: [
+			{
+				type: "if",
+				label: "If",
+				description: "Conditional branch",
+				icon: IconGitBranch,
+			},
+		],
 	},
 ];
 

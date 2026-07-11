@@ -1,3 +1,5 @@
+import type { KeyValueRow } from "@/components/KeyValueEditor.js";
+import { recordToRows } from "@/components/KeyValueEditor.js";
 import type { EnvironmentV1, FlowV1, SecretsV1 } from "@quester/schema";
 
 export type FlowEditorTab = {
@@ -13,6 +15,8 @@ export type EnvEditorTab = {
 	id: string;
 	envName: string;
 	environment: EnvironmentV1;
+	/** Editing source of truth — preserves empty/in-progress rows. */
+	rows: KeyValueRow[];
 	dirty: boolean;
 };
 
@@ -21,6 +25,8 @@ export type SecretsEditorTab = {
 	id: string;
 	envName: string;
 	secrets: SecretsV1;
+	/** Editing source of truth — preserves empty/in-progress rows. */
+	rows: KeyValueRow[];
 	dirty: boolean;
 };
 
@@ -54,6 +60,7 @@ export function createEnvEditorTab(environment: EnvironmentV1): EnvEditorTab {
 		id: envTabId(environment.name),
 		envName: environment.name,
 		environment,
+		rows: recordToRows(environment.variables),
 		dirty: false,
 	};
 }
@@ -67,6 +74,7 @@ export function createSecretsEditorTab(
 		id: secretsTabId(envName),
 		envName,
 		secrets,
+		rows: recordToRows(secrets.secrets),
 		dirty: false,
 	};
 }

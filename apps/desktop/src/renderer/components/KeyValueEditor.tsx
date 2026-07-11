@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 
 export type KeyValueRow = { id: string; key: string; value: string };
 
@@ -71,31 +71,28 @@ export function KeyValueEditor({
 	onChange,
 	valuePlaceholder = "Value",
 }: KeyValueEditorProps) {
-	const displayRows = useMemo(
-		() => (rows.length === 0 ? [newRow()] : rows),
-		[rows],
-	);
+	useEffect(() => {
+		if (rows.length === 0) onChange([newRow()]);
+	}, [rows.length, onChange]);
 
 	const updateRow = useCallback(
 		(id: string, patch: Partial<Pick<KeyValueRow, "key" | "value">>) => {
-			onChange(
-				displayRows.map((row) => (row.id === id ? { ...row, ...patch } : row)),
-			);
+			onChange(rows.map((row) => (row.id === id ? { ...row, ...patch } : row)));
 		},
-		[displayRows, onChange],
+		[rows, onChange],
 	);
 
 	const removeRow = useCallback(
 		(id: string) => {
-			const next = displayRows.filter((row) => row.id !== id);
+			const next = rows.filter((row) => row.id !== id);
 			onChange(next.length === 0 ? [newRow()] : next);
 		},
-		[displayRows, onChange],
+		[rows, onChange],
 	);
 
 	const addRow = useCallback(() => {
-		onChange([...displayRows, newRow()]);
-	}, [displayRows, onChange]);
+		onChange([...rows, newRow()]);
+	}, [rows, onChange]);
 
 	return (
 		<div className="flex h-full flex-col">
@@ -112,7 +109,7 @@ export function KeyValueEditor({
 						<span>Value</span>
 						<span className="w-7" />
 					</div>
-					{displayRows.map((row) => (
+					{rows.map((row) => (
 						<div
 							key={row.id}
 							className="grid grid-cols-[1fr_1fr_auto] items-center gap-2"

@@ -10,13 +10,18 @@ import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectActiveTab, selectDirtyTabIds } from "@/stores/selectors.js";
 import {
 	IconDeviceFloppy,
+	IconFile,
 	IconFolderOpen,
+	IconKey,
 	IconPencil,
 	IconPlus,
+	IconTopologyRing2,
 	IconTrash,
 } from "@tabler/icons-react";
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode, SVGProps } from "react";
 import { useShallow } from "zustand/react/shallow";
+
+type ListIcon = ComponentType<SVGProps<SVGSVGElement> & { className?: string }>;
 
 export function PrimarySidebar() {
 	const width = useQuesterStore((s) => s.sidebarWidth);
@@ -90,6 +95,7 @@ export function PrimarySidebar() {
 					{filteredFlows.map((flow) => (
 						<FileListItem
 							key={flow.id}
+							icon={IconTopologyRing2}
 							label={flow.name}
 							selected={activeTabId === flowTabId(flow.id)}
 							dirty={dirtyTabIds.includes(flowTabId(flow.id))}
@@ -119,6 +125,7 @@ export function PrimarySidebar() {
 					{filteredEnvs.map((env) => (
 						<FileListItem
 							key={env}
+							icon={IconFile}
 							label={`${env}.json`}
 							selected={activeTabId === envTabId(env)}
 							dirty={dirtyTabIds.includes(envTabId(env))}
@@ -146,6 +153,7 @@ export function PrimarySidebar() {
 					{filteredSecrets.map((file) => (
 						<FileListItem
 							key={file.envName}
+							icon={IconKey}
 							label={file.fileName}
 							selected={activeTabId === secretsTabId(file.envName)}
 							dirty={dirtyTabIds.includes(secretsTabId(file.envName))}
@@ -168,20 +176,26 @@ export function PrimarySidebar() {
 								<div className="px-1 text-xs font-medium text-muted-foreground">
 									{group.title}
 								</div>
-								{group.nodes.map((node) => (
-									<Button
-										key={node.type}
-										type="button"
-										variant="ghost"
-										className="h-auto flex-col items-start gap-0 px-2 py-1.5 text-left font-normal"
-										onClick={() => handleAddNode(node.type)}
-									>
-										<span className="text-sm">{node.label}</span>
-										<span className="text-xs text-muted-foreground">
-											{node.description}
-										</span>
-									</Button>
-								))}
+								{group.nodes.map((node) => {
+									const NodeIcon = node.icon;
+									return (
+										<Button
+											key={node.type}
+											type="button"
+											variant="ghost"
+											className="h-auto items-start justify-start gap-2 px-2 py-1.5 text-left font-normal"
+											onClick={() => handleAddNode(node.type)}
+										>
+											<NodeIcon className="mt-0.5 size-4 shrink-0 opacity-70" />
+											<span className="flex min-w-0 flex-col gap-0">
+												<span className="text-sm">{node.label}</span>
+												<span className="text-xs text-muted-foreground">
+													{node.description}
+												</span>
+											</span>
+										</Button>
+									);
+								})}
 							</div>
 						))}
 					</div>
@@ -273,6 +287,7 @@ function SidebarFileList({
 }
 
 function FileListItem({
+	icon: Icon,
 	label,
 	selected,
 	dirty,
@@ -280,6 +295,7 @@ function FileListItem({
 	onRename,
 	onDelete,
 }: {
+	icon: ListIcon;
 	label: string;
 	selected: boolean;
 	dirty: boolean;
@@ -299,6 +315,7 @@ function FileListItem({
 				className="flex h-8 min-w-0 flex-1 items-center gap-1.5 px-2 text-left text-sm font-normal"
 				onClick={onSelect}
 			>
+				<Icon className="size-3.5 shrink-0 opacity-70" />
 				<span className="truncate">{label}</span>
 				{dirty ? (
 					<span className="size-1.5 shrink-0 rounded-full bg-primary" />

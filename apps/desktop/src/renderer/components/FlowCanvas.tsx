@@ -11,6 +11,7 @@ import {
 	type NodeChange,
 	ReactFlow,
 	ReactFlowProvider,
+	type Viewport,
 	addEdge,
 	applyEdgeChanges,
 	applyNodeChanges,
@@ -20,6 +21,9 @@ import {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { flowNodeTypes } from "./nodes/FlowNodes.js";
+
+/** Survives ReactFlowProvider remounts when switching editor tabs. */
+const viewportsByFlowId = new Map<string, Viewport>();
 
 type FlowCanvasProps = {
 	flow: FlowV1 | null;
@@ -61,18 +65,29 @@ function ViewportBridge({
 }
 
 function FitViewOnLoad({ flowId }: { flowId: string }) {
-	const { fitView } = useReactFlow();
+	const { fitView, getViewport, setViewport } = useReactFlow();
 	const nodesInitialized = useNodesInitialized();
-	const fittedFlowRef = useRef<string | null>(null);
+	const appliedFlowRef = useRef<string | null>(null);
 
 	useEffect(() => {
 		if (!nodesInitialized) return;
-		if (fittedFlowRef.current === flowId) return;
-		fittedFlowRef.current = flowId;
+		if (appliedFlowRef.current === flowId) return;
+		appliedFlowRef.current = flowId;
+
+		const saved = viewportsByFlowId.get(flowId);
+		// Double rAF: wait until the pane has a real size so fitView doesn't
+		// pin the graph to the top of an undersized container.
 		requestAnimationFrame(() => {
-			void fitView({ padding: 0.35, maxZoom: 1, duration: 0 });
+			requestAnimationFrame(() => {
+				if (saved) {
+					void setViewport(saved, { duration: 0 });
+					return;
+				}
+				void fitView({ padding: 0.2, maxZoom: 1, duration: 0 });
+				viewportsByFlowId.set(flowId, getViewport());
+			});
 		});
-	}, [flowId, nodesInitialized, fitView]);
+	}, [flowId, nodesInitialized, fitView, getViewport, setViewport]);
 
 	return null;
 }
@@ -204,12 +219,17 @@ function FlowCanvasInner({
 			onNodesChange={handleNodesChange}
 			onEdgesChange={handleEdgesChange}
 			onConnect={onConnect}
-			onMoveEnd={(_, viewport) => onZoomChange?.(viewport.zoom)}
+			onMoveEnd={(_, viewport) => {
+				viewportsByFlowId.set(flow.id, viewport);
+				onZoomChange?.(viewport.zoom);
+			}}
 			nodesDraggable
 			nodesConnectable
 			elementsSelectable
 			proOptions={{ hideAttribution: true }}
 			className="bg-muted/30"
+			minZoom={0.25}
+			maxZoom={2}
 		>
 			<Background variant={BackgroundVariant.Dots} gap={16} size={1} />
 			<FitViewOnLoad flowId={flow.id} />
