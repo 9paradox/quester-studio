@@ -46,6 +46,41 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 					env,
 					input,
 				}),
+			saveFlow: async ({ flow, workspace }) =>
+				(await import("./handlers.js")).saveFlow(flow, workspace),
+			listSecretNames: async ({ workspace, env }) =>
+				(await import("./handlers.js")).listSecretNames(workspace, env),
+			createFlow: async ({ workspace, flowId, name }) =>
+				(await import("./handlers.js")).createFlow(workspace, flowId, name),
+			deleteFlow: async ({ workspace, flowId }) => {
+				await (await import("./handlers.js")).deleteFlow(flowId, workspace);
+				return { ok: true as const };
+			},
+			renameFlow: async ({ workspace, flowId, newId, name }) =>
+				(await import("./handlers.js")).renameFlow(
+					workspace,
+					flowId,
+					newId,
+					name,
+				),
+			loadEnvironment: async ({ workspace, envName }) =>
+				(await import("./handlers.js")).loadEnvironment(workspace, envName),
+			saveEnvironment: async ({ workspace, environment }) =>
+				(await import("./handlers.js")).saveEnvironment(workspace, environment),
+			createEnvironment: async ({ workspace, envName }) =>
+				(await import("./handlers.js")).createEnvironment(workspace, envName),
+			listSecretFiles: async ({ workspace }) =>
+				(await import("./handlers.js")).listSecretFiles(workspace),
+			loadSecretsFile: async ({ workspace, envName }) =>
+				(await import("./handlers.js")).loadSecretsFile(workspace, envName),
+			saveSecretsFile: async ({ workspace, envName, secrets }) =>
+				(await import("./handlers.js")).saveSecretsFile(
+					workspace,
+					envName,
+					secrets,
+				),
+			createSecretsFile: async ({ workspace, envName }) =>
+				(await import("./handlers.js")).createSecretsFile(workspace, envName),
 		},
 		messages: {},
 	},
