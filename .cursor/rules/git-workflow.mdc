@@ -26,6 +26,11 @@ Read [CONTRIBUTING.md](../../CONTRIBUTING.md) for full details.
 - Reference issues: `Fixes #N` or `Refs #N`
 - User-facing changes need `.changeset/*.md` in the same PR
 - New features: check [ROADMAP.md](../../ROADMAP.md) alignment
+- After merge: delete the PR head branch (local + `origin`) once work is on `main`
+
+## Branch cleanup
+
+Use skill `git-tidy` to audit branches and remove stale merged `feat/*`, `fix/*`, `chore/*`, `hotfix/*` branches. Ask before deleting; never remove `main` or open PR branches (including Dependabot).
 
 ## Changesets
 
