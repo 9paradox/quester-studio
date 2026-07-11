@@ -5,10 +5,10 @@
 
 ## Now (v0.2.0 — Desktop MVP)
 
-- [ ] Electrobun IPC — expose main-process RPCs to renderer
-- [ ] Workspace folder picker — open real `quester.json` workspace
-- [ ] Flow list + loader — canvas loads selected `*.flow.json`
-- [ ] Run panel — env selector, JSON input, `executeFlowRpc`, output display
+- [x] Electrobun IPC — expose main-process RPCs to renderer
+- [x] Workspace folder picker — open real `quester.json` workspace
+- [x] Flow list + loader — canvas loads selected `*.flow.json`
+- [x] Run panel — env selector, JSON input, `executeFlowRpc`, output display
 
 ## Next (v0.3.0 — Builder UX)
 

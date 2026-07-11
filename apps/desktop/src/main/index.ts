@@ -1,50 +1,64 @@
-﻿import { readFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { executeFlow, loadSecrets, loadWorkspace } from "@quester/engine";
-import { validateFlow } from "@quester/schema";
+import { BrowserView, BrowserWindow } from "electrobun/bun";
+import type { DesktopRPC } from "../shared/rpc.js";
 
-const workspaceRoot = resolve(
-	dirname(fileURLToPath(import.meta.url)),
-	"../../../../examples/sample-workspace",
-);
-
-export async function openWorkspace(path?: string) {
-	const root = path ?? workspaceRoot;
-	return loadWorkspace(root);
+async function getMainViewUrl(): Promise<string> {
+	try {
+		const response = await fetch("http://localhost:5173", {
+			signal: AbortSignal.timeout(500),
+		});
+		if (response.ok) return "http://localhost:5173";
+	} catch {
+		// Vite dev server not running — use bundled views
+	}
+	return "views://mainview/index.html";
 }
 
-export async function listFlows(path?: string) {
-	const ws = await openWorkspace(path);
-	return Object.values(ws.flows).map((f) => ({
-		id: f.id,
-		name: f.name ?? f.id,
-	}));
-}
+const rpc = BrowserView.defineRPC<DesktopRPC>({
+	maxRequestTime: 30_000,
+	handlers: {
+		requests: {
+			getDefaultWorkspace: async () =>
+				(await import("./handlers.js")).getDefaultWorkspace(),
+			pickWorkspaceFolder: async () =>
+				(await import("./handlers.js")).pickWorkspaceFolder(),
+			openWorkspaceSummary: async ({ path }) =>
+				(await import("./handlers.js")).openWorkspaceSummary(path),
+			listFlows: async ({ workspace }) =>
+				(await import("./handlers.js")).listFlows(workspace),
+			listEnvs: async ({ workspace }) =>
+				(await import("./handlers.js")).listEnvs(workspace),
+			loadFlow: async ({ flowId, workspace }) =>
+				(await import("./handlers.js")).loadFlow(flowId, workspace),
+			executeFlowRpc: async ({ flowId, workspace, env, input }) =>
+				(await import("./handlers.js")).executeFlowRpc(flowId, {
+					workspace,
+					env,
+					input,
+				}),
+		},
+		messages: {},
+	},
+});
 
-export async function executeFlowRpc(
-	flowId: string,
-	options?: { env?: string; input?: unknown; workspace?: string },
-) {
-	const root = options?.workspace ? resolve(options.workspace) : workspaceRoot;
-	const ws = await loadWorkspace(root);
-	const flow = ws.flows[flowId];
-	if (!flow) throw new Error(`Flow not found: ${flowId}`);
-	const validated = validateFlow(flow);
-	if (!validated.success) throw new Error(validated.error);
-	const envName = options?.env ?? "local";
-	const envVars = ws.environments[envName]?.variables ?? {};
-	const secrets = await loadSecrets(root, envName, ws.manifest.environmentsDir);
-	return executeFlow(validated.data, {
-		input: options?.input ?? {},
-		env: envVars,
-		secrets,
-	});
-}
+const mainWindow = new BrowserWindow({
+	title: "Quester",
+	url: await getMainViewUrl(),
+	frame: {
+		width: 1200,
+		height: 800,
+		x: 100,
+		y: 100,
+	},
+	rpc,
+	activate: true,
+});
 
-export async function loadSampleFlowJson() {
-	const path = resolve(workspaceRoot, "flows/login-and-profile.flow.json");
-	return JSON.parse(await readFile(path, "utf8"));
-}
+mainWindow.on("close", () => {
+	process.exit(0);
+});
 
-console.log("Quester desktop main process (stub)");
+mainWindow.webview.on("dom-ready", () => {
+	console.log("Quester webview ready");
+});
+
+console.log("Quester desktop started");
