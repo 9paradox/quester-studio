@@ -1,0 +1,28 @@
+{
+    "name":  "@quester/schema",
+    "version":  "0.1.0",
+    "type":  "module",
+    "main":  "./dist/index.js",
+    "types":  "./dist/index.d.ts",
+    "exports":  {
+                    ".":  {
+                              "types":  "./dist/index.d.ts",
+                              "import":  "./dist/index.js"
+                          }
+                },
+    "scripts":  {
+                    "build":  "tsc \u0026\u0026 bun run emit-schemas",
+                    "emit-schemas":  "bun run src/emit-schemas.ts",
+                    "test":  "bun test",
+                    "lint":  "biome check src"
+                },
+    "dependencies":  {
+                         "zod":  "^3.24.2",
+                         "zod-to-json-schema":  "^3.24.5"
+                     },
+    "devDependencies":  {
+                            "@quester/tsconfig":  "workspace:*",
+                            "typescript":  "^5.8.3",
+                            "@types/node":  "^22.15.3"
+                        }
+}

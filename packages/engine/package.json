@@ -1,0 +1,27 @@
+{
+    "name":  "@quester/engine",
+    "version":  "0.1.0",
+    "type":  "module",
+    "main":  "./dist/index.js",
+    "types":  "./dist/index.d.ts",
+    "exports":  {
+                    ".":  {
+                              "types":  "./dist/index.d.ts",
+                              "import":  "./dist/index.js"
+                          }
+                },
+    "scripts":  {
+                    "build":  "tsc",
+                    "test":  "bun test src",
+                    "lint":  "biome check src"
+                },
+    "dependencies":  {
+                         "@quester/nodes":  "workspace:*",
+                         "@quester/schema":  "workspace:*"
+                     },
+    "devDependencies":  {
+                            "@quester/tsconfig":  "workspace:*",
+                            "typescript":  "^5.8.3",
+                            "@types/node":  "^22.15.3"
+                        }
+}

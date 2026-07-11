@@ -1,0 +1,77 @@
+﻿import { z } from "zod";
+import { inputNodeDataSchema } from "./nodes/input.js";
+import { httpNodeDataSchema } from "./nodes/http.js";
+import { extractNodeDataSchema } from "./nodes/extract.js";
+import { templateNodeDataSchema } from "./nodes/template.js";
+import { setNodeDataSchema } from "./nodes/set.js";
+import { ifNodeDataSchema } from "./nodes/if.js";
+import { outputNodeDataSchema } from "./nodes/output.js";
+import { FLOW_VERSION } from "./common.js";
+
+export const builtinNodeTypes = [
+  "input",
+  "http",
+  "extract",
+  "template",
+  "set",
+  "if",
+  "output",
+] as const;
+
+export type BuiltinNodeType = (typeof builtinNodeTypes)[number];
+
+const nodeDataByType: Record<BuiltinNodeType, z.ZodTypeAny> = {
+  input: inputNodeDataSchema,
+  http: httpNodeDataSchema,
+  extract: extractNodeDataSchema,
+  template: templateNodeDataSchema,
+  set: setNodeDataSchema,
+  if: ifNodeDataSchema,
+  output: outputNodeDataSchema,
+};
+
+export function nodeDataSchemaForType(type: string): z.ZodTypeAny | undefined {
+  if ((builtinNodeTypes as readonly string[]).includes(type)) {
+    return nodeDataByType[type as BuiltinNodeType];
+  }
+  return undefined;
+}
+
+export const flowNodeSchemaV1 = z.object({
+  id: z.string().min(1),
+  type: z.string().min(1),
+  data: z.record(z.unknown()).default({}),
+  position: z
+    .object({ x: z.number(), y: z.number() })
+    .optional(),
+});
+
+export const flowEdgeSchemaV1 = z.object({
+  id: z.string().min(1),
+  source: z.string().min(1),
+  target: z.string().min(1),
+  sourceHandle: z.string().nullable().optional(),
+});
+
+export const flowSchemaV1 = z.object({
+  id: z.string().min(1),
+  version: z.literal(FLOW_VERSION),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  nodes: z.array(flowNodeSchemaV1).min(1),
+  edges: z.array(flowEdgeSchemaV1).default([]),
+});
+
+export type FlowNodeV1 = z.infer<typeof flowNodeSchemaV1>;
+export type FlowEdgeV1 = z.infer<typeof flowEdgeSchemaV1>;
+export type FlowV1 = z.infer<typeof flowSchemaV1>;
+
+export function validateNodeData(type: string, data: unknown): z.SafeParseReturnType<unknown, unknown> {
+  const schema = nodeDataSchemaForType(type);
+  if (!schema) {
+    return { success: true, data };
+  }
+  return schema.safeParse(data);
+}
+
+export { FLOW_VERSION };

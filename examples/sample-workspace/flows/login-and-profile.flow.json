@@ -1,0 +1,45 @@
+{
+  "id": "login-and-profile",
+  "version": "v1",
+  "name": "Login and profile (JSONPlaceholder)",
+  "description": "POST login then GET profile using returned token (mocked with jsonplaceholder users)",
+  "nodes": [
+    { "id": "input", "type": "input", "data": { "label": "Credentials" }, "position": { "x": 0, "y": 0 } },
+    {
+      "id": "login",
+      "type": "http",
+      "data": {
+        "label": "Login",
+        "method": "POST",
+        "url": "{{env.API_BASE}}/users",
+        "headers": { "Content-Type": "application/json" },
+        "body": "{\"username\": \"{{input.username}}\", \"email\": \"{{input.email}}\"}"
+      },
+      "position": { "x": 250, "y": 0 }
+    },
+    {
+      "id": "userId",
+      "type": "extract",
+      "data": { "label": "User id", "expression": "body.id", "source": "previous" },
+      "position": { "x": 500, "y": 0 }
+    },
+    {
+      "id": "profile",
+      "type": "http",
+      "data": {
+        "label": "Profile",
+        "method": "GET",
+        "url": "{{env.API_BASE}}/users/{{nodes.userId}}",
+        "headers": {}
+      },
+      "position": { "x": 750, "y": 0 }
+    },
+    { "id": "output", "type": "output", "data": { "label": "Result" }, "position": { "x": 1000, "y": 0 } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "input", "target": "login" },
+    { "id": "e2", "source": "login", "target": "userId" },
+    { "id": "e3", "source": "userId", "target": "profile" },
+    { "id": "e4", "source": "profile", "target": "output" }
+  ]
+}

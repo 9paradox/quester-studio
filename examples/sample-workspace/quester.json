@@ -1,0 +1,6 @@
+{
+  "name": "sample-workspace",
+  "version": "v1",
+  "flowsDir": "flows",
+  "environmentsDir": "environments"
+}
