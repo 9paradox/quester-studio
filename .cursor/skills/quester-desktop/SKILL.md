@@ -5,16 +5,19 @@ description: Develop the Quester desktop app — Electrobun main process, Vite/R
 
 # Quester Desktop App
 
-Visual flow builder at `apps/desktop`. Stack: **Electrobun** (shell), **Vite** (renderer build), **React 19**, **React Flow 11**, **Tailwind**.
+Visual flow builder at `apps/desktop`. Stack: **Electrobun** (shell), **Vite** (renderer build), **React 19**, **React Flow 11**, **shadcn/ui** (preset `b1D3m6L2`, style `base-mira`), **Tailwind v4**.
 
 ## Layout
 
 ```
 apps/desktop/
+  components.json         # shadcn/ui config (preset b1D3m6L2)
   src/main/index.ts       # Main process — workspace + execution RPCs
   src/renderer/
     main.tsx              # React entry, flow canvas
-    styles.css            # Tailwind
+    styles.css            # Tailwind v4 + shadcn theme
+    components/ui/        # shadcn components (CLI-managed)
+    lib/utils.ts          # cn() helper
   vite.config.ts
   package.json            # dev: electrobun dev | build: vite build
 ```
@@ -88,14 +91,16 @@ const rfEdges = flow.edges.map((e) => ({
 
 - `@quester/engine` — `loadWorkspace`, `executeFlow`
 - `@quester/schema` — `validateFlow` (main process before run)
+- shadcn/ui — renderer UI components (`@/components/ui/*`)
 
 Keep validation in main process; renderer sends flow id + input, never executes HTTP directly.
 
 ## UI conventions
 
-- Tailwind utility classes (already configured)
+- **shadcn/ui** — use `@/components/ui/*` components and theme tokens; see skill `shadcn-ui`
+- Add components via `npx shadcn@latest add <name> -y` in `apps/desktop`
+- Custom markup only for React Flow nodes/canvas (domain-specific)
 - Local-first: no cloud calls unless flow nodes request them at run time
-- Match existing minimal header + canvas layout unless redesign requested
 
 ## Verify
 

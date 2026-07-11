@@ -42,6 +42,7 @@ Use project skills in `.cursor/skills/` for detailed workflows:
 - `quester-studio` — monorepo dev
 - `add-flow-node` — new node types
 - `quester-desktop` — desktop app
+- `shadcn-ui` — shadcn/ui components and styling
 - `release-workflow` — versioning and releases
 - `feature-planning` — roadmap and issues
 - `security-review` — security checklist

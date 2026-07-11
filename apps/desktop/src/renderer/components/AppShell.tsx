@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from "@/components/ui/alert.js";
 import type { ExecuteFlowResult } from "@quester/engine";
 import type { FlowV1 } from "@quester/schema";
 import { useCallback, useEffect, useState } from "react";
@@ -141,9 +142,9 @@ export function AppShell() {
 				isLoading={isLoading}
 			/>
 			{loadError ? (
-				<div className="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-					{loadError}
-				</div>
+				<Alert variant="destructive" className="rounded-none border-x-0">
+					<AlertDescription>{loadError}</AlertDescription>
+				</Alert>
 			) : null}
 			<div className="flex min-h-0 flex-1">
 				<FlowSidebar
