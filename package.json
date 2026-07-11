@@ -20,11 +20,11 @@
 		"prepare": "lefthook install"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^1.9.4",
+		"@biomejs/biome": "^2.5.3",
 		"@changesets/cli": "^2.29.2",
-		"lefthook": "^1.11.12",
+		"lefthook": "^2.1.10",
 		"turbo": "^2.5.4",
-		"typescript": "^5.8.3"
+		"typescript": "^7.0.2"
 	},
 	"overrides": {
 		"vite": "6.4.3"
