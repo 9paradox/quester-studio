@@ -1,10 +1,11 @@
 ﻿import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { executeFlow, loadSecrets, loadWorkspace } from "@quester/engine";
 import { validateFlow } from "@quester/schema";
 
 const workspaceRoot = resolve(
-	import.meta.dir,
+	dirname(fileURLToPath(import.meta.url)),
 	"../../../../examples/sample-workspace",
 );
 
