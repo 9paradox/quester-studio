@@ -72,4 +72,16 @@ describe("collections", () => {
 			await rm(root, { recursive: true, force: true });
 		}
 	});
+
+	test("listCollectionFolders includes empty folders", async () => {
+		const root = await mkdtemp(join(tmpdir(), "quester-col-"));
+		try {
+			await mkdir(join(root, "collections", "Empty"), { recursive: true });
+			const { listCollectionFolders } = await import("./collections.js");
+			const folders = await listCollectionFolders(root, manifest);
+			expect(folders).toContain("Empty");
+		} finally {
+			await rm(root, { recursive: true, force: true });
+		}
+	});
 });

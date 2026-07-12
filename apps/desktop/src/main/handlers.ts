@@ -8,6 +8,7 @@ import {
 	deleteRequest as deleteRequestFile,
 	ensureCollectionsDir,
 	executeFlow,
+	listCollectionFolders,
 	listRequests,
 	loadRequest as loadRequestFile,
 	loadSecrets,
@@ -490,6 +491,12 @@ export async function listCollectionRequests(
 	return listRequests(root, ws.manifest);
 }
 
+export async function listCollections(workspace: string): Promise<string[]> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	return listCollectionFolders(root, ws.manifest);
+}
+
 export async function loadRequest(
 	workspace: string,
 	requestPath: string,
@@ -553,15 +560,24 @@ export async function createCollection(
 ): Promise<{ ok: true }> {
 	const root = resolve(workspace);
 	const ws = await loadWorkspace(root);
+	await ensureCollectionsDir(root, ws.manifest);
 	const normalized = collectionName
 		.replace(/\\/g, "/")
 		.replace(/^\/+|\/+$/g, "");
-	if (!normalized || normalized.includes("..")) {
+	if (
+		!normalized ||
+		normalized.includes("..") ||
+		normalized.split("/").some((p) => p === "")
+	) {
 		throw new Error(`Invalid collection name: ${collectionName}`);
 	}
-	await mkdir(join(root, ws.manifest.collectionsDir, normalized), {
-		recursive: true,
-	});
+	const dir = join(root, ws.manifest.collectionsDir, normalized);
+	await mkdir(dir, { recursive: true });
+	// Keep empty folders visible to git and listCollectionFolders.
+	const keep = join(dir, ".gitkeep");
+	if (!existsSync(keep)) {
+		await writeFile(keep, "", "utf8");
+	}
 	return { ok: true };
 }
 

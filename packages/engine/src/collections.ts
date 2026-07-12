@@ -52,6 +52,26 @@ async function walkRequestFiles(dir: string, out: string[]): Promise<void> {
 	}
 }
 
+async function walkCollectionDirs(
+	dir: string,
+	root: string,
+	out: string[],
+): Promise<void> {
+	let entries: string[];
+	try {
+		entries = await readdir(dir);
+	} catch {
+		return;
+	}
+	for (const entry of entries) {
+		const full = join(dir, entry);
+		const info = await stat(full).catch(() => null);
+		if (!info?.isDirectory()) continue;
+		out.push(toPosix(relative(root, full)));
+		await walkCollectionDirs(full, root, out);
+	}
+}
+
 export function requestPathFromFile(
 	filePath: string,
 	collectionsRoot: string,
@@ -100,6 +120,17 @@ export async function listRequests(
 		}
 	}
 	return metas.sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/** Relative folder paths under collectionsDir (includes empty folders). */
+export async function listCollectionFolders(
+	root: string,
+	manifest: WorkspaceV1,
+): Promise<string[]> {
+	const collectionsRoot = join(root, manifest.collectionsDir);
+	const folders: string[] = [];
+	await walkCollectionDirs(collectionsRoot, collectionsRoot, folders);
+	return folders.sort((a, b) => a.localeCompare(b));
 }
 
 export async function loadRequest(

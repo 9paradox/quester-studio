@@ -145,6 +145,10 @@ export type DesktopRPC = {
 				params: { workspace: string };
 				response: RequestMeta[];
 			};
+			listCollections: {
+				params: { workspace: string };
+				response: string[];
+			};
 			loadRequest: {
 				params: { workspace: string; requestPath: string };
 				response: RequestV1;

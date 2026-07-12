@@ -18,9 +18,12 @@ import {
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
 import { Textarea } from "@/components/ui/textarea.js";
+import { cn } from "@/lib/utils.js";
 import type { RequestV1 } from "@quester/schema";
 import { IconPlayerPlay } from "@tabler/icons-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ExecuteRequestRpcResult } from "../../shared/rpc.js";
+import { ResizeGutter, clamp } from "./ResizeGutter.js";
 
 const METHODS = [
 	"GET",
@@ -31,6 +34,10 @@ const METHODS = [
 	"HEAD",
 	"OPTIONS",
 ] as const;
+
+const PANE_PCT_KEY = "quester.requestPanePct";
+const DEFAULT_PANE_PCT = 50;
+const STACK_BREAKPOINT = 720;
 
 type HttpOutputShape = {
 	status?: number;
@@ -50,6 +57,18 @@ function asHttpOutput(value: unknown): HttpOutputShape | null {
 	return isRecord(value) && ("status" in value || "request" in value)
 		? (value as HttpOutputShape)
 		: null;
+}
+
+function readPanePct(): number {
+	try {
+		const raw = localStorage.getItem(PANE_PCT_KEY);
+		if (raw == null) return DEFAULT_PANE_PCT;
+		const value = Number(raw);
+		if (Number.isFinite(value)) return clamp(value, 20, 80);
+	} catch {
+		/* ignore */
+	}
+	return DEFAULT_PANE_PCT;
 }
 
 type RequestEditorProps = {
@@ -83,9 +102,53 @@ export function RequestEditor({
 				? JSON.stringify(request.body, null, 2)
 				: "";
 
+	const responseBody =
+		http?.body !== undefined
+			? http.body
+			: http?.text !== undefined
+				? http.text
+				: null;
+
+	const containerRef = useRef<HTMLDivElement>(null);
+	const [requestPct, setRequestPct] = useState(readPanePct);
+	const [stacked, setStacked] = useState(false);
+
+	useEffect(() => {
+		const el = containerRef.current;
+		if (!el || typeof ResizeObserver === "undefined") return;
+		const ro = new ResizeObserver((entries) => {
+			const width = entries[0]?.contentRect.width ?? el.clientWidth;
+			setStacked(width < STACK_BREAKPOINT);
+		});
+		ro.observe(el);
+		return () => ro.disconnect();
+	}, []);
+
+	useEffect(() => {
+		try {
+			localStorage.setItem(PANE_PCT_KEY, String(requestPct));
+		} catch {
+			/* ignore */
+		}
+	}, [requestPct]);
+
+	const onResizePane = useCallback(
+		(delta: number) => {
+			const el = containerRef.current;
+			if (!el) return;
+			const total = stacked ? el.clientHeight : el.clientWidth;
+			if (total <= 0) return;
+			// Vertical gutter: drag right grows request. Horizontal gutter reports
+			// inverted Y delta, so drag down should grow the top (request) pane.
+			const signed = stacked ? -delta : delta;
+			setRequestPct((pct) => clamp(pct + (signed / total) * 100, 20, 80));
+		},
+		[stacked],
+	);
+
 	return (
 		<div className="flex h-full min-h-0 flex-col bg-background">
-			<div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-3 py-2">
+			<div className="flex h-10 shrink-0 items-center gap-2 border-b px-3">
 				<Select
 					value={request.method}
 					onValueChange={(v) => {
@@ -97,7 +160,7 @@ export function RequestEditor({
 						}
 					}}
 				>
-					<SelectTrigger className="w-[110px]">
+					<SelectTrigger className="h-7 w-[100px] shrink-0">
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
@@ -112,14 +175,14 @@ export function RequestEditor({
 					value={request.url}
 					onChange={(e) => onChange({ ...request, url: e.target.value })}
 					placeholder="https://…"
-					className="min-w-[200px] flex-1 font-mono text-xs"
+					className="h-7 min-w-0 flex-1 font-mono text-xs"
 				/>
 				{envs.length > 0 ? (
 					<Select
 						value={selectedEnv}
 						onValueChange={(v) => v && onEnvChange(v)}
 					>
-						<SelectTrigger className="w-[120px]">
+						<SelectTrigger className="h-7 w-[110px] shrink-0">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
@@ -134,16 +197,25 @@ export function RequestEditor({
 				<Button
 					type="button"
 					size="sm"
+					className="h-7 shrink-0 gap-1 px-2.5"
 					onClick={onSend}
 					disabled={isSending || !request.url.trim()}
 				>
-					<IconPlayerPlay className="size-3.5" />
+					<IconPlayerPlay className="size-3.5" data-icon="inline-start" />
 					{isSending ? "Sending…" : "Send"}
 				</Button>
 			</div>
 
-			<div className="grid min-h-0 flex-1 grid-rows-2 divide-y md:grid-cols-2 md:grid-rows-1 md:divide-x md:divide-y-0">
-				<div className="flex min-h-0 flex-col">
+			<div
+				ref={containerRef}
+				className={cn("flex min-h-0 flex-1", stacked ? "flex-col" : "flex-row")}
+			>
+				<div
+					className="flex min-h-0 min-w-0 flex-col overflow-hidden"
+					style={{
+						flex: `0 0 ${requestPct}%`,
+					}}
+				>
 					<Tabs defaultValue="headers" className="flex min-h-0 flex-1 flex-col">
 						<TabsList className="mx-3 mt-2 w-fit">
 							<TabsTrigger value="headers">Headers</TabsTrigger>
@@ -187,7 +259,12 @@ export function RequestEditor({
 					</Tabs>
 				</div>
 
-				<div className="flex min-h-0 flex-col">
+				<ResizeGutter
+					orientation={stacked ? "horizontal" : "vertical"}
+					onResize={onResizePane}
+				/>
+
+				<div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
 					<div className="flex shrink-0 items-center gap-2 border-b px-3 py-2">
 						<span className="text-xs font-medium text-muted-foreground">
 							Response
@@ -233,7 +310,7 @@ export function RequestEditor({
 										<div className="mb-1 text-xs font-medium text-muted-foreground">
 											Body
 										</div>
-										<JsonViewer data={http.body ?? http.text ?? null} />
+										<JsonViewer value={responseBody} defaultExpandedDepth={2} />
 									</div>
 								</div>
 							) : null}

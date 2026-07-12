@@ -209,7 +209,7 @@ export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 		>
 			{output !== undefined ? (
 				<div className="max-h-40 max-w-[280px] overflow-auto rounded border bg-background/80 p-1 text-left">
-					<JsonViewer data={output} />
+					<JsonViewer value={output} defaultExpandedDepth={1} />
 				</div>
 			) : (
 				<span className="text-muted-foreground">Run flow to preview</span>

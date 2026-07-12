@@ -323,11 +323,16 @@ function FlowCanvasInner({
 					nodesConnectable
 					elementsSelectable
 					proOptions={{ hideAttribution: true }}
-					className="bg-muted/30"
+					className="bg-muted/50"
 					minZoom={0.25}
 					maxZoom={2}
 				>
-					<Background variant={BackgroundVariant.Dots} gap={16} size={1} />
+					<Background
+						variant={BackgroundVariant.Dots}
+						gap={18}
+						size={1.5}
+						color="color-mix(in oklch, var(--foreground) 22%, transparent)"
+					/>
 					<FitViewOnLoad flowId={flow.id} />
 					<SelectionBridge onSelectNode={onSelectNode} />
 					<ViewportBridge onZoomChange={onZoomChange} />

@@ -48,6 +48,7 @@ export function PrimarySidebar() {
 	const workspacePath = useQuesterStore((s) => s.workspacePath);
 	const flows = useQuesterStore((s) => s.flows);
 	const requests = useQuesterStore((s) => s.requests);
+	const collections = useQuesterStore((s) => s.collections);
 	const activeTabId = useQuesterStore((s) => s.activeTabId);
 	const dirtyTabIds = useQuesterStore(useShallow(selectDirtyTabIds));
 	const envs = useQuesterStore((s) => s.envs);
@@ -105,8 +106,8 @@ export function PrimarySidebar() {
 	});
 
 	const requestsByCollection = useMemo(
-		() => groupRequestsByCollection(filteredRequests),
-		[filteredRequests],
+		() => groupRequestsByCollection(filteredRequests, collections),
+		[filteredRequests, collections],
 	);
 
 	return (
@@ -305,7 +306,10 @@ export function PrimarySidebar() {
 									className="flex flex-col gap-0.5"
 								>
 									<div className="flex items-center justify-between gap-1 px-1 py-1">
-										<span className="truncate text-xs font-medium text-muted-foreground">
+										<span className="flex min-w-0 items-center gap-1 truncate text-xs font-medium text-muted-foreground">
+											{collection ? (
+												<IconFolder className="size-3.5 shrink-0 opacity-70" />
+											) : null}
 											{collection || "Root"}
 										</span>
 										{collection ? (
@@ -331,11 +335,16 @@ export function PrimarySidebar() {
 											onDelete={() => void deleteRequest(req.path)}
 										/>
 									))}
+									{collection && items.length === 0 ? (
+										<p className="px-2 pb-1 text-[11px] text-muted-foreground">
+											Empty — add a request
+										</p>
+									) : null}
 								</div>
 							))}
-							{filteredRequests.length === 0 ? (
+							{requestsByCollection.length === 0 ? (
 								<p className="px-2 py-4 text-xs text-muted-foreground">
-									No requests yet. Create a collection or request.
+									No collections yet. Create a collection or request.
 								</p>
 							) : null}
 						</div>
@@ -571,8 +580,12 @@ function RequestListItem({
 
 function groupRequestsByCollection(
 	requests: RequestMeta[],
+	collections: string[],
 ): Array<[string, RequestMeta[]]> {
 	const map = new Map<string, RequestMeta[]>();
+	for (const folder of collections) {
+		map.set(folder, []);
+	}
 	for (const req of requests) {
 		const key = req.collection;
 		const list = map.get(key) ?? [];

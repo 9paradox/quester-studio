@@ -13,7 +13,10 @@ export function highlightTemplateSegments(text: string): ReactNode[] {
 			i += 1;
 		}
 		nodes.push(
-			<span key={`t-${i}`} className="rounded-[2px] bg-primary/15 text-primary">
+			<span
+				key={`t-${i}`}
+				className="rounded-[2px] bg-primary/25 font-medium text-primary-foreground dark:bg-primary/20 dark:text-primary"
+			>
 				{match[0]}
 			</span>,
 		);

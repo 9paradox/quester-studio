@@ -69,6 +69,8 @@ export const desktopRpc = {
 		getRpc().request.createSecretsFile({ workspace, envName }),
 	listCollectionRequests: (workspace: string) =>
 		getRpc().request.listCollectionRequests({ workspace }),
+	listCollections: (workspace: string) =>
+		getRpc().request.listCollections({ workspace }),
 	loadRequest: (workspace: string, requestPath: string) =>
 		getRpc().request.loadRequest({ workspace, requestPath }),
 	saveRequest: (workspace: string, requestPath: string, request: RequestV1) =>

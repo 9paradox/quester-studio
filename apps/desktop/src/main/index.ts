@@ -83,6 +83,8 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				(await import("./handlers.js")).createSecretsFile(workspace, envName),
 			listCollectionRequests: async ({ workspace }) =>
 				(await import("./handlers.js")).listCollectionRequests(workspace),
+			listCollections: async ({ workspace }) =>
+				(await import("./handlers.js")).listCollections(workspace),
 			loadRequest: async ({ workspace, requestPath }) =>
 				(await import("./handlers.js")).loadRequest(workspace, requestPath),
 			saveRequest: async ({ workspace, requestPath, request }) =>

@@ -85,6 +85,7 @@ export type QuesterState = {
 	workspaceName: string;
 	flows: FlowMeta[];
 	requests: RequestMeta[];
+	collections: string[];
 	envs: string[];
 	secretFiles: SecretFileMeta[];
 	selectedEnv: string;
@@ -148,6 +149,7 @@ export type QuesterState = {
 		envList: string[];
 		secretsList: SecretFileMeta[];
 		requestList: RequestMeta[];
+		collectionList: string[];
 	}>;
 	loadFlow: (flowId: string, workspace: string) => Promise<void>;
 	loadEnvironment: (envName: string, workspace: string) => Promise<void>;
@@ -196,6 +198,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	workspaceName: "",
 	flows: [],
 	requests: [],
+	collections: [],
 	envs: [],
 	secretFiles: [],
 	selectedEnv: "local",
@@ -312,19 +315,22 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	refreshWorkspaceLists: async (path) => {
-		const [flowList, envList, secretsList, requestList] = await Promise.all([
-			desktopRpc.listFlows(path),
-			desktopRpc.listEnvs(path),
-			desktopRpc.listSecretFiles(path),
-			desktopRpc.listCollectionRequests(path),
-		]);
+		const [flowList, envList, secretsList, requestList, collectionList] =
+			await Promise.all([
+				desktopRpc.listFlows(path),
+				desktopRpc.listEnvs(path),
+				desktopRpc.listSecretFiles(path),
+				desktopRpc.listCollectionRequests(path),
+				desktopRpc.listCollections(path),
+			]);
 		set({
 			flows: flowList,
 			envs: envList,
 			secretFiles: secretsList,
 			requests: requestList,
+			collections: collectionList,
 		});
-		return { flowList, envList, secretsList, requestList };
+		return { flowList, envList, secretsList, requestList, collectionList };
 	},
 
 	loadFlow: async (flowId, workspace) => {
@@ -983,10 +989,16 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (!workspacePath) return;
 		const name = window.prompt("New collection name");
 		if (!name?.trim()) return;
+		const folder = slugifyName(name);
+		if (!folder) {
+			showError("Invalid collection name");
+			return;
+		}
 		try {
-			await desktopRpc.createCollection(workspacePath, name.trim());
+			await desktopRpc.createCollection(workspacePath, folder);
 			await refreshWorkspaceLists(workspacePath);
-			appendConsole(`Created collection ${name.trim()}`);
+			appendConsole(`Created collection ${folder}`);
+			set({ activityView: "collections", sidebarOpen: true });
 		} catch (err) {
 			showError(
 				err instanceof Error ? err.message : "Create collection failed",
