@@ -101,7 +101,6 @@ export function EditorArea() {
 						rows={activeTab.rows}
 						onChange={handleSecretRowsChange}
 						valuePlaceholder="Secret value"
-						type="password"
 					/>
 				</div>
 			</EditorContextMenu>
