@@ -9,7 +9,13 @@ import {
 	secretsTabId,
 } from "@/lib/editorTabs.js";
 import { desktopRpc } from "@/lib/electrobun.js";
-import { addNodeToFlow, reactFlowToFlow } from "@/lib/flowEditor.js";
+import {
+	addNodeToFlow,
+	deleteEdgesFromFlow,
+	deleteNodesFromFlow,
+	duplicateNodeInFlow,
+	reactFlowToFlow,
+} from "@/lib/flowEditor.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
 import { DEFAULT_INPUT } from "@/lib/runDefaults.js";
 import type { BuiltinNodeType, FlowV1 } from "@quester/schema";
@@ -35,6 +41,23 @@ export type PanelTab = "console" | "logs";
 const DEFAULT_PANEL_HEIGHT = 180;
 const DEFAULT_SIDEBAR_WIDTH = 240;
 const DEFAULT_RIGHT_WIDTH = 320;
+const INSPECTOR_AUTOSAVE_MS = 500;
+
+let inspectorAutosaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleInspectorAutosave() {
+	if (inspectorAutosaveTimer) clearTimeout(inspectorAutosaveTimer);
+	inspectorAutosaveTimer = setTimeout(() => {
+		inspectorAutosaveTimer = null;
+		void useQuesterStore.getState().saveActiveTab();
+	}, INSPECTOR_AUTOSAVE_MS);
+}
+
+export function cancelInspectorAutosave() {
+	if (!inspectorAutosaveTimer) return;
+	clearTimeout(inspectorAutosaveTimer);
+	inspectorAutosaveTimer = null;
+}
 
 function flowJsonEqual(a: FlowV1, b: FlowV1): boolean {
 	return JSON.stringify(a) === JSON.stringify(b);
@@ -72,6 +95,8 @@ export type QuesterState = {
 	sidebarOpen: boolean;
 	rightPanelOpen: boolean;
 	rightPanelTab: RightPanelTab;
+	/** True when canvas graph edits need an explicit Save (inspector autosaves). */
+	canvasDirty: boolean;
 	panelOpen: boolean;
 	panelHeight: number;
 	panelTab: PanelTab;
@@ -103,6 +128,7 @@ export type QuesterState = {
 	togglePanel: () => void;
 	resizeSidebar: (delta: number) => void;
 	resizeRightPanel: (delta: number) => void;
+	handleRightPanelView: (tab: RightPanelTab) => void;
 
 	appendConsole: (line: string) => void;
 	clearConsole: () => void;
@@ -129,6 +155,9 @@ export type QuesterState = {
 	handleAddNode: (type: BuiltinNodeType) => void;
 	handleSelectNode: (nodeId: string | null) => void;
 	handleUpdateNode: (nodeId: string, data: Record<string, unknown>) => void;
+	deleteNodes: (nodeIds: string[]) => void;
+	deleteEdges: (edgeIds: string[]) => void;
+	duplicateNode: (nodeId: string) => void;
 	closeTab: (tabId: string) => void;
 	saveActiveTab: (tabId?: string | null) => Promise<void>;
 	createFlow: () => Promise<void>;
@@ -158,6 +187,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	sidebarOpen: true,
 	rightPanelOpen: true,
 	rightPanelTab: "inspector",
+	canvasDirty: false,
 	panelOpen: true,
 	panelHeight: DEFAULT_PANEL_HEIGHT,
 	panelTab: "console",
@@ -174,7 +204,14 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	consoleLines: ["> Quester ready"],
 
 	setActiveTabId: (tabId) =>
-		set((s) => (s.activeTabId === tabId ? s : { activeTabId: tabId })),
+		set((s) => {
+			if (s.activeTabId === tabId) return s;
+			const tab = s.openTabs.find((t) => t.id === tabId);
+			return {
+				activeTabId: tabId,
+				canvasDirty: Boolean(tab?.kind === "flow" && tab.dirty),
+			};
+		}),
 	setSelectedEnv: (env) =>
 		set((s) => (s.selectedEnv === env ? s : { selectedEnv: env })),
 	setActivityView: (view) =>
@@ -205,6 +242,14 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			const rightPanelWidth = clamp(s.rightPanelWidth - delta, 260, 560);
 			return s.rightPanelWidth === rightPanelWidth ? s : { rightPanelWidth };
 		}),
+	handleRightPanelView: (tab) => {
+		const { rightPanelOpen, rightPanelTab } = get();
+		if (rightPanelOpen && rightPanelTab === tab) {
+			set({ rightPanelOpen: false });
+			return;
+		}
+		set({ rightPanelTab: tab, rightPanelOpen: true });
+	},
 
 	appendConsole: (line) =>
 		set((s) => ({ consoleLines: [...s.consoleLines, `> ${line}`] })),
@@ -229,10 +274,12 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 						t.id === tab.id ? (t.dirty ? t : { ...tab, dirty: false }) : t,
 					)
 				: [...s.openTabs, tab];
+			const active = openTabs.find((t) => t.id === tab.id);
 			return {
 				openTabs,
 				activeTabId: tab.id,
 				selectedNodeId: tab.kind === "flow" ? null : s.selectedNodeId,
+				canvasDirty: Boolean(active?.kind === "flow" && active.dirty),
 			};
 		});
 	},
@@ -251,7 +298,11 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const tabId = flowTabId(flowId);
 		const existing = get().openTabs.find((t) => t.id === tabId);
 		if (existing) {
-			set({ activeTabId: tabId, selectedNodeId: null });
+			set({
+				activeTabId: tabId,
+				selectedNodeId: null,
+				canvasDirty: Boolean(existing.kind === "flow" && existing.dirty),
+			});
 			return;
 		}
 		const flow = await desktopRpc.loadFlow(flowId, workspace);
@@ -289,6 +340,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			runError: null,
 			openTabs: [],
 			activeTabId: null,
+			canvasDirty: false,
 		});
 		try {
 			const summary = await desktopRpc.openWorkspaceSummary(path);
@@ -355,7 +407,8 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				if (flowJsonEqual(next, t.flow)) return t;
 				return { ...t, flow: next, dirty: true };
 			});
-			return openTabs ? { openTabs } : s;
+			if (!openTabs) return s;
+			return { openTabs, canvasDirty: true };
 		});
 	},
 
@@ -401,7 +454,11 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 
 	handleAddNode: (type) => {
 		get().updateActiveFlow((flow) => addNodeToFlow(flow, type));
-		set({ rightPanelOpen: true, rightPanelTab: "inspector" });
+		set({
+			rightPanelOpen: true,
+			rightPanelTab: "inspector",
+			canvasDirty: true,
+		});
 	},
 
 	handleSelectNode: (nodeId) => {
@@ -418,6 +475,42 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			...flow,
 			nodes: flow.nodes.map((n) => (n.id === nodeId ? { ...n, data } : n)),
 		}));
+		scheduleInspectorAutosave();
+	},
+
+	deleteNodes: (nodeIds) => {
+		if (nodeIds.length === 0) return;
+		get().updateActiveFlow((flow) => deleteNodesFromFlow(flow, nodeIds));
+		const { selectedNodeId } = get();
+		set({
+			canvasDirty: true,
+			...(selectedNodeId && nodeIds.includes(selectedNodeId)
+				? { selectedNodeId: null }
+				: {}),
+		});
+	},
+
+	deleteEdges: (edgeIds) => {
+		if (edgeIds.length === 0) return;
+		get().updateActiveFlow((flow) => deleteEdgesFromFlow(flow, edgeIds));
+		set({ canvasDirty: true });
+	},
+
+	duplicateNode: (nodeId) => {
+		let newId: string | null = null;
+		get().updateActiveFlow((flow) => {
+			const result = duplicateNodeInFlow(flow, nodeId);
+			if (!result) return flow;
+			newId = result.newNodeId;
+			return result.flow;
+		});
+		if (!newId) return;
+		set({
+			selectedNodeId: newId,
+			rightPanelOpen: true,
+			rightPanelTab: "inspector",
+			canvasDirty: true,
+		});
 	},
 
 	closeTab: (tabId) => {
@@ -438,6 +531,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	saveActiveTab: async (tabId = get().activeTabId) => {
+		cancelInspectorAutosave();
 		const {
 			workspacePath,
 			openTabs,
@@ -466,6 +560,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					),
 					activeTabId:
 						activeTabId === tab.id ? flowTabId(saved.id) : s.activeTabId,
+					canvasDirty: false,
 				}));
 				appendConsole(`Saved flow ${saved.id}`);
 			} else if (tab.kind === "env") {
