@@ -74,7 +74,10 @@ export function addNodeToFlow(
 	type: BuiltinNodeType,
 	position = { x: 120, y: 120 },
 ): FlowV1 {
-	const id = newNodeId(type);
+	if (type === "start" && flow.nodes.some((n) => n.type === "start")) {
+		return flow;
+	}
+	const id = type === "start" ? "start" : newNodeId(type);
 	return {
 		...flow,
 		nodes: [
@@ -91,6 +94,9 @@ export function addNodeToFlow(
 
 export function deleteNodesFromFlow(flow: FlowV1, nodeIds: string[]): FlowV1 {
 	const remove = new Set(nodeIds);
+	for (const n of flow.nodes) {
+		if (n.type === "start") remove.delete(n.id);
+	}
 	if (remove.size === 0) return flow;
 	return {
 		...flow,
@@ -117,7 +123,7 @@ export function duplicateNodeInFlow(
 	nodeId: string,
 ): { flow: FlowV1; newNodeId: string } | null {
 	const node = flow.nodes.find((n) => n.id === nodeId);
-	if (!node) return null;
+	if (!node || node.type === "start") return null;
 	const type = node.type as BuiltinNodeType;
 	const id = newNodeId(type);
 	const position = {

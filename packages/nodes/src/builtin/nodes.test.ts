@@ -5,6 +5,7 @@ import { httpPlugin } from "./http.js";
 import { ifPlugin } from "./if.js";
 import { inputPlugin } from "./input.js";
 import { setPlugin } from "./set.js";
+import { startPlugin } from "./start.js";
 import { templatePlugin } from "./template.js";
 import { assertHttpUrl } from "./validate-http-url.js";
 
@@ -29,6 +30,11 @@ function ctx(
 }
 
 describe("builtin node plugins", () => {
+	test("start emits empty object", async () => {
+		const result = await startPlugin.execute(ctx());
+		expect(result.output).toEqual({});
+	});
+
 	test("input passes flow input through", async () => {
 		const result = await inputPlugin.execute(ctx());
 		expect(result.output).toEqual({ username: "alice" });
@@ -40,7 +46,7 @@ describe("builtin node plugins", () => {
 				node: {
 					id: "ex",
 					type: "extract",
-					data: { expression: "body.id", source: "previous" },
+					data: { expression: "body.id" },
 				},
 			}),
 		);

@@ -1,53 +1,123 @@
 ---
-title: Workspace & secrets
-description: Git-friendly workspaces and secret handling
+title: Environments & secrets
+description: Environment variables, secrets files, and how to reference them in flows
 ---
 
-## Workspace layout
+Each **environment** is a named config used when you validate or run a flow (`--env local`, or the desktop env selector).
 
-```
-my-workspace/
-  quester.json              # manifest
-  flows/*.flow.json         # flow graphs
-  environments/local.json   # env variables (committed)
-  environments/local.secrets.json  # secrets (gitignored)
-```
+## Files
 
-## Environment variables
+Under `environments/` (or `environmentsDir` from [`quester.json`](/workspace/)):
 
-Store non-sensitive configuration in `environments/<name>.json`:
+| File | Committed? | Purpose |
+| --- | --- | --- |
+| `<name>.json` | Yes | Non-secret variables |
+| `<name>.secrets.json` | **No** | Secret strings |
+| `<name>.secrets.json.example` | Yes | Template for teammates |
+
+Add `*.secrets.json` to `.gitignore`.
+
+## Environment (`<name>.json`)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name` | string | Environment name (usually matches the filename) |
+| `version` | `"v1"` | Format version |
+| `variables` | object | Map of string / number / boolean values |
+
+### Example
 
 ```json
 {
-  "version": "v1",
   "name": "local",
+  "version": "v1",
   "variables": {
-    "API_BASE": "https://api.example.com"
+    "API_BASE": "https://jsonplaceholder.typicode.com",
+    "TIMEOUT_MS": 5000,
+    "DEBUG": true
   }
 }
 ```
 
-Reference in flows: `{{env.API_BASE}}`.
+### Reference in flows
 
-## Secrets
+```
+{{env.API_BASE}}
+{{env.TIMEOUT_MS}}
+```
 
-Secrets live in `environments/<name>.secrets.json` — **never commit** these files.
+## Secrets (`<name>.secrets.json`)
 
-Copy from the example template:
+| Field | Type | Description |
+| --- | --- | --- |
+| `version` | `"v1"` | Format version |
+| `secrets` | object | Map of **string** values only |
+
+### Example template (committed)
+
+```json
+{
+  "version": "v1",
+  "secrets": {
+    "API_TOKEN": "replace-me"
+  }
+}
+```
+
+### Local file (gitignored)
 
 ```bash
 cp environments/local.secrets.json.example environments/local.secrets.json
 ```
 
-Reference in flows: `{{secrets.API_TOKEN}}`.
+```json
+{
+  "version": "v1",
+  "secrets": {
+    "API_TOKEN": "real-token-value"
+  }
+}
+```
 
-Quester does not encrypt secrets at rest. Protect your workspace directory with OS permissions.
+### Reference in flows
 
-See [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md) for the full trust model.
+```
+{{secrets.API_TOKEN}}
+```
+
+```json
+{
+  "headers": {
+    "Authorization": "Bearer {{secrets.API_TOKEN}}"
+  }
+}
+```
+
+## Staging vs local
+
+```
+environments/
+  local.json
+  local.secrets.json
+  staging.json
+  staging.secrets.json
+```
+
+```bash
+bunx quester run flows/login.flow.json --workspace . --env staging --input '{"username":"demo"}'
+```
+
+## Security notes
+
+- Quester does **not** encrypt secrets at rest. Protect the workspace with OS permissions.
+- Never commit `*.secrets.json`, `.env`, or live tokens.
+- Resolved HTTP URLs must be `http:` or `https:` only.
+
+Full trust model: [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md).
 
 ## JSON Schema
 
-Emitted schemas live in the repo under `schemas/quester/`. Rebuild after changing `@quester/schema`:
+Emitted schemas live under `schemas/quester/`. After changing `@quester/schema`:
 
 ```bash
 bun run --filter @quester/schema build

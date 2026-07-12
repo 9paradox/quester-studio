@@ -246,6 +246,20 @@ function FlowCanvasInner({
 
 	const onConnect = useCallback(
 		(connection: Connection) => {
+			if (!connection.source || !connection.target) return;
+			const sourceNode = nodesRef.current.find(
+				(n) => n.id === connection.source,
+			);
+			const targetNode = nodesRef.current.find(
+				(n) => n.id === connection.target,
+			);
+			if (targetNode?.type === "start") return;
+			if (
+				sourceNode?.type === "start" &&
+				edgesRef.current.some((e) => e.source === connection.source)
+			) {
+				return;
+			}
 			setEdges((current) => {
 				const next = addEdge(
 					{
@@ -260,6 +274,17 @@ function FlowCanvasInner({
 		},
 		[emitGraphChange],
 	);
+
+	const isValidConnection = useCallback((connection: Connection | Edge) => {
+		if (!connection.source || !connection.target) return false;
+		const sourceNode = nodesRef.current.find((n) => n.id === connection.source);
+		const targetNode = nodesRef.current.find((n) => n.id === connection.target);
+		if (targetNode?.type === "start") return false;
+		if (sourceNode?.type === "start") {
+			return !edgesRef.current.some((e) => e.source === connection.source);
+		}
+		return true;
+	}, []);
 
 	useEffect(() => {
 		(
@@ -313,6 +338,7 @@ function FlowCanvasInner({
 					onNodesChange={handleNodesChange}
 					onEdgesChange={handleEdgesChange}
 					onConnect={onConnect}
+					isValidConnection={isValidConnection}
 					onDragOver={onDragOver}
 					onDrop={onDrop}
 					onMoveEnd={(_, viewport) => {

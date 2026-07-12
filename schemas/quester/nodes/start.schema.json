@@ -3,9 +3,6 @@
   "properties": {
     "label": {
       "type": "string"
-    },
-    "expression": {
-      "type": "string"
     }
   },
   "additionalProperties": false,

@@ -56,18 +56,14 @@ describe("mergePlugin", () => {
 describe("jsonPlugin", () => {
 	test("passthrough previous", async () => {
 		const result = await jsonPlugin.execute(
-			base("json", { source: "previous" }, { hello: "world" }),
+			base("json", {}, { hello: "world" }),
 		);
 		expect(result.output).toEqual({ hello: "world" });
 	});
 
 	test("expression subset", async () => {
 		const result = await jsonPlugin.execute(
-			base(
-				"json",
-				{ source: "previous", expression: "items[0]" },
-				{ items: [{ id: 9 }] },
-			),
+			base("json", { expression: "items[0]" }, { items: [{ id: 9 }] }),
 		);
 		expect(result.output).toEqual({ id: 9 });
 	});

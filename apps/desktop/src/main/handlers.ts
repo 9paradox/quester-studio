@@ -270,13 +270,26 @@ export async function createFlow(
 		name: name ?? flowId,
 		nodes: [
 			{
+				id: "start",
+				type: "start",
+				data: { label: "Start" },
+				position: { x: -40, y: 120 },
+			},
+			{
 				id: "input",
 				type: "input",
 				data: { label: "Input" },
-				position: { x: 80, y: 120 },
+				position: { x: 180, y: 120 },
 			},
 		],
-		edges: [],
+		edges: [
+			{
+				id: "e-start-input",
+				source: "start",
+				target: "input",
+				sourceHandle: null,
+			},
+		],
 	};
 	return saveFlow(flow, workspace);
 }
@@ -600,7 +613,7 @@ export async function executeRequestRpc(
 		version: FLOW_VERSION,
 		name: request.name,
 		nodes: [
-			{ id: "input", type: "input", data: { label: "Input" } },
+			{ id: "start", type: "start", data: { label: "Start" } },
 			{
 				id: "http",
 				type: "http",
@@ -615,7 +628,12 @@ export async function executeRequestRpc(
 			{ id: "output", type: "output", data: { label: "Output" } },
 		],
 		edges: [
-			{ id: "e-in-http", source: "input", target: "http", sourceHandle: null },
+			{
+				id: "e-start-http",
+				source: "start",
+				target: "http",
+				sourceHandle: null,
+			},
 			{
 				id: "e-http-out",
 				source: "http",

@@ -18,12 +18,15 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: "Start",
-					items: [
-						"getting-started",
-						"contributing",
-						"workspace-secrets",
-						"roadmap",
-					],
+					items: ["getting-started", "contributing", "roadmap"],
+				},
+				{
+					label: "Workspace",
+					items: ["workspace", "workspace-secrets", "collections", "templates"],
+				},
+				{
+					label: "Nodes",
+					autogenerate: { directory: "nodes" },
 				},
 			],
 		}),

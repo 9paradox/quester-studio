@@ -5,6 +5,7 @@ import {
 	IconBraces,
 	IconCheck,
 	IconCode,
+	IconFlag,
 	IconGitBranch,
 	IconGitMerge,
 	IconJson,
@@ -43,9 +44,15 @@ export const nodeCatalogGroups: NodeCatalogGroup[] = [
 		title: "Input & Output",
 		nodes: [
 			{
+				type: "start",
+				label: "Start",
+				description: "Flow entry (one only)",
+				icon: IconFlag,
+			},
+			{
 				type: "input",
 				label: "Input",
-				description: "Flow entry point",
+				description: "Run payload on the wire",
 				icon: IconArrowBarToDown,
 			},
 			{
@@ -131,6 +138,8 @@ export function defaultNodeData(
 	type: BuiltinNodeType,
 ): Record<string, unknown> {
 	switch (type) {
+		case "start":
+			return { label: "Start" };
 		case "input":
 			return { label: "Input" };
 		case "http":
@@ -141,7 +150,7 @@ export function defaultNodeData(
 				headers: {},
 			};
 		case "extract":
-			return { label: "Extract", expression: "body", source: "previous" };
+			return { label: "Extract", expression: "body" };
 		case "template":
 			return { label: "Template", template: "{{input}}" };
 		case "set":
@@ -160,7 +169,7 @@ export function defaultNodeData(
 		case "merge":
 			return { label: "Merge", sources: ["previous"] };
 		case "json":
-			return { label: "JSON", source: "previous" };
+			return { label: "JSON" };
 		default:
 			return { label: type };
 	}

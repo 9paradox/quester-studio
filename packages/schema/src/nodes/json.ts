@@ -2,8 +2,7 @@ import { z } from "zod";
 
 export const jsonNodeDataSchema = z.object({
 	label: z.string().optional(),
-	source: z.enum(["previous", "input"]).default("previous"),
-	/** Optional JMESPath to pick a subset for display. */
+	/** Optional JMESPath to pick a subset of the previous node output. */
 	expression: z.string().optional(),
 });
 
