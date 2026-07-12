@@ -22,7 +22,7 @@ High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox
 ## Later — v0.4.0 Platform
 
 - New node types and `quester init` scaffold
-- Per-node docs from emitted JSON Schema
+- Generate per-node docs from emitted JSON Schema (hand-written [node reference](/nodes/) exists today)
 
 ## Releases
 
