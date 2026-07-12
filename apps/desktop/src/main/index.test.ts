@@ -103,6 +103,12 @@ describe("desktop main handlers", () => {
 					...flow,
 					nodes: [
 						{
+							id: "start",
+							type: "start",
+							data: { label: "Start" },
+							position: { x: -160, y: 0 },
+						},
+						{
 							id: "in",
 							type: "input",
 							data: { label: "Input" },
@@ -122,6 +128,7 @@ describe("desktop main handlers", () => {
 						},
 					],
 					edges: [
+						{ id: "e0", source: "start", target: "in" },
 						{ id: "e1", source: "in", target: "set" },
 						{ id: "e2", source: "set", target: "out" },
 					],
@@ -135,17 +142,22 @@ describe("desktop main handlers", () => {
 				input: { name: "demo" },
 			});
 
-			expect(result.steps.map((s) => s.nodeId)).toEqual(["in", "set", "out"]);
+			expect(result.steps.map((s) => s.nodeId)).toEqual([
+				"start",
+				"in",
+				"set",
+				"out",
+			]);
 			expect(result.nodeInputs.in).toEqual({ name: "demo" });
 			expect(result.nodeInputs.set).toEqual({ name: "demo" });
 
 			const afterLogs = result.logs.filter((l) => l.phase === "after");
-			expect(afterLogs.length).toBe(3);
-			expect(afterLogs[0]?.data).toEqual({
+			expect(afterLogs.length).toBe(4);
+			expect(afterLogs[1]?.data).toEqual({
 				input: { name: "demo" },
 				output: { name: "demo" },
 			});
-			expect(afterLogs[1]?.data).toMatchObject({
+			expect(afterLogs[2]?.data).toMatchObject({
 				input: { name: "demo" },
 				output: { name: "demo" },
 			});
@@ -164,6 +176,12 @@ describe("desktop main handlers", () => {
 					...flow,
 					nodes: [
 						{
+							id: "start",
+							type: "start",
+							data: { label: "Start" },
+							position: { x: -160, y: 0 },
+						},
+						{
 							id: "in",
 							type: "input",
 							data: { label: "Input" },
@@ -180,7 +198,10 @@ describe("desktop main handlers", () => {
 							position: { x: 160, y: 0 },
 						},
 					],
-					edges: [{ id: "e1", source: "in", target: "http" }],
+					edges: [
+						{ id: "e0", source: "start", target: "in" },
+						{ id: "e1", source: "in", target: "http" },
+					],
 				},
 				sampleWorkspace,
 			);

@@ -14,6 +14,7 @@ import {
 	mergeNodeDataSchema,
 	outputNodeDataSchema,
 	setNodeDataSchema,
+	startNodeDataSchema,
 	templateNodeDataSchema,
 	transformNodeDataSchema,
 } from "./nodes/index.js";
@@ -34,6 +35,7 @@ const specs: [string, unknown][] = [
 	["quester/secrets/v1.schema.json", secretsSchemaV1],
 	["quester/flow/v1.schema.json", flowSchemaV1],
 	["quester/request/v1.schema.json", requestSchemaV1],
+	["quester/nodes/start.schema.json", startNodeDataSchema],
 	["quester/nodes/input.schema.json", inputNodeDataSchema],
 	["quester/nodes/http.schema.json", httpNodeDataSchema],
 	["quester/nodes/extract.schema.json", extractNodeDataSchema],

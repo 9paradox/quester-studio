@@ -5,6 +5,7 @@ const validFlow = {
 	id: "f1",
 	version: "v1" as const,
 	nodes: [
+		{ id: "start", type: "start", data: {} },
 		{ id: "in", type: "input", data: {} },
 		{
 			id: "http",
@@ -14,6 +15,7 @@ const validFlow = {
 		{ id: "out", type: "output", data: {} },
 	],
 	edges: [
+		{ id: "e0", source: "start", target: "in" },
 		{ id: "e1", source: "in", target: "http" },
 		{ id: "e2", source: "http", target: "out" },
 	],
@@ -33,7 +35,7 @@ describe("validateFlow", () => {
 			id: "f1",
 			version: "v1",
 			nodes: [
-				{ id: "a", type: "input", data: {} },
+				{ id: "a", type: "start", data: {} },
 				{ id: "a", type: "output", data: {} },
 			],
 			edges: [],
@@ -45,9 +47,15 @@ describe("validateFlow", () => {
 		const result = validateFlow({
 			...validFlow,
 			nodes: [
+				{ id: "start", type: "start", data: {} },
 				{ id: "in", type: "input", data: {} },
 				{ id: "http", type: "http", data: { method: "GET" } },
 				{ id: "out", type: "output", data: {} },
+			],
+			edges: [
+				{ id: "e0", source: "start", target: "in" },
+				{ id: "e1", source: "in", target: "http" },
+				{ id: "e2", source: "http", target: "out" },
 			],
 		});
 		expect(result.success).toBe(false);
@@ -56,7 +64,7 @@ describe("validateFlow", () => {
 		}
 	});
 
-	test("rejects flow without input node", () => {
+	test("rejects flow without start node", () => {
 		const result = validateFlow({
 			id: "f1",
 			version: "v1",

@@ -79,11 +79,12 @@ export const myPlugin: FlowNodePlugin = {
 | Node | Notes |
 |------|-------|
 | `http` | `ctx.resolveTemplate` on url/headers/body; returns status/body |
-| `extract` | Reads `source: "previous"` or node id; dot-path `expression` |
+| `extract` | JMESPath `expression` over previous node output |
 | `if` | Returns `branch: "true" \| "false"`; engine uses `sourceHandle` on edges |
 | `set` | Merges into `vars` via `return { output, vars }` |
 | `template` | String interpolation via `resolveTemplate` |
-| `input` / `output` | Pass-through of flow input / last output |
+| `start` | Graph entry; output only; emits `{}` |
+| `input` / `output` | Run payload on the wire / last output |
 
 ## Tests
 

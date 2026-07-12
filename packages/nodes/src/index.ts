@@ -8,6 +8,7 @@
 	mergePlugin,
 	outputPlugin,
 	setPlugin,
+	startPlugin,
 	templatePlugin,
 	transformPlugin,
 } from "./builtin/index.js";
@@ -18,6 +19,7 @@ export * from "./registry.js";
 export * from "./builtin/index.js";
 
 const builtins = [
+	startPlugin,
 	inputPlugin,
 	httpPlugin,
 	extractPlugin,

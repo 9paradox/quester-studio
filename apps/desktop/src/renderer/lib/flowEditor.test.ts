@@ -35,6 +35,22 @@ describe("deleteNodesFromFlow", () => {
 		expect(next.nodes.map((n) => n.id)).toEqual(["extract-1"]);
 		expect(next.edges).toEqual([]);
 	});
+
+	test("does not delete start nodes", () => {
+		const withStart: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{ id: "start", type: "start", data: { label: "Start" } },
+				...sampleFlow.nodes,
+			],
+			edges: [
+				{ id: "e0", source: "start", target: "http-1", sourceHandle: null },
+				...sampleFlow.edges,
+			],
+		};
+		const next = deleteNodesFromFlow(withStart, ["start", "http-1"]);
+		expect(next.nodes.map((n) => n.id)).toEqual(["start", "extract-1"]);
+	});
 });
 
 describe("deleteEdgesFromFlow", () => {
@@ -56,5 +72,14 @@ describe("duplicateNodeInFlow", () => {
 		expect(copy?.position).toEqual({ x: 140, y: 120 });
 		expect((copy?.data as { label?: string }).label).toBe("Login (copy)");
 		expect(result.flow.edges).toHaveLength(1);
+	});
+
+	test("refuses to duplicate start", () => {
+		const withStart: FlowV1 = {
+			...sampleFlow,
+			nodes: [{ id: "start", type: "start", data: { label: "Start" } }],
+			edges: [],
+		};
+		expect(duplicateNodeInFlow(withStart, "start")).toBeNull();
 	});
 });

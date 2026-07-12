@@ -1,4 +1,4 @@
-﻿import type { FlowEdgeV1, FlowNodeV1, FlowV1 } from "./flow.js";
+﻿import type { FlowV1 } from "./flow.js";
 
 export type FlowValidationIssue = {
 	path: string;
@@ -10,13 +10,13 @@ export type FlowGraphValidationResult = {
 	issues: FlowValidationIssue[];
 };
 
-function indexNodes(nodes: FlowNodeV1[]): Map<string, FlowNodeV1> {
-	return new Map(nodes.map((n) => [n.id, n]));
+function indexNodes(flow: FlowV1) {
+	return new Map(flow.nodes.map((n) => [n.id, n]));
 }
 
 export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 	const issues: FlowValidationIssue[] = [];
-	const nodeById = indexNodes(flow.nodes);
+	const nodeById = indexNodes(flow);
 
 	const ids = flow.nodes.map((n) => n.id);
 	const seen = new Set<string>();
@@ -42,12 +42,35 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 		}
 	}
 
-	const inputNodes = flow.nodes.filter((n) => n.type === "input");
-	if (inputNodes.length === 0) {
+	const startNodes = flow.nodes.filter((n) => n.type === "start");
+	if (startNodes.length === 0) {
 		issues.push({
 			path: "nodes",
-			message: "Flow must contain at least one input node",
+			message: "Flow must contain exactly one start node",
 		});
+	} else if (startNodes.length > 1) {
+		issues.push({
+			path: "nodes",
+			message: `Flow must contain exactly one start node (found ${startNodes.length})`,
+		});
+	}
+
+	const start = startNodes[0];
+	if (start) {
+		const incoming = flow.edges.filter((e) => e.target === start.id);
+		if (incoming.length > 0) {
+			issues.push({
+				path: `nodes/${start.id}`,
+				message: "start node cannot have incoming edges",
+			});
+		}
+		const outgoing = flow.edges.filter((e) => e.source === start.id);
+		if (outgoing.length > 1) {
+			issues.push({
+				path: `nodes/${start.id}`,
+				message: "start node can have at most one outgoing edge",
+			});
+		}
 	}
 
 	const adj = new Map<string, string[]>();
@@ -87,24 +110,26 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 	}
 
 	const reachable = new Set<string>();
-	const queue = inputNodes.map((n) => n.id);
-	for (const id of queue) reachable.add(id);
-	while (queue.length > 0) {
-		const current = queue.shift();
-		if (!current) break;
-		for (const next of adj.get(current) ?? []) {
-			if (!reachable.has(next)) {
-				reachable.add(next);
-				queue.push(next);
+	if (start) {
+		const queue = [start.id];
+		reachable.add(start.id);
+		while (queue.length > 0) {
+			const current = queue.shift();
+			if (!current) break;
+			for (const next of adj.get(current) ?? []) {
+				if (!reachable.has(next)) {
+					reachable.add(next);
+					queue.push(next);
+				}
 			}
 		}
 	}
 
 	for (const node of flow.nodes) {
-		if (!reachable.has(node.id)) {
+		if (start && !reachable.has(node.id)) {
 			issues.push({
 				path: `nodes/${node.id}`,
-				message: `Node is not reachable from any input node: ${node.id}`,
+				message: `Node is not reachable from start: ${node.id}`,
 			});
 		}
 	}

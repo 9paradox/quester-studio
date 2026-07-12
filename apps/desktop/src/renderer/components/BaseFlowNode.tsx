@@ -10,6 +10,7 @@ export type FlowNodeData = {
 };
 
 const typeLabel: Record<BuiltinNodeType, string> = {
+	start: "Start",
 	input: "Input",
 	http: "HTTP",
 	extract: "Extract",
@@ -24,6 +25,7 @@ const typeLabel: Record<BuiltinNodeType, string> = {
 };
 
 const accentTone: Record<BuiltinNodeType, string> = {
+	start: "border-l-foreground",
 	input: "border-l-chart-2",
 	http: "border-l-primary",
 	extract: "border-l-chart-1",
@@ -38,6 +40,7 @@ const accentTone: Record<BuiltinNodeType, string> = {
 };
 
 const badgeTone: Record<BuiltinNodeType, string> = {
+	start: "bg-foreground/10 text-foreground",
 	input: "bg-chart-2/15 text-chart-2",
 	http: "bg-primary/15 text-primary",
 	extract: "bg-chart-1/15 text-chart-1",

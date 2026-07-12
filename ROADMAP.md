@@ -25,7 +25,7 @@
 - [x] New node types (`assert`, `transform`, `merge`, `json`)
 - [ ] CLI `quester init` — scaffold workspace
 - [ ] Renderer smoke tests
-- [ ] Per-node reference pages in docs (from emitted schemas)
+- [x] Per-node reference pages in docs (hand-written; emit-from-schema optional follow-up)
 
 ## Ideas (backlog)
 

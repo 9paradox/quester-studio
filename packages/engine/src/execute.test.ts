@@ -6,6 +6,7 @@ const httpFlow: FlowV1 = {
 	id: "test",
 	version: "v1",
 	nodes: [
+		{ id: "start", type: "start", data: {} },
 		{ id: "in", type: "input", data: {} },
 		{
 			id: "http",
@@ -15,6 +16,7 @@ const httpFlow: FlowV1 = {
 		{ id: "out", type: "output", data: {} },
 	],
 	edges: [
+		{ id: "e0", source: "start", target: "in" },
 		{ id: "e1", source: "in", target: "http" },
 		{ id: "e2", source: "http", target: "out" },
 	],
@@ -52,11 +54,17 @@ describe("executeFlow", () => {
 			},
 			size: expect.any(Number),
 		});
+		expect(result.nodeInputs.start).toEqual({});
 		expect(result.nodeInputs.in).toEqual({ user: "x" });
 		expect(result.nodeInputs.http).toEqual({ user: "x" });
-		expect(result.steps.map((s) => s.nodeId)).toEqual(["in", "http", "out"]);
-		expect(result.steps[1]?.input).toEqual({ user: "x" });
-		expect(result.steps[1]?.output).toMatchObject({
+		expect(result.steps.map((s) => s.nodeId)).toEqual([
+			"start",
+			"in",
+			"http",
+			"out",
+		]);
+		expect(result.steps[2]?.input).toEqual({ user: "x" });
+		expect(result.steps[2]?.output).toMatchObject({
 			status: 200,
 			body: { ok: true },
 		});
@@ -80,11 +88,12 @@ describe("executeFlow", () => {
 			);
 			expect(failure.failedNodeId).toBe("http");
 			expect(failure.partial.steps.map((s) => s.nodeId)).toEqual([
+				"start",
 				"in",
 				"http",
 			]);
 			expect(failure.partial.nodeInputs.http).toEqual({ user: "x" });
-			expect(failure.partial.steps[1]?.error).toContain("certificate");
+			expect(failure.partial.steps[2]?.error).toContain("certificate");
 		}
 	});
 
@@ -93,6 +102,7 @@ describe("executeFlow", () => {
 			id: "branch",
 			version: "v1",
 			nodes: [
+				{ id: "start", type: "start", data: {} },
 				{ id: "in", type: "input", data: {} },
 				{ id: "check", type: "if", data: { condition: "{{input.active}}" } },
 				{ id: "setYes", type: "set", data: { variables: { path: "yes" } } },
@@ -100,6 +110,7 @@ describe("executeFlow", () => {
 				{ id: "out", type: "output", data: {} },
 			],
 			edges: [
+				{ id: "e0", source: "start", target: "in" },
 				{ id: "e1", source: "in", target: "check" },
 				{ id: "e2", source: "check", target: "setYes", sourceHandle: "true" },
 				{ id: "e3", source: "check", target: "setNo", sourceHandle: "false" },

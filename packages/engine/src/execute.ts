@@ -65,13 +65,12 @@ export async function executeFlow(
 	const steps: NodeStepResult[] = [];
 	const order = topologicalSort(flow);
 	const executed = new Set<string>();
-	const queue: string[] = order
-		.filter((n) => n.type === "input")
-		.map((n) => n.id);
+	const startNodes = order.filter((n) => n.type === "start");
+	const queue: string[] = startNodes.map((n) => n.id);
 	if (queue.length === 0 && order[0]) queue.push(order[0].id);
 
 	const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));
-	let lastOutput: unknown = flowInput;
+	let lastOutput: unknown = {};
 
 	while (queue.length > 0) {
 		const nodeId = queue.shift();

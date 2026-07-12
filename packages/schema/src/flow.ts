@@ -9,10 +9,12 @@ import { jsonNodeDataSchema } from "./nodes/json.js";
 import { mergeNodeDataSchema } from "./nodes/merge.js";
 import { outputNodeDataSchema } from "./nodes/output.js";
 import { setNodeDataSchema } from "./nodes/set.js";
+import { startNodeDataSchema } from "./nodes/start.js";
 import { templateNodeDataSchema } from "./nodes/template.js";
 import { transformNodeDataSchema } from "./nodes/transform.js";
 
 export const builtinNodeTypes = [
+	"start",
 	"input",
 	"http",
 	"extract",
@@ -29,6 +31,7 @@ export const builtinNodeTypes = [
 export type BuiltinNodeType = (typeof builtinNodeTypes)[number];
 
 const nodeDataByType: Record<BuiltinNodeType, z.ZodTypeAny> = {
+	start: startNodeDataSchema,
 	input: inputNodeDataSchema,
 	http: httpNodeDataSchema,
 	extract: extractNodeDataSchema,

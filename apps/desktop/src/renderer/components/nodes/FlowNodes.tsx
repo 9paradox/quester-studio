@@ -8,18 +8,34 @@ import {
 } from "../BaseFlowNode.js";
 import { JsonViewer } from "../JsonViewer.js";
 
+export function StartFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
+	const edges = useEdges();
+	return (
+		<BaseFlowNode
+			type="start"
+			title={data.label ?? "Start"}
+			subtitle="Flow entry"
+			selected={selected}
+			targetPorts={[]}
+			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+		>
+			One outgoing connection only
+		</BaseFlowNode>
+	);
+}
+
 export function InputFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
 	return (
 		<BaseFlowNode
 			type="input"
 			title={data.label ?? "Input"}
-			subtitle="Flow entry"
+			subtitle="Run payload"
 			selected={selected}
-			targetPorts={[]}
+			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		>
-			Accepts flow input JSON
+			Puts run input on the wire
 		</BaseFlowNode>
 	);
 }
@@ -202,7 +218,7 @@ export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 		<BaseFlowNode
 			type="json"
 			title={data.label ?? "JSON"}
-			subtitle={String(data.expression ?? data.source ?? "previous")}
+			subtitle={String(data.expression ?? "previous")}
 			selected={selected}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
@@ -219,6 +235,7 @@ export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 }
 
 export const flowNodeTypes = {
+	start: StartFlowNode,
 	input: InputFlowNode,
 	http: HttpFlowNode,
 	extract: ExtractFlowNode,

@@ -5,10 +5,26 @@
 	"description": "POST login then GET profile using returned token (mocked with jsonplaceholder users)",
 	"nodes": [
 		{
+			"id": "start",
+			"type": "start",
+			"data": {
+				"label": "Start"
+			},
+			"position": {
+				"x": -200,
+				"y": 0
+			}
+		},
+		{
 			"id": "input",
 			"type": "input",
-			"data": { "label": "Credentials" },
-			"position": { "x": 0, "y": 0 }
+			"data": {
+				"label": "Credentials"
+			},
+			"position": {
+				"x": 0,
+				"y": 0
+			}
 		},
 		{
 			"id": "login",
@@ -17,20 +33,27 @@
 				"label": "Login",
 				"method": "POST",
 				"url": "{{env.API_BASE}}/users",
-				"headers": { "Content-Type": "application/json" },
+				"headers": {
+					"Content-Type": "application/json"
+				},
 				"body": "{\"username\": \"{{input.username}}\", \"email\": \"{{input.email}}\"}"
 			},
-			"position": { "x": 250, "y": 0 }
+			"position": {
+				"x": 250,
+				"y": 0
+			}
 		},
 		{
 			"id": "userId",
 			"type": "extract",
 			"data": {
 				"label": "User id",
-				"expression": "body.id",
-				"source": "previous"
+				"expression": "body.id"
 			},
-			"position": { "x": 500, "y": 0 }
+			"position": {
+				"x": 500,
+				"y": 0
+			}
 		},
 		{
 			"id": "profile",
@@ -41,19 +64,48 @@
 				"url": "{{env.API_BASE}}/users/{{nodes.userId}}",
 				"headers": {}
 			},
-			"position": { "x": 750, "y": 0 }
+			"position": {
+				"x": 750,
+				"y": 0
+			}
 		},
 		{
 			"id": "output",
 			"type": "output",
-			"data": { "label": "Result" },
-			"position": { "x": 1000, "y": 0 }
+			"data": {
+				"label": "Result"
+			},
+			"position": {
+				"x": 1000,
+				"y": 0
+			}
 		}
 	],
 	"edges": [
-		{ "id": "e1", "source": "input", "target": "login" },
-		{ "id": "e2", "source": "login", "target": "userId" },
-		{ "id": "e3", "source": "userId", "target": "profile" },
-		{ "id": "e4", "source": "profile", "target": "output" }
+		{
+			"id": "e0",
+			"source": "start",
+			"target": "input"
+		},
+		{
+			"id": "e1",
+			"source": "input",
+			"target": "login"
+		},
+		{
+			"id": "e2",
+			"source": "login",
+			"target": "userId"
+		},
+		{
+			"id": "e3",
+			"source": "userId",
+			"target": "profile"
+		},
+		{
+			"id": "e4",
+			"source": "profile",
+			"target": "output"
+		}
 	]
 }
