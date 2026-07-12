@@ -78,7 +78,12 @@ export function AuxiliarySidebar() {
 					value="response"
 					className="mt-0 min-h-0 flex-1 overflow-hidden"
 				>
-					<ResponseViewScroll runResult={runResult} runError={runError} />
+					<ResponseViewScroll
+						runResult={runResult}
+						runError={runError}
+						selectedNodeId={selectedNodeId}
+						selectedNode={selectedNode}
+					/>
 				</TabsContent>
 			</Tabs>
 		</aside>

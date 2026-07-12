@@ -124,4 +124,44 @@ describe("builtin node plugins", () => {
 			),
 		).rejects.toThrow(/http or https/);
 	});
+
+	test("http plugin returns request snapshot and timing", async () => {
+		const result = await httpPlugin.execute(
+			ctx({
+				node: {
+					id: "http",
+					type: "http",
+					data: {
+						method: "POST",
+						url: "https://example.com/login",
+						headers: { "Content-Type": "application/json" },
+						body: '{"u":"{{input.username}}"}',
+					},
+				},
+				fetch: (async () =>
+					new Response('{"ok":true}', {
+						status: 201,
+						statusText: "Created",
+						headers: { "content-type": "application/json" },
+					})) as typeof fetch,
+			}),
+		);
+		const output = result.output as {
+			status: number;
+			request: { method: string; url: string; body?: string };
+			timing: { durationMs: number };
+			size: number;
+			body: unknown;
+		};
+		expect(output.status).toBe(201);
+		expect(output.request).toEqual({
+			method: "POST",
+			url: "https://example.com/login",
+			headers: { "Content-Type": "application/json" },
+			body: '{"u":"alice"}',
+		});
+		expect(output.timing.durationMs).toBeGreaterThanOrEqual(0);
+		expect(output.size).toBeGreaterThan(0);
+		expect(output.body).toEqual({ ok: true });
+	});
 });

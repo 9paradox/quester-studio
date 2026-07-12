@@ -1,3 +1,5 @@
+import { HeadersEditor } from "@/components/HeadersEditor.js";
+import { TemplateField } from "@/components/TemplateField.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
 import {
@@ -7,7 +9,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select.js";
+import { Separator } from "@/components/ui/separator.js";
 import { Textarea } from "@/components/ui/textarea.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
 import type { FlowNodeV1 } from "@quester/schema";
 import type { ReactNode } from "react";
 
@@ -18,10 +22,32 @@ type NodeInspectorProps = {
 
 export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 	const data = node.data as Record<string, unknown>;
+	const inputJson = useQuesterStore((s) => s.inputJson);
+	const inputError = useQuesterStore((s) => s.inputError);
+	const setInputJson = useQuesterStore((s) => s.setInputJson);
 
 	const setField = (key: string, value: unknown) => {
 		onUpdate({ ...data, [key]: value });
 	};
+
+	const formatRunInput = () => {
+		try {
+			const parsed = JSON.parse(inputJson) as unknown;
+			setInputJson(JSON.stringify(parsed, null, 2));
+			useQuesterStore.setState({ inputError: null });
+		} catch (err) {
+			useQuesterStore.setState({
+				inputError: err instanceof Error ? err.message : "Invalid JSON",
+			});
+		}
+	};
+
+	const headers =
+		data.headers &&
+		typeof data.headers === "object" &&
+		!Array.isArray(data.headers)
+			? (data.headers as Record<string, string>)
+			: {};
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -36,6 +62,40 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					onChange={(e) => setField("label", e.target.value)}
 				/>
 			</Field>
+
+			{node.type === "input" ? (
+				<>
+					<Separator />
+					<div className="flex flex-col gap-1.5">
+						<Label
+							htmlFor="flow-run-input"
+							className="text-xs text-muted-foreground"
+						>
+							Run input (JSON)
+						</Label>
+						<p className="text-[11px] leading-relaxed text-muted-foreground">
+							Passed into this node when you click Run. Reference fields as{" "}
+							<code className="font-mono text-[10px]">{"{{input.*}}"}</code> in
+							later nodes.
+						</p>
+						<Textarea
+							id="flow-run-input"
+							value={inputJson}
+							onChange={(e) => {
+								setInputJson(e.target.value);
+								useQuesterStore.setState({ inputError: null });
+							}}
+							onBlur={formatRunInput}
+							className="min-h-48 rounded-md border bg-muted/20 p-2.5 font-mono text-xs leading-5"
+							spellCheck={false}
+							placeholder={'{\n  "username": "demo"\n}'}
+						/>
+						{inputError ? (
+							<p className="text-xs text-destructive">{inputError}</p>
+						) : null}
+					</div>
+				</>
+			) : null}
 
 			{node.type === "http" ? (
 				<>
@@ -57,36 +117,33 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						</Select>
 					</Field>
 					<Field label="URL">
-						<Input
+						<TemplateField
 							value={String(data.url ?? "")}
-							onChange={(e) => setField("url", e.target.value)}
-							className="font-mono"
+							onChange={(url) => setField("url", url)}
+							placeholder="{{env.API_BASE}}/path"
 						/>
 					</Field>
-					<Field label="Headers (JSON)">
-						<Textarea
-							value={JSON.stringify(data.headers ?? {}, null, 2)}
-							onChange={(e) => {
-								try {
-									setField("headers", JSON.parse(e.target.value));
-								} catch {
-									// keep typing
-								}
-							}}
-							className="min-h-20 font-mono text-xs"
-							spellCheck={false}
+					<div className="flex flex-col gap-1.5">
+						<span className="text-xs text-muted-foreground">Headers</span>
+						<HeadersEditor
+							key={node.id}
+							headers={headers}
+							onChange={(next) => setField("headers", next)}
 						/>
-					</Field>
+					</div>
 					<Field label="Body">
-						<Textarea
+						<TemplateField
 							value={
 								typeof data.body === "string"
 									? data.body
-									: JSON.stringify(data.body ?? "", null, 2)
+									: data.body === undefined
+										? ""
+										: JSON.stringify(data.body, null, 2)
 							}
-							onChange={(e) => setField("body", e.target.value)}
-							className="min-h-24 font-mono text-xs"
-							spellCheck={false}
+							onChange={(body) => setField("body", body)}
+							multiline
+							rows={8}
+							placeholder={'{\n  "username": "{{input.username}}"\n}'}
 						/>
 					</Field>
 				</>
@@ -94,21 +151,21 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 
 			{node.type === "template" ? (
 				<Field label="Template">
-					<Textarea
+					<TemplateField
 						value={String(data.template ?? "")}
-						onChange={(e) => setField("template", e.target.value)}
-						className="min-h-24 font-mono text-xs"
-						spellCheck={false}
+						onChange={(template) => setField("template", template)}
+						multiline
+						rows={8}
 					/>
 				</Field>
 			) : null}
 
 			{node.type === "if" ? (
 				<Field label="Condition">
-					<Input
+					<TemplateField
 						value={String(data.condition ?? "")}
-						onChange={(e) => setField("condition", e.target.value)}
-						className="font-mono"
+						onChange={(condition) => setField("condition", condition)}
+						placeholder="{{input.active}}"
 					/>
 				</Field>
 			) : null}
@@ -116,10 +173,10 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "extract" ? (
 				<>
 					<Field label="Expression">
-						<Input
+						<TemplateField
 							value={String(data.expression ?? "")}
-							onChange={(e) => setField("expression", e.target.value)}
-							className="font-mono"
+							onChange={(expression) => setField("expression", expression)}
+							placeholder="body.id"
 						/>
 					</Field>
 					<Field label="Source">

@@ -1,4 +1,4 @@
-﻿import { getNodePlugin } from "@quester/nodes";
+﻿import { HttpNodeError, getNodePlugin } from "@quester/nodes";
 import type { FlowV1 } from "@quester/schema";
 import "@quester/nodes";
 import { EngineEventEmitter } from "./events.js";
@@ -14,11 +14,43 @@ export type ExecuteFlowOptions = {
 	events?: EngineEventEmitter;
 };
 
+export type NodeStepResult = {
+	nodeId: string;
+	type: string;
+	input: unknown;
+	output: unknown;
+	error?: string;
+};
+
 export type ExecuteFlowResult = {
 	output: unknown;
 	nodeOutputs: Record<string, unknown>;
+	nodeInputs: Record<string, unknown>;
+	steps: NodeStepResult[];
 	vars: Record<string, unknown>;
 };
+
+export class FlowExecutionError extends Error {
+	readonly partial: ExecuteFlowResult;
+	readonly failedNodeId: string;
+	readonly failedNodeType: string;
+
+	constructor(
+		message: string,
+		options: {
+			partial: ExecuteFlowResult;
+			failedNodeId: string;
+			failedNodeType: string;
+			cause?: unknown;
+		},
+	) {
+		super(message);
+		this.name = "FlowExecutionError";
+		this.partial = options.partial;
+		this.failedNodeId = options.failedNodeId;
+		this.failedNodeType = options.failedNodeType;
+	}
+}
 
 export async function executeFlow(
 	flow: FlowV1,
@@ -29,6 +61,8 @@ export async function executeFlow(
 	const flowInput = options.input ?? {};
 	let vars = { ...(options.vars ?? {}) };
 	const nodeOutputs: Record<string, unknown> = {};
+	const nodeInputs: Record<string, unknown> = {};
+	const steps: NodeStepResult[] = [];
 	const order = topologicalSort(flow);
 	const executed = new Set<string>();
 	const queue: string[] = order
@@ -66,7 +100,12 @@ export async function executeFlow(
 			nodeOutputs,
 		};
 
-		events.emit("node:before", { nodeId: node.id, type: node.type });
+		nodeInputs[node.id] = input;
+		events.emit("node:before", {
+			nodeId: node.id,
+			type: node.type,
+			input,
+		});
 		try {
 			const result = await plugin.execute({
 				node,
@@ -81,9 +120,16 @@ export async function executeFlow(
 			nodeOutputs[node.id] = result.output;
 			lastOutput = result.output;
 			executed.add(node.id);
+			steps.push({
+				nodeId: node.id,
+				type: node.type,
+				input,
+				output: result.output,
+			});
 			events.emit("node:after", {
 				nodeId: node.id,
 				type: node.type,
+				input,
 				output: result.output,
 			});
 
@@ -93,13 +139,39 @@ export async function executeFlow(
 				}
 			}
 		} catch (error) {
-			events.emit("node:error", { nodeId: node.id, type: node.type, error });
-			throw error;
+			const message = error instanceof Error ? error.message : String(error);
+			events.emit("node:error", {
+				nodeId: node.id,
+				type: node.type,
+				input,
+				error,
+			});
+			const partialOutput =
+				error instanceof HttpNodeError ? { request: error.request } : undefined;
+			steps.push({
+				nodeId: node.id,
+				type: node.type,
+				input,
+				output: partialOutput,
+				error: message,
+			});
+			throw new FlowExecutionError(message, {
+				partial: {
+					output: undefined,
+					nodeOutputs,
+					nodeInputs,
+					steps,
+					vars,
+				},
+				failedNodeId: node.id,
+				failedNodeType: node.type,
+				cause: error,
+			});
 		}
 	}
 
 	const outputNode = flow.nodes.find((n) => n.type === "output");
 	const output = outputNode ? nodeOutputs[outputNode.id] : lastOutput;
 	events.emit("flow:complete", { output });
-	return { output, nodeOutputs, vars };
+	return { output, nodeOutputs, nodeInputs, steps, vars };
 }

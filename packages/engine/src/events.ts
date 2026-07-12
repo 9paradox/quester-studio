@@ -1,7 +1,17 @@
 ﻿export type EngineEventMap = {
-	"node:before": { nodeId: string; type: string };
-	"node:after": { nodeId: string; type: string; output: unknown };
-	"node:error": { nodeId: string; type: string; error: unknown };
+	"node:before": { nodeId: string; type: string; input: unknown };
+	"node:after": {
+		nodeId: string;
+		type: string;
+		input: unknown;
+		output: unknown;
+	};
+	"node:error": {
+		nodeId: string;
+		type: string;
+		input: unknown;
+		error: unknown;
+	};
 	"flow:complete": { output: unknown };
 };
 

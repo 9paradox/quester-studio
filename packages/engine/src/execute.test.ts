@@ -1,6 +1,6 @@
 ﻿import { describe, expect, mock, test } from "bun:test";
 import type { FlowV1 } from "@quester/schema";
-import { executeFlow } from "./execute.js";
+import { FlowExecutionError, executeFlow } from "./execute.js";
 
 const httpFlow: FlowV1 = {
 	id: "test",
@@ -36,10 +36,56 @@ describe("executeFlow", () => {
 		expect(fetchMock).toHaveBeenCalled();
 		expect(result.output).toEqual({
 			status: 200,
+			statusText: expect.any(String),
 			body: { ok: true },
 			text: '{"ok":true}',
 			headers: expect.any(Object),
+			request: {
+				method: "GET",
+				url: "https://example.com/api",
+				headers: {},
+			},
+			timing: {
+				startedAt: expect.any(Number),
+				endedAt: expect.any(Number),
+				durationMs: expect.any(Number),
+			},
+			size: expect.any(Number),
 		});
+		expect(result.nodeInputs.in).toEqual({ user: "x" });
+		expect(result.nodeInputs.http).toEqual({ user: "x" });
+		expect(result.steps.map((s) => s.nodeId)).toEqual(["in", "http", "out"]);
+		expect(result.steps[1]?.input).toEqual({ user: "x" });
+		expect(result.steps[1]?.output).toMatchObject({
+			status: 200,
+			body: { ok: true },
+		});
+	});
+
+	test("throws FlowExecutionError with partial steps on node failure", async () => {
+		const fetchMock = mock(async () => {
+			throw new Error("unable to verify the first certificate");
+		});
+		try {
+			await executeFlow(httpFlow, {
+				input: { user: "x" },
+				fetch: fetchMock as unknown as typeof fetch,
+			});
+			expect.unreachable("should throw");
+		} catch (err) {
+			expect(err).toBeInstanceOf(FlowExecutionError);
+			const failure = err as FlowExecutionError;
+			expect(failure.message).toContain(
+				"unable to verify the first certificate",
+			);
+			expect(failure.failedNodeId).toBe("http");
+			expect(failure.partial.steps.map((s) => s.nodeId)).toEqual([
+				"in",
+				"http",
+			]);
+			expect(failure.partial.nodeInputs.http).toEqual({ user: "x" });
+			expect(failure.partial.steps[1]?.error).toContain("certificate");
+		}
 	});
 
 	test("follows if branch and merges set vars", async () => {

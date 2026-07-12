@@ -409,9 +409,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (state.selectedNodeId === nodeId) return;
 		set({
 			selectedNodeId: nodeId,
-			...(nodeId
-				? { rightPanelOpen: true, rightPanelTab: "inspector" as const }
-				: {}),
+			...(nodeId ? { rightPanelOpen: true } : {}),
 		});
 	},
 
@@ -724,12 +722,40 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				env: selectedEnv,
 				input,
 			});
-			set({ runResult: result });
-			appendConsole("Run finished");
+			set({
+				runResult: result,
+				runError: result.error ?? null,
+			});
+			if (result.error) {
+				appendConsole(`Run failed: ${result.error}`);
+				const failedStep = result.steps.find((s) => s.error);
+				if (failedStep) {
+					appendConsole(
+						`Failed node: ${failedStep.type} (${failedStep.nodeId})`,
+					);
+					appendConsole(
+						JSON.stringify(
+							{ input: failedStep.input, error: failedStep.error },
+							null,
+							2,
+						),
+					);
+				}
+				for (const entry of result.logs.filter((l) => l.level === "error")) {
+					appendConsole(entry.message);
+					if (entry.data !== undefined) {
+						appendConsole(JSON.stringify(entry.data, null, 2));
+					}
+				}
+			} else {
+				appendConsole("Run finished");
+			}
 		} catch (err) {
 			const message =
-				err instanceof Error ? err.message : "Flow execution failed";
-			set({ runError: message });
+				err instanceof Error
+					? [err.message, err.stack].filter(Boolean).join("\n")
+					: "Flow execution failed";
+			set({ runError: err instanceof Error ? err.message : message });
 			appendConsole(message);
 		} finally {
 			set({ isRunning: false });
