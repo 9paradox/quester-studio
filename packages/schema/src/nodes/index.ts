@@ -5,3 +5,7 @@ export * from "./template.js";
 export * from "./set.js";
 export * from "./if.js";
 export * from "./output.js";
+export * from "./assert.js";
+export * from "./transform.js";
+export * from "./merge.js";
+export * from "./json.js";

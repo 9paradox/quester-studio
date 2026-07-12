@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "label": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "sources"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -16,6 +16,10 @@
     "environmentsDir": {
       "type": "string",
       "default": "environments"
+    },
+    "collectionsDir": {
+      "type": "string",
+      "default": "collections"
     }
   },
   "required": [

@@ -9,7 +9,13 @@ import {
 import { Input } from "@/components/ui/input.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { Separator } from "@/components/ui/separator.js";
-import { envTabId, flowTabId, secretsTabId } from "@/lib/editorTabs.js";
+import { setNodeDragData, setRequestDragData } from "@/lib/dnd.js";
+import {
+	envTabId,
+	flowTabId,
+	requestTabId,
+	secretsTabId,
+} from "@/lib/editorTabs.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
 import { nodeCatalogGroups } from "@/lib/nodeCatalog.js";
 import { cn } from "@/lib/utils.js";
@@ -18,15 +24,20 @@ import { selectActiveTab, selectDirtyTabIds } from "@/stores/selectors.js";
 import {
 	IconDeviceFloppy,
 	IconFile,
+	IconFolder,
 	IconFolderOpen,
 	IconKey,
 	IconPencil,
 	IconPlus,
 	IconTopologyRing2,
 	IconTrash,
+	IconWorld,
 } from "@tabler/icons-react";
 import type { ComponentType, ReactNode, SVGProps } from "react";
+import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
+import type { RequestMeta } from "../../shared/rpc.js";
+import { SettingsSidebar } from "./SettingsSidebar.js";
 
 type ListIcon = ComponentType<SVGProps<SVGSVGElement> & { className?: string }>;
 
@@ -36,6 +47,7 @@ export function PrimarySidebar() {
 	const workspaceName = useQuesterStore((s) => s.workspaceName);
 	const workspacePath = useQuesterStore((s) => s.workspacePath);
 	const flows = useQuesterStore((s) => s.flows);
+	const requests = useQuesterStore((s) => s.requests);
 	const activeTabId = useQuesterStore((s) => s.activeTabId);
 	const dirtyTabIds = useQuesterStore(useShallow(selectDirtyTabIds));
 	const envs = useQuesterStore((s) => s.envs);
@@ -49,9 +61,14 @@ export function PrimarySidebar() {
 	const loadFlow = useQuesterStore((s) => s.loadFlow);
 	const loadEnvironment = useQuesterStore((s) => s.loadEnvironment);
 	const loadSecretsFile = useQuesterStore((s) => s.loadSecretsFile);
+	const loadRequest = useQuesterStore((s) => s.loadRequest);
 	const createFlow = useQuesterStore((s) => s.createFlow);
 	const createEnv = useQuesterStore((s) => s.createEnv);
 	const createSecretsFile = useQuesterStore((s) => s.createSecretsFile);
+	const createCollection = useQuesterStore((s) => s.createCollection);
+	const createRequest = useQuesterStore((s) => s.createRequest);
+	const deleteRequest = useQuesterStore((s) => s.deleteRequest);
+	const addRequestToCanvas = useQuesterStore((s) => s.addRequestToCanvas);
 	const renameFlow = useQuesterStore((s) => s.renameFlow);
 	const deleteFlow = useQuesterStore((s) => s.deleteFlow);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
@@ -76,6 +93,21 @@ export function PrimarySidebar() {
 			file.fileName.toLowerCase().includes(q)
 		);
 	});
+
+	const filteredRequests = requests.filter((req) => {
+		const q = search.trim().toLowerCase();
+		if (!q) return true;
+		return (
+			req.name.toLowerCase().includes(q) ||
+			req.path.toLowerCase().includes(q) ||
+			req.collection.toLowerCase().includes(q)
+		);
+	});
+
+	const requestsByCollection = useMemo(
+		() => groupRequestsByCollection(filteredRequests),
+		[filteredRequests],
+	);
 
 	return (
 		<aside
@@ -178,6 +210,9 @@ export function PrimarySidebar() {
 			{view === "nodes" ? (
 				<ScrollArea className="min-h-0 flex-1">
 					<div className="flex flex-col gap-3 p-2">
+						<p className="px-1 text-xs text-muted-foreground">
+							Click or drag onto the canvas
+						</p>
 						{nodeCatalogGroups.map((group) => (
 							<div key={group.title} className="flex flex-col gap-1">
 								<div className="px-1 text-xs font-medium text-muted-foreground">
@@ -190,8 +225,12 @@ export function PrimarySidebar() {
 											key={node.type}
 											type="button"
 											variant="ghost"
-											className="h-auto items-start justify-start gap-2 px-2 py-1.5 text-left font-normal"
+											draggable
+											className="h-auto cursor-grab items-start justify-start gap-2 px-2 py-1.5 text-left font-normal active:cursor-grabbing"
 											onClick={() => handleAddNode(node.type)}
+											onDragStart={(event) => {
+												setNodeDragData(event.dataTransfer, node.type);
+											}}
 										>
 											<NodeIcon className="mt-0.5 size-4 shrink-0 opacity-70" />
 											<span className="flex min-w-0 flex-col gap-0">
@@ -208,6 +247,103 @@ export function PrimarySidebar() {
 					</div>
 				</ScrollArea>
 			) : null}
+
+			{view === "collections" ? (
+				<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+					<div className="flex shrink-0 flex-col gap-2 p-2">
+						<div className="flex gap-1 px-1">
+							<Button
+								type="button"
+								variant="outline"
+								size="xs"
+								className="flex-1"
+								onClick={() => void createCollection()}
+							>
+								<IconFolder />
+								Collection
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="xs"
+								className="flex-1"
+								onClick={() => void createRequest()}
+							>
+								<IconPlus />
+								Request
+							</Button>
+						</div>
+						<div className="flex gap-1 px-1">
+							<Button
+								type="button"
+								variant="outline"
+								size="xs"
+								className="flex-1"
+								onClick={() => void saveActiveTab()}
+								disabled={!canSave}
+							>
+								<IconDeviceFloppy />
+								Save
+							</Button>
+						</div>
+						<Input
+							value={search}
+							onChange={(e) => setSidebarSearch(e.target.value)}
+							placeholder="Search requests…"
+							className="h-8 bg-background"
+						/>
+						<p className="px-1 text-[11px] text-muted-foreground">
+							Drag a request onto the canvas to insert an HTTP node (copy, not
+							linked).
+						</p>
+					</div>
+					<ScrollArea className="min-h-0 flex-1">
+						<div className="flex flex-col gap-2 px-2 pb-2">
+							{requestsByCollection.map(([collection, items]) => (
+								<div
+									key={collection || "__root"}
+									className="flex flex-col gap-0.5"
+								>
+									<div className="flex items-center justify-between gap-1 px-1 py-1">
+										<span className="truncate text-xs font-medium text-muted-foreground">
+											{collection || "Root"}
+										</span>
+										{collection ? (
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon-xs"
+												onClick={() => void createRequest(collection)}
+												aria-label={`New request in ${collection}`}
+											>
+												<IconPlus />
+											</Button>
+										) : null}
+									</div>
+									{items.map((req) => (
+										<RequestListItem
+											key={req.path}
+											request={req}
+											selected={activeTabId === requestTabId(req.path)}
+											dirty={dirtyTabIds.includes(requestTabId(req.path))}
+											onSelect={() => void loadRequest(req.path, workspacePath)}
+											onAddToCanvas={() => void addRequestToCanvas(req.path)}
+											onDelete={() => void deleteRequest(req.path)}
+										/>
+									))}
+								</div>
+							))}
+							{filteredRequests.length === 0 ? (
+								<p className="px-2 py-4 text-xs text-muted-foreground">
+									No requests yet. Create a collection or request.
+								</p>
+							) : null}
+						</div>
+					</ScrollArea>
+				</div>
+			) : null}
+
+			{view === "settings" ? <SettingsSidebar /> : null}
 		</aside>
 	);
 }
@@ -378,16 +514,88 @@ function FileListItem({
 	);
 }
 
+function RequestListItem({
+	request,
+	selected,
+	dirty,
+	onSelect,
+	onAddToCanvas,
+	onDelete,
+}: {
+	request: RequestMeta;
+	selected: boolean;
+	dirty: boolean;
+	onSelect: () => void;
+	onAddToCanvas: () => void;
+	onDelete: () => void;
+}) {
+	const item = (
+		<div
+			className={cn(
+				"group flex items-center rounded-md",
+				selected && "bg-sidebar-accent text-sidebar-accent-foreground",
+			)}
+		>
+			<button
+				type="button"
+				draggable
+				className="flex h-8 min-w-0 flex-1 cursor-grab items-center gap-1.5 px-2 text-left text-sm font-normal active:cursor-grabbing"
+				onClick={onSelect}
+				onDragStart={(event) => {
+					setRequestDragData(event.dataTransfer, request.path);
+				}}
+			>
+				<IconWorld className="size-3.5 shrink-0 opacity-70" />
+				<span className="truncate">{request.name}</span>
+				{dirty ? (
+					<span className="size-1.5 shrink-0 rounded-full bg-primary" />
+				) : null}
+			</button>
+		</div>
+	);
+
+	return (
+		<ContextMenu>
+			<ContextMenuTrigger className="block w-full">{item}</ContextMenuTrigger>
+			<ContextMenuContent>
+				<ContextMenuItem onClick={onSelect}>Open</ContextMenuItem>
+				<ContextMenuItem onClick={onAddToCanvas}>Add to canvas</ContextMenuItem>
+				<ContextMenuSeparator />
+				<ContextMenuItem variant="destructive" onClick={onDelete}>
+					Delete
+				</ContextMenuItem>
+			</ContextMenuContent>
+		</ContextMenu>
+	);
+}
+
+function groupRequestsByCollection(
+	requests: RequestMeta[],
+): Array<[string, RequestMeta[]]> {
+	const map = new Map<string, RequestMeta[]>();
+	for (const req of requests) {
+		const key = req.collection;
+		const list = map.get(key) ?? [];
+		list.push(req);
+		map.set(key, list);
+	}
+	return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
+}
+
 function viewTitle(view: ActivityView): string {
 	switch (view) {
 		case "flows":
 			return "Workspace";
+		case "collections":
+			return "Collections";
 		case "envs":
 			return "Environments";
 		case "secrets":
 			return "Secrets";
 		case "nodes":
 			return "Add node";
+		case "settings":
+			return "Settings";
 		default:
 			return view;
 	}

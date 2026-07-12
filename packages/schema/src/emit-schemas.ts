@@ -5,14 +5,19 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { environmentSchemaV1 } from "./environment.js";
 import { flowSchemaV1 } from "./flow.js";
 import {
+	assertNodeDataSchema,
 	extractNodeDataSchema,
 	httpNodeDataSchema,
 	ifNodeDataSchema,
 	inputNodeDataSchema,
+	jsonNodeDataSchema,
+	mergeNodeDataSchema,
 	outputNodeDataSchema,
 	setNodeDataSchema,
 	templateNodeDataSchema,
+	transformNodeDataSchema,
 } from "./nodes/index.js";
+import { requestSchemaV1 } from "./request.js";
 import { secretsSchemaV1 } from "./secrets.js";
 import { workspaceSchemaV1 } from "./workspace.js";
 
@@ -28,6 +33,7 @@ const specs: [string, unknown][] = [
 	["quester/environment/v1.schema.json", environmentSchemaV1],
 	["quester/secrets/v1.schema.json", secretsSchemaV1],
 	["quester/flow/v1.schema.json", flowSchemaV1],
+	["quester/request/v1.schema.json", requestSchemaV1],
 	["quester/nodes/input.schema.json", inputNodeDataSchema],
 	["quester/nodes/http.schema.json", httpNodeDataSchema],
 	["quester/nodes/extract.schema.json", extractNodeDataSchema],
@@ -35,6 +41,10 @@ const specs: [string, unknown][] = [
 	["quester/nodes/set.schema.json", setNodeDataSchema],
 	["quester/nodes/if.schema.json", ifNodeDataSchema],
 	["quester/nodes/output.schema.json", outputNodeDataSchema],
+	["quester/nodes/assert.schema.json", assertNodeDataSchema],
+	["quester/nodes/transform.schema.json", transformNodeDataSchema],
+	["quester/nodes/merge.schema.json", mergeNodeDataSchema],
+	["quester/nodes/json.schema.json", jsonNodeDataSchema],
 ];
 
 for (const [rel, schema] of specs) {

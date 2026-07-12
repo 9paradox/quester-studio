@@ -3,14 +3,24 @@ import {
 	IconArrowBarToDown,
 	IconArrowBarToUp,
 	IconBraces,
+	IconCheck,
 	IconCode,
 	IconGitBranch,
+	IconGitMerge,
+	IconJson,
+	IconTransform,
 	IconVariable,
 	IconWorld,
 } from "@tabler/icons-react";
 import type { ComponentType, SVGProps } from "react";
 
-export type ActivityView = "flows" | "envs" | "secrets" | "nodes";
+export type ActivityView =
+	| "flows"
+	| "collections"
+	| "envs"
+	| "secrets"
+	| "nodes"
+	| "settings";
 
 type CatalogIcon = ComponentType<
 	SVGProps<SVGSVGElement> & { className?: string }
@@ -44,10 +54,16 @@ export const nodeCatalogGroups: NodeCatalogGroup[] = [
 				description: "Flow result",
 				icon: IconArrowBarToUp,
 			},
+			{
+				type: "json",
+				label: "JSON",
+				description: "Display JSON on canvas",
+				icon: IconJson,
+			},
 		],
 	},
 	{
-		title: "HTTP & Data",
+		title: "HTTP",
 		nodes: [
 			{
 				type: "http",
@@ -55,6 +71,11 @@ export const nodeCatalogGroups: NodeCatalogGroup[] = [
 				description: "HTTP request",
 				icon: IconWorld,
 			},
+		],
+	},
+	{
+		title: "Transform",
+		nodes: [
 			{
 				type: "extract",
 				label: "Extract",
@@ -73,6 +94,18 @@ export const nodeCatalogGroups: NodeCatalogGroup[] = [
 				description: "Set variables",
 				icon: IconVariable,
 			},
+			{
+				type: "transform",
+				label: "Transform",
+				description: "Map fields with JMESPath",
+				icon: IconTransform,
+			},
+			{
+				type: "merge",
+				label: "Merge",
+				description: "Deep-merge objects",
+				icon: IconGitMerge,
+			},
 		],
 	},
 	{
@@ -83,6 +116,12 @@ export const nodeCatalogGroups: NodeCatalogGroup[] = [
 				label: "If",
 				description: "Conditional branch",
 				icon: IconGitBranch,
+			},
+			{
+				type: "assert",
+				label: "Assert",
+				description: "Fail on failed checks",
+				icon: IconCheck,
 			},
 		],
 	},
@@ -111,6 +150,17 @@ export function defaultNodeData(
 			return { label: "Condition", condition: "true" };
 		case "output":
 			return { label: "Output" };
+		case "assert":
+			return {
+				label: "Assert",
+				checks: [{ path: "status", equals: 200 }],
+			};
+		case "transform":
+			return { label: "Transform", map: {} };
+		case "merge":
+			return { label: "Merge", sources: ["previous"] };
+		case "json":
+			return { label: "JSON", source: "previous" };
 		default:
 			return { label: type };
 	}

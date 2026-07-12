@@ -1,11 +1,15 @@
 ﻿import {
+	assertPlugin,
 	extractPlugin,
 	httpPlugin,
 	ifPlugin,
 	inputPlugin,
+	jsonPlugin,
+	mergePlugin,
 	outputPlugin,
 	setPlugin,
 	templatePlugin,
+	transformPlugin,
 } from "./builtin/index.js";
 import { registerNodePlugin } from "./registry.js";
 
@@ -21,6 +25,10 @@ const builtins = [
 	setPlugin,
 	ifPlugin,
 	outputPlugin,
+	assertPlugin,
+	transformPlugin,
+	mergePlugin,
+	jsonPlugin,
 ];
 
 for (const plugin of builtins) {

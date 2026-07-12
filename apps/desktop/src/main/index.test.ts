@@ -4,12 +4,14 @@ import {
 	createFlow,
 	deleteFlow,
 	executeFlowRpc,
+	listCollectionRequests,
 	listEnvs,
 	listFlows,
 	listSecretFiles,
 	listSecretNames,
 	loadEnvironment,
 	loadFlow,
+	loadRequest,
 	loadSampleFlowJson,
 	loadSecretsFile,
 	openWorkspace,
@@ -45,6 +47,14 @@ describe("desktop main handlers", () => {
 			id: "login-and-profile",
 			name: "Login and profile (JSONPlaceholder)",
 		});
+	});
+
+	test("listCollectionRequests returns sample requests", async () => {
+		const requests = await listCollectionRequests(sampleWorkspace);
+		expect(requests.some((r) => r.path === "Auth/login")).toBe(true);
+		const login = await loadRequest(sampleWorkspace, "Auth/login");
+		expect(login.method).toBe("POST");
+		expect(login.url).toContain("dummyjson.com");
 	});
 
 	test("listEnvs returns environment names", async () => {

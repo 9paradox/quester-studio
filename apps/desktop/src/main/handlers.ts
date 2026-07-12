@@ -1,22 +1,34 @@
 import { existsSync } from "node:fs";
-import { readFile, readdir, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
 	EngineEventEmitter,
 	FlowExecutionError,
+	deleteRequest as deleteRequestFile,
+	ensureCollectionsDir,
 	executeFlow,
+	listRequests,
+	loadRequest as loadRequestFile,
 	loadSecrets,
 	loadWorkspace,
+	saveRequest as saveRequestFile,
 } from "@quester/engine";
-import type { EnvironmentV1, FlowV1, SecretsV1 } from "@quester/schema";
+import type {
+	EnvironmentV1,
+	FlowV1,
+	RequestV1,
+	SecretsV1,
+} from "@quester/schema";
 import {
 	ENVIRONMENT_VERSION,
 	FLOW_VERSION,
+	REQUEST_VERSION,
 	SECRETS_VERSION,
 	secretsSchemaV1,
 	validateEnvironment,
 	validateFlow,
+	validateRequest,
 } from "@quester/schema";
 import {
 	TLS_INSECURE_HINT,
@@ -24,7 +36,12 @@ import {
 	isTlsCertificateError,
 	serializeError,
 } from "../shared/errors.js";
-import type { ExecutionLogEntry, SecretFileMeta } from "../shared/rpc.js";
+import type {
+	ExecuteRequestRpcResult,
+	ExecutionLogEntry,
+	RequestMeta,
+	SecretFileMeta,
+} from "../shared/rpc.js";
 
 function insecureTlsEnabled(): boolean {
 	return (
@@ -463,4 +480,213 @@ export async function loadSampleFlowJson() {
 		"flows/login-and-profile.flow.json",
 	);
 	return JSON.parse(await readFile(path, "utf8"));
+}
+
+export async function listCollectionRequests(
+	workspace: string,
+): Promise<RequestMeta[]> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	return listRequests(root, ws.manifest);
+}
+
+export async function loadRequest(
+	workspace: string,
+	requestPath: string,
+): Promise<RequestV1> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	return loadRequestFile(root, ws.manifest, requestPath);
+}
+
+export async function saveRequest(
+	workspace: string,
+	requestPath: string,
+	request: RequestV1,
+): Promise<RequestV1> {
+	const validated = validateRequest(request);
+	if (!validated.success) throw new Error(validated.error);
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	await ensureCollectionsDir(root, ws.manifest);
+	return saveRequestFile(root, ws.manifest, requestPath, validated.data);
+}
+
+export async function createRequest(
+	workspace: string,
+	requestPath: string,
+	name?: string,
+): Promise<RequestV1> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	await ensureCollectionsDir(root, ws.manifest);
+	const existing = await listRequests(root, ws.manifest);
+	if (existing.some((r) => r.path === requestPath)) {
+		throw new Error(`Request already exists: ${requestPath}`);
+	}
+	const id = requestPath.includes("/")
+		? (requestPath.split("/").pop() ?? requestPath)
+		: requestPath;
+	const request: RequestV1 = {
+		version: REQUEST_VERSION,
+		id,
+		name: name ?? id,
+		method: "GET",
+		url: "https://dummyjson.com/test",
+		headers: {},
+	};
+	return saveRequestFile(root, ws.manifest, requestPath, request);
+}
+
+export async function deleteRequest(
+	workspace: string,
+	requestPath: string,
+): Promise<void> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	await deleteRequestFile(root, ws.manifest, requestPath);
+}
+
+export async function createCollection(
+	workspace: string,
+	collectionName: string,
+): Promise<{ ok: true }> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	const normalized = collectionName
+		.replace(/\\/g, "/")
+		.replace(/^\/+|\/+$/g, "");
+	if (!normalized || normalized.includes("..")) {
+		throw new Error(`Invalid collection name: ${collectionName}`);
+	}
+	await mkdir(join(root, ws.manifest.collectionsDir, normalized), {
+		recursive: true,
+	});
+	return { ok: true };
+}
+
+/** Run a standalone collection request via an ephemeral single-HTTP flow. */
+export async function executeRequestRpc(
+	requestPath: string,
+	options?: { env?: string; workspace?: string },
+): Promise<ExecuteRequestRpcResult> {
+	const root = options?.workspace
+		? resolve(options.workspace)
+		: defaultWorkspaceRoot;
+	const ws = await loadWorkspace(root);
+	const request = await loadRequestFile(root, ws.manifest, requestPath);
+	const envName = options?.env ?? "local";
+	const envVars = ws.environments[envName]?.variables ?? {};
+	const secrets = await loadSecrets(root, envName, ws.manifest.environmentsDir);
+
+	const flow: FlowV1 = {
+		id: `_request-${request.id}`,
+		version: FLOW_VERSION,
+		name: request.name,
+		nodes: [
+			{ id: "input", type: "input", data: { label: "Input" } },
+			{
+				id: "http",
+				type: "http",
+				data: {
+					label: request.name,
+					method: request.method,
+					url: request.url,
+					headers: request.headers,
+					...(request.body !== undefined ? { body: request.body } : {}),
+				},
+			},
+			{ id: "output", type: "output", data: { label: "Output" } },
+		],
+		edges: [
+			{ id: "e-in-http", source: "input", target: "http", sourceHandle: null },
+			{
+				id: "e-http-out",
+				source: "http",
+				target: "output",
+				sourceHandle: null,
+			},
+		],
+	};
+
+	const validated = validateFlow(flow);
+	if (!validated.success) throw new Error(validated.error);
+
+	const logs: ExecutionLogEntry[] = [];
+	const pushLog = (
+		level: ExecutionLogEntry["level"],
+		message: string,
+		extra?: Omit<ExecutionLogEntry, "ts" | "level" | "message">,
+	) => {
+		logs.push({ ts: Date.now(), level, message, ...extra });
+	};
+
+	const events = new EngineEventEmitter();
+	events.on("node:before", ({ nodeId, type }) => {
+		pushLog("info", `→ ${type} (${nodeId})`, {
+			nodeId,
+			nodeType: type,
+			phase: "before",
+		});
+	});
+	events.on("node:after", ({ nodeId, type, input, output }) => {
+		pushLog("info", `✓ ${type} (${nodeId})`, {
+			nodeId,
+			nodeType: type,
+			phase: "after",
+			data: { input, output },
+		});
+	});
+	events.on("node:error", ({ nodeId, type, input, error }) => {
+		const { message, detail } = serializeError(error);
+		const data: Record<string, unknown> = { input, error: detail };
+		if (
+			error &&
+			typeof error === "object" &&
+			"request" in error &&
+			(error as { name?: string }).name === "HttpNodeError"
+		) {
+			data.request = (error as { request: unknown }).request;
+		}
+		pushLog("error", `✗ ${type} (${nodeId}): ${message}`, {
+			nodeId,
+			nodeType: type,
+			phase: "error",
+			data,
+		});
+		if (isTlsCertificateError(error)) {
+			pushLog("error", TLS_INSECURE_HINT, {
+				nodeId,
+				nodeType: type,
+				phase: "error",
+			});
+		}
+	});
+
+	pushLog("info", `Request started · env=${envName}`, { phase: "start" });
+
+	try {
+		const result = await executeFlow(validated.data, {
+			input: {},
+			env: envVars,
+			secrets,
+			events,
+			fetch: createExecutionFetch(),
+		});
+		const httpOutput = result.nodeOutputs.http ?? null;
+		return { ...result, httpOutput, logs };
+	} catch (error) {
+		const msg = formatErrorForConsole(error);
+		pushLog("error", msg);
+		if (error instanceof FlowExecutionError) {
+			return {
+				...error.partial,
+				httpOutput: error.partial.nodeOutputs.http ?? null,
+				logs,
+				error: error.message,
+				failedNodeId: error.failedNodeId,
+			};
+		}
+		throw error;
+	}
 }

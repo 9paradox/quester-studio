@@ -1,7 +1,10 @@
 ﻿import { Component, type ErrorInfo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppShell } from "./components/AppShell.js";
+import { applyTheme, readThemePreference } from "./lib/theme.js";
 import "./styles.css";
+
+applyTheme(readThemePreference());
 
 class RootErrorBoundary extends Component<
 	{ children: ReactNode },

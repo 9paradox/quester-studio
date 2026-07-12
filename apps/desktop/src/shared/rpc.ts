@@ -1,5 +1,10 @@
 import type { ExecuteFlowResult } from "@quester/engine";
-import type { EnvironmentV1, FlowV1, SecretsV1 } from "@quester/schema";
+import type {
+	EnvironmentV1,
+	FlowV1,
+	RequestV1,
+	SecretsV1,
+} from "@quester/schema";
 import type { RPCSchema } from "electrobun";
 
 export type WorkspaceSummary = {
@@ -10,6 +15,13 @@ export type WorkspaceSummary = {
 };
 
 export type FlowMeta = { id: string; name: string };
+
+export type RequestMeta = {
+	path: string;
+	id: string;
+	name: string;
+	collection: string;
+};
 
 export type SecretFileMeta = { envName: string; fileName: string };
 
@@ -24,6 +36,13 @@ export type ExecutionLogEntry = {
 };
 
 export type ExecuteFlowRpcResult = ExecuteFlowResult & {
+	logs: ExecutionLogEntry[];
+	error?: string;
+	failedNodeId?: string;
+};
+
+export type ExecuteRequestRpcResult = ExecuteFlowResult & {
+	httpOutput: unknown;
 	logs: ExecutionLogEntry[];
 	error?: string;
 	failedNodeId?: string;
@@ -121,6 +140,46 @@ export type DesktopRPC = {
 			createSecretsFile: {
 				params: { workspace: string; envName: string };
 				response: SecretsV1;
+			};
+			listCollectionRequests: {
+				params: { workspace: string };
+				response: RequestMeta[];
+			};
+			loadRequest: {
+				params: { workspace: string; requestPath: string };
+				response: RequestV1;
+			};
+			saveRequest: {
+				params: {
+					workspace: string;
+					requestPath: string;
+					request: RequestV1;
+				};
+				response: RequestV1;
+			};
+			createRequest: {
+				params: {
+					workspace: string;
+					requestPath: string;
+					name?: string;
+				};
+				response: RequestV1;
+			};
+			deleteRequest: {
+				params: { workspace: string; requestPath: string };
+				response: { ok: true };
+			};
+			createCollection: {
+				params: { workspace: string; collectionName: string };
+				response: { ok: true };
+			};
+			executeRequestRpc: {
+				params: {
+					requestPath: string;
+					workspace: string;
+					env?: string;
+				};
+				response: ExecuteRequestRpcResult;
 			};
 		};
 		messages: Record<string, never>;

@@ -2,10 +2,12 @@ import {
 	type EditorTab,
 	createEnvEditorTab,
 	createFlowEditorTab,
+	createRequestEditorTab,
 	createSecretsEditorTab,
 	editorTabLabel,
 	envTabId,
 	flowTabId,
+	requestTabId,
 	secretsTabId,
 } from "@/lib/editorTabs.js";
 import { desktopRpc } from "@/lib/electrobun.js";
@@ -18,13 +20,15 @@ import {
 } from "@/lib/flowEditor.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
 import { DEFAULT_INPUT } from "@/lib/runDefaults.js";
-import type { BuiltinNodeType, FlowV1 } from "@quester/schema";
+import type { BuiltinNodeType, FlowV1, RequestV1 } from "@quester/schema";
 import { SECRETS_VERSION } from "@quester/schema";
 import type { Edge, Node } from "reactflow";
 import { create } from "zustand";
 import type {
 	ExecuteFlowRpcResult,
+	ExecuteRequestRpcResult,
 	FlowMeta,
+	RequestMeta,
 	SecretFileMeta,
 } from "../../shared/rpc.js";
 import {
@@ -80,6 +84,7 @@ export type QuesterState = {
 	workspacePath: string;
 	workspaceName: string;
 	flows: FlowMeta[];
+	requests: RequestMeta[];
 	envs: string[];
 	secretFiles: SecretFileMeta[];
 	selectedEnv: string;
@@ -110,6 +115,9 @@ export type QuesterState = {
 	runResult: ExecuteFlowRpcResult | null;
 	runError: string | null;
 	isRunning: boolean;
+	requestResult: ExecuteRequestRpcResult | null;
+	requestError: string | null;
+	isSendingRequest: boolean;
 	consoleLines: string[];
 
 	setActiveTabId: (tabId: string | null) => void;
@@ -139,10 +147,12 @@ export type QuesterState = {
 		flowList: FlowMeta[];
 		envList: string[];
 		secretsList: SecretFileMeta[];
+		requestList: RequestMeta[];
 	}>;
 	loadFlow: (flowId: string, workspace: string) => Promise<void>;
 	loadEnvironment: (envName: string, workspace: string) => Promise<void>;
 	loadSecretsFile: (envName: string, workspace: string) => Promise<void>;
+	loadRequest: (requestPath: string, workspace: string) => Promise<void>;
 	loadWorkspace: (path: string) => Promise<void>;
 	openWorkspacePicker: () => Promise<void>;
 	updateActiveFlow: (
@@ -152,7 +162,15 @@ export type QuesterState = {
 	handleGraphChange: (nodes: Node[], edges: Edge[]) => void;
 	handleEnvRowsChange: (rows: KeyValueRow[]) => void;
 	handleSecretRowsChange: (rows: KeyValueRow[]) => void;
-	handleAddNode: (type: BuiltinNodeType) => void;
+	handleRequestChange: (request: RequestV1) => void;
+	handleAddNode: (
+		type: BuiltinNodeType,
+		position?: { x: number; y: number },
+	) => void;
+	handleDropRequest: (
+		requestPath: string,
+		position?: { x: number; y: number },
+	) => Promise<void>;
 	handleSelectNode: (nodeId: string | null) => void;
 	handleUpdateNode: (nodeId: string, data: Record<string, unknown>) => void;
 	deleteNodes: (nodeIds: string[]) => void;
@@ -163,15 +181,21 @@ export type QuesterState = {
 	createFlow: () => Promise<void>;
 	createEnv: () => Promise<void>;
 	createSecretsFile: () => Promise<void>;
+	createCollection: () => Promise<void>;
+	createRequest: (collection?: string) => Promise<void>;
+	deleteRequest: (requestPath: string) => Promise<void>;
+	addRequestToCanvas: (requestPath: string) => Promise<void>;
 	renameFlow: (flowId: string) => Promise<void>;
 	deleteFlow: (flowId: string) => Promise<void>;
 	runFlow: () => Promise<void>;
+	sendRequest: () => Promise<void>;
 };
 
 export const useQuesterStore = create<QuesterState>((set, get) => ({
 	workspacePath: "",
 	workspaceName: "",
 	flows: [],
+	requests: [],
 	envs: [],
 	secretFiles: [],
 	selectedEnv: "local",
@@ -201,6 +225,9 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	runResult: null,
 	runError: null,
 	isRunning: false,
+	requestResult: null,
+	requestError: null,
+	isSendingRequest: false,
 	consoleLines: ["> Quester ready"],
 
 	setActiveTabId: (tabId) =>
@@ -285,13 +312,19 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	refreshWorkspaceLists: async (path) => {
-		const [flowList, envList, secretsList] = await Promise.all([
+		const [flowList, envList, secretsList, requestList] = await Promise.all([
 			desktopRpc.listFlows(path),
 			desktopRpc.listEnvs(path),
 			desktopRpc.listSecretFiles(path),
+			desktopRpc.listCollectionRequests(path),
 		]);
-		set({ flows: flowList, envs: envList, secretFiles: secretsList });
-		return { flowList, envList, secretsList };
+		set({
+			flows: flowList,
+			envs: envList,
+			secretFiles: secretsList,
+			requests: requestList,
+		});
+		return { flowList, envList, secretsList, requestList };
 	},
 
 	loadFlow: async (flowId, workspace) => {
@@ -329,6 +362,22 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		}
 		const secrets = await desktopRpc.loadSecretsFile(workspace, envName);
 		get().openTab(createSecretsEditorTab(envName, secrets));
+	},
+
+	loadRequest: async (requestPath, workspace) => {
+		const tabId = requestTabId(requestPath);
+		const existing = get().openTabs.find((t) => t.id === tabId);
+		if (existing) {
+			set({
+				activeTabId: tabId,
+				requestResult: null,
+				requestError: null,
+			});
+			return;
+		}
+		const request = await desktopRpc.loadRequest(workspace, requestPath);
+		get().openTab(createRequestEditorTab(requestPath, request));
+		set({ requestResult: null, requestError: null });
 	},
 
 	loadWorkspace: async (path) => {
@@ -452,13 +501,70 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		}));
 	},
 
-	handleAddNode: (type) => {
-		get().updateActiveFlow((flow) => addNodeToFlow(flow, type));
+	handleRequestChange: (request) => {
+		const { activeTabId } = get();
+		if (!activeTabId) return;
+		set((s) => ({
+			openTabs: s.openTabs.map((t) =>
+				t.id === activeTabId && t.kind === "request"
+					? { ...t, request, dirty: true }
+					: t,
+			),
+		}));
+	},
+
+	handleAddNode: (type, position) => {
+		get().updateActiveFlow((flow) => addNodeToFlow(flow, type, position));
 		set({
 			rightPanelOpen: true,
 			rightPanelTab: "inspector",
 			canvasDirty: true,
 		});
+	},
+
+	handleDropRequest: async (requestPath, position) => {
+		const { workspacePath, showError } = get();
+		if (!workspacePath) return;
+		try {
+			const request = await desktopRpc.loadRequest(workspacePath, requestPath);
+			get().updateActiveFlow((flow) => {
+				const next = addNodeToFlow(flow, "http", position);
+				const last = next.nodes[next.nodes.length - 1];
+				if (!last) return next;
+				return {
+					...next,
+					nodes: next.nodes.map((n) =>
+						n.id === last.id
+							? {
+									...n,
+									data: {
+										label: request.name,
+										method: request.method,
+										url: request.url,
+										headers: request.headers,
+										...(request.body !== undefined
+											? { body: request.body }
+											: {}),
+									},
+								}
+							: n,
+					),
+				};
+			});
+			set({
+				rightPanelOpen: true,
+				rightPanelTab: "inspector",
+				canvasDirty: true,
+			});
+		} catch (err) {
+			showError(
+				err instanceof Error ? err.message : "Failed to add request to canvas",
+			);
+		}
+	},
+
+	addRequestToCanvas: async (requestPath) => {
+		await get().handleDropRequest(requestPath);
 	},
 
 	handleSelectNode: (nodeId) => {
@@ -585,7 +691,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 						activeTabId === tab.id ? envTabId(saved.name) : s.activeTabId,
 				}));
 				appendConsole(`Saved ${saved.name}.json`);
-			} else {
+			} else if (tab.kind === "secrets") {
 				const saved = await desktopRpc.saveSecretsFile(
 					workspacePath,
 					tab.envName,
@@ -599,6 +705,20 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					),
 				}));
 				appendConsole(`Saved ${tab.envName}.secrets.json`);
+			} else if (tab.kind === "request") {
+				const saved = await desktopRpc.saveRequest(
+					workspacePath,
+					tab.requestPath,
+					tab.request,
+				);
+				set((s) => ({
+					openTabs: s.openTabs.map((t) =>
+						t.id === tab.id && t.kind === "request"
+							? { ...t, request: saved, dirty: false }
+							: t,
+					),
+				}));
+				appendConsole(`Saved request ${tab.requestPath}`);
 			}
 			await refreshWorkspaceLists(workspacePath);
 		} catch (err) {
@@ -854,6 +974,126 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			appendConsole(message);
 		} finally {
 			set({ isRunning: false });
+		}
+	},
+
+	createCollection: async () => {
+		const { workspacePath, refreshWorkspaceLists, appendConsole, showError } =
+			get();
+		if (!workspacePath) return;
+		const name = window.prompt("New collection name");
+		if (!name?.trim()) return;
+		try {
+			await desktopRpc.createCollection(workspacePath, name.trim());
+			await refreshWorkspaceLists(workspacePath);
+			appendConsole(`Created collection ${name.trim()}`);
+		} catch (err) {
+			showError(
+				err instanceof Error ? err.message : "Create collection failed",
+			);
+		}
+	},
+
+	createRequest: async (collection) => {
+		const {
+			workspacePath,
+			refreshWorkspaceLists,
+			openTab,
+			appendConsole,
+			showError,
+		} = get();
+		if (!workspacePath) return;
+		const name = window.prompt("New request name");
+		if (!name?.trim()) return;
+		const slug = slugifyName(name);
+		const requestPath = collection ? `${collection}/${slug}` : slug;
+		try {
+			const request = await desktopRpc.createRequest(
+				workspacePath,
+				requestPath,
+				name.trim(),
+			);
+			await refreshWorkspaceLists(workspacePath);
+			openTab(createRequestEditorTab(requestPath, request));
+			appendConsole(`Created request ${requestPath}`);
+		} catch (err) {
+			showError(err instanceof Error ? err.message : "Create request failed");
+		}
+	},
+
+	deleteRequest: async (requestPath) => {
+		const {
+			workspacePath,
+			openTabs,
+			activeTabId,
+			refreshWorkspaceLists,
+			appendConsole,
+			showError,
+		} = get();
+		if (!workspacePath) return;
+		const ok = window.confirm(`Delete request ${requestPath}?`);
+		if (!ok) return;
+		try {
+			await desktopRpc.deleteRequest(workspacePath, requestPath);
+			await refreshWorkspaceLists(workspacePath);
+			const tabId = requestTabId(requestPath);
+			const remaining = openTabs.filter((t) => t.id !== tabId);
+			set({
+				openTabs: remaining,
+				activeTabId:
+					activeTabId === tabId ? (remaining[0]?.id ?? null) : activeTabId,
+			});
+			appendConsole(`Deleted request ${requestPath}`);
+		} catch (err) {
+			showError(err instanceof Error ? err.message : "Delete request failed");
+		}
+	},
+
+	sendRequest: async () => {
+		const {
+			workspacePath,
+			selectedEnv,
+			openTabs,
+			activeTabId,
+			appendConsole,
+			saveActiveTab,
+		} = get();
+		const tab = openTabs.find((t) => t.id === activeTabId);
+		if (!tab || tab.kind !== "request" || !workspacePath) return;
+
+		if (tab.dirty) {
+			await saveActiveTab(tab.id);
+		}
+
+		set({
+			isSendingRequest: true,
+			requestError: null,
+			requestResult: null,
+		});
+		appendConsole(`Send request: ${tab.requestPath}`);
+
+		try {
+			const result = await desktopRpc.executeRequestRpc({
+				requestPath: tab.requestPath,
+				workspace: workspacePath,
+				env: selectedEnv,
+			});
+			set({
+				requestResult: result,
+				requestError: result.error ?? null,
+			});
+			if (result.error) {
+				appendConsole(`Request failed: ${result.error}`);
+			} else {
+				appendConsole("Request finished");
+			}
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : "Request execution failed";
+			set({ requestError: message });
+			appendConsole(message);
+		} finally {
+			set({ isSendingRequest: false });
 		}
 	},
 }));

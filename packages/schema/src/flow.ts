@@ -1,12 +1,16 @@
 ﻿import { z } from "zod";
 import { FLOW_VERSION } from "./common.js";
+import { assertNodeDataSchema } from "./nodes/assert.js";
 import { extractNodeDataSchema } from "./nodes/extract.js";
 import { httpNodeDataSchema } from "./nodes/http.js";
 import { ifNodeDataSchema } from "./nodes/if.js";
 import { inputNodeDataSchema } from "./nodes/input.js";
+import { jsonNodeDataSchema } from "./nodes/json.js";
+import { mergeNodeDataSchema } from "./nodes/merge.js";
 import { outputNodeDataSchema } from "./nodes/output.js";
 import { setNodeDataSchema } from "./nodes/set.js";
 import { templateNodeDataSchema } from "./nodes/template.js";
+import { transformNodeDataSchema } from "./nodes/transform.js";
 
 export const builtinNodeTypes = [
 	"input",
@@ -16,6 +20,10 @@ export const builtinNodeTypes = [
 	"set",
 	"if",
 	"output",
+	"assert",
+	"transform",
+	"merge",
+	"json",
 ] as const;
 
 export type BuiltinNodeType = (typeof builtinNodeTypes)[number];
@@ -28,6 +36,10 @@ const nodeDataByType: Record<BuiltinNodeType, z.ZodTypeAny> = {
 	set: setNodeDataSchema,
 	if: ifNodeDataSchema,
 	output: outputNodeDataSchema,
+	assert: assertNodeDataSchema,
+	transform: transformNodeDataSchema,
+	merge: mergeNodeDataSchema,
+	json: jsonNodeDataSchema,
 };
 
 export function nodeDataSchemaForType(type: string): z.ZodTypeAny | undefined {
