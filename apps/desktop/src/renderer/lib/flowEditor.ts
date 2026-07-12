@@ -88,3 +88,60 @@ export function addNodeToFlow(
 		],
 	};
 }
+
+export function deleteNodesFromFlow(flow: FlowV1, nodeIds: string[]): FlowV1 {
+	const remove = new Set(nodeIds);
+	if (remove.size === 0) return flow;
+	return {
+		...flow,
+		nodes: flow.nodes.filter((n) => !remove.has(n.id)),
+		edges: flow.edges.filter(
+			(e) => !remove.has(e.source) && !remove.has(e.target),
+		),
+	};
+}
+
+export function deleteEdgesFromFlow(flow: FlowV1, edgeIds: string[]): FlowV1 {
+	const remove = new Set(edgeIds);
+	if (remove.size === 0) return flow;
+	return {
+		...flow,
+		edges: flow.edges.filter((e) => !remove.has(e.id)),
+	};
+}
+
+const DUPLICATE_OFFSET = { x: 40, y: 40 };
+
+export function duplicateNodeInFlow(
+	flow: FlowV1,
+	nodeId: string,
+): { flow: FlowV1; newNodeId: string } | null {
+	const node = flow.nodes.find((n) => n.id === nodeId);
+	if (!node) return null;
+	const type = node.type as BuiltinNodeType;
+	const id = newNodeId(type);
+	const position = {
+		x: (node.position?.x ?? 0) + DUPLICATE_OFFSET.x,
+		y: (node.position?.y ?? 0) + DUPLICATE_OFFSET.y,
+	};
+	const data = { ...(node.data as Record<string, unknown>) };
+	const label = typeof data.label === "string" ? data.label : undefined;
+	if (label && !label.endsWith(" (copy)")) {
+		data.label = `${label} (copy)`;
+	}
+	return {
+		newNodeId: id,
+		flow: {
+			...flow,
+			nodes: [
+				...flow.nodes,
+				{
+					id,
+					type,
+					data,
+					position,
+				},
+			],
+		},
+	};
+}

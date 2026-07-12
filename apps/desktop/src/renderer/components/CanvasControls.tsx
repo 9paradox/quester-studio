@@ -6,7 +6,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select.js";
-import { IconPlayerPlay } from "@tabler/icons-react";
+import { IconDeviceFloppy, IconPlayerPlay } from "@tabler/icons-react";
 
 type CanvasControlsProps = {
 	envs: string[];
@@ -15,6 +15,8 @@ type CanvasControlsProps = {
 	isRunning: boolean;
 	canRun: boolean;
 	onRun: () => void;
+	canSave: boolean;
+	onSave: () => void;
 };
 
 export function CanvasControls({
@@ -24,6 +26,8 @@ export function CanvasControls({
 	isRunning,
 	canRun,
 	onRun,
+	canSave,
+	onSave,
 }: CanvasControlsProps) {
 	const envOptions = envs.length === 0 ? ["local"] : envs;
 
@@ -50,6 +54,18 @@ export function CanvasControls({
 						</SelectContent>
 					</Select>
 				</div>
+				{canSave ? (
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						className="mt-3 h-7"
+						onClick={onSave}
+					>
+						<IconDeviceFloppy data-icon="inline-start" />
+						Save
+					</Button>
+				) : null}
 				<Button
 					type="button"
 					size="sm"

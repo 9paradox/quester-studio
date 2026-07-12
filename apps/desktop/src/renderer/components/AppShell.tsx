@@ -1,9 +1,11 @@
 import { Alert, AlertDescription } from "@/components/ui/alert.js";
 import { TooltipProvider } from "@/components/ui/tooltip.js";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectRightPanelVisible } from "@/stores/selectors.js";
 import { useAppInit } from "@/stores/use-app-init.js";
 import { ActivityBar } from "./ActivityBar.js";
+import { AuxiliaryActivityBar } from "./AuxiliaryActivityBar.js";
 import { AuxiliarySidebar } from "./AuxiliarySidebar.js";
 import { EditorArea } from "./EditorArea.js";
 import { Panel } from "./Panel.js";
@@ -15,6 +17,7 @@ import { TopBar } from "./TopBar.js";
 
 export function AppShell() {
 	useAppInit();
+	useKeyboardShortcuts();
 
 	const loadError = useQuesterStore((s) => s.loadError);
 	const sidebarOpen = useQuesterStore((s) => s.sidebarOpen);
@@ -42,12 +45,15 @@ export function AppShell() {
 						) : null}
 						<EditorArea />
 						{rightPanelVisible ? (
-							<ResizeGutter
-								orientation="vertical"
-								onResize={resizeRightPanel}
-							/>
+							<>
+								<ResizeGutter
+									orientation="vertical"
+									onResize={resizeRightPanel}
+								/>
+								<AuxiliarySidebar />
+							</>
 						) : null}
-						<AuxiliarySidebar />
+						<AuxiliaryActivityBar />
 					</div>
 					<Panel />
 					<StatusBar />

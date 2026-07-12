@@ -47,6 +47,7 @@ function resetStore() {
 		openTabs: [],
 		activeTabId: null,
 		selectedNodeId: null,
+		canvasDirty: false,
 		runResult: null,
 		runError: null,
 		isRunning: false,
@@ -135,6 +136,133 @@ describe("useQuesterStore", () => {
 		useQuesterStore.getState().handleActivityView("envs");
 		expect(useQuesterStore.getState().activityView).toBe("envs");
 		expect(useQuesterStore.getState().sidebarOpen).toBe(true);
+	});
+
+	test("handleRightPanelView toggles right panel like activity bar", () => {
+		resetStore();
+		useQuesterStore.setState({
+			rightPanelOpen: true,
+			rightPanelTab: "inspector",
+		});
+		useQuesterStore.getState().handleRightPanelView("inspector");
+		expect(useQuesterStore.getState().rightPanelOpen).toBe(false);
+
+		useQuesterStore.getState().handleRightPanelView("response");
+		expect(useQuesterStore.getState().rightPanelTab).toBe("response");
+		expect(useQuesterStore.getState().rightPanelOpen).toBe(true);
+	});
+
+	test("duplicateNode clones node and selects the copy", () => {
+		resetStore();
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{
+					id: "http-1",
+					type: "http",
+					data: { label: "Login", method: "GET", url: "/" },
+					position: { x: 10, y: 20 },
+				},
+			],
+		};
+		const tab = createFlowEditorTab(flow);
+		useQuesterStore.setState({ openTabs: [tab], activeTabId: tab.id });
+		useQuesterStore.getState().duplicateNode("http-1");
+
+		const state = useQuesterStore.getState();
+		const next = selectActiveFlowTab(state);
+		expect(next?.flow.nodes).toHaveLength(2);
+		expect(state.selectedNodeId).toBe(next?.flow.nodes[1]?.id);
+		expect(state.canvasDirty).toBe(true);
+		expect(next?.dirty).toBe(true);
+	});
+
+	test("deleteNodes removes node and clears selection", () => {
+		resetStore();
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{
+					id: "http-1",
+					type: "http",
+					data: { label: "Login" },
+					position: { x: 0, y: 0 },
+				},
+			],
+			edges: [],
+		};
+		const tab = createFlowEditorTab(flow);
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			selectedNodeId: "http-1",
+		});
+		useQuesterStore.getState().deleteNodes(["http-1"]);
+
+		const state = useQuesterStore.getState();
+		expect(selectActiveFlowTab(state)?.flow.nodes).toEqual([]);
+		expect(state.selectedNodeId).toBeNull();
+		expect(state.canvasDirty).toBe(true);
+	});
+
+	test("deleteEdges removes only the edge", () => {
+		resetStore();
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{
+					id: "a",
+					type: "input",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "b",
+					type: "output",
+					data: { label: "B" },
+					position: { x: 100, y: 0 },
+				},
+			],
+			edges: [{ id: "e-1", source: "a", target: "b", sourceHandle: null }],
+		};
+		const tab = createFlowEditorTab(flow);
+		useQuesterStore.setState({ openTabs: [tab], activeTabId: tab.id });
+		useQuesterStore.getState().deleteEdges(["e-1"]);
+
+		const next = selectActiveFlowTab(useQuesterStore.getState());
+		expect(next?.flow.nodes).toHaveLength(2);
+		expect(next?.flow.edges).toEqual([]);
+		expect(useQuesterStore.getState().canvasDirty).toBe(true);
+	});
+
+	test("handleGraphChange marks canvasDirty", () => {
+		resetStore();
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{
+					id: "a",
+					type: "input",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+			],
+		};
+		const tab = createFlowEditorTab(flow);
+		useQuesterStore.setState({ openTabs: [tab], activeTabId: tab.id });
+		useQuesterStore.getState().handleGraphChange(
+			[
+				{
+					id: "a",
+					type: "input",
+					position: { x: 50, y: 0 },
+					data: { label: "A" },
+				},
+			],
+			[],
+		);
+		expect(useQuesterStore.getState().canvasDirty).toBe(true);
+		expect(selectActiveFlowTab(useQuesterStore.getState())?.dirty).toBe(true);
 	});
 
 	test("handleEnvRowsChange keeps empty draft rows", () => {

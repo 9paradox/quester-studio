@@ -1,3 +1,10 @@
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuShortcut,
+	ContextMenuTrigger,
+} from "@/components/ui/context-menu.js";
 import { flowToReactFlow, reactFlowToFlow } from "@/lib/flowEditor.js";
 import type { FlowV1 } from "@quester/schema";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -30,7 +37,17 @@ type FlowCanvasProps = {
 	onGraphChange?: (nodes: Node[], edges: Edge[]) => void;
 	onSelectNode?: (nodeId: string | null) => void;
 	onZoomChange?: (zoom: number) => void;
+	onDeleteNodes?: (nodeIds: string[]) => void;
+	onDeleteEdges?: (edgeIds: string[]) => void;
+	onDuplicateNode?: (nodeId: string) => void;
+	onSave?: () => void;
+	canSave?: boolean;
 };
+
+type ContextTarget =
+	| { kind: "node"; id: string }
+	| { kind: "edge"; id: string }
+	| { kind: "pane" };
 
 function SelectionBridge({
 	onSelectNode,
@@ -92,20 +109,46 @@ function FitViewOnLoad({ flowId }: { flowId: string }) {
 	return null;
 }
 
+function resolveContextTarget(event: React.MouseEvent): ContextTarget {
+	const el = event.target as HTMLElement | null;
+	const nodeEl = el?.closest?.(".react-flow__node") as HTMLElement | null;
+	if (nodeEl?.dataset.id) {
+		return { kind: "node", id: nodeEl.dataset.id };
+	}
+	const edgeEl = el?.closest?.(".react-flow__edge") as HTMLElement | null;
+	if (edgeEl?.dataset.id) {
+		return { kind: "edge", id: edgeEl.dataset.id };
+	}
+	return { kind: "pane" };
+}
+
 function FlowCanvasInner({
 	flow,
 	onGraphChange,
 	onSelectNode,
 	onZoomChange,
+	onDeleteNodes,
+	onDeleteEdges,
+	onDuplicateNode,
+	onSave,
+	canSave,
 }: {
 	flow: FlowV1;
 	onGraphChange?: (nodes: Node[], edges: Edge[]) => void;
 	onSelectNode?: (nodeId: string | null) => void;
 	onZoomChange?: (zoom: number) => void;
+	onDeleteNodes?: (nodeIds: string[]) => void;
+	onDeleteEdges?: (edgeIds: string[]) => void;
+	onDuplicateNode?: (nodeId: string) => void;
+	onSave?: () => void;
+	canSave?: boolean;
 }) {
 	const { zoomIn, zoomOut, getZoom } = useReactFlow();
 	const [nodes, setNodes] = useState<Node[]>(() => flowToReactFlow(flow).nodes);
 	const [edges, setEdges] = useState<Edge[]>(() => flowToReactFlow(flow).edges);
+	const [contextTarget, setContextTarget] = useState<ContextTarget>({
+		kind: "pane",
+	});
 	const nodesRef = useRef(nodes);
 	const edgesRef = useRef(edges);
 	nodesRef.current = nodes;
@@ -212,30 +255,75 @@ function FlowCanvasInner({
 	}, [zoomIn, zoomOut, getZoom]);
 
 	return (
-		<ReactFlow
-			nodes={nodes}
-			edges={edges}
-			nodeTypes={flowNodeTypes}
-			onNodesChange={handleNodesChange}
-			onEdgesChange={handleEdgesChange}
-			onConnect={onConnect}
-			onMoveEnd={(_, viewport) => {
-				viewportsByFlowId.set(flow.id, viewport);
-				onZoomChange?.(viewport.zoom);
-			}}
-			nodesDraggable
-			nodesConnectable
-			elementsSelectable
-			proOptions={{ hideAttribution: true }}
-			className="bg-muted/30"
-			minZoom={0.25}
-			maxZoom={2}
-		>
-			<Background variant={BackgroundVariant.Dots} gap={16} size={1} />
-			<FitViewOnLoad flowId={flow.id} />
-			<SelectionBridge onSelectNode={onSelectNode} />
-			<ViewportBridge onZoomChange={onZoomChange} />
-		</ReactFlow>
+		<ContextMenu>
+			<ContextMenuTrigger
+				className="block h-full w-full"
+				onContextMenu={(event) => {
+					setContextTarget(resolveContextTarget(event));
+				}}
+			>
+				<ReactFlow
+					nodes={nodes}
+					edges={edges}
+					nodeTypes={flowNodeTypes}
+					onNodesChange={handleNodesChange}
+					onEdgesChange={handleEdgesChange}
+					onConnect={onConnect}
+					onMoveEnd={(_, viewport) => {
+						viewportsByFlowId.set(flow.id, viewport);
+						onZoomChange?.(viewport.zoom);
+					}}
+					nodesDraggable
+					nodesConnectable
+					elementsSelectable
+					proOptions={{ hideAttribution: true }}
+					className="bg-muted/30"
+					minZoom={0.25}
+					maxZoom={2}
+				>
+					<Background variant={BackgroundVariant.Dots} gap={16} size={1} />
+					<FitViewOnLoad flowId={flow.id} />
+					<SelectionBridge onSelectNode={onSelectNode} />
+					<ViewportBridge onZoomChange={onZoomChange} />
+				</ReactFlow>
+			</ContextMenuTrigger>
+			<ContextMenuContent>
+				{contextTarget.kind === "node" ? (
+					<>
+						<ContextMenuItem
+							onClick={() => onDuplicateNode?.(contextTarget.id)}
+						>
+							Duplicate
+						</ContextMenuItem>
+						<ContextMenuItem
+							variant="destructive"
+							onClick={() => onDeleteNodes?.([contextTarget.id])}
+						>
+							Delete
+						</ContextMenuItem>
+					</>
+				) : null}
+				{contextTarget.kind === "edge" ? (
+					<ContextMenuItem
+						variant="destructive"
+						onClick={() => onDeleteEdges?.([contextTarget.id])}
+					>
+						Delete edge
+					</ContextMenuItem>
+				) : null}
+				{contextTarget.kind === "pane" ? (
+					<ContextMenuItem disabled={!canSave} onClick={() => onSave?.()}>
+						Save flow
+						<ContextMenuShortcut>
+							{typeof navigator !== "undefined" &&
+							/Mac|iPhone|iPad/.test(navigator.platform)
+								? "⌘S"
+								: "Ctrl+S"}
+						</ContextMenuShortcut>
+					</ContextMenuItem>
+				) : null}
+			</ContextMenuContent>
+		</ContextMenu>
 	);
 }
 
@@ -244,6 +332,11 @@ export function FlowCanvas({
 	onGraphChange,
 	onSelectNode,
 	onZoomChange,
+	onDeleteNodes,
+	onDeleteEdges,
+	onDuplicateNode,
+	onSave,
+	canSave,
 }: FlowCanvasProps) {
 	if (!flow) {
 		return (
@@ -262,6 +355,11 @@ export function FlowCanvas({
 					onGraphChange={onGraphChange}
 					onSelectNode={onSelectNode}
 					onZoomChange={onZoomChange}
+					onDeleteNodes={onDeleteNodes}
+					onDeleteEdges={onDeleteEdges}
+					onDuplicateNode={onDuplicateNode}
+					onSave={onSave}
+					canSave={canSave}
 				/>
 			</div>
 		</ReactFlowProvider>

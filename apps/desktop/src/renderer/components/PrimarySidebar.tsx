@@ -1,4 +1,11 @@
 import { Button } from "@/components/ui/button.js";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuSeparator,
+	ContextMenuTrigger,
+} from "@/components/ui/context-menu.js";
 import { Input } from "@/components/ui/input.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { Separator } from "@/components/ui/separator.js";
@@ -303,7 +310,7 @@ function FileListItem({
 	onRename?: () => void;
 	onDelete?: () => void;
 }) {
-	return (
+	const item = (
 		<div
 			className={cn(
 				"group flex items-center rounded-md",
@@ -348,6 +355,26 @@ function FileListItem({
 				</div>
 			) : null}
 		</div>
+	);
+
+	return (
+		<ContextMenu>
+			<ContextMenuTrigger className="block w-full">{item}</ContextMenuTrigger>
+			<ContextMenuContent>
+				<ContextMenuItem onClick={onSelect}>Open</ContextMenuItem>
+				{onRename ? (
+					<ContextMenuItem onClick={onRename}>Rename</ContextMenuItem>
+				) : null}
+				{onDelete ? (
+					<>
+						<ContextMenuSeparator />
+						<ContextMenuItem variant="destructive" onClick={onDelete}>
+							Delete
+						</ContextMenuItem>
+					</>
+				) : null}
+			</ContextMenuContent>
+		</ContextMenu>
 	);
 }
 

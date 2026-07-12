@@ -1,4 +1,12 @@
 import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuSeparator,
+	ContextMenuShortcut,
+	ContextMenuTrigger,
+} from "@/components/ui/context-menu.js";
+import {
 	type EditorTab,
 	editorTabIcon,
 	editorTabLabel,
@@ -21,11 +29,17 @@ function TabIcon({ tab }: { tab: EditorTab }) {
 	return <IconKey className={className} />;
 }
 
+function saveShortcutLabel(): string {
+	if (typeof navigator === "undefined") return "Ctrl+S";
+	return /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘S" : "Ctrl+S";
+}
+
 export function TopBar() {
 	const openTabs = useQuesterStore((s) => s.openTabs);
 	const activeTabId = useQuesterStore((s) => s.activeTabId);
 	const setActiveTabId = useQuesterStore((s) => s.setActiveTabId);
 	const closeTab = useQuesterStore((s) => s.closeTab);
+	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const scrollRef = useRef<HTMLDivElement>(null);
 
 	const scrollTabIntoView = (tabId: string) => {
@@ -81,42 +95,66 @@ export function TopBar() {
 						const active = tab.id === activeTabId;
 						const label = editorTabLabel(tab);
 						return (
-							<div
-								key={tab.id}
-								data-tab-id={tab.id}
-								className={cn(
-									"group relative flex h-9 max-h-9 shrink-0 items-center border-r border-border/50",
-									active
-										? "bg-background text-foreground"
-										: "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
-								)}
-							>
-								<button
-									type="button"
-									className="flex h-9 max-w-[180px] min-w-0 items-center gap-1.5 px-2.5 text-xs"
-									onClick={() => {
-										setActiveTabId(tab.id);
-										scrollTabIntoView(tab.id);
-									}}
+							<ContextMenu key={tab.id}>
+								<ContextMenuTrigger
+									data-tab-id={tab.id}
+									className={cn(
+										"group relative flex h-9 max-h-9 shrink-0 items-center border-r border-border/50",
+										active
+											? "bg-background text-foreground"
+											: "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+									)}
 								>
-									<TabIcon tab={tab} />
-									<span className="truncate">{label}</span>
-									{tab.dirty ? (
-										<span className="size-1.5 shrink-0 rounded-full bg-primary" />
+									<button
+										type="button"
+										className="flex h-9 max-w-[180px] min-w-0 items-center gap-1.5 px-2.5 text-xs"
+										onClick={() => {
+											setActiveTabId(tab.id);
+											scrollTabIntoView(tab.id);
+										}}
+									>
+										<TabIcon tab={tab} />
+										<span className="truncate">{label}</span>
+										{tab.dirty ? (
+											<span className="size-1.5 shrink-0 rounded-full bg-primary" />
+										) : null}
+									</button>
+									<button
+										type="button"
+										className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm opacity-0 hover:bg-muted group-hover:opacity-100"
+										onClick={() => closeTab(tab.id)}
+										aria-label={`Close ${label}`}
+									>
+										<IconX className="size-3" />
+									</button>
+									{active ? (
+										<span className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
 									) : null}
-								</button>
-								<button
-									type="button"
-									className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm opacity-0 hover:bg-muted group-hover:opacity-100"
-									onClick={() => closeTab(tab.id)}
-									aria-label={`Close ${label}`}
-								>
-									<IconX className="size-3" />
-								</button>
-								{active ? (
-									<span className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
-								) : null}
-							</div>
+								</ContextMenuTrigger>
+								<ContextMenuContent>
+									<ContextMenuItem
+										onClick={() => {
+											setActiveTabId(tab.id);
+											scrollTabIntoView(tab.id);
+										}}
+									>
+										Activate
+									</ContextMenuItem>
+									<ContextMenuItem
+										disabled={!tab.dirty}
+										onClick={() => void saveActiveTab(tab.id)}
+									>
+										Save
+										<ContextMenuShortcut>
+											{saveShortcutLabel()}
+										</ContextMenuShortcut>
+									</ContextMenuItem>
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => closeTab(tab.id)}>
+										Close
+									</ContextMenuItem>
+								</ContextMenuContent>
+							</ContextMenu>
 						);
 					})
 				)}

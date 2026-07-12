@@ -1,10 +1,47 @@
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuShortcut,
+	ContextMenuTrigger,
+} from "@/components/ui/context-menu.js";
 import type { EditorTab } from "@/lib/editorTabs.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectActiveTab, selectCanRun } from "@/stores/selectors.js";
 import type { FlowV1 } from "@quester/schema";
+import type { ReactNode } from "react";
 import { CanvasControls } from "./CanvasControls.js";
 import { FlowCanvas } from "./FlowCanvas.js";
 import { KeyValueEditor } from "./KeyValueEditor.js";
+
+function saveShortcutLabel(): string {
+	if (typeof navigator === "undefined") return "Ctrl+S";
+	return /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘S" : "Ctrl+S";
+}
+
+function EditorContextMenu({
+	canSave,
+	onSave,
+	children,
+}: {
+	canSave: boolean;
+	onSave: () => void;
+	children: ReactNode;
+}) {
+	return (
+		<ContextMenu>
+			<ContextMenuTrigger className="block h-full min-h-0 min-w-0 w-full flex-1">
+				{children}
+			</ContextMenuTrigger>
+			<ContextMenuContent>
+				<ContextMenuItem disabled={!canSave} onClick={onSave}>
+					Save
+					<ContextMenuShortcut>{saveShortcutLabel()}</ContextMenuShortcut>
+				</ContextMenuItem>
+			</ContextMenuContent>
+		</ContextMenu>
+	);
+}
 
 export function EditorArea() {
 	const activeTab = useQuesterStore(selectActiveTab);
@@ -12,16 +49,24 @@ export function EditorArea() {
 	const selectedEnv = useQuesterStore((s) => s.selectedEnv);
 	const isRunning = useQuesterStore((s) => s.isRunning);
 	const canRun = useQuesterStore(selectCanRun);
+	const canvasDirty = useQuesterStore((s) => s.canvasDirty);
 
 	const setSelectedEnv = useQuesterStore((s) => s.setSelectedEnv);
 	const runFlow = useQuesterStore((s) => s.runFlow);
+	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const handleEnvRowsChange = useQuesterStore((s) => s.handleEnvRowsChange);
 	const handleSecretRowsChange = useQuesterStore(
 		(s) => s.handleSecretRowsChange,
 	);
 	const handleGraphChange = useQuesterStore((s) => s.handleGraphChange);
 	const handleSelectNode = useQuesterStore((s) => s.handleSelectNode);
+	const deleteNodes = useQuesterStore((s) => s.deleteNodes);
+	const deleteEdges = useQuesterStore((s) => s.deleteEdges);
+	const duplicateNode = useQuesterStore((s) => s.duplicateNode);
 	const setZoom = useQuesterStore((s) => s.setZoom);
+
+	const onSave = () => void saveActiveTab();
+	const canSaveTab = Boolean(activeTab?.dirty);
 
 	if (!activeTab) {
 		return (
@@ -33,28 +78,32 @@ export function EditorArea() {
 
 	if (activeTab.kind === "env") {
 		return (
-			<div className="relative min-h-0 min-w-0 flex-1 bg-background">
-				<KeyValueEditor
-					title={`${activeTab.envName}.json`}
-					description="Environment variables available as {{env.KEY}} in flows."
-					rows={activeTab.rows}
-					onChange={handleEnvRowsChange}
-				/>
-			</div>
+			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
+				<div className="relative h-full min-h-0 min-w-0 flex-1 bg-background">
+					<KeyValueEditor
+						title={`${activeTab.envName}.json`}
+						description="Environment variables available as {{env.KEY}} in flows."
+						rows={activeTab.rows}
+						onChange={handleEnvRowsChange}
+					/>
+				</div>
+			</EditorContextMenu>
 		);
 	}
 
 	if (activeTab.kind === "secrets") {
 		return (
-			<div className="relative min-h-0 min-w-0 flex-1 bg-background">
-				<KeyValueEditor
-					title={`${activeTab.envName}.secrets.json`}
-					description="Secrets are loaded at runtime and never committed to git."
-					rows={activeTab.rows}
-					onChange={handleSecretRowsChange}
-					valuePlaceholder="Secret value"
-				/>
-			</div>
+			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
+				<div className="relative h-full min-h-0 min-w-0 flex-1 bg-background">
+					<KeyValueEditor
+						title={`${activeTab.envName}.secrets.json`}
+						description="Secrets are loaded at runtime and never committed to git."
+						rows={activeTab.rows}
+						onChange={handleSecretRowsChange}
+						valuePlaceholder="Secret value"
+					/>
+				</div>
+			</EditorContextMenu>
 		);
 	}
 
@@ -66,6 +115,11 @@ export function EditorArea() {
 				onGraphChange={handleGraphChange}
 				onSelectNode={handleSelectNode}
 				onZoomChange={setZoom}
+				onDeleteNodes={deleteNodes}
+				onDeleteEdges={deleteEdges}
+				onDuplicateNode={duplicateNode}
+				onSave={onSave}
+				canSave={canvasDirty}
 			/>
 			<CanvasControls
 				envs={envs}
@@ -74,6 +128,8 @@ export function EditorArea() {
 				isRunning={isRunning}
 				canRun={canRun}
 				onRun={() => void runFlow()}
+				canSave={canvasDirty}
+				onSave={onSave}
 			/>
 		</div>
 	);
