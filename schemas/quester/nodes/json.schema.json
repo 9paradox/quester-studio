@@ -4,14 +4,6 @@
     "label": {
       "type": "string"
     },
-    "source": {
-      "type": "string",
-      "enum": [
-        "previous",
-        "input"
-      ],
-      "default": "previous"
-    },
     "expression": {
       "type": "string"
     }

@@ -171,29 +171,13 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			) : null}
 
 			{node.type === "extract" ? (
-				<>
-					<Field label="Expression">
-						<TemplateField
-							value={String(data.expression ?? "")}
-							onChange={(expression) => setField("expression", expression)}
-							placeholder="body.id"
-						/>
-					</Field>
-					<Field label="Source">
-						<Select
-							value={String(data.source ?? "previous")}
-							onValueChange={(v) => v && setField("source", v)}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="previous">previous</SelectItem>
-								<SelectItem value="input">input</SelectItem>
-							</SelectContent>
-						</Select>
-					</Field>
-				</>
+				<Field label="Expression (JMESPath on previous output)">
+					<TemplateField
+						value={String(data.expression ?? "")}
+						onChange={(expression) => setField("expression", expression)}
+						placeholder="body.id"
+					/>
+				</Field>
 			) : null}
 
 			{node.type === "set" ? (
@@ -265,29 +249,13 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			) : null}
 
 			{node.type === "json" ? (
-				<>
-					<Field label="Source">
-						<Select
-							value={String(data.source ?? "previous")}
-							onValueChange={(v) => v && setField("source", v)}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="previous">previous</SelectItem>
-								<SelectItem value="input">input</SelectItem>
-							</SelectContent>
-						</Select>
-					</Field>
-					<Field label="Expression (optional JMESPath)">
-						<Input
-							value={String(data.expression ?? "")}
-							onChange={(e) => setField("expression", e.target.value)}
-							className="font-mono text-xs"
-						/>
-					</Field>
-				</>
+				<Field label="Expression (optional JMESPath on previous output)">
+					<Input
+						value={String(data.expression ?? "")}
+						onChange={(e) => setField("expression", e.target.value)}
+						className="font-mono text-xs"
+					/>
+				</Field>
 			) : null}
 		</div>
 	);
