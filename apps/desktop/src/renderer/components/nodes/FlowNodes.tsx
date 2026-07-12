@@ -1,3 +1,4 @@
+import { useQuesterStore } from "@/stores/quester-store.js";
 import type { NodeProps } from "reactflow";
 import { useEdges } from "reactflow";
 import {
@@ -5,6 +6,7 @@ import {
 	type FlowNodeData,
 	isHandleConnected,
 } from "../BaseFlowNode.js";
+import { JsonViewer } from "../JsonViewer.js";
 
 export function InputFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
@@ -138,6 +140,84 @@ export function OutputFlowNode({
 	);
 }
 
+export function AssertFlowNode({
+	id,
+	data,
+	selected,
+}: NodeProps<FlowNodeData>) {
+	const edges = useEdges();
+	const checks = Array.isArray(data.checks) ? data.checks.length : 0;
+	return (
+		<BaseFlowNode
+			type="assert"
+			title={data.label ?? "Assert"}
+			subtitle={`${checks} check${checks === 1 ? "" : "s"}`}
+			selected={selected}
+			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+		/>
+	);
+}
+
+export function TransformFlowNode({
+	id,
+	data,
+	selected,
+}: NodeProps<FlowNodeData>) {
+	const edges = useEdges();
+	const map = data.map as Record<string, unknown> | undefined;
+	const keys = map ? Object.keys(map).length : 0;
+	return (
+		<BaseFlowNode
+			type="transform"
+			title={data.label ?? "Transform"}
+			subtitle={`${keys} field${keys === 1 ? "" : "s"}`}
+			selected={selected}
+			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+		/>
+	);
+}
+
+export function MergeFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
+	const edges = useEdges();
+	const sources = Array.isArray(data.sources) ? data.sources : [];
+	return (
+		<BaseFlowNode
+			type="merge"
+			title={data.label ?? "Merge"}
+			subtitle={sources.join(" + ") || "sources"}
+			selected={selected}
+			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+		/>
+	);
+}
+
+export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
+	const edges = useEdges();
+	const runResult = useQuesterStore((s) => s.runResult);
+	const output = runResult?.nodeOutputs?.[id];
+	return (
+		<BaseFlowNode
+			type="json"
+			title={data.label ?? "JSON"}
+			subtitle={String(data.expression ?? data.source ?? "previous")}
+			selected={selected}
+			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+		>
+			{output !== undefined ? (
+				<div className="max-h-40 max-w-[280px] overflow-auto rounded border bg-background/80 p-1 text-left">
+					<JsonViewer value={output} defaultExpandedDepth={1} />
+				</div>
+			) : (
+				<span className="text-muted-foreground">Run flow to preview</span>
+			)}
+		</BaseFlowNode>
+	);
+}
+
 export const flowNodeTypes = {
 	input: InputFlowNode,
 	http: HttpFlowNode,
@@ -146,4 +226,8 @@ export const flowNodeTypes = {
 	set: SetFlowNode,
 	if: IfFlowNode,
 	output: OutputFlowNode,
+	assert: AssertFlowNode,
+	transform: TransformFlowNode,
+	merge: MergeFlowNode,
+	json: JsonFlowNode,
 };

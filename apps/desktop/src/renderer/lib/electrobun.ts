@@ -1,4 +1,9 @@
-import type { EnvironmentV1, FlowV1, SecretsV1 } from "@quester/schema";
+import type {
+	EnvironmentV1,
+	FlowV1,
+	RequestV1,
+	SecretsV1,
+} from "@quester/schema";
 import { Electroview } from "electrobun/view";
 import type { DesktopRPC } from "../../shared/rpc.js";
 
@@ -62,4 +67,23 @@ export const desktopRpc = {
 		getRpc().request.saveSecretsFile({ workspace, envName, secrets }),
 	createSecretsFile: (workspace: string, envName: string) =>
 		getRpc().request.createSecretsFile({ workspace, envName }),
+	listCollectionRequests: (workspace: string) =>
+		getRpc().request.listCollectionRequests({ workspace }),
+	listCollections: (workspace: string) =>
+		getRpc().request.listCollections({ workspace }),
+	loadRequest: (workspace: string, requestPath: string) =>
+		getRpc().request.loadRequest({ workspace, requestPath }),
+	saveRequest: (workspace: string, requestPath: string, request: RequestV1) =>
+		getRpc().request.saveRequest({ workspace, requestPath, request }),
+	createRequest: (workspace: string, requestPath: string, name?: string) =>
+		getRpc().request.createRequest({ workspace, requestPath, name }),
+	deleteRequest: (workspace: string, requestPath: string) =>
+		getRpc().request.deleteRequest({ workspace, requestPath }),
+	createCollection: (workspace: string, collectionName: string) =>
+		getRpc().request.createCollection({ workspace, collectionName }),
+	executeRequestRpc: (params: {
+		requestPath: string;
+		workspace: string;
+		env?: string;
+	}) => getRpc().request.executeRequestRpc(params),
 };

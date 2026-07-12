@@ -212,6 +212,83 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					/>
 				</Field>
 			) : null}
+
+			{node.type === "assert" ? (
+				<Field label="Checks (JSON)">
+					<Textarea
+						value={JSON.stringify(data.checks ?? [], null, 2)}
+						onChange={(e) => {
+							try {
+								setField("checks", JSON.parse(e.target.value));
+							} catch {
+								// keep typing
+							}
+						}}
+						className="min-h-28 font-mono text-xs"
+						spellCheck={false}
+					/>
+				</Field>
+			) : null}
+
+			{node.type === "transform" ? (
+				<Field label="Map (JSON: key → JMESPath)">
+					<Textarea
+						value={JSON.stringify(data.map ?? {}, null, 2)}
+						onChange={(e) => {
+							try {
+								setField("map", JSON.parse(e.target.value));
+							} catch {
+								// keep typing
+							}
+						}}
+						className="min-h-28 font-mono text-xs"
+						spellCheck={false}
+					/>
+				</Field>
+			) : null}
+
+			{node.type === "merge" ? (
+				<Field label="Sources (JSON array)">
+					<Textarea
+						value={JSON.stringify(data.sources ?? ["previous"], null, 2)}
+						onChange={(e) => {
+							try {
+								setField("sources", JSON.parse(e.target.value));
+							} catch {
+								// keep typing
+							}
+						}}
+						className="min-h-20 font-mono text-xs"
+						spellCheck={false}
+					/>
+				</Field>
+			) : null}
+
+			{node.type === "json" ? (
+				<>
+					<Field label="Source">
+						<Select
+							value={String(data.source ?? "previous")}
+							onValueChange={(v) => v && setField("source", v)}
+						>
+							<SelectTrigger className="w-full">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="previous">previous</SelectItem>
+								<SelectItem value="input">input</SelectItem>
+							</SelectContent>
+						</Select>
+					</Field>
+					<Field label="Expression (optional JMESPath)">
+						<Input
+							value={String(data.expression ?? "")}
+							onChange={(e) => setField("expression", e.target.value)}
+							className="font-mono text-xs"
+						/>
+					</Field>
+				</>
+			) : null}
 		</div>
 	);
 }

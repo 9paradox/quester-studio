@@ -1,6 +1,11 @@
 import type { KeyValueRow } from "@/components/KeyValueEditor.js";
 import { recordToRows } from "@/components/KeyValueEditor.js";
-import type { EnvironmentV1, FlowV1, SecretsV1 } from "@quester/schema";
+import type {
+	EnvironmentV1,
+	FlowV1,
+	RequestV1,
+	SecretsV1,
+} from "@quester/schema";
 
 export type FlowEditorTab = {
 	kind: "flow";
@@ -30,7 +35,19 @@ export type SecretsEditorTab = {
 	dirty: boolean;
 };
 
-export type EditorTab = FlowEditorTab | EnvEditorTab | SecretsEditorTab;
+export type RequestEditorTab = {
+	kind: "request";
+	id: string;
+	requestPath: string;
+	request: RequestV1;
+	dirty: boolean;
+};
+
+export type EditorTab =
+	| FlowEditorTab
+	| EnvEditorTab
+	| SecretsEditorTab
+	| RequestEditorTab;
 
 export function flowTabId(flowId: string): string {
 	return `flow:${flowId}`;
@@ -42,6 +59,10 @@ export function envTabId(envName: string): string {
 
 export function secretsTabId(envName: string): string {
 	return `secrets:${envName}`;
+}
+
+export function requestTabId(requestPath: string): string {
+	return `request:${requestPath}`;
 }
 
 export function createFlowEditorTab(flow: FlowV1): FlowEditorTab {
@@ -79,6 +100,19 @@ export function createSecretsEditorTab(
 	};
 }
 
+export function createRequestEditorTab(
+	requestPath: string,
+	request: RequestV1,
+): RequestEditorTab {
+	return {
+		kind: "request",
+		id: requestTabId(requestPath),
+		requestPath,
+		request,
+		dirty: false,
+	};
+}
+
 export function editorTabLabel(tab: EditorTab): string {
 	switch (tab.kind) {
 		case "flow":
@@ -87,9 +121,13 @@ export function editorTabLabel(tab: EditorTab): string {
 			return `${tab.envName}.json`;
 		case "secrets":
 			return `${tab.envName}.secrets.json`;
+		case "request":
+			return tab.request.name;
 	}
 }
 
-export function editorTabIcon(tab: EditorTab): "flow" | "env" | "secrets" {
+export function editorTabIcon(
+	tab: EditorTab,
+): "flow" | "env" | "secrets" | "request" {
 	return tab.kind;
 }

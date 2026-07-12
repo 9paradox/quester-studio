@@ -1,0 +1,14 @@
+{
+	"version": "v1",
+	"id": "login",
+	"name": "Login",
+	"method": "POST",
+	"url": "https://dummyjson.com/auth/login",
+	"headers": {
+		"Content-Type": "application/json"
+	},
+	"body": {
+		"username": "emilys",
+		"password": "emilyspass"
+	}
+}

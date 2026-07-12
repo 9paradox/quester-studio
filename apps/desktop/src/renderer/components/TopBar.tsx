@@ -17,6 +17,7 @@ import {
 	IconFile,
 	IconKey,
 	IconTopologyRing2,
+	IconWorld,
 	IconX,
 } from "@tabler/icons-react";
 import { useLayoutEffect, useRef } from "react";
@@ -26,6 +27,7 @@ function TabIcon({ tab }: { tab: EditorTab }) {
 	const className = "size-3 shrink-0 opacity-70";
 	if (kind === "flow") return <IconTopologyRing2 className={className} />;
 	if (kind === "env") return <IconFile className={className} />;
+	if (kind === "request") return <IconWorld className={className} />;
 	return <IconKey className={className} />;
 }
 

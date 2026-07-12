@@ -1,7 +1,7 @@
 # Quester Studio Roadmap
 
 > Living document. Trackable work lives in [GitHub Issues](https://github.com/9paradox/quester-studio/issues).  
-> Last updated: 2026-07-11
+> Last updated: 2026-07-12
 
 ## Now (v0.2.0 — Desktop MVP)
 
@@ -16,20 +16,25 @@
 - [ ] If-node dual handles (`true` / `false` branches)
 - [ ] Node inspector — edit `data` fields inline
 - [ ] Save flow back to disk (git-friendly JSON)
+- [x] Settings activity view — theme (light / dark / system)
+- [x] Node palette drag-and-drop onto canvas
 
 ## Later (v0.4.0 — Platform)
 
-- [ ] New node types (e.g. `delay`, `json-parse`)
+- [x] Collections — standalone `*.request.json` + Request editor tab
+- [x] New node types (`assert`, `transform`, `merge`, `json`)
 - [ ] CLI `quester init` — scaffold workspace
 - [ ] Renderer smoke tests
 - [ ] Per-node reference pages in docs (from emitted schemas)
 
 ## Ideas (backlog)
 
+- Graph/chart display node (parked from sidebar epic)
 - OAuth / auth helper nodes
 - Flow run history and replay
 - Workspace secret encryption at rest
 - VS Code extension for flow editing
+- Postman/Bruno collection import
 
 ## Shipped
 

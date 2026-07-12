@@ -81,6 +81,41 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				),
 			createSecretsFile: async ({ workspace, envName }) =>
 				(await import("./handlers.js")).createSecretsFile(workspace, envName),
+			listCollectionRequests: async ({ workspace }) =>
+				(await import("./handlers.js")).listCollectionRequests(workspace),
+			listCollections: async ({ workspace }) =>
+				(await import("./handlers.js")).listCollections(workspace),
+			loadRequest: async ({ workspace, requestPath }) =>
+				(await import("./handlers.js")).loadRequest(workspace, requestPath),
+			saveRequest: async ({ workspace, requestPath, request }) =>
+				(await import("./handlers.js")).saveRequest(
+					workspace,
+					requestPath,
+					request,
+				),
+			createRequest: async ({ workspace, requestPath, name }) =>
+				(await import("./handlers.js")).createRequest(
+					workspace,
+					requestPath,
+					name,
+				),
+			deleteRequest: async ({ workspace, requestPath }) => {
+				await (await import("./handlers.js")).deleteRequest(
+					workspace,
+					requestPath,
+				);
+				return { ok: true as const };
+			},
+			createCollection: async ({ workspace, collectionName }) =>
+				(await import("./handlers.js")).createCollection(
+					workspace,
+					collectionName,
+				),
+			executeRequestRpc: async ({ requestPath, workspace, env }) =>
+				(await import("./handlers.js")).executeRequestRpc(requestPath, {
+					workspace,
+					env,
+				}),
 		},
 		messages: {},
 	},

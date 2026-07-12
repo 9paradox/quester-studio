@@ -1,0 +1,8 @@
+{
+	"version": "v1",
+	"id": "get-user",
+	"name": "Get user",
+	"method": "GET",
+	"url": "https://dummyjson.com/users/1",
+	"headers": {}
+}

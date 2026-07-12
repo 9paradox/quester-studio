@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "label": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "previous",
+        "input"
+      ],
+      "default": "previous"
+    },
+    "expression": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

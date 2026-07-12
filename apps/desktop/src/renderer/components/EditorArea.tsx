@@ -13,6 +13,7 @@ import type { ReactNode } from "react";
 import { CanvasControls } from "./CanvasControls.js";
 import { FlowCanvas } from "./FlowCanvas.js";
 import { KeyValueEditor } from "./KeyValueEditor.js";
+import { RequestEditor } from "./RequestEditor.js";
 
 function saveShortcutLabel(): string {
 	if (typeof navigator === "undefined") return "Ctrl+S";
@@ -60,6 +61,13 @@ export function EditorArea() {
 	);
 	const handleGraphChange = useQuesterStore((s) => s.handleGraphChange);
 	const handleSelectNode = useQuesterStore((s) => s.handleSelectNode);
+	const handleAddNode = useQuesterStore((s) => s.handleAddNode);
+	const handleDropRequest = useQuesterStore((s) => s.handleDropRequest);
+	const handleRequestChange = useQuesterStore((s) => s.handleRequestChange);
+	const sendRequest = useQuesterStore((s) => s.sendRequest);
+	const requestResult = useQuesterStore((s) => s.requestResult);
+	const requestError = useQuesterStore((s) => s.requestError);
+	const isSendingRequest = useQuesterStore((s) => s.isSendingRequest);
 	const deleteNodes = useQuesterStore((s) => s.deleteNodes);
 	const deleteEdges = useQuesterStore((s) => s.deleteEdges);
 	const duplicateNode = useQuesterStore((s) => s.duplicateNode);
@@ -107,6 +115,26 @@ export function EditorArea() {
 		);
 	}
 
+	if (activeTab.kind === "request") {
+		return (
+			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
+				<div className="relative h-full min-h-0 min-w-0 flex-1">
+					<RequestEditor
+						request={activeTab.request}
+						envs={envs}
+						selectedEnv={selectedEnv}
+						onEnvChange={setSelectedEnv}
+						onChange={handleRequestChange}
+						onSend={() => void sendRequest()}
+						isSending={isSendingRequest}
+						result={requestResult}
+						error={requestError}
+					/>
+				</div>
+			</EditorContextMenu>
+		);
+	}
+
 	const flow = activeTab.flow;
 	return (
 		<div className="relative min-h-0 min-w-0 flex-1">
@@ -118,6 +146,10 @@ export function EditorArea() {
 				onDeleteNodes={deleteNodes}
 				onDeleteEdges={deleteEdges}
 				onDuplicateNode={duplicateNode}
+				onAddNode={handleAddNode}
+				onDropRequest={(path, position) =>
+					void handleDropRequest(path, position)
+				}
 				onSave={onSave}
 				canSave={canvasDirty}
 			/>

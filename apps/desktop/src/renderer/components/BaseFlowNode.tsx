@@ -17,6 +17,10 @@ const typeLabel: Record<BuiltinNodeType, string> = {
 	set: "Set",
 	if: "If",
 	output: "Output",
+	assert: "Assert",
+	transform: "Transform",
+	merge: "Merge",
+	json: "JSON",
 };
 
 const accentTone: Record<BuiltinNodeType, string> = {
@@ -27,6 +31,10 @@ const accentTone: Record<BuiltinNodeType, string> = {
 	set: "border-l-muted-foreground/50",
 	if: "border-l-chart-4",
 	output: "border-l-destructive",
+	assert: "border-l-chart-5",
+	transform: "border-l-chart-1",
+	merge: "border-l-chart-4",
+	json: "border-l-chart-3",
 };
 
 const badgeTone: Record<BuiltinNodeType, string> = {
@@ -37,6 +45,10 @@ const badgeTone: Record<BuiltinNodeType, string> = {
 	set: "bg-muted text-muted-foreground",
 	if: "bg-chart-4/15 text-foreground",
 	output: "bg-destructive/10 text-destructive",
+	assert: "bg-chart-5/15 text-foreground",
+	transform: "bg-chart-1/15 text-chart-1",
+	merge: "bg-chart-4/15 text-foreground",
+	json: "bg-chart-3/15 text-chart-3",
 };
 
 type PortSpec = { id?: string; connected?: boolean };

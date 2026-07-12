@@ -5,8 +5,9 @@ import {
 	ContextMenuShortcut,
 	ContextMenuTrigger,
 } from "@/components/ui/context-menu.js";
+import { readNodeDragData, readRequestDragData } from "@/lib/dnd.js";
 import { flowToReactFlow, reactFlowToFlow } from "@/lib/flowEditor.js";
-import type { FlowV1 } from "@quester/schema";
+import type { BuiltinNodeType, FlowV1 } from "@quester/schema";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	Background,
@@ -40,6 +41,14 @@ type FlowCanvasProps = {
 	onDeleteNodes?: (nodeIds: string[]) => void;
 	onDeleteEdges?: (edgeIds: string[]) => void;
 	onDuplicateNode?: (nodeId: string) => void;
+	onAddNode?: (
+		type: BuiltinNodeType,
+		position: { x: number; y: number },
+	) => void;
+	onDropRequest?: (
+		requestPath: string,
+		position: { x: number; y: number },
+	) => void;
 	onSave?: () => void;
 	canSave?: boolean;
 };
@@ -130,6 +139,8 @@ function FlowCanvasInner({
 	onDeleteNodes,
 	onDeleteEdges,
 	onDuplicateNode,
+	onAddNode,
+	onDropRequest,
 	onSave,
 	canSave,
 }: {
@@ -140,10 +151,18 @@ function FlowCanvasInner({
 	onDeleteNodes?: (nodeIds: string[]) => void;
 	onDeleteEdges?: (edgeIds: string[]) => void;
 	onDuplicateNode?: (nodeId: string) => void;
+	onAddNode?: (
+		type: BuiltinNodeType,
+		position: { x: number; y: number },
+	) => void;
+	onDropRequest?: (
+		requestPath: string,
+		position: { x: number; y: number },
+	) => void;
 	onSave?: () => void;
 	canSave?: boolean;
 }) {
-	const { zoomIn, zoomOut, getZoom } = useReactFlow();
+	const { zoomIn, zoomOut, getZoom, screenToFlowPosition } = useReactFlow();
 	const [nodes, setNodes] = useState<Node[]>(() => flowToReactFlow(flow).nodes);
 	const [edges, setEdges] = useState<Edge[]>(() => flowToReactFlow(flow).edges);
 	const [contextTarget, setContextTarget] = useState<ContextTarget>({
@@ -254,6 +273,31 @@ function FlowCanvasInner({
 		};
 	}, [zoomIn, zoomOut, getZoom]);
 
+	const onDragOver = useCallback((event: React.DragEvent) => {
+		event.preventDefault();
+		event.dataTransfer.dropEffect = "copy";
+	}, []);
+
+	const onDrop = useCallback(
+		(event: React.DragEvent) => {
+			event.preventDefault();
+			const position = screenToFlowPosition({
+				x: event.clientX,
+				y: event.clientY,
+			});
+			const nodeType = readNodeDragData(event.dataTransfer);
+			if (nodeType) {
+				onAddNode?.(nodeType, position);
+				return;
+			}
+			const requestPath = readRequestDragData(event.dataTransfer);
+			if (requestPath) {
+				onDropRequest?.(requestPath, position);
+			}
+		},
+		[onAddNode, onDropRequest, screenToFlowPosition],
+	);
+
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger
@@ -269,6 +313,8 @@ function FlowCanvasInner({
 					onNodesChange={handleNodesChange}
 					onEdgesChange={handleEdgesChange}
 					onConnect={onConnect}
+					onDragOver={onDragOver}
+					onDrop={onDrop}
 					onMoveEnd={(_, viewport) => {
 						viewportsByFlowId.set(flow.id, viewport);
 						onZoomChange?.(viewport.zoom);
@@ -277,11 +323,16 @@ function FlowCanvasInner({
 					nodesConnectable
 					elementsSelectable
 					proOptions={{ hideAttribution: true }}
-					className="bg-muted/30"
+					className="bg-muted/50"
 					minZoom={0.25}
 					maxZoom={2}
 				>
-					<Background variant={BackgroundVariant.Dots} gap={16} size={1} />
+					<Background
+						variant={BackgroundVariant.Dots}
+						gap={18}
+						size={1.5}
+						color="color-mix(in oklch, var(--foreground) 22%, transparent)"
+					/>
 					<FitViewOnLoad flowId={flow.id} />
 					<SelectionBridge onSelectNode={onSelectNode} />
 					<ViewportBridge onZoomChange={onZoomChange} />
@@ -335,6 +386,8 @@ export function FlowCanvas({
 	onDeleteNodes,
 	onDeleteEdges,
 	onDuplicateNode,
+	onAddNode,
+	onDropRequest,
 	onSave,
 	canSave,
 }: FlowCanvasProps) {
@@ -358,6 +411,8 @@ export function FlowCanvas({
 					onDeleteNodes={onDeleteNodes}
 					onDeleteEdges={onDeleteEdges}
 					onDuplicateNode={onDuplicateNode}
+					onAddNode={onAddNode}
+					onDropRequest={onDropRequest}
 					onSave={onSave}
 					canSave={canSave}
 				/>
