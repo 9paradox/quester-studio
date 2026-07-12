@@ -97,6 +97,20 @@ describe("useQuesterStore", () => {
 		expect(useQuesterStore.getState()).toBe(before);
 	});
 
+	test("handleSelectNode keeps Response tab when switching nodes", () => {
+		resetStore();
+		useQuesterStore.setState({
+			selectedNodeId: "login",
+			rightPanelOpen: true,
+			rightPanelTab: "response",
+		});
+		useQuesterStore.getState().handleSelectNode("credentials");
+		const state = useQuesterStore.getState();
+		expect(state.selectedNodeId).toBe("credentials");
+		expect(state.rightPanelTab).toBe("response");
+		expect(state.rightPanelOpen).toBe(true);
+	});
+
 	test("handleGraphChange skips update when graph unchanged", () => {
 		resetStore();
 		const tab = createFlowEditorTab(sampleFlow);

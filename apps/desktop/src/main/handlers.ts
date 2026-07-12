@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
 	EngineEventEmitter,
+	FlowExecutionError,
 	executeFlow,
 	loadSecrets,
 	loadWorkspace,
@@ -17,7 +18,31 @@ import {
 	validateEnvironment,
 	validateFlow,
 } from "@quester/schema";
+import {
+	TLS_INSECURE_HINT,
+	formatErrorForConsole,
+	isTlsCertificateError,
+	serializeError,
+} from "../shared/errors.js";
 import type { ExecutionLogEntry, SecretFileMeta } from "../shared/rpc.js";
+
+function insecureTlsEnabled(): boolean {
+	return (
+		process.env.QUESTR_INSECURE_TLS === "1" ||
+		process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0"
+	);
+}
+
+/** Bun-aware fetch that can skip TLS verification for local/dev. */
+function createExecutionFetch(): typeof fetch {
+	if (!insecureTlsEnabled()) return fetch;
+	return ((input: RequestInfo | URL, init?: RequestInit) =>
+		fetch(input, {
+			...init,
+			// Bun extension — ignored by standard fetch typings
+			tls: { rejectUnauthorized: false },
+		} as RequestInit)) as typeof fetch;
+}
 
 function resolveDefaultWorkspaceRoot(): string {
 	const relative = join("examples", "sample-workspace");
@@ -98,26 +123,72 @@ export async function executeFlowRpc(
 	const secrets = await loadSecrets(root, envName, ws.manifest.environmentsDir);
 
 	const logs: ExecutionLogEntry[] = [];
-	const pushLog = (level: ExecutionLogEntry["level"], message: string) => {
-		logs.push({ ts: Date.now(), level, message });
+	const pushLog = (
+		level: ExecutionLogEntry["level"],
+		message: string,
+		extra?: Omit<ExecutionLogEntry, "ts" | "level" | "message">,
+	) => {
+		logs.push({ ts: Date.now(), level, message, ...extra });
 	};
 
 	const events = new EngineEventEmitter();
 	events.on("node:before", ({ nodeId, type }) => {
-		pushLog("info", `→ ${type} (${nodeId})`);
+		pushLog("info", `→ ${type} (${nodeId})`, {
+			nodeId,
+			nodeType: type,
+			phase: "before",
+		});
 	});
-	events.on("node:after", ({ nodeId, type }) => {
-		pushLog("info", `✓ ${type} (${nodeId})`);
+	events.on("node:after", ({ nodeId, type, input, output }) => {
+		pushLog("info", `✓ ${type} (${nodeId})`, {
+			nodeId,
+			nodeType: type,
+			phase: "after",
+			data: { input, output },
+		});
 	});
-	events.on("node:error", ({ nodeId, type, error }) => {
-		const msg = error instanceof Error ? error.message : String(error);
-		pushLog("error", `✗ ${type} (${nodeId}): ${msg}`);
+	events.on("node:error", ({ nodeId, type, input, error }) => {
+		const { message, detail } = serializeError(error);
+		const data: Record<string, unknown> = { input, error: detail };
+		if (
+			error &&
+			typeof error === "object" &&
+			"request" in error &&
+			(error as { name?: string }).name === "HttpNodeError"
+		) {
+			data.request = (error as { request: unknown }).request;
+		}
+		pushLog("error", `✗ ${type} (${nodeId}): ${message}`, {
+			nodeId,
+			nodeType: type,
+			phase: "error",
+			data,
+		});
+		if (isTlsCertificateError(error)) {
+			pushLog("error", TLS_INSECURE_HINT, {
+				nodeId,
+				nodeType: type,
+				phase: "error",
+			});
+		}
 	});
-	events.on("flow:complete", () => {
-		pushLog("info", "Flow complete");
+	events.on("flow:complete", ({ output }) => {
+		pushLog("info", "Flow complete", {
+			phase: "complete",
+			data: { output },
+		});
 	});
 
-	pushLog("info", `Run started · env=${envName}`);
+	pushLog("info", `Run started · env=${envName}`, { phase: "start" });
+	if (insecureTlsEnabled()) {
+		pushLog(
+			"info",
+			"TLS verification disabled (QUESTR_INSECURE_TLS / NODE_TLS_REJECT_UNAUTHORIZED)",
+			{
+				phase: "start",
+			},
+		);
+	}
 
 	try {
 		const result = await executeFlow(validated.data, {
@@ -125,11 +196,20 @@ export async function executeFlowRpc(
 			env: envVars,
 			secrets,
 			events,
+			fetch: createExecutionFetch(),
 		});
 		return { ...result, logs };
 	} catch (error) {
-		const msg = error instanceof Error ? error.message : String(error);
+		const msg = formatErrorForConsole(error);
 		pushLog("error", msg);
+		if (error instanceof FlowExecutionError) {
+			return {
+				...error.partial,
+				logs,
+				error: error.message,
+				failedNodeId: error.failedNodeId,
+			};
+		}
 		throw error;
 	}
 }

@@ -17,10 +17,16 @@ export type ExecutionLogEntry = {
 	ts: number;
 	level: "info" | "error";
 	message: string;
+	nodeId?: string;
+	nodeType?: string;
+	phase?: "before" | "after" | "error" | "complete" | "start";
+	data?: unknown;
 };
 
 export type ExecuteFlowRpcResult = ExecuteFlowResult & {
 	logs: ExecutionLogEntry[];
+	error?: string;
+	failedNodeId?: string;
 };
 
 export type DesktopRPC = {

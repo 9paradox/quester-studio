@@ -57,7 +57,7 @@ export function CanvasControls({
 					onClick={onRun}
 					disabled={isRunning || !canRun}
 				>
-					<IconPlayerPlay />
+					<IconPlayerPlay data-icon="inline-start" />
 					{isRunning ? "Running…" : "Run"}
 				</Button>
 			</div>

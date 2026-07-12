@@ -70,9 +70,126 @@ describe("desktop main handlers", () => {
 			env: "local",
 			input: { username: "demo", email: "demo@example.com" },
 		});
-		expect(result.output).toBeDefined();
 		expect(Array.isArray(result.logs)).toBe(true);
 		expect(result.logs.length).toBeGreaterThan(0);
+		// Live HTTP may fail on TLS in some environments; still expect structured result.
+		if (result.error) {
+			expect(result.failedNodeId).toBeDefined();
+			expect(result.steps.length).toBeGreaterThan(0);
+			expect(result.logs.some((l) => l.level === "error")).toBe(true);
+			return;
+		}
+		expect(result.output).toBeDefined();
+		expect(result.steps.length).toBeGreaterThan(0);
+	});
+
+	test("executeFlowRpc logs include per-node input and output objects", async () => {
+		const flowId = "desktop-log-io-test";
+		await createFlow(sampleWorkspace, flowId, "Log IO Test");
+		try {
+			const flow = await loadFlow(flowId, sampleWorkspace);
+			await saveFlow(
+				{
+					...flow,
+					nodes: [
+						{
+							id: "in",
+							type: "input",
+							data: { label: "Input" },
+							position: { x: 0, y: 0 },
+						},
+						{
+							id: "set",
+							type: "set",
+							data: { variables: { greeted: "yes" } },
+							position: { x: 160, y: 0 },
+						},
+						{
+							id: "out",
+							type: "output",
+							data: { label: "Output" },
+							position: { x: 320, y: 0 },
+						},
+					],
+					edges: [
+						{ id: "e1", source: "in", target: "set" },
+						{ id: "e2", source: "set", target: "out" },
+					],
+				},
+				sampleWorkspace,
+			);
+
+			const result = await executeFlowRpc(flowId, {
+				workspace: sampleWorkspace,
+				env: "local",
+				input: { name: "demo" },
+			});
+
+			expect(result.steps.map((s) => s.nodeId)).toEqual(["in", "set", "out"]);
+			expect(result.nodeInputs.in).toEqual({ name: "demo" });
+			expect(result.nodeInputs.set).toEqual({ name: "demo" });
+
+			const afterLogs = result.logs.filter((l) => l.phase === "after");
+			expect(afterLogs.length).toBe(3);
+			expect(afterLogs[0]?.data).toEqual({
+				input: { name: "demo" },
+				output: { name: "demo" },
+			});
+			expect(afterLogs[1]?.data).toMatchObject({
+				input: { name: "demo" },
+				output: { name: "demo" },
+			});
+		} finally {
+			await deleteFlow(flowId, sampleWorkspace);
+		}
+	});
+
+	test("executeFlowRpc returns partial node I/O when a node fails", async () => {
+		const flowId = "desktop-fail-partial-test";
+		await createFlow(sampleWorkspace, flowId, "Fail Partial Test");
+		try {
+			const flow = await loadFlow(flowId, sampleWorkspace);
+			await saveFlow(
+				{
+					...flow,
+					nodes: [
+						{
+							id: "in",
+							type: "input",
+							data: { label: "Input" },
+							position: { x: 0, y: 0 },
+						},
+						{
+							id: "http",
+							type: "http",
+							data: {
+								method: "GET",
+								url: "file:///tmp/x",
+								headers: {},
+							},
+							position: { x: 160, y: 0 },
+						},
+					],
+					edges: [{ id: "e1", source: "in", target: "http" }],
+				},
+				sampleWorkspace,
+			);
+
+			const result = await executeFlowRpc(flowId, {
+				workspace: sampleWorkspace,
+				env: "local",
+				input: { name: "demo" },
+			});
+
+			expect(result.error).toBeDefined();
+			expect(result.failedNodeId).toBe("http");
+			expect(result.nodeInputs.http).toEqual({ name: "demo" });
+			expect(result.steps.some((s) => s.nodeId === "http" && s.error)).toBe(
+				true,
+			);
+		} finally {
+			await deleteFlow(flowId, sampleWorkspace);
+		}
 	});
 
 	test("saveFlow writes flow json to workspace", async () => {

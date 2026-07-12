@@ -1,5 +1,20 @@
+import { JsonViewer, stringifyJson } from "@/components/JsonViewer.js";
+import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible.js";
 import { Input } from "@/components/ui/input.js";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select.js";
 import {
 	Tabs,
 	TabsContent,
@@ -9,15 +24,99 @@ import {
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
+	IconChevronDown,
 	IconChevronUp,
 	IconCopy,
 	IconGripHorizontal,
 	IconTrash,
 } from "@tabler/icons-react";
 import { useCallback, useMemo, useRef, useState } from "react";
+import type { ExecutionLogEntry } from "../../shared/rpc.js";
 
 const MIN_HEIGHT = 80;
 const MAX_HEIGHT = 480;
+
+function formatLogLine(entry: ExecutionLogEntry): string {
+	const time = new Date(entry.ts).toLocaleTimeString();
+	const base = `[${entry.level}] ${time} ${entry.message}`;
+	if (entry.data === undefined) return base;
+	return `${base}\n${stringifyJson(entry.data)}`;
+}
+
+function LogEntryRow({ entry }: { entry: ExecutionLogEntry }) {
+	const [open, setOpen] = useState(entry.phase === "error");
+	const hasData = entry.data !== undefined;
+
+	return (
+		<div
+			className={cn(
+				"rounded-md border border-transparent px-2 py-1.5",
+				entry.level === "error" && "border-destructive/20 bg-destructive/5",
+				hasData && "hover:bg-muted/30",
+			)}
+		>
+			{hasData ? (
+				<Collapsible open={open} onOpenChange={setOpen}>
+					<CollapsibleTrigger className="flex w-full items-start gap-2 text-left">
+						<IconChevronDown
+							className={cn(
+								"mt-0.5 size-3.5 shrink-0 text-muted-foreground transition-transform",
+								open && "rotate-180",
+							)}
+						/>
+						<div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+							<span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+								{new Date(entry.ts).toLocaleTimeString()}
+							</span>
+							<Badge
+								variant={entry.level === "error" ? "destructive" : "secondary"}
+							>
+								{entry.level}
+							</Badge>
+							{entry.nodeType ? (
+								<Badge variant="outline">{entry.nodeType}</Badge>
+							) : null}
+							<span
+								className={cn(
+									"min-w-0 flex-1 truncate font-mono text-xs",
+									entry.level === "error"
+										? "text-destructive"
+										: "text-foreground",
+								)}
+							>
+								{entry.message}
+							</span>
+						</div>
+					</CollapsibleTrigger>
+					<CollapsibleContent>
+						<div className="mt-2 ml-5">
+							<JsonViewer value={entry.data} defaultExpandedDepth={2} />
+						</div>
+					</CollapsibleContent>
+				</Collapsible>
+			) : (
+				<div className="flex flex-wrap items-center gap-2 pl-5">
+					<span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+						{new Date(entry.ts).toLocaleTimeString()}
+					</span>
+					<Badge
+						variant={entry.level === "error" ? "destructive" : "secondary"}
+					>
+						{entry.level}
+					</Badge>
+					<span
+						className={cn(
+							"min-w-0 flex-1 truncate font-mono text-xs",
+							entry.level === "error" ? "text-destructive" : "text-foreground",
+						)}
+					>
+						{entry.message}
+					</span>
+				</div>
+			)}
+		</div>
+	);
+}
 
 export function Panel() {
 	const open = useQuesterStore((s) => s.panelOpen);
@@ -53,20 +152,21 @@ export function Panel() {
 		}
 		const q = logsFilter.trim().toLowerCase();
 		if (!q) return entries;
-		return entries.filter((l) => l.message.toLowerCase().includes(q));
+		return entries.filter((l) => {
+			const hay = `${l.message} ${stringifyJson(l.data ?? "")}`.toLowerCase();
+			return hay.includes(q);
+		});
 	}, [logs, logsFilter, logLevel]);
 
 	const logsText = useMemo(() => {
 		if (filteredLogs.length === 0 && !runError) {
 			return "No logs yet. Run a flow to see execution steps.";
 		}
-		const lines = filteredLogs.map(
-			(l) => `[${l.level}] ${new Date(l.ts).toLocaleTimeString()} ${l.message}`,
-		);
+		const lines = filteredLogs.map(formatLogLine);
 		if (runError && logLevel !== "info") {
 			lines.push(`[error] ${runError}`);
 		}
-		return lines.join("\n");
+		return lines.join("\n\n");
 	}, [filteredLogs, runError, logLevel]);
 
 	const onPointerMove = useCallback(
@@ -180,17 +280,23 @@ export function Panel() {
 									placeholder="Filter…"
 									className="h-6 max-w-[120px] text-xs"
 								/>
-								<select
+								<Select
 									value={logLevel}
-									onChange={(e) =>
-										setLogLevel(e.target.value as "all" | "info" | "error")
+									onValueChange={(v) =>
+										v && setLogLevel(v as "all" | "info" | "error")
 									}
-									className="h-6 rounded-md border bg-background px-1.5 text-xs"
 								>
-									<option value="all">All</option>
-									<option value="info">Info</option>
-									<option value="error">Error</option>
-								</select>
+									<SelectTrigger size="sm" className="min-w-20">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent align="end">
+										<SelectGroup>
+											<SelectItem value="all">All</SelectItem>
+											<SelectItem value="info">Info</SelectItem>
+											<SelectItem value="error">Error</SelectItem>
+										</SelectGroup>
+									</SelectContent>
+								</Select>
 								<Button
 									type="button"
 									variant="ghost"
@@ -225,9 +331,33 @@ export function Panel() {
 					</TabsContent>
 					<TabsContent
 						value="logs"
-						className="m-0 min-h-0 flex-1 overflow-auto p-3"
+						className="m-0 min-h-0 flex-1 overflow-auto p-2"
 					>
-						<pre className="font-mono text-xs leading-relaxed">{logsText}</pre>
+						{filteredLogs.length === 0 && !runError ? (
+							<p className="px-1 py-2 text-xs text-muted-foreground">
+								No logs yet. Run a flow to see execution steps and response
+								objects.
+							</p>
+						) : (
+							<div className="flex flex-col gap-1">
+								{filteredLogs.map((entry, i) => (
+									<LogEntryRow
+										key={`${entry.ts}-${entry.message}-${i}`}
+										entry={entry}
+									/>
+								))}
+								{runError && logLevel !== "info" ? (
+									<div className="rounded-md border border-destructive/20 bg-destructive/5 px-2 py-1.5">
+										<div className="flex flex-wrap items-center gap-2 pl-5">
+											<Badge variant="destructive">error</Badge>
+											<span className="font-mono text-xs text-destructive">
+												{runError}
+											</span>
+										</div>
+									</div>
+								) : null}
+							</div>
+						)}
 					</TabsContent>
 				</div>
 			</Tabs>
