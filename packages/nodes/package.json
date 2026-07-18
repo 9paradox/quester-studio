@@ -21,7 +21,7 @@
 	},
 	"dependencies": {
 		"@quester/schema": "workspace:*",
-		"eta": "^3.5.0",
+		"eta": "^4.6.0",
 		"jmespath": "^0.16.0"
 	},
 	"devDependencies": {
