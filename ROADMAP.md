@@ -28,6 +28,15 @@
 - [ ] Renderer smoke tests
 - [x] Per-node reference pages in docs (hand-written; emit-from-schema optional follow-up)
 
+## Known bugs (desktop)
+
+- [ ] Hardcoded req/resp placeholders in UI — #32
+- [ ] Canvas zoom not persisted — #33
+- [ ] Assert node UI layout incorrect — #34
+- [ ] Node accents use red/error-like colors (conflicts with fail status) — #35
+- [ ] Assert node input box broken — #36
+- [ ] Canvas nodes don’t match palette icons — #37
+
 ## Ideas (backlog)
 
 - Graph/chart display node (parked from sidebar epic)
