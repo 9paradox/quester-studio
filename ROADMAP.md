@@ -1,7 +1,7 @@
 # Quester Studio Roadmap
 
 > Living document. Trackable work lives in [GitHub Issues](https://github.com/9paradox/quester-studio/issues).  
-> Last updated: 2026-07-12
+> Last updated: 2026-07-18
 
 ## Now (v0.2.0 — Desktop MVP)
 
@@ -16,6 +16,7 @@
 - [ ] If-node dual handles (`true` / `false` branches)
 - [ ] Node inspector — edit `data` fields inline
 - [ ] Save flow back to disk (git-friendly JSON)
+- [ ] Live node run status on canvas (idle / running / success / error / skipped) — #31
 - [x] Settings activity view — theme (light / dark / system)
 - [x] Node palette drag-and-drop onto canvas
 

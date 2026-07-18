@@ -13,11 +13,42 @@ import {
 	selectAnyDirty,
 	selectCanRun,
 	selectDirtyTabIds,
+	selectNodeRunStatus,
 } from "./selectors.js";
 import { slugifyName } from "./slugify.js";
 
 mock.module("@/lib/electrobun.js", () => ({
-	desktopRpc: {},
+	desktopRpc: {
+		executeFlowRpc: async () => ({
+			output: { ok: true },
+			nodeOutputs: { start: {}, in: { name: "demo" }, out: { ok: true } },
+			nodeInputs: { start: {}, in: { name: "demo" }, out: { name: "demo" } },
+			steps: [
+				{ nodeId: "start", type: "start", input: {}, output: {} },
+				{
+					nodeId: "in",
+					type: "input",
+					input: { name: "demo" },
+					output: { name: "demo" },
+				},
+				{
+					nodeId: "taken",
+					type: "set",
+					input: { name: "demo" },
+					output: { name: "demo" },
+				},
+				{
+					nodeId: "out",
+					type: "output",
+					input: { ok: true },
+					output: { ok: true },
+				},
+			],
+			vars: {},
+			logs: [],
+		}),
+	},
+	onNodeRunStatus: () => () => {},
 }));
 
 const sampleFlow: FlowV1 = {
@@ -51,6 +82,9 @@ function resetStore() {
 		runResult: null,
 		runError: null,
 		isRunning: false,
+		activeRunId: null,
+		runFlowId: null,
+		nodeStatuses: {},
 	});
 }
 
@@ -309,6 +343,136 @@ describe("useQuesterStore", () => {
 		expect(next.rows[0]?.id).toBe(tab.rows[0]?.id);
 		expect(next.rows[0]?.value).toBe("xyz");
 		expect(next.secrets.secrets).toEqual({ TOKEN: "xyz" });
+	});
+
+	test("applyNodeRunStatusEvent applies live transitions for active run", () => {
+		resetStore();
+		useQuesterStore.setState({
+			activeRunId: "run-1",
+			runFlowId: "demo-flow",
+			nodeStatuses: { a: "idle", b: "idle" },
+		});
+		useQuesterStore.getState().applyNodeRunStatusEvent({
+			runId: "run-1",
+			flowId: "demo-flow",
+			nodeId: "a",
+			nodeType: "http",
+			status: "running",
+			ts: 1,
+		});
+		useQuesterStore.getState().applyNodeRunStatusEvent({
+			runId: "run-1",
+			flowId: "demo-flow",
+			nodeId: "a",
+			nodeType: "http",
+			status: "success",
+			ts: 2,
+		});
+		expect(useQuesterStore.getState().nodeStatuses).toEqual({
+			a: "success",
+			b: "idle",
+		});
+	});
+
+	test("applyNodeRunStatusEvent ignores stale run and flow ids", () => {
+		resetStore();
+		useQuesterStore.setState({
+			activeRunId: "run-1",
+			runFlowId: "demo-flow",
+			nodeStatuses: { a: "idle" },
+		});
+		useQuesterStore.getState().applyNodeRunStatusEvent({
+			runId: "run-old",
+			flowId: "demo-flow",
+			nodeId: "a",
+			nodeType: "http",
+			status: "running",
+			ts: 1,
+		});
+		useQuesterStore.getState().applyNodeRunStatusEvent({
+			runId: "run-1",
+			flowId: "other-flow",
+			nodeId: "a",
+			nodeType: "http",
+			status: "error",
+			ts: 2,
+		});
+		expect(useQuesterStore.getState().nodeStatuses).toEqual({ a: "idle" });
+	});
+
+	test("selectNodeRunStatus is scoped to runFlowId", () => {
+		resetStore();
+		const tab = createFlowEditorTab(sampleFlow);
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			runFlowId: "demo-flow",
+			nodeStatuses: { n1: "success" },
+		});
+		expect(selectNodeRunStatus(useQuesterStore.getState(), "n1")).toBe(
+			"success",
+		);
+
+		useQuesterStore.setState({ runFlowId: "other" });
+		expect(
+			selectNodeRunStatus(useQuesterStore.getState(), "n1"),
+		).toBeUndefined();
+	});
+
+	test("runFlow initializes idle statuses and reconciles skipped nodes", async () => {
+		resetStore();
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{ id: "start", type: "start", data: {}, position: { x: 0, y: 0 } },
+				{ id: "in", type: "input", data: {}, position: { x: 40, y: 0 } },
+				{
+					id: "taken",
+					type: "set",
+					data: { variables: {} },
+					position: { x: 80, y: 0 },
+				},
+				{
+					id: "skipped",
+					type: "set",
+					data: { variables: {} },
+					position: { x: 80, y: 40 },
+				},
+				{ id: "out", type: "output", data: {}, position: { x: 120, y: 0 } },
+			],
+			edges: [],
+		};
+		const tab = createFlowEditorTab(flow);
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			workspacePath: "/tmp/ws",
+			selectedEnv: "local",
+			inputJson: '{"name":"demo"}',
+		});
+
+		const runPromise = useQuesterStore.getState().runFlow();
+		expect(useQuesterStore.getState().isRunning).toBe(true);
+		expect(useQuesterStore.getState().activeRunId).toBeTruthy();
+		expect(useQuesterStore.getState().runFlowId).toBe("demo-flow");
+		expect(useQuesterStore.getState().nodeStatuses).toEqual({
+			start: "idle",
+			in: "idle",
+			taken: "idle",
+			skipped: "idle",
+			out: "idle",
+		});
+
+		await runPromise;
+
+		expect(useQuesterStore.getState().isRunning).toBe(false);
+		expect(useQuesterStore.getState().nodeStatuses).toEqual({
+			start: "success",
+			in: "success",
+			taken: "success",
+			skipped: "skipped",
+			out: "success",
+		});
 	});
 });
 

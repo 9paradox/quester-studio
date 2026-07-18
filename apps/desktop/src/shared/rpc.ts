@@ -35,6 +35,24 @@ export type ExecutionLogEntry = {
 	data?: unknown;
 };
 
+/** Runtime status shown on canvas nodes for the latest / active run. */
+export type NodeRunStatus =
+	| "idle"
+	| "running"
+	| "success"
+	| "error"
+	| "skipped";
+
+/** Live lifecycle update streamed from main → renderer during executeFlowRpc. */
+export type NodeRunStatusEvent = {
+	runId: string;
+	flowId: string;
+	nodeId: string;
+	nodeType: string;
+	status: Extract<NodeRunStatus, "running" | "success" | "error">;
+	ts: number;
+};
+
 export type ExecuteFlowRpcResult = ExecuteFlowResult & {
 	logs: ExecutionLogEntry[];
 	error?: string;
@@ -79,6 +97,7 @@ export type DesktopRPC = {
 				params: {
 					flowId: string;
 					workspace: string;
+					runId: string;
 					env?: string;
 					input?: unknown;
 				};
@@ -190,6 +209,8 @@ export type DesktopRPC = {
 	}>;
 	webview: RPCSchema<{
 		requests: Record<string, never>;
-		messages: Record<string, never>;
+		messages: {
+			nodeRunStatus: NodeRunStatusEvent;
+		};
 	}>;
 };

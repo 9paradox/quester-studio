@@ -1,9 +1,16 @@
-import { desktopRpc } from "@/lib/electrobun.js";
+import { desktopRpc, onNodeRunStatus } from "@/lib/electrobun.js";
 import { useEffect } from "react";
 import { useQuesterStore } from "./quester-store.js";
 
 export function useAppInit() {
 	const loadWorkspace = useQuesterStore((s) => s.loadWorkspace);
+
+	useEffect(() => {
+		const unsubscribe = onNodeRunStatus((event) => {
+			useQuesterStore.getState().applyNodeRunStatusEvent(event);
+		});
+		return unsubscribe;
+	}, []);
 
 	useEffect(() => {
 		void (async () => {

@@ -28,6 +28,8 @@ import type {
 	ExecuteFlowRpcResult,
 	ExecuteRequestRpcResult,
 	FlowMeta,
+	NodeRunStatus,
+	NodeRunStatusEvent,
 	RequestMeta,
 	SecretFileMeta,
 } from "../../shared/rpc.js";
@@ -37,6 +39,11 @@ import {
 	rowsToStringRecord,
 } from "../components/KeyValueEditor.js";
 import { clamp } from "../components/ResizeGutter.js";
+import {
+	applyNodeStatusEvent,
+	initNodeStatuses,
+	reconcileNodeStatuses,
+} from "../lib/nodeRunStatus.js";
 import { slugifyName } from "./slugify.js";
 
 export type RightPanelTab = "inspector" | "response";
@@ -116,6 +123,11 @@ export type QuesterState = {
 	runResult: ExecuteFlowRpcResult | null;
 	runError: string | null;
 	isRunning: boolean;
+	/** UUID for the in-flight / latest flow run (stale-event guard). */
+	activeRunId: string | null;
+	/** Flow id associated with `nodeStatuses` / `activeRunId`. */
+	runFlowId: string | null;
+	nodeStatuses: Record<string, NodeRunStatus>;
 	requestResult: ExecuteRequestRpcResult | null;
 	requestError: string | null;
 	isSendingRequest: boolean;
@@ -144,6 +156,7 @@ export type QuesterState = {
 	showError: (message: string) => void;
 	handleActivityView: (view: ActivityView) => void;
 	openTab: (tab: EditorTab) => void;
+	applyNodeRunStatusEvent: (event: NodeRunStatusEvent) => void;
 	refreshWorkspaceLists: (path: string) => Promise<{
 		flowList: FlowMeta[];
 		envList: string[];
@@ -228,6 +241,9 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	runResult: null,
 	runError: null,
 	isRunning: false,
+	activeRunId: null,
+	runFlowId: null,
+	nodeStatuses: {},
 	requestResult: null,
 	requestError: null,
 	isSendingRequest: false,
@@ -312,6 +328,14 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				canvasDirty: Boolean(active?.kind === "flow" && active.dirty),
 			};
 		});
+	},
+
+	applyNodeRunStatusEvent: (event) => {
+		const { activeRunId, runFlowId, nodeStatuses } = get();
+		if (event.runId !== activeRunId || event.flowId !== runFlowId) return;
+		const next = applyNodeStatusEvent(nodeStatuses, event);
+		if (next === nodeStatuses) return;
+		set({ nodeStatuses: next });
 	},
 
 	refreshWorkspaceLists: async (path) => {
@@ -925,10 +949,15 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			return;
 		}
 
+		const runId = crypto.randomUUID();
+		const nodeIds = activeFlowTab.flow.nodes.map((n) => n.id);
 		set({
 			isRunning: true,
 			runError: null,
 			runResult: null,
+			activeRunId: runId,
+			runFlowId: activeFlowTab.flowId,
+			nodeStatuses: initNodeStatuses(nodeIds),
 			panelOpen: true,
 			panelTab: "logs",
 			rightPanelOpen: true,
@@ -940,12 +969,19 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			const result = await desktopRpc.executeFlowRpc({
 				flowId: activeFlowTab.flowId,
 				workspace: workspacePath,
+				runId,
 				env: selectedEnv,
 				input,
 			});
+			const { activeRunId, nodeStatuses } = get();
+			const reconciled =
+				activeRunId === runId
+					? reconcileNodeStatuses(nodeIds, result.steps, nodeStatuses)
+					: get().nodeStatuses;
 			set({
 				runResult: result,
 				runError: result.error ?? null,
+				...(activeRunId === runId ? { nodeStatuses: reconciled } : {}),
 			});
 			if (result.error) {
 				appendConsole(`Run failed: ${result.error}`);
@@ -976,7 +1012,16 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				err instanceof Error
 					? [err.message, err.stack].filter(Boolean).join("\n")
 					: "Flow execution failed";
-			set({ runError: err instanceof Error ? err.message : message });
+			const { activeRunId, nodeStatuses } = get();
+			if (activeRunId === runId) {
+				const reconciled = reconcileNodeStatuses(nodeIds, [], nodeStatuses);
+				set({
+					runError: err instanceof Error ? err.message : message,
+					nodeStatuses: reconciled,
+				});
+			} else {
+				set({ runError: err instanceof Error ? err.message : message });
+			}
 			appendConsole(message);
 		} finally {
 			set({ isRunning: false });

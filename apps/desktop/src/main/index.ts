@@ -1,5 +1,5 @@
 import { BrowserView, BrowserWindow } from "electrobun/bun";
-import type { DesktopRPC } from "../shared/rpc.js";
+import type { DesktopRPC, NodeRunStatusEvent } from "../shared/rpc.js";
 
 const VITE_DEV_URL = "http://127.0.0.1:5173/";
 
@@ -24,6 +24,17 @@ async function getMainViewUrl(): Promise<string> {
 	return "views://mainview/index.html";
 }
 
+function sendNodeRunStatus(
+	rpcInstance: ReturnType<typeof BrowserView.defineRPC<DesktopRPC>>,
+	event: NodeRunStatusEvent,
+) {
+	try {
+		rpcInstance.send.nodeRunStatus(event);
+	} catch (err) {
+		console.error("Failed to send nodeRunStatus", err);
+	}
+}
+
 const rpc = BrowserView.defineRPC<DesktopRPC>({
 	maxRequestTime: 30_000,
 	handlers: {
@@ -40,11 +51,22 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				(await import("./handlers.js")).listEnvs(workspace),
 			loadFlow: async ({ flowId, workspace }) =>
 				(await import("./handlers.js")).loadFlow(flowId, workspace),
-			executeFlowRpc: async ({ flowId, workspace, env, input }) =>
+			executeFlowRpc: async ({ flowId, workspace, env, input, runId }) =>
 				(await import("./handlers.js")).executeFlowRpc(flowId, {
 					workspace,
 					env,
 					input,
+					runId,
+					onNodeStatus: (event) => {
+						sendNodeRunStatus(rpc, {
+							runId,
+							flowId,
+							nodeId: event.nodeId,
+							nodeType: event.nodeType,
+							status: event.status,
+							ts: event.ts,
+						});
+					},
 				}),
 			saveFlow: async ({ flow, workspace }) =>
 				(await import("./handlers.js")).saveFlow(flow, workspace),

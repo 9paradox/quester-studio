@@ -5,13 +5,23 @@ import type {
 	SecretsV1,
 } from "@quester/schema";
 import { Electroview } from "electrobun/view";
-import type { DesktopRPC } from "../../shared/rpc.js";
+import type { DesktopRPC, NodeRunStatusEvent } from "../../shared/rpc.js";
+
+type NodeRunStatusListener = (event: NodeRunStatusEvent) => void;
+
+const nodeRunStatusListeners = new Set<NodeRunStatusListener>();
 
 const rpc = Electroview.defineRPC<DesktopRPC>({
 	maxRequestTime: 30_000,
 	handlers: {
 		requests: {},
-		messages: {},
+		messages: {
+			nodeRunStatus: (event) => {
+				for (const listener of nodeRunStatusListeners) {
+					listener(event);
+				}
+			},
+		},
 	},
 });
 
@@ -22,6 +32,13 @@ function getRpc() {
 		throw new Error("Electrobun RPC is not initialized");
 	}
 	return electrobun.rpc;
+}
+
+export function onNodeRunStatus(listener: NodeRunStatusListener): () => void {
+	nodeRunStatusListeners.add(listener);
+	return () => {
+		nodeRunStatusListeners.delete(listener);
+	};
 }
 
 export const desktopRpc = {
@@ -36,6 +53,7 @@ export const desktopRpc = {
 	executeFlowRpc: (params: {
 		flowId: string;
 		workspace: string;
+		runId: string;
 		env?: string;
 		input?: unknown;
 	}) => getRpc().request.executeFlowRpc(params),
