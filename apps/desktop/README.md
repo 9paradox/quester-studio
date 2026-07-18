@@ -39,7 +39,7 @@ Install the Bun extension (`oven.bun-vscode`) for breakpoints and attach.
 
 1. Launch the app — it opens `examples/sample-workspace` by default
 2. Select **Login and profile (dummyjson)** in the flow sidebar
-3. In the run panel, keep env `local` and the default JSON input (`emilys` / `emilyspass`)
+3. In the Input node inspector (or run input), set JSON to `{"username":"emilys","password":"emilyspass"}`
 4. Click **Run** — output shows the profile HTTP response
 5. Click **Open workspace** to pick any folder containing `quester.json`
 

@@ -587,7 +587,7 @@ export async function createRequest(
 		id,
 		name: name ?? id,
 		method: "GET",
-		url: "https://dummyjson.com/test",
+		url: "https://example.com",
 		headers: {},
 	};
 	return saveRequestFile(root, ws.manifest, requestPath, request);

@@ -5,6 +5,12 @@ import {
 	ContextMenuShortcut,
 	ContextMenuTrigger,
 } from "@/components/ui/context-menu.js";
+import {
+	CANVAS_MAX_ZOOM,
+	CANVAS_MIN_ZOOM,
+	readCanvasViewport,
+	writeCanvasViewport,
+} from "@/lib/canvasViewport.js";
 import { readNodeDragData, readRequestDragData } from "@/lib/dnd.js";
 import { flowToReactFlow, reactFlowToFlow } from "@/lib/flowEditor.js";
 import type { BuiltinNodeType, FlowV1 } from "@quester/schema";
@@ -19,7 +25,6 @@ import {
 	type NodeChange,
 	ReactFlow,
 	ReactFlowProvider,
-	type Viewport,
 	addEdge,
 	applyEdgeChanges,
 	applyNodeChanges,
@@ -30,11 +35,9 @@ import {
 import "reactflow/dist/style.css";
 import { flowNodeTypes } from "./nodes/FlowNodes.js";
 
-/** Survives ReactFlowProvider remounts when switching editor tabs. */
-const viewportsByFlowId = new Map<string, Viewport>();
-
 type FlowCanvasProps = {
 	flow: FlowV1 | null;
+	workspacePath?: string;
 	onGraphChange?: (nodes: Node[], edges: Edge[]) => void;
 	onSelectNode?: (nodeId: string | null) => void;
 	onZoomChange?: (zoom: number) => void;
@@ -90,30 +93,63 @@ function ViewportBridge({
 	return null;
 }
 
-function FitViewOnLoad({ flowId }: { flowId: string }) {
+function FitViewOnLoad({
+	flowId,
+	workspacePath,
+	onZoomChange,
+}: {
+	flowId: string;
+	workspacePath: string;
+	onZoomChange?: (zoom: number) => void;
+}) {
 	const { fitView, getViewport, setViewport } = useReactFlow();
 	const nodesInitialized = useNodesInitialized();
 	const appliedFlowRef = useRef<string | null>(null);
 
 	useEffect(() => {
 		if (!nodesInitialized) return;
-		if (appliedFlowRef.current === flowId) return;
-		appliedFlowRef.current = flowId;
+		const applyKey = `${workspacePath}:${flowId}`;
+		if (appliedFlowRef.current === applyKey) return;
+		appliedFlowRef.current = applyKey;
 
-		const saved = viewportsByFlowId.get(flowId);
+		let cancelled = false;
+		let outerFrame = 0;
+		let innerFrame = 0;
+
+		const saved = readCanvasViewport(workspacePath, flowId);
 		// Double rAF: wait until the pane has a real size so fitView doesn't
 		// pin the graph to the top of an undersized container.
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
+		outerFrame = requestAnimationFrame(() => {
+			innerFrame = requestAnimationFrame(() => {
+				if (cancelled) return;
 				if (saved) {
 					void setViewport(saved, { duration: 0 });
+					if (cancelled) return;
+					onZoomChange?.(getViewport().zoom);
 					return;
 				}
 				void fitView({ padding: 0.2, maxZoom: 1, duration: 0 });
-				viewportsByFlowId.set(flowId, getViewport());
+				if (cancelled) return;
+				const viewport = getViewport();
+				writeCanvasViewport(workspacePath, flowId, viewport);
+				onZoomChange?.(viewport.zoom);
 			});
 		});
-	}, [flowId, nodesInitialized, fitView, getViewport, setViewport]);
+
+		return () => {
+			cancelled = true;
+			cancelAnimationFrame(outerFrame);
+			cancelAnimationFrame(innerFrame);
+		};
+	}, [
+		flowId,
+		workspacePath,
+		nodesInitialized,
+		fitView,
+		getViewport,
+		setViewport,
+		onZoomChange,
+	]);
 
 	return null;
 }
@@ -133,6 +169,7 @@ function resolveContextTarget(event: React.MouseEvent): ContextTarget {
 
 function FlowCanvasInner({
 	flow,
+	workspacePath,
 	onGraphChange,
 	onSelectNode,
 	onZoomChange,
@@ -145,6 +182,7 @@ function FlowCanvasInner({
 	canSave,
 }: {
 	flow: FlowV1;
+	workspacePath: string;
 	onGraphChange?: (nodes: Node[], edges: Edge[]) => void;
 	onSelectNode?: (nodeId: string | null) => void;
 	onZoomChange?: (zoom: number) => void;
@@ -342,7 +380,7 @@ function FlowCanvasInner({
 					onDragOver={onDragOver}
 					onDrop={onDrop}
 					onMoveEnd={(_, viewport) => {
-						viewportsByFlowId.set(flow.id, viewport);
+						writeCanvasViewport(workspacePath, flow.id, viewport);
 						onZoomChange?.(viewport.zoom);
 					}}
 					nodesDraggable
@@ -350,8 +388,8 @@ function FlowCanvasInner({
 					elementsSelectable
 					proOptions={{ hideAttribution: true }}
 					className="bg-muted/50"
-					minZoom={0.25}
-					maxZoom={2}
+					minZoom={CANVAS_MIN_ZOOM}
+					maxZoom={CANVAS_MAX_ZOOM}
 				>
 					<Background
 						variant={BackgroundVariant.Dots}
@@ -359,7 +397,11 @@ function FlowCanvasInner({
 						size={1.5}
 						color="color-mix(in oklch, var(--foreground) 22%, transparent)"
 					/>
-					<FitViewOnLoad flowId={flow.id} />
+					<FitViewOnLoad
+						flowId={flow.id}
+						workspacePath={workspacePath}
+						onZoomChange={onZoomChange}
+					/>
 					<SelectionBridge onSelectNode={onSelectNode} />
 					<ViewportBridge onZoomChange={onZoomChange} />
 				</ReactFlow>
@@ -406,6 +448,7 @@ function FlowCanvasInner({
 
 export function FlowCanvas({
 	flow,
+	workspacePath = "",
 	onGraphChange,
 	onSelectNode,
 	onZoomChange,
@@ -429,8 +472,9 @@ export function FlowCanvas({
 		<ReactFlowProvider>
 			<div className="h-full w-full">
 				<FlowCanvasInner
-					key={flow.id}
+					key={`${workspacePath}:${flow.id}`}
 					flow={flow}
+					workspacePath={workspacePath}
 					onGraphChange={onGraphChange}
 					onSelectNode={onSelectNode}
 					onZoomChange={onZoomChange}

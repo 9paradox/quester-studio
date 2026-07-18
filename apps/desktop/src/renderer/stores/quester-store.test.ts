@@ -299,6 +299,38 @@ describe("useQuesterStore", () => {
 		expect(selectActiveFlowTab(useQuesterStore.getState())?.dirty).toBe(true);
 	});
 
+	test("handleUpdateNode persists assert checks", () => {
+		resetStore();
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{
+					id: "assert-1",
+					type: "assert",
+					data: { label: "Assert", checks: [{ path: "ok" }] },
+					position: { x: 0, y: 0 },
+				},
+			],
+		};
+		const tab = createFlowEditorTab(flow);
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			selectedNodeId: "assert-1",
+		});
+		useQuesterStore.getState().handleUpdateNode("assert-1", {
+			label: "Assert",
+			checks: [{ path: "status", equals: 200 }],
+		});
+		const next = selectActiveFlowTab(useQuesterStore.getState());
+		expect(next?.flow.nodes[0]?.data).toEqual({
+			label: "Assert",
+			checks: [{ path: "status", equals: 200 }],
+		});
+		expect(next?.dirty).toBe(true);
+		expect(useQuesterStore.getState().selectedNodeId).toBe("assert-1");
+	});
+
 	test("handleEnvRowsChange keeps empty draft rows", () => {
 		resetStore();
 		const environment: EnvironmentV1 = {

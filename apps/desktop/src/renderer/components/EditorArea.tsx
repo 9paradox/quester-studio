@@ -46,6 +46,7 @@ function EditorContextMenu({
 
 export function EditorArea() {
 	const activeTab = useQuesterStore(selectActiveTab);
+	const workspacePath = useQuesterStore((s) => s.workspacePath);
 	const envs = useQuesterStore((s) => s.envs);
 	const selectedEnv = useQuesterStore((s) => s.selectedEnv);
 	const isRunning = useQuesterStore((s) => s.isRunning);
@@ -140,6 +141,7 @@ export function EditorArea() {
 		<div className="relative min-h-0 min-w-0 flex-1">
 			<FlowCanvas
 				flow={flow}
+				workspacePath={workspacePath}
 				onGraphChange={handleGraphChange}
 				onSelectNode={handleSelectNode}
 				onZoomChange={setZoom}
