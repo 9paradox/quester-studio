@@ -1,3 +1,7 @@
+import {
+	formatAssertCheckSummary,
+	normalizeAssertChecks,
+} from "@/components/AssertChecksEditor.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectNodeRunStatus } from "@/stores/selectors.js";
 import type { NodeProps } from "reactflow";
@@ -184,17 +188,21 @@ export function AssertFlowNode({
 }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
 	const runStatus = useNodeRunStatus(id);
-	const checks = Array.isArray(data.checks) ? data.checks.length : 0;
+	const checks = normalizeAssertChecks(data.checks);
 	return (
 		<BaseFlowNode
 			type="assert"
 			title={data.label ?? "Assert"}
-			subtitle={`${checks} check${checks === 1 ? "" : "s"}`}
+			subtitle={`${checks.length} check${checks.length === 1 ? "" : "s"}`}
 			selected={selected}
 			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
-		/>
+		>
+			<div className="truncate font-mono text-foreground/80">
+				{formatAssertCheckSummary(checks)}
+			</div>
+		</BaseFlowNode>
 	);
 }
 

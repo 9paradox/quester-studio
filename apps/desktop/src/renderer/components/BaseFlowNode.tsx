@@ -4,6 +4,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip.js";
+import { getNodePresentation } from "@/lib/nodeCatalog.js";
 import { cn } from "@/lib/utils.js";
 import type { BuiltinNodeType } from "@quester/schema";
 import {
@@ -19,51 +20,6 @@ import type { NodeRunStatus } from "../../shared/rpc.js";
 export type FlowNodeData = {
 	label?: string;
 	[key: string]: unknown;
-};
-
-const typeLabel: Record<BuiltinNodeType, string> = {
-	start: "Start",
-	input: "Input",
-	http: "HTTP",
-	extract: "Extract",
-	template: "Template",
-	set: "Set",
-	if: "If",
-	output: "Output",
-	assert: "Assert",
-	transform: "Transform",
-	merge: "Merge",
-	json: "JSON",
-};
-
-const accentTone: Record<BuiltinNodeType, string> = {
-	start: "border-l-foreground",
-	input: "border-l-chart-2",
-	http: "border-l-primary",
-	extract: "border-l-chart-1",
-	template: "border-l-chart-3",
-	set: "border-l-muted-foreground/50",
-	if: "border-l-chart-4",
-	output: "border-l-destructive",
-	assert: "border-l-chart-5",
-	transform: "border-l-chart-1",
-	merge: "border-l-chart-4",
-	json: "border-l-chart-3",
-};
-
-const badgeTone: Record<BuiltinNodeType, string> = {
-	start: "bg-foreground/10 text-foreground",
-	input: "bg-chart-2/15 text-chart-2",
-	http: "bg-primary/15 text-primary",
-	extract: "bg-chart-1/15 text-chart-1",
-	template: "bg-chart-3/15 text-chart-3",
-	set: "bg-muted text-muted-foreground",
-	if: "bg-chart-4/15 text-foreground",
-	output: "bg-destructive/10 text-destructive",
-	assert: "bg-chart-5/15 text-foreground",
-	transform: "bg-chart-1/15 text-chart-1",
-	merge: "bg-chart-4/15 text-foreground",
-	json: "bg-chart-3/15 text-chart-3",
 };
 
 const statusLabel: Record<NodeRunStatus, string> = {
@@ -97,11 +53,14 @@ export function BaseFlowNode({
 	selected,
 	runStatus,
 }: BaseFlowNodeProps) {
+	const presentation = getNodePresentation(type);
+	const TypeIcon = presentation.icon;
+
 	return (
 		<div
 			className={cn(
 				"relative min-w-[210px] max-w-[300px] overflow-hidden rounded-lg border bg-card text-card-foreground",
-				accentTone[type],
+				presentation.accentTone,
 				"border-l-[3px]",
 				selected && "border-primary shadow-sm",
 				runStatus === "running" && "ring-1 ring-primary/40",
@@ -134,9 +93,13 @@ export function BaseFlowNode({
 			<div className="flex items-center gap-2 border-b border-border/60 bg-muted/20 px-2.5 py-2">
 				<Badge
 					variant="secondary"
-					className={cn("h-5 rounded-sm px-1.5 text-[10px]", badgeTone[type])}
+					className={cn(
+						"h-5 gap-1 rounded-sm px-1.5 text-[10px]",
+						presentation.badgeTone,
+					)}
 				>
-					{typeLabel[type]}
+					<TypeIcon className="size-3 shrink-0" aria-hidden />
+					{presentation.label}
 				</Badge>
 				<div className="min-w-0 flex-1">
 					<div className="truncate text-sm font-medium leading-tight">
@@ -212,8 +175,10 @@ function FlowHandle({
 	total: number;
 	connected?: boolean;
 }) {
+	// Single ports align to the header row (not 50% of body+header), so nodes
+	// with a summary section (e.g. Assert) match Extract/HTTP handle placement.
 	const top =
-		total <= 1 ? "50%" : `${20 + (index / Math.max(total - 1, 1)) * 60}%`;
+		total <= 1 ? "1.75rem" : `${20 + (index / Math.max(total - 1, 1)) * 60}%`;
 
 	return (
 		<Handle

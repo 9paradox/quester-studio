@@ -17,6 +17,7 @@
 - [ ] Node inspector — edit `data` fields inline
 - [ ] Save flow back to disk (git-friendly JSON)
 - [ ] Live node run status on canvas (idle / running / success / error / skipped) — #31
+- [ ] Context-aware autocomplete for templates and output paths — #40
 - [x] Settings activity view — theme (light / dark / system)
 - [x] Node palette drag-and-drop onto canvas
 
@@ -30,12 +31,12 @@
 
 ## Known bugs (desktop)
 
-- [ ] Hardcoded req/resp placeholders in UI — #32
-- [ ] Canvas zoom not persisted — #33
-- [ ] Assert node UI layout incorrect — #34
-- [ ] Node accents use red/error-like colors (conflicts with fail status) — #35
-- [ ] Assert node input box broken — #36
-- [ ] Canvas nodes don’t match palette icons — #37
+- [x] Hardcoded req/resp placeholders in UI — #32
+- [x] Canvas zoom not persisted — #33
+- [x] Assert node UI layout incorrect — #34
+- [x] Node accents use red/error-like colors (conflicts with fail status) — #35
+- [x] Assert node input box broken — #36
+- [x] Canvas nodes don’t match palette icons — #37
 
 ## Ideas (backlog)
 

@@ -1,4 +1,9 @@
+import {
+	AssertChecksEditor,
+	normalizeAssertChecks,
+} from "@/components/AssertChecksEditor.js";
 import { HeadersEditor } from "@/components/HeadersEditor.js";
+import { JsonDraftField } from "@/components/JsonDraftField.js";
 import { TemplateField } from "@/components/TemplateField.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
@@ -88,7 +93,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 							onBlur={formatRunInput}
 							className="min-h-48 rounded-md border bg-muted/20 p-2.5 font-mono text-xs leading-5"
 							spellCheck={false}
-							placeholder={'{\n  "username": "demo"\n}'}
+							placeholder={'{\n  "key": "value"\n}'}
 						/>
 						{inputError ? (
 							<p className="text-xs text-destructive">{inputError}</p>
@@ -143,7 +148,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 							onChange={(body) => setField("body", body)}
 							multiline
 							rows={8}
-							placeholder={'{\n  "username": "{{input.username}}"\n}'}
+							placeholder={'{\n  "key": "{{input.key}}"\n}'}
 						/>
 					</Field>
 				</>
@@ -182,68 +187,38 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 
 			{node.type === "set" ? (
 				<Field label="Variables (JSON)">
-					<Textarea
-						value={JSON.stringify(data.variables ?? {}, null, 2)}
-						onChange={(e) => {
-							try {
-								setField("variables", JSON.parse(e.target.value));
-							} catch {
-								// keep typing
-							}
-						}}
-						className="min-h-24 font-mono text-xs"
-						spellCheck={false}
+					<JsonDraftField
+						value={data.variables ?? {}}
+						onCommit={(variables) => setField("variables", variables)}
 					/>
 				</Field>
 			) : null}
 
 			{node.type === "assert" ? (
-				<Field label="Checks (JSON)">
-					<Textarea
-						value={JSON.stringify(data.checks ?? [], null, 2)}
-						onChange={(e) => {
-							try {
-								setField("checks", JSON.parse(e.target.value));
-							} catch {
-								// keep typing
-							}
-						}}
-						className="min-h-28 font-mono text-xs"
-						spellCheck={false}
+				<Field label="Checks">
+					<AssertChecksEditor
+						checks={normalizeAssertChecks(data.checks)}
+						onChange={(checks) => setField("checks", checks)}
 					/>
 				</Field>
 			) : null}
 
 			{node.type === "transform" ? (
 				<Field label="Map (JSON: key → JMESPath)">
-					<Textarea
-						value={JSON.stringify(data.map ?? {}, null, 2)}
-						onChange={(e) => {
-							try {
-								setField("map", JSON.parse(e.target.value));
-							} catch {
-								// keep typing
-							}
-						}}
-						className="min-h-28 font-mono text-xs"
-						spellCheck={false}
+					<JsonDraftField
+						value={data.map ?? {}}
+						onCommit={(map) => setField("map", map)}
+						minRowsClassName="min-h-28"
 					/>
 				</Field>
 			) : null}
 
 			{node.type === "merge" ? (
 				<Field label="Sources (JSON array)">
-					<Textarea
-						value={JSON.stringify(data.sources ?? ["previous"], null, 2)}
-						onChange={(e) => {
-							try {
-								setField("sources", JSON.parse(e.target.value));
-							} catch {
-								// keep typing
-							}
-						}}
-						className="min-h-20 font-mono text-xs"
-						spellCheck={false}
+					<JsonDraftField
+						value={data.sources ?? ["previous"]}
+						onCommit={(sources) => setField("sources", sources)}
+						minRowsClassName="min-h-20"
 					/>
 				</Field>
 			) : null}
