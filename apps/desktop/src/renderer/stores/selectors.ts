@@ -1,4 +1,9 @@
 import { type EditorTab, editorTabLabel } from "@/lib/editorTabs.js";
+import {
+	type TemplateCompletionContext,
+	inputKeysFromJson,
+	varKeysFromNodes,
+} from "@/lib/templates.js";
 import type { NodeRunStatus } from "../../shared/rpc.js";
 import type { QuesterState } from "./quester-store.js";
 
@@ -32,6 +37,19 @@ export function selectCanRun(state: QuesterState): boolean {
 
 export function selectRightPanelVisible(state: QuesterState): boolean {
 	return state.rightPanelOpen && Boolean(selectActiveFlowTab(state));
+}
+
+/** Autocomplete sources for `{{...}}` templates, from the active flow + input. */
+export function selectTemplateContext(
+	state: QuesterState,
+): TemplateCompletionContext {
+	const flowTab = selectActiveFlowTab(state);
+	const nodes = flowTab?.flow.nodes ?? [];
+	return {
+		nodeIds: nodes.map((n) => n.id),
+		inputKeys: inputKeysFromJson(state.inputJson),
+		varKeys: varKeysFromNodes(nodes),
+	};
 }
 
 export function selectNodeRunStatus(

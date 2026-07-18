@@ -3,6 +3,7 @@ import { builtinNodeTypes, validateNodeData } from "@quester/schema";
 import {
 	allPresentationTypes,
 	defaultNodeData,
+	getNodeHelp,
 	getNodePresentation,
 	nodeCatalogGroups,
 	nodePresentation,
@@ -54,5 +55,20 @@ describe("nodePresentation", () => {
 			label: "Assert",
 			checks: [{ path: "ok" }],
 		});
+	});
+
+	test("every builtin has non-empty help with fields and example", () => {
+		for (const type of builtinNodeTypes) {
+			const help = getNodeHelp(type);
+			expect(help).toBe(nodePresentation[type].help);
+			expect(help.summary.trim().length).toBeGreaterThan(0);
+			expect(help.fields.length).toBeGreaterThan(0);
+			for (const field of help.fields) {
+				expect(field.name.trim().length).toBeGreaterThan(0);
+				expect(field.type.trim().length).toBeGreaterThan(0);
+				expect(field.description.trim().length).toBeGreaterThan(0);
+			}
+			expect(help.example).toBeDefined();
+		}
 	});
 });

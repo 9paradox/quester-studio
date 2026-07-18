@@ -19,11 +19,11 @@ type JsonPaneProps = {
 	editable?: boolean;
 	onEdit?: (raw: string) => void;
 	editError?: string | null;
+	/** Show the Pretty/Raw tabs. Disable when a sibling Raw view already exists. */
+	showRaw?: boolean;
 };
 
-/**
- * Postman-style body pane: Tree viewer + Raw text with copy.
- */
+/** Body pane with tree and raw text views plus copy support. */
 export function JsonPane({
 	value,
 	className,
@@ -31,6 +31,7 @@ export function JsonPane({
 	editable = false,
 	onEdit,
 	editError,
+	showRaw = true,
 }: JsonPaneProps) {
 	const [copied, setCopied] = useState(false);
 	const raw = useMemo(() => {
@@ -44,11 +45,51 @@ export function JsonPane({
 		return stringifyJson(value);
 	}, [value]);
 
+	const treeValue = useMemo(() => {
+		if (typeof value === "string") {
+			try {
+				return JSON.parse(value) as unknown;
+			} catch {
+				return value;
+			}
+		}
+		return value;
+	}, [value]);
+
 	const copy = async () => {
 		await navigator.clipboard.writeText(raw);
 		setCopied(true);
 		window.setTimeout(() => setCopied(false), 1200);
 	};
+
+	const copyButton = (
+		<Button
+			type="button"
+			variant="ghost"
+			size="icon-xs"
+			onClick={() => void copy()}
+			aria-label="Copy"
+		>
+			{copied ? (
+				<span className="text-[10px] text-muted-foreground">OK</span>
+			) : (
+				<IconCopy />
+			)}
+		</Button>
+	);
+
+	if (!showRaw && !editable) {
+		return (
+			<div className={cn("relative flex flex-col gap-2", className)}>
+				<div className="absolute top-1 right-1 z-10">{copyButton}</div>
+				<JsonViewer
+					value={treeValue}
+					defaultExpandedDepth={defaultExpandedDepth}
+					showCopy={false}
+				/>
+			</div>
+		);
+	}
 
 	return (
 		<div className={cn("flex flex-col gap-2", className)}>
@@ -62,33 +103,11 @@ export function JsonPane({
 							Raw
 						</TabsTrigger>
 					</TabsList>
-					<Button
-						type="button"
-						variant="ghost"
-						size="icon-xs"
-						onClick={() => void copy()}
-						aria-label="Copy"
-					>
-						{copied ? (
-							<span className="text-[10px] text-muted-foreground">OK</span>
-						) : (
-							<IconCopy />
-						)}
-					</Button>
+					{copyButton}
 				</div>
 				<TabsContent value="tree" className="mt-2">
 					<JsonViewer
-						value={
-							typeof value === "string"
-								? (() => {
-										try {
-											return JSON.parse(value) as unknown;
-										} catch {
-											return value;
-										}
-									})()
-								: value
-						}
+						value={treeValue}
 						defaultExpandedDepth={defaultExpandedDepth}
 						showCopy={false}
 					/>

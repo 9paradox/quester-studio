@@ -1,4 +1,4 @@
-import { Textarea } from "@/components/ui/textarea.js";
+import { CodeEditor } from "@/components/CodeEditor.js";
 import {
 	type JsonDraftState,
 	createJsonDraft,
@@ -11,7 +11,9 @@ type JsonDraftFieldProps = {
 	value: unknown;
 	onCommit: (value: unknown) => void;
 	className?: string;
-	minRowsClassName?: string;
+	minHeight?: string;
+	id?: string;
+	placeholder?: string;
 };
 
 /**
@@ -22,7 +24,9 @@ export function JsonDraftField({
 	value,
 	onCommit,
 	className,
-	minRowsClassName = "min-h-24",
+	minHeight = "6rem",
+	id,
+	placeholder,
 }: JsonDraftFieldProps) {
 	const [draft, setDraft] = useState<JsonDraftState>(() =>
 		createJsonDraft(value),
@@ -45,17 +49,20 @@ export function JsonDraftField({
 
 	return (
 		<div className="flex flex-col gap-1.5">
-			<Textarea
+			<CodeEditor
+				id={id}
 				value={draft.text}
-				onChange={(e) => {
-					const next = updateJsonDraft(draft, e.target.value);
+				language="json"
+				minHeight={minHeight}
+				placeholder={placeholder}
+				className={className}
+				onChange={(text) => {
+					const next = updateJsonDraft(draft, text);
 					setDraft(next);
 					if (jsonDraftDidCommit(draft, next)) {
 						onCommit(next.committed);
 					}
 				}}
-				className={`${minRowsClassName} font-mono text-xs ${className ?? ""}`}
-				spellCheck={false}
 			/>
 			{draft.error ? (
 				<p className="text-xs text-destructive">{draft.error}</p>

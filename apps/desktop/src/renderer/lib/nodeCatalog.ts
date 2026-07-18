@@ -1,3 +1,4 @@
+import { type NodeHelp, nodeHelpByType } from "@/lib/nodeHelp.js";
 import { type BuiltinNodeType, builtinNodeTypes } from "@quester/schema";
 import {
 	IconArrowBarToDown,
@@ -14,6 +15,9 @@ import {
 	IconWorld,
 } from "@tabler/icons-react";
 import type { ComponentType, SVGProps } from "react";
+
+export type { NodeHelp, NodeHelpField } from "@/lib/nodeHelp.js";
+export { getNodeHelp } from "@/lib/nodeHelp.js";
 
 export type ActivityView =
 	| "flows"
@@ -35,6 +39,7 @@ export type NodePresentation = {
 	/** Left-border accent — must not use destructive (reserved for run failure). */
 	accentTone: string;
 	badgeTone: string;
+	help: NodeHelp;
 };
 
 export type NodeCatalogEntry = Pick<
@@ -48,96 +53,100 @@ export type NodeCatalogGroup = {
 };
 
 /** Single source of truth for palette + canvas chrome. */
+function withHelp(entry: Omit<NodePresentation, "help">): NodePresentation {
+	return { ...entry, help: nodeHelpByType[entry.type] };
+}
+
 export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
-	start: {
+	start: withHelp({
 		type: "start",
 		label: "Start",
 		description: "Flow entry (one only)",
 		icon: IconFlag,
 		accentTone: "border-l-foreground",
 		badgeTone: "bg-foreground/10 text-foreground",
-	},
-	input: {
+	}),
+	input: withHelp({
 		type: "input",
 		label: "Input",
 		description: "Run payload on the wire",
 		icon: IconArrowBarToDown,
 		accentTone: "border-l-chart-2",
 		badgeTone: "bg-chart-2/15 text-chart-2",
-	},
-	output: {
+	}),
+	output: withHelp({
 		type: "output",
 		label: "Output",
 		description: "Flow result",
 		icon: IconArrowBarToUp,
 		accentTone: "border-l-muted-foreground",
 		badgeTone: "bg-muted text-muted-foreground",
-	},
-	json: {
+	}),
+	json: withHelp({
 		type: "json",
 		label: "JSON",
 		description: "Display JSON on canvas",
 		icon: IconJson,
 		accentTone: "border-l-chart-3",
 		badgeTone: "bg-chart-3/15 text-chart-3",
-	},
-	http: {
+	}),
+	http: withHelp({
 		type: "http",
 		label: "HTTP",
 		description: "HTTP request",
 		icon: IconWorld,
 		accentTone: "border-l-primary",
 		badgeTone: "bg-primary/15 text-primary",
-	},
-	extract: {
+	}),
+	extract: withHelp({
 		type: "extract",
 		label: "Extract",
 		description: "Extract JSON field",
 		icon: IconBraces,
 		accentTone: "border-l-chart-1",
 		badgeTone: "bg-chart-1/15 text-chart-1",
-	},
-	template: {
+	}),
+	template: withHelp({
 		type: "template",
 		label: "Template",
 		description: "Render template",
 		icon: IconCode,
 		accentTone: "border-l-chart-3",
 		badgeTone: "bg-chart-3/15 text-chart-3",
-	},
-	set: {
+	}),
+	set: withHelp({
 		type: "set",
 		label: "Set",
 		description: "Set variables",
 		icon: IconVariable,
 		accentTone: "border-l-muted-foreground/50",
 		badgeTone: "bg-muted text-muted-foreground",
-	},
-	transform: {
+	}),
+	transform: withHelp({
 		type: "transform",
 		label: "Transform",
 		description: "Map fields with JMESPath",
 		icon: IconTransform,
 		accentTone: "border-l-chart-1",
 		badgeTone: "bg-chart-1/15 text-chart-1",
-	},
-	merge: {
+	}),
+	merge: withHelp({
 		type: "merge",
 		label: "Merge",
 		description: "Deep-merge objects",
 		icon: IconGitMerge,
 		accentTone: "border-l-chart-4",
 		badgeTone: "bg-chart-4/15 text-foreground",
-	},
-	if: {
+	}),
+	if: withHelp({
 		type: "if",
 		label: "If",
 		description: "Conditional branch",
 		icon: IconGitBranch,
 		accentTone: "border-l-chart-4",
 		badgeTone: "bg-chart-4/15 text-foreground",
-	},
-	assert: {
+	}),
+	assert: withHelp({
 		type: "assert",
 		label: "Assert",
 		description: "Fail on failed checks",
@@ -145,7 +154,7 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 		// chart-5 is near-black and disappears on dark cards; use a visible accent.
 		accentTone: "border-l-chart-1",
 		badgeTone: "bg-chart-1/15 text-chart-1",
-	},
+	}),
 };
 
 const catalogGroupOrder: { title: string; types: BuiltinNodeType[] }[] = [

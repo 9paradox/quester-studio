@@ -14,7 +14,7 @@
 
 - [ ] Custom React Flow `nodeTypes` per builtin (`http`, `input`, `if`, …)
 - [ ] If-node dual handles (`true` / `false` branches)
-- [ ] Node inspector — edit `data` fields inline
+- [x] Node inspector — edit `data` fields, Help dialog, per-node Response view
 - [ ] Save flow back to disk (git-friendly JSON)
 - [ ] Live node run status on canvas (idle / running / success / error / skipped) — #31
 - [ ] Context-aware autocomplete for templates and output paths — #40
@@ -45,7 +45,7 @@
 - Flow run history and replay
 - Workspace secret encryption at rest
 - VS Code extension for flow editing
-- Postman/Bruno collection import
+- API collection import
 
 ## Shipped
 

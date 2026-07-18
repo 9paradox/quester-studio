@@ -86,6 +86,11 @@
 		--sidebar-accent-foreground: oklch(0.205 0 0);
 		--sidebar-border: oklch(0.922 0 0);
 		--sidebar-ring: oklch(0.708 0 0);
+		/* Editor syntax — readable on light surfaces */
+		--syntax-string: oklch(0.42 0.12 155);
+		--syntax-number: oklch(0.5 0.14 55);
+		--syntax-key: oklch(0.32 0.02 260);
+		--syntax-tag: oklch(0.42 0.14 250);
 	}
 
 	.dark {
@@ -121,6 +126,11 @@
 		--sidebar-accent-foreground: oklch(0.93 0.002 260);
 		--sidebar-border: oklch(1 0 0 / 12%);
 		--sidebar-ring: oklch(0.6 0.01 260);
+		/* Editor syntax — readable on dark surfaces */
+		--syntax-string: oklch(0.78 0.14 155);
+		--syntax-number: oklch(0.8 0.14 70);
+		--syntax-key: oklch(0.9 0.01 260);
+		--syntax-tag: oklch(0.75 0.12 250);
 	}
 
 	* {
@@ -188,5 +198,98 @@
 
 	.react-flow__node.selected {
 		box-shadow: none !important;
+	}
+}
+
+@layer components {
+	.quester-json-view {
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		line-height: 1.25rem;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		color: var(--foreground);
+	}
+
+	.quester-json-child {
+		margin: 0;
+	}
+
+	.quester-json-children {
+		margin: 0 0 0 0.35rem;
+		padding: 0 0 0 0.65rem;
+		border-left: 1px solid
+			color-mix(in oklch, var(--border) 80%, transparent);
+	}
+
+	.quester-json-label {
+		margin-right: 0.25rem;
+		font-weight: 500;
+		color: color-mix(in oklch, var(--foreground) 72%, var(--primary));
+	}
+
+	.quester-json-clickable,
+	.quester-json-collapsed,
+	.quester-json-toggle {
+		cursor: pointer;
+	}
+
+	.quester-json-toggle {
+		display: inline-flex;
+		width: 0.9rem;
+		margin-right: 0.15rem;
+		justify-content: center;
+		border-radius: calc(var(--radius) * 0.45);
+		color: var(--muted-foreground);
+		user-select: none;
+	}
+
+	.quester-json-toggle:hover,
+	.quester-json-clickable:hover {
+		background: var(--muted);
+		color: var(--foreground);
+	}
+
+	.quester-json-toggle:focus-visible {
+		outline: 2px solid color-mix(in oklch, var(--ring) 50%, transparent);
+		outline-offset: 1px;
+	}
+
+	.quester-json-expand::after {
+		content: "▸";
+	}
+
+	.quester-json-collapse::after {
+		content: "▾";
+	}
+
+	.quester-json-collapsed {
+		margin: 0 0.2rem;
+		color: var(--muted-foreground);
+	}
+
+	.quester-json-collapsed::after {
+		content: "…";
+	}
+
+	.quester-json-punctuation,
+	.quester-json-null {
+		color: var(--muted-foreground);
+	}
+
+	.quester-json-string {
+		color: color-mix(in oklch, var(--primary) 72%, var(--foreground));
+	}
+
+	.quester-json-number {
+		color: color-mix(in oklch, var(--primary) 38%, var(--foreground));
+	}
+
+	.quester-json-boolean {
+		color: color-mix(in oklch, var(--destructive) 48%, var(--foreground));
+	}
+
+	.quester-json-other {
+		color: var(--foreground);
 	}
 }
