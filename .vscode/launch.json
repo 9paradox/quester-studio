@@ -74,7 +74,7 @@
 				"--env",
 				"local",
 				"--input",
-				"{\"username\":\"demo\",\"email\":\"demo@example.com\"}"
+				"{\"username\":\"emilys\",\"password\":\"emilyspass\"}"
 			],
 			"cwd": "${workspaceFolder}",
 			"preLaunchTask": "build:pkgs",

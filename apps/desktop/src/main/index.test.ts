@@ -45,7 +45,7 @@ describe("desktop main handlers", () => {
 		const flows = await listFlows(sampleWorkspace);
 		expect(flows).toContainEqual({
 			id: "login-and-profile",
-			name: "Login and profile (JSONPlaceholder)",
+			name: "Login and profile (dummyjson)",
 		});
 	});
 
@@ -78,7 +78,7 @@ describe("desktop main handlers", () => {
 		const result = await executeFlowRpc("login-and-profile", {
 			workspace: sampleWorkspace,
 			env: "local",
-			input: { username: "demo", email: "demo@example.com" },
+			input: { username: "emilys", password: "emilyspass" },
 		});
 		expect(Array.isArray(result.logs)).toBe(true);
 		expect(result.logs.length).toBeGreaterThan(0);

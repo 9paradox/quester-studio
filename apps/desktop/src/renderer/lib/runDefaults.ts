@@ -1,5 +1,5 @@
 export const DEFAULT_INPUT = JSON.stringify(
-	{ username: "demo", email: "demo@example.com" },
+	{ username: "emilys", password: "emilyspass" },
 	null,
 	2,
 );

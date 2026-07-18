@@ -2,6 +2,6 @@
 	"name": "local",
 	"version": "v1",
 	"variables": {
-		"API_BASE": "https://jsonplaceholder.typicode.com"
+		"API_BASE": "https://dummyjson.com"
 	}
 }

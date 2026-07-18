@@ -40,7 +40,7 @@ bun install
 bun run build
 bun run test
 bunx --bun quester validate examples/sample-workspace
-bunx --bun quester run examples/sample-workspace/flows/login-and-profile.flow.json --workspace examples/sample-workspace --env local --input "{\"username\":\"demo\",\"email\":\"demo@example.com\"}"
+bunx --bun quester run examples/sample-workspace/flows/login-and-profile.flow.json --workspace examples/sample-workspace --env local --input "{\"username\":\"emilys\",\"password\":\"emilyspass\"}"
 ```
 
 ## Monorepo tooling

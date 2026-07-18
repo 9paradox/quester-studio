@@ -64,7 +64,7 @@ bun run build:pkgs
 bunx --bun quester validate examples/sample-workspace
 bunx --bun quester run examples/sample-workspace/flows/login-and-profile.flow.json `
   --workspace examples/sample-workspace --env local `
-  --input '{"username":"demo","email":"demo@example.com"}'
+  --input '{"username":"emilys","password":"emilyspass"}'
 ```
 
 ### Desktop (Electrobun + React)

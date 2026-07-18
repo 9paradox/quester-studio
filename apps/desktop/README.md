@@ -38,8 +38,8 @@ Install the Bun extension (`oven.bun-vscode`) for breakpoints and attach.
 ## Demo flow
 
 1. Launch the app — it opens `examples/sample-workspace` by default
-2. Select **Login and profile (JSONPlaceholder)** in the flow sidebar
-3. In the run panel, keep env `local` and the default JSON input
+2. Select **Login and profile (dummyjson)** in the flow sidebar
+3. In the run panel, keep env `local` and the default JSON input (`emilys` / `emilyspass`)
 4. Click **Run** — output shows the profile HTTP response
 5. Click **Open workspace** to pick any folder containing `quester.json`
 
@@ -62,5 +62,5 @@ Compare run output to CLI:
 ```bash
 bunx --bun quester run login-and-profile \
   --workspace examples/sample-workspace --env local \
-  --input '{"username":"demo","email":"demo@example.com"}'
+  --input '{"username":"emilys","password":"emilyspass"}'
 ```

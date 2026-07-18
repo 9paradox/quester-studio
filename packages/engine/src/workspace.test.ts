@@ -14,7 +14,7 @@ describe("loadWorkspace", () => {
 		const ws = await loadWorkspace(sampleWorkspace);
 		expect(ws.manifest.name).toBe("sample-workspace");
 		expect(ws.environments.local?.variables.API_BASE).toBe(
-			"https://jsonplaceholder.typicode.com",
+			"https://dummyjson.com",
 		);
 		expect(ws.flows["login-and-profile"]).toBeDefined();
 	});
