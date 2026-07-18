@@ -1,4 +1,5 @@
 import { useQuesterStore } from "@/stores/quester-store.js";
+import { selectNodeRunStatus } from "@/stores/selectors.js";
 import type { NodeProps } from "reactflow";
 import { useEdges } from "reactflow";
 import {
@@ -8,14 +9,20 @@ import {
 } from "../BaseFlowNode.js";
 import { JsonViewer } from "../JsonViewer.js";
 
+function useNodeRunStatus(nodeId: string) {
+	return useQuesterStore((s) => selectNodeRunStatus(s, nodeId));
+}
+
 export function StartFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	return (
 		<BaseFlowNode
 			type="start"
 			title={data.label ?? "Start"}
 			subtitle="Flow entry"
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		>
@@ -26,12 +33,14 @@ export function StartFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 
 export function InputFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	return (
 		<BaseFlowNode
 			type="input"
 			title={data.label ?? "Input"}
 			subtitle="Run payload"
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		>
@@ -42,6 +51,7 @@ export function InputFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 
 export function HttpFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	const method = String(data.method ?? "GET");
 	const url = String(data.url ?? "");
 	return (
@@ -50,6 +60,7 @@ export function HttpFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 			title={data.label ?? "HTTP Request"}
 			subtitle={method}
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		>
@@ -66,12 +77,14 @@ export function ExtractFlowNode({
 	selected,
 }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	return (
 		<BaseFlowNode
 			type="extract"
 			title={data.label ?? "Extract"}
 			subtitle={String(data.expression ?? "body")}
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		/>
@@ -84,12 +97,14 @@ export function TemplateFlowNode({
 	selected,
 }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	const template = String(data.template ?? "");
 	return (
 		<BaseFlowNode
 			type="template"
 			title={data.label ?? "Template"}
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		>
@@ -100,6 +115,7 @@ export function TemplateFlowNode({
 
 export function SetFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	const vars = data.variables as Record<string, unknown> | undefined;
 	return (
 		<BaseFlowNode
@@ -107,6 +123,7 @@ export function SetFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 			title={data.label ?? "Set"}
 			subtitle={`${vars ? Object.keys(vars).length : 0} vars`}
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		/>
@@ -115,12 +132,14 @@ export function SetFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 
 export function IfFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	return (
 		<BaseFlowNode
 			type="if"
 			title={data.label ?? "If"}
 			subtitle={String(data.condition ?? "")}
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[
 				{
@@ -144,12 +163,14 @@ export function OutputFlowNode({
 	selected,
 }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	return (
 		<BaseFlowNode
 			type="output"
 			title={data.label ?? "Output"}
 			subtitle="Flow result"
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[]}
 		/>
@@ -162,6 +183,7 @@ export function AssertFlowNode({
 	selected,
 }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	const checks = Array.isArray(data.checks) ? data.checks.length : 0;
 	return (
 		<BaseFlowNode
@@ -169,6 +191,7 @@ export function AssertFlowNode({
 			title={data.label ?? "Assert"}
 			subtitle={`${checks} check${checks === 1 ? "" : "s"}`}
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		/>
@@ -181,6 +204,7 @@ export function TransformFlowNode({
 	selected,
 }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	const map = data.map as Record<string, unknown> | undefined;
 	const keys = map ? Object.keys(map).length : 0;
 	return (
@@ -189,6 +213,7 @@ export function TransformFlowNode({
 			title={data.label ?? "Transform"}
 			subtitle={`${keys} field${keys === 1 ? "" : "s"}`}
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		/>
@@ -197,6 +222,7 @@ export function TransformFlowNode({
 
 export function MergeFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	const sources = Array.isArray(data.sources) ? data.sources : [];
 	return (
 		<BaseFlowNode
@@ -204,6 +230,7 @@ export function MergeFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 			title={data.label ?? "Merge"}
 			subtitle={sources.join(" + ") || "sources"}
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		/>
@@ -212,6 +239,7 @@ export function MergeFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 
 export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
 	const runResult = useQuesterStore((s) => s.runResult);
 	const output = runResult?.nodeOutputs?.[id];
 	return (
@@ -220,6 +248,7 @@ export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 			title={data.label ?? "JSON"}
 			subtitle={String(data.expression ?? "previous")}
 			selected={selected}
+			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
 			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
 		>

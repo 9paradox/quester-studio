@@ -1,8 +1,20 @@
 import { Badge } from "@/components/ui/badge.js";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip.js";
 import { cn } from "@/lib/utils.js";
 import type { BuiltinNodeType } from "@quester/schema";
+import {
+	IconCircleCheck,
+	IconCircleDashed,
+	IconCircleX,
+	IconLoader2,
+} from "@tabler/icons-react";
 import type { ReactNode } from "react";
 import { Handle, Position } from "reactflow";
+import type { NodeRunStatus } from "../../shared/rpc.js";
 
 export type FlowNodeData = {
 	label?: string;
@@ -54,6 +66,14 @@ const badgeTone: Record<BuiltinNodeType, string> = {
 	json: "bg-chart-3/15 text-chart-3",
 };
 
+const statusLabel: Record<NodeRunStatus, string> = {
+	idle: "Idle",
+	running: "Running",
+	success: "Succeeded",
+	error: "Failed",
+	skipped: "Skipped",
+};
+
 type PortSpec = { id?: string; connected?: boolean };
 
 type BaseFlowNodeProps = {
@@ -64,6 +84,7 @@ type BaseFlowNodeProps = {
 	targetPorts?: PortSpec[];
 	sourcePorts?: PortSpec[];
 	selected?: boolean;
+	runStatus?: NodeRunStatus;
 };
 
 export function BaseFlowNode({
@@ -74,6 +95,7 @@ export function BaseFlowNode({
 	targetPorts = [{}],
 	sourcePorts = [{}],
 	selected,
+	runStatus,
 }: BaseFlowNodeProps) {
 	return (
 		<div
@@ -82,7 +104,11 @@ export function BaseFlowNode({
 				accentTone[type],
 				"border-l-[3px]",
 				selected && "border-primary shadow-sm",
+				runStatus === "running" && "ring-1 ring-primary/40",
+				runStatus === "error" && "ring-1 ring-destructive/50",
+				runStatus === "skipped" && "opacity-70",
 			)}
+			data-run-status={runStatus ?? "none"}
 		>
 			{targetPorts.map((port, index) => (
 				<FlowHandle
@@ -122,6 +148,7 @@ export function BaseFlowNode({
 						</div>
 					) : null}
 				</div>
+				{runStatus ? <NodeStatusIndicator status={runStatus} /> : null}
 			</div>
 			{children ? (
 				<div className="px-2.5 py-2 text-[11px] leading-relaxed text-muted-foreground">
@@ -129,6 +156,46 @@ export function BaseFlowNode({
 				</div>
 			) : null}
 		</div>
+	);
+}
+
+function NodeStatusIndicator({ status }: { status: NodeRunStatus }) {
+	const label = statusLabel[status];
+	return (
+		<Tooltip>
+			<TooltipTrigger
+				className={cn(
+					"inline-flex shrink-0 items-center justify-center",
+					status === "success" && "text-chart-2",
+					status === "error" && "text-destructive",
+					status === "running" && "text-primary",
+					status === "skipped" && "text-muted-foreground",
+					status === "idle" && "text-muted-foreground/60",
+				)}
+				aria-label={`Run status: ${label}`}
+				type="button"
+			>
+				{status === "running" ? (
+					<IconLoader2 className="size-3.5 animate-spin" aria-hidden />
+				) : null}
+				{status === "success" ? (
+					<IconCircleCheck className="size-3.5" aria-hidden />
+				) : null}
+				{status === "error" ? (
+					<IconCircleX className="size-3.5" aria-hidden />
+				) : null}
+				{status === "skipped" ? (
+					<IconCircleDashed className="size-3.5" aria-hidden />
+				) : null}
+				{status === "idle" ? (
+					<span
+						className="size-2 rounded-full bg-muted-foreground/40"
+						aria-hidden
+					/>
+				) : null}
+			</TooltipTrigger>
+			<TooltipContent>{label}</TooltipContent>
+		</Tooltip>
 	);
 }
 

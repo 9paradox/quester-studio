@@ -223,6 +223,141 @@ describe("desktop main handlers", () => {
 		}
 	});
 
+	test("executeFlowRpc onNodeStatus emits ordered lifecycle callbacks", async () => {
+		const flowId = "desktop-status-callback-test";
+		await createFlow(sampleWorkspace, flowId, "Status Callback Test");
+		try {
+			const flow = await loadFlow(flowId, sampleWorkspace);
+			await saveFlow(
+				{
+					...flow,
+					nodes: [
+						{
+							id: "start",
+							type: "start",
+							data: { label: "Start" },
+							position: { x: -160, y: 0 },
+						},
+						{
+							id: "in",
+							type: "input",
+							data: { label: "Input" },
+							position: { x: 0, y: 0 },
+						},
+						{
+							id: "set",
+							type: "set",
+							data: { variables: { greeted: "yes" } },
+							position: { x: 160, y: 0 },
+						},
+						{
+							id: "out",
+							type: "output",
+							data: { label: "Output" },
+							position: { x: 320, y: 0 },
+						},
+					],
+					edges: [
+						{ id: "e0", source: "start", target: "in" },
+						{ id: "e1", source: "in", target: "set" },
+						{ id: "e2", source: "set", target: "out" },
+					],
+				},
+				sampleWorkspace,
+			);
+
+			const events: Array<{ nodeId: string; status: string }> = [];
+			const result = await executeFlowRpc(flowId, {
+				workspace: sampleWorkspace,
+				env: "local",
+				runId: "run-status-1",
+				input: { name: "demo" },
+				onNodeStatus: (event) => {
+					events.push({ nodeId: event.nodeId, status: event.status });
+				},
+			});
+
+			expect(result.error).toBeUndefined();
+			expect(events).toEqual([
+				{ nodeId: "start", status: "running" },
+				{ nodeId: "start", status: "success" },
+				{ nodeId: "in", status: "running" },
+				{ nodeId: "in", status: "success" },
+				{ nodeId: "set", status: "running" },
+				{ nodeId: "set", status: "success" },
+				{ nodeId: "out", status: "running" },
+				{ nodeId: "out", status: "success" },
+			]);
+		} finally {
+			await deleteFlow(flowId, sampleWorkspace);
+		}
+	});
+
+	test("executeFlowRpc onNodeStatus emits error for failed node", async () => {
+		const flowId = "desktop-status-error-test";
+		await createFlow(sampleWorkspace, flowId, "Status Error Test");
+		try {
+			const flow = await loadFlow(flowId, sampleWorkspace);
+			await saveFlow(
+				{
+					...flow,
+					nodes: [
+						{
+							id: "start",
+							type: "start",
+							data: { label: "Start" },
+							position: { x: -160, y: 0 },
+						},
+						{
+							id: "in",
+							type: "input",
+							data: { label: "Input" },
+							position: { x: 0, y: 0 },
+						},
+						{
+							id: "http",
+							type: "http",
+							data: {
+								method: "GET",
+								url: "file:///tmp/x",
+								headers: {},
+							},
+							position: { x: 160, y: 0 },
+						},
+					],
+					edges: [
+						{ id: "e0", source: "start", target: "in" },
+						{ id: "e1", source: "in", target: "http" },
+					],
+				},
+				sampleWorkspace,
+			);
+
+			const events: Array<{ nodeId: string; status: string }> = [];
+			const result = await executeFlowRpc(flowId, {
+				workspace: sampleWorkspace,
+				env: "local",
+				runId: "run-status-err",
+				input: {},
+				onNodeStatus: (event) => {
+					events.push({ nodeId: event.nodeId, status: event.status });
+				},
+			});
+
+			expect(result.error).toBeDefined();
+			expect(events).toEqual([
+				{ nodeId: "start", status: "running" },
+				{ nodeId: "start", status: "success" },
+				{ nodeId: "in", status: "running" },
+				{ nodeId: "in", status: "success" },
+				{ nodeId: "http", status: "running" },
+				{ nodeId: "http", status: "error" },
+			]);
+		} finally {
+			await deleteFlow(flowId, sampleWorkspace);
+		}
+	});
+
 	test("saveFlow writes flow json to workspace", async () => {
 		const flow = await loadFlow("login-and-profile", sampleWorkspace);
 		const updated = {

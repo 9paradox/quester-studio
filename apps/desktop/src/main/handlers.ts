@@ -40,6 +40,7 @@ import {
 import type {
 	ExecuteRequestRpcResult,
 	ExecutionLogEntry,
+	NodeRunStatusEvent,
 	RequestMeta,
 	SecretFileMeta,
 } from "../shared/rpc.js";
@@ -124,9 +125,22 @@ export async function loadFlow(
 	return flow;
 }
 
+export type ExecuteFlowRpcOptions = {
+	env?: string;
+	input?: unknown;
+	workspace?: string;
+	runId?: string;
+	onNodeStatus?: (
+		event: Omit<NodeRunStatusEvent, "runId" | "flowId"> & {
+			runId?: string;
+			flowId?: string;
+		},
+	) => void;
+};
+
 export async function executeFlowRpc(
 	flowId: string,
-	options?: { env?: string; input?: unknown; workspace?: string },
+	options?: ExecuteFlowRpcOptions,
 ) {
 	const root = options?.workspace
 		? resolve(options.workspace)
@@ -149,6 +163,24 @@ export async function executeFlowRpc(
 		logs.push({ ts: Date.now(), level, message, ...extra });
 	};
 
+	const emitStatus = (
+		status: Extract<
+			NodeRunStatusEvent["status"],
+			"running" | "success" | "error"
+		>,
+		nodeId: string,
+		type: string,
+	) => {
+		options?.onNodeStatus?.({
+			runId: options.runId,
+			flowId,
+			nodeId,
+			nodeType: type,
+			status,
+			ts: Date.now(),
+		});
+	};
+
 	const events = new EngineEventEmitter();
 	events.on("node:before", ({ nodeId, type }) => {
 		pushLog("info", `→ ${type} (${nodeId})`, {
@@ -156,6 +188,7 @@ export async function executeFlowRpc(
 			nodeType: type,
 			phase: "before",
 		});
+		emitStatus("running", nodeId, type);
 	});
 	events.on("node:after", ({ nodeId, type, input, output }) => {
 		pushLog("info", `✓ ${type} (${nodeId})`, {
@@ -164,6 +197,7 @@ export async function executeFlowRpc(
 			phase: "after",
 			data: { input, output },
 		});
+		emitStatus("success", nodeId, type);
 	});
 	events.on("node:error", ({ nodeId, type, input, error }) => {
 		const { message, detail } = serializeError(error);
@@ -182,6 +216,7 @@ export async function executeFlowRpc(
 			phase: "error",
 			data,
 		});
+		emitStatus("error", nodeId, type);
 		if (isTlsCertificateError(error)) {
 			pushLog("error", TLS_INSECURE_HINT, {
 				nodeId,

@@ -1,4 +1,5 @@
 import { type EditorTab, editorTabLabel } from "@/lib/editorTabs.js";
+import type { NodeRunStatus } from "../../shared/rpc.js";
 import type { QuesterState } from "./quester-store.js";
 
 export function selectActiveTab(state: QuesterState): EditorTab | null {
@@ -31,4 +32,15 @@ export function selectCanRun(state: QuesterState): boolean {
 
 export function selectRightPanelVisible(state: QuesterState): boolean {
 	return state.rightPanelOpen && Boolean(selectActiveFlowTab(state));
+}
+
+export function selectNodeRunStatus(
+	state: QuesterState,
+	nodeId: string,
+	flowId?: string | null,
+): NodeRunStatus | undefined {
+	const activeFlow = selectActiveFlowTab(state);
+	const resolvedFlowId = flowId ?? activeFlow?.flowId ?? null;
+	if (!resolvedFlowId || state.runFlowId !== resolvedFlowId) return undefined;
+	return state.nodeStatuses[nodeId];
 }
