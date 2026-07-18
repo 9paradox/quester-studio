@@ -12,7 +12,7 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
-import { Textarea } from "@/components/ui/textarea.js";
+import { parseRawHeaders, stringifyRawHeaders } from "@/lib/rawHeaders.js";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 
@@ -21,60 +21,42 @@ type HeadersEditorProps = {
 	onChange: (headers: Record<string, string>) => void;
 };
 
-/**
- * Bruno/Postman-style headers editor: key-value rows or raw JSON.
- */
+/** Headers editor with key-value and raw text modes. */
 export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 	const [rows, setRows] = useState<KeyValueRow[]>(() => recordToRows(headers));
-	const [jsonText, setJsonText] = useState(() =>
-		JSON.stringify(headers, null, 2),
-	);
-	const [jsonError, setJsonError] = useState<string | null>(null);
-	const [mode, setMode] = useState<"pairs" | "json">("pairs");
+	const [rawText, setRawText] = useState(() => stringifyRawHeaders(headers));
+	const [rawError, setRawError] = useState<string | null>(null);
+	const [mode, setMode] = useState<"pairs" | "raw">("pairs");
 
 	const commitRows = (next: KeyValueRow[]) => {
 		const normalized = next.length === 0 ? recordToRows({}) : next;
 		setRows(normalized);
 		const record = rowsToStringRecord(normalized);
-		setJsonText(JSON.stringify(record, null, 2));
+		setRawText(stringifyRawHeaders(record));
+		setRawError(null);
 		onChange(record);
 	};
 
-	const commitJson = (raw: string) => {
-		setJsonText(raw);
-		try {
-			const parsed = JSON.parse(raw) as unknown;
-			if (
-				typeof parsed !== "object" ||
-				parsed === null ||
-				Array.isArray(parsed)
-			) {
-				setJsonError("Headers must be a JSON object");
-				return;
-			}
-			const record: Record<string, string> = {};
-			for (const [k, v] of Object.entries(parsed)) {
-				record[k] = String(v);
-			}
-			setJsonError(null);
-			setRows(recordToRows(record));
-			onChange(record);
-		} catch (err) {
-			setJsonError(err instanceof Error ? err.message : "Invalid JSON");
-		}
+	const commitRaw = (raw: string) => {
+		setRawText(raw);
+		const result = parseRawHeaders(raw);
+		setRawError(result.error);
+		if (!result.headers) return;
+		setRows(recordToRows(result.headers));
+		onChange(result.headers);
 	};
 
 	return (
 		<Tabs
 			value={mode}
-			onValueChange={(v) => setMode((v as "pairs" | "json") ?? "pairs")}
+			onValueChange={(v) => setMode((v as "pairs" | "raw") ?? "pairs")}
 		>
 			<TabsList variant="line" className="h-8 w-full justify-start">
 				<TabsTrigger value="pairs" className="text-xs">
 					Key-Value
 				</TabsTrigger>
-				<TabsTrigger value="json" className="text-xs">
-					JSON
+				<TabsTrigger value="raw" className="text-xs">
+					Raw
 				</TabsTrigger>
 			</TabsList>
 			<TabsContent value="pairs" className="mt-2 flex flex-col gap-2">
@@ -141,15 +123,18 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 					Add header
 				</Button>
 			</TabsContent>
-			<TabsContent value="json" className="mt-2 flex flex-col gap-1.5">
-				<Textarea
-					value={jsonText}
-					onChange={(e) => commitJson(e.target.value)}
-					className="min-h-24 font-mono text-xs"
-					spellCheck={false}
+			<TabsContent value="raw" className="mt-2 flex flex-col gap-1.5">
+				<TemplateField
+					value={rawText}
+					onChange={commitRaw}
+					multiline
+					rows={6}
+					placeholder={
+						"Content-Type: application/json\nAuthorization: Bearer {{env.TOKEN}}"
+					}
 				/>
-				{jsonError ? (
-					<p className="text-xs text-destructive">{jsonError}</p>
+				{rawError ? (
+					<p className="text-xs text-destructive">{rawError}</p>
 				) : null}
 			</TabsContent>
 		</Tabs>
