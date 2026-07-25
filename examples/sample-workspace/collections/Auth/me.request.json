@@ -1,0 +1,10 @@
+{
+	"version": "v1",
+	"id": "me",
+	"name": "Current auth user",
+	"method": "GET",
+	"url": "{{env.API_BASE}}/auth/me",
+	"headers": {
+		"Authorization": "Bearer {{secrets.API_TOKEN}}"
+	}
+}

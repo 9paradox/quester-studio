@@ -1,0 +1,8 @@
+{
+	"version": "v1",
+	"id": "delete-product",
+	"name": "Delete product",
+	"method": "DELETE",
+	"url": "{{env.API_BASE}}/products/{{env.DEMO_PRODUCT_ID}}",
+	"headers": {}
+}

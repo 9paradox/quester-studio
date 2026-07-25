@@ -1,5 +1,6 @@
 import type { KeyValueRow } from "@/components/KeyValueEditor.js";
 import { recordToRows } from "@/components/KeyValueEditor.js";
+import { runInputJsonFromFlow } from "@/lib/runDefaults.js";
 import type {
 	EnvironmentV1,
 	FlowV1,
@@ -12,6 +13,8 @@ export type FlowEditorTab = {
 	id: string;
 	flowId: string;
 	flow: FlowV1;
+	/** Draft / committed run input for this flow (synced from input node `value`). */
+	inputJson: string;
 	dirty: boolean;
 };
 
@@ -71,6 +74,7 @@ export function createFlowEditorTab(flow: FlowV1): FlowEditorTab {
 		id: flowTabId(flow.id),
 		flowId: flow.id,
 		flow,
+		inputJson: runInputJsonFromFlow(flow),
 		dirty: false,
 	};
 }

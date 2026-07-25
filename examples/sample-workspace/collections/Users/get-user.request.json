@@ -3,6 +3,6 @@
 	"id": "get-user",
 	"name": "Get user",
 	"method": "GET",
-	"url": "https://dummyjson.com/users/1",
+	"url": "{{env.API_BASE}}/users/{{env.DEMO_USER_ID}}",
 	"headers": {}
 }

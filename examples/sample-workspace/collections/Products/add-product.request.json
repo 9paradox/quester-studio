@@ -1,0 +1,14 @@
+{
+	"version": "v1",
+	"id": "add-product",
+	"name": "Add product",
+	"method": "POST",
+	"url": "{{env.API_BASE}}/products/add",
+	"headers": {
+		"Content-Type": "application/json"
+	},
+	"body": {
+		"title": "{{env.DEMO_PRODUCT_TITLE}}",
+		"price": 12.5
+	}
+}

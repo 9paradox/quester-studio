@@ -55,9 +55,12 @@ describe("desktop main handlers", () => {
 	test("listCollectionRequests returns sample requests", async () => {
 		const requests = await listCollectionRequests(sampleWorkspace);
 		expect(requests.some((r) => r.path === "Auth/login")).toBe(true);
+		expect(requests.some((r) => r.path === "Products/add-product")).toBe(true);
+		expect(requests.some((r) => r.path === "System/ping")).toBe(true);
 		const login = await loadRequest(sampleWorkspace, "Auth/login");
 		expect(login.method).toBe("POST");
-		expect(login.url).toContain("dummyjson.com");
+		expect(login.url).toContain("{{env.API_BASE}}");
+		expect(login.url).toContain("/auth/login");
 	});
 
 	test("listEnvs returns environment names", async () => {

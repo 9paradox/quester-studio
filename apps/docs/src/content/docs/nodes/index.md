@@ -44,4 +44,7 @@ Flows are graphs of **nodes**. Each builtin type has a `data` schema, an execute
 start → input → http (login) → extract (body.id) → http (profile) → output
 ```
 
-See the sample workspace: `examples/sample-workspace/flows/login-and-profile.flow.json`.
+See the sample workspace:
+
+- `examples/sample-workspace/flows/login-and-profile.flow.json` — short auth + profile walkthrough
+- `examples/sample-workspace/flows/kitchen-sink.flow.json` — every builtin node, template scopes, JMESPath, and HTTP methods against [DummyJSON](https://dummyjson.com/docs)

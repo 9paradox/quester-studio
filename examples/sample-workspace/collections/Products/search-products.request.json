@@ -1,0 +1,10 @@
+{
+	"version": "v1",
+	"id": "search-products",
+	"name": "Search products",
+	"method": "GET",
+	"url": "{{env.API_BASE}}/products/search?q={{env.DEMO_SEARCH_QUERY}}&limit={{env.DEMO_LIMIT}}&skip={{env.DEMO_SKIP}}&select=title,price&sortBy=title&order={{env.DEMO_SORT_ORDER}}",
+	"headers": {
+		"Accept": "application/json"
+	}
+}

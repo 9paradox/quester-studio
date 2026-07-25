@@ -125,7 +125,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						label="Run input (JSON)"
 						hint={
 							<>
-								Passed into this node when you click Run. Reference fields as{" "}
+								Saved on this input node as{" "}
+								<code className="font-mono text-[10px]">data.value</code> and
+								passed when you click Run. Reference fields as{" "}
 								<code className="font-mono text-[10px]">{"{{input.*}}"}</code>{" "}
 								in later nodes.
 							</>

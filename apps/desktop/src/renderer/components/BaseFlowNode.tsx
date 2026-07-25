@@ -34,6 +34,8 @@ type PortSpec = { id?: string; connected?: boolean };
 
 type BaseFlowNodeProps = {
 	type: BuiltinNodeType;
+	/** Stable flow node id — shown for `{{nodes.<id>}}` references. */
+	nodeId: string;
 	title: string;
 	subtitle?: string;
 	children?: ReactNode;
@@ -48,6 +50,7 @@ type BaseFlowNodeProps = {
 
 export function BaseFlowNode({
 	type,
+	nodeId,
 	title,
 	subtitle,
 	children,
@@ -113,6 +116,12 @@ export function BaseFlowNode({
 				<div className="min-w-0 flex-1">
 					<div className="truncate text-sm font-medium leading-tight">
 						{title}
+					</div>
+					<div
+						className="truncate font-mono text-[10px] text-muted-foreground"
+						title={nodeId}
+					>
+						{nodeId}
 					</div>
 					{subtitle ? (
 						<div className="truncate text-[11px] text-muted-foreground">
@@ -192,7 +201,7 @@ function FlowHandle({
 	// Single ports align to the header row (not 50% of body+header), so nodes
 	// with a summary section (e.g. Assert) match Extract/HTTP handle placement.
 	const top =
-		total <= 1 ? "1.75rem" : `${20 + (index / Math.max(total - 1, 1)) * 60}%`;
+		total <= 1 ? "2.125rem" : `${20 + (index / Math.max(total - 1, 1)) * 60}%`;
 
 	return (
 		<Handle

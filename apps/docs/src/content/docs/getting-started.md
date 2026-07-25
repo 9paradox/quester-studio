@@ -25,6 +25,15 @@ bunx quester run examples/sample-workspace/flows/login-and-profile.flow.json \
   --input '{"username":"emilys","password":"emilyspass"}'
 ```
 
+For a longer walkthrough that hits every builtin node and most HTTP methods against [DummyJSON](https://dummyjson.com/docs):
+
+```bash
+bunx quester run examples/sample-workspace/flows/kitchen-sink.flow.json \
+  --workspace examples/sample-workspace \
+  --env local \
+  --input '{"username":"emilys","password":"emilyspass","productTitle":"Quester Pencil","searchQuery":"phone"}'
+```
+
 ## Learn more
 
 - [Workspace files](/workspace/) — `quester.json`, flows, layout

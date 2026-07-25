@@ -28,6 +28,7 @@ export function StartFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	return (
 		<BaseFlowNode
 			type="start"
+			nodeId={id}
 			title={data.label ?? "Start"}
 			subtitle="Flow entry"
 			selected={selected}
@@ -46,6 +47,7 @@ export function InputFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	return (
 		<BaseFlowNode
 			type="input"
+			nodeId={id}
 			title={data.label ?? "Input"}
 			subtitle="Run payload"
 			selected={selected}
@@ -66,6 +68,7 @@ export function HttpFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	return (
 		<BaseFlowNode
 			type="http"
+			nodeId={id}
 			title={data.label ?? "HTTP Request"}
 			subtitle={method}
 			selected={selected}
@@ -90,6 +93,7 @@ export function ExtractFlowNode({
 	return (
 		<BaseFlowNode
 			type="extract"
+			nodeId={id}
 			title={data.label ?? "Extract"}
 			subtitle={String(data.expression ?? "body")}
 			selected={selected}
@@ -111,6 +115,7 @@ export function TemplateFlowNode({
 	return (
 		<BaseFlowNode
 			type="template"
+			nodeId={id}
 			title={data.label ?? "Template"}
 			selected={selected}
 			runStatus={runStatus}
@@ -129,6 +134,7 @@ export function SetFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	return (
 		<BaseFlowNode
 			type="set"
+			nodeId={id}
 			title={data.label ?? "Set"}
 			subtitle={`${vars ? Object.keys(vars).length : 0} vars`}
 			selected={selected}
@@ -145,6 +151,7 @@ export function IfFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	return (
 		<BaseFlowNode
 			type="if"
+			nodeId={id}
 			title={data.label ?? "If"}
 			subtitle={String(data.condition ?? "")}
 			selected={selected}
@@ -176,6 +183,7 @@ export function OutputFlowNode({
 	return (
 		<BaseFlowNode
 			type="output"
+			nodeId={id}
 			title={data.label ?? "Output"}
 			subtitle="Flow result"
 			selected={selected}
@@ -197,6 +205,7 @@ export function AssertFlowNode({
 	return (
 		<BaseFlowNode
 			type="assert"
+			nodeId={id}
 			title={data.label ?? "Assert"}
 			subtitle={`${checks.length} check${checks.length === 1 ? "" : "s"}`}
 			selected={selected}
@@ -223,6 +232,7 @@ export function TransformFlowNode({
 	return (
 		<BaseFlowNode
 			type="transform"
+			nodeId={id}
 			title={data.label ?? "Transform"}
 			subtitle={`${keys} field${keys === 1 ? "" : "s"}`}
 			selected={selected}
@@ -240,6 +250,7 @@ export function MergeFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	return (
 		<BaseFlowNode
 			type="merge"
+			nodeId={id}
 			title={data.label ?? "Merge"}
 			subtitle={sources.join(" + ") || "sources"}
 			selected={selected}
@@ -266,6 +277,7 @@ export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 			/>
 			<BaseFlowNode
 				type="json"
+				nodeId={id}
 				title={data.label ?? "JSON"}
 				subtitle={String(data.expression ?? "previous")}
 				selected={selected}

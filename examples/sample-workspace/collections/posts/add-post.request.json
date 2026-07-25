@@ -1,0 +1,14 @@
+{
+	"version": "v1",
+	"id": "add-post",
+	"name": "Add post",
+	"method": "POST",
+	"url": "{{env.API_BASE}}/posts/add",
+	"headers": {
+		"Content-Type": "application/json"
+	},
+	"body": {
+		"title": "{{env.DEMO_PRODUCT_TITLE}}",
+		"userId": 1
+	}
+}

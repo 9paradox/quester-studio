@@ -3,12 +3,13 @@
 	"id": "login",
 	"name": "Login",
 	"method": "POST",
-	"url": "https://dummyjson.com/auth/login",
+	"url": "{{env.API_BASE}}/auth/login",
 	"headers": {
 		"Content-Type": "application/json"
 	},
 	"body": {
-		"username": "emilys",
-		"password": "emilyspass"
+		"username": "{{secrets.username}}",
+		"password": "{{secrets.password}}",
+		"expiresInMins": 30
 	}
 }
