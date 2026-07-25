@@ -1,3 +1,4 @@
+import type { KeyValueRow } from "@/components/KeyValueEditor.js";
 import { type EditorTab, editorTabLabel } from "@/lib/editorTabs.js";
 import {
 	type TemplateCompletionContext,
@@ -6,6 +7,10 @@ import {
 } from "@/lib/templates.js";
 import type { NodeRunStatus } from "../../shared/rpc.js";
 import type { QuesterState } from "./quester-store.js";
+
+function keysFromRows(rows: KeyValueRow[]): string[] {
+	return rows.map((r) => r.key.trim()).filter(Boolean);
+}
 
 export function selectActiveTab(state: QuesterState): EditorTab | null {
 	return state.openTabs.find((t) => t.id === state.activeTabId) ?? null;
@@ -39,16 +44,29 @@ export function selectRightPanelVisible(state: QuesterState): boolean {
 	return state.rightPanelOpen && Boolean(selectActiveFlowTab(state));
 }
 
-/** Autocomplete sources for `{{...}}` templates, from the active flow + input. */
+/** Autocomplete sources for `{{...}}` templates, from the active flow + env. */
 export function selectTemplateContext(
 	state: QuesterState,
 ): TemplateCompletionContext {
 	const flowTab = selectActiveFlowTab(state);
 	const nodes = flowTab?.flow.nodes ?? [];
+	const envName = state.selectedEnv;
+	const envTab = state.openTabs.find(
+		(t): t is Extract<EditorTab, { kind: "env" }> =>
+			t.kind === "env" && t.envName === envName,
+	);
+	const secretsTab = state.openTabs.find(
+		(t): t is Extract<EditorTab, { kind: "secrets" }> =>
+			t.kind === "secrets" && t.envName === envName,
+	);
 	return {
 		nodeIds: nodes.map((n) => n.id),
 		inputKeys: inputKeysFromJson(state.inputJson),
 		varKeys: varKeysFromNodes(nodes),
+		envKeys: envTab ? keysFromRows(envTab.rows) : state.templateEnvKeys,
+		secretKeys: secretsTab
+			? keysFromRows(secretsTab.rows)
+			: state.templateSecretKeys,
 	};
 }
 

@@ -46,11 +46,14 @@ describe("templateSuggestions", () => {
 		nodeIds: ["login", "profile"],
 		inputKeys: ["username"],
 		varKeys: ["token"],
+		envKeys: ["API_BASE"],
+		secretKeys: ["password", "username"],
 	};
 
 	test("suggests roots before a dot", () => {
 		expect(templateSuggestions("", ctx).map((s) => s.label)).toEqual([
 			"env",
+			"secrets",
 			"input",
 			"nodes",
 			"vars",
@@ -70,6 +73,16 @@ describe("templateSuggestions", () => {
 		]);
 		expect(templateSuggestions("vars.", ctx).map((s) => s.label)).toEqual([
 			"vars.token",
+		]);
+	});
+
+	test("suggests env and secrets keys", () => {
+		expect(templateSuggestions("env.", ctx).map((s) => s.label)).toEqual([
+			"env.API_BASE",
+		]);
+		expect(templateSuggestions("secrets.", ctx).map((s) => s.label)).toEqual([
+			"secrets.password",
+			"secrets.username",
 		]);
 	});
 });
