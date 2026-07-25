@@ -14,6 +14,7 @@ You do **not** need an `input` node just to read run data later — `{{input.*}}
 | Field | Type | Description |
 | --- | --- | --- |
 | `label` | string | Optional UI label |
+| `value` | any | Default run payload persisted in the flow file (desktop Run panel loads this) |
 | `schema` | object | Optional JSON Schema-like hint (not enforced at execute time) |
 
 ## Input / output
@@ -31,11 +32,17 @@ You do **not** need an `input` node just to read run data later — `{{input.*}}
 {
   "id": "input",
   "type": "input",
-  "data": { "label": "Credentials" }
+  "data": {
+    "label": "Credentials",
+    "value": {
+      "username": "demo",
+      "email": "demo@example.com"
+    }
+  }
 }
 ```
 
-Run with:
+Desktop loads `data.value` into the Run input editor when you open the flow. CLI `--input` still overrides at execute time:
 
 ```bash
 --input '{"username":"demo","email":"demo@example.com"}'

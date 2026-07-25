@@ -32,7 +32,8 @@ Add `*.secrets.json` to `.gitignore`.
   "name": "local",
   "version": "v1",
   "variables": {
-    "API_BASE": "https://jsonplaceholder.typicode.com",
+    "API_BASE": "https://dummyjson.com",
+    "DEMO_PRODUCT_ID": "1",
     "TIMEOUT_MS": 5000,
     "DEBUG": true
   }
@@ -59,7 +60,9 @@ Add `*.secrets.json` to `.gitignore`.
 {
   "version": "v1",
   "secrets": {
-    "API_TOKEN": "replace-me"
+    "API_TOKEN": "replace-me",
+    "username": "emilys",
+    "password": "emilyspass"
   }
 }
 ```
@@ -74,7 +77,10 @@ cp environments/local.secrets.json.example environments/local.secrets.json
 {
   "version": "v1",
   "secrets": {
-    "API_TOKEN": "real-token-value"
+    "API_TOKEN": "real-token-value",
+    "REFRESH_TOKEN": "real-refresh-token",
+    "username": "emilys",
+    "password": "emilyspass"
   }
 }
 ```

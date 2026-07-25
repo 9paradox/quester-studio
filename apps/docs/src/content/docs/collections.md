@@ -11,6 +11,12 @@ description: Standalone HTTP requests stored as *.request.json under collections
 collections/
   Auth/
     login.request.json
+    me.request.json
+  Products/
+    search-products.request.json
+    add-product.request.json
+  System/
+    ping.request.json
   Users/
     get-user.request.json
   health.request.json          # at collection root

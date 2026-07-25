@@ -1,0 +1,13 @@
+{
+	"version": "v1",
+	"id": "update-product",
+	"name": "Update product (PUT)",
+	"method": "PUT",
+	"url": "{{env.API_BASE}}/products/{{env.DEMO_PRODUCT_ID}}",
+	"headers": {
+		"Content-Type": "application/json"
+	},
+	"body": {
+		"title": "Updated via PUT — {{env.DEMO_PRODUCT_TITLE}}"
+	}
+}

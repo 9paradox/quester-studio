@@ -345,6 +345,45 @@ describe("useQuesterStore", () => {
 		expect(useQuesterStore.getState().selectedNodeId).toBe("assert-1");
 	});
 
+	test("setInputJson persists value on input node and openTab hydrates it", () => {
+		resetStore();
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{ id: "start", type: "start", data: {}, position: { x: 0, y: 0 } },
+				{
+					id: "input",
+					type: "input",
+					data: { label: "In" },
+					position: { x: 40, y: 0 },
+				},
+			],
+		};
+		const tab = createFlowEditorTab(flow);
+		expect(JSON.parse(tab.inputJson)).toEqual({});
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			inputJson: tab.inputJson,
+		});
+		useQuesterStore.getState().setInputJson('{\n  "username": "emilys"\n}\n');
+		const dirty = selectActiveFlowTab(useQuesterStore.getState());
+		expect(dirty?.flow.nodes[1]?.data).toEqual({
+			label: "In",
+			value: { username: "emilys" },
+		});
+		expect(dirty?.dirty).toBe(true);
+		expect(JSON.parse(useQuesterStore.getState().inputJson)).toEqual({
+			username: "emilys",
+		});
+
+		const reopened = createFlowEditorTab(dirty?.flow ?? flow);
+		useQuesterStore.getState().openTab(reopened);
+		expect(JSON.parse(useQuesterStore.getState().inputJson)).toEqual({
+			username: "emilys",
+		});
+	});
+
 	test("clearLogs clears run logs and runError", () => {
 		resetStore();
 		useQuesterStore.setState({

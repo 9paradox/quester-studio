@@ -1,0 +1,704 @@
+{
+	"id": "kitchen-sink",
+	"version": "v1",
+	"name": "Kitchen sink (DummyJSON)",
+	"description": "Exercises every builtin node, template scopes (env/input/vars/secrets/nodes), JMESPath, Eta templates, if branches, and HTTP methods GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS against https://dummyjson.com",
+	"nodes": [
+		{
+			"id": "start",
+			"type": "start",
+			"data": {
+				"label": "Start"
+			},
+			"position": {
+				"x": -72.57293816280503,
+				"y": 9.500866847726684
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "input",
+			"type": "input",
+			"data": {
+				"schema": {
+					"username": "string",
+					"password": "string",
+					"productTitle": "string",
+					"searchQuery": "string"
+				},
+				"value": {
+					"username": "emilys",
+					"password": "emilyspass",
+					"productTitle": "Quester Pencil",
+					"searchQuery": "phone"
+				},
+				"label": "Run input"
+			},
+			"position": {
+				"x": 184.37328490189577,
+				"y": 84.30503551711524
+			},
+			"width": 150,
+			"height": 87
+		},
+		{
+			"id": "setDefaults",
+			"type": "set",
+			"data": {
+				"variables": {
+					"limit": 3,
+					"skip": 0,
+					"sortOrder": "asc",
+					"productId": "{{env.DEMO_PRODUCT_ID}}",
+					"runDemo": true,
+					"greeting": "Hello {{input.username}}"
+				},
+				"label": "Defaults"
+			},
+			"position": {
+				"x": 432.2335281578886,
+				"y": 193.99673990740288
+			},
+			"width": 210,
+			"height": 53
+		},
+		{
+			"id": "ping",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/test?delay=0",
+				"headers": {
+					"Accept": "application/json",
+					"X-Quester-Demo": "{{secrets.API_TOKEN}}"
+				},
+				"label": "GET /test"
+			},
+			"position": {
+				"x": 257.3426896870279,
+				"y": 340.69736646343694
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "assertPing",
+			"type": "assert",
+			"data": {
+				"checks": [
+					{
+						"path": "status",
+						"equals": 200
+					},
+					{
+						"path": "body.status",
+						"equals": "ok"
+					}
+				],
+				"label": "Assert ping"
+			},
+			"position": {
+				"x": 537.0783786054765,
+				"y": 343.90159331929107
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "login",
+			"type": "http",
+			"data": {
+				"method": "POST",
+				"url": "{{env.API_BASE}}/auth/login",
+				"headers": {
+					"Content-Type": "application/json"
+				},
+				"body": {
+					"username": "{{input.username}}",
+					"password": "{{input.password}}",
+					"expiresInMins": 30
+				},
+				"label": "POST /auth/login"
+			},
+			"position": {
+				"x": 580.3151185067388,
+				"y": 481.65175313850284
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "accessToken",
+			"type": "extract",
+			"data": {
+				"expression": "body.accessToken",
+				"label": "Extract accessToken"
+			},
+			"position": {
+				"x": 834.9862792151657,
+				"y": 489.8017666888363
+			},
+			"width": 229,
+			"height": 53
+		},
+		{
+			"id": "saveToken",
+			"type": "set",
+			"data": {
+				"variables": {
+					"accessToken": "{{nodes.accessToken}}",
+					"refreshToken": "{{nodes.login.body.refreshToken}}"
+				},
+				"label": "Save token"
+			},
+			"position": {
+				"x": 870.2551638916618,
+				"y": 638.906166914236
+			},
+			"width": 210,
+			"height": 53
+		},
+		{
+			"id": "profile",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/auth/me",
+				"headers": {
+					"Authorization": "Bearer {{vars.accessToken}}"
+				},
+				"label": "GET /auth/me"
+			},
+			"position": {
+				"x": 1004.4871460628924,
+				"y": 741.9442711841368
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "assertProfile",
+			"type": "assert",
+			"data": {
+				"checks": [
+					{
+						"path": "status",
+						"equals": 200
+					},
+					{
+						"path": "body.username"
+					}
+				],
+				"label": "Assert profile"
+			},
+			"position": {
+				"x": 1302.695946513691,
+				"y": 741.073491264824
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "userFields",
+			"type": "transform",
+			"data": {
+				"map": {
+					"userId": "body.id",
+					"username": "body.username",
+					"email": "body.email",
+					"city": "body.address.city"
+				},
+				"label": "Transform user"
+			},
+			"position": {
+				"x": 1299.9064806599436,
+				"y": 871.9312738151697
+			},
+			"width": 210,
+			"height": 53
+		},
+		{
+			"id": "merged",
+			"type": "merge",
+			"data": {
+				"sources": ["previous", "input", "vars", "login"],
+				"label": "Merge context"
+			},
+			"position": {
+				"x": 1547.823528459522,
+				"y": 971.8299599231516
+			},
+			"width": 239,
+			"height": 53
+		},
+		{
+			"id": "titleTpl",
+			"type": "template",
+			"data": {
+				"template": "<%= it.input.productTitle || 'Quester demo' %> — <%= it.vars.greeting %> @ <%= it.previous.city || 'unknown' %>",
+				"label": "Eta product title"
+			},
+			"position": {
+				"x": 1653.2337158666837,
+				"y": 1107.3314950559775
+			},
+			"width": 300,
+			"height": 109
+		},
+		{
+			"id": "listProducts",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/products/search?q={{input.searchQuery}}&limit={{vars.limit}}&skip={{vars.skip}}&select=title,price&sortBy=title&order={{vars.sortOrder}}",
+				"headers": {
+					"Accept": "application/json"
+				},
+				"label": "GET /products"
+			},
+			"position": {
+				"x": 1968.4456699626821,
+				"y": 1268.0475653874255
+			},
+			"width": 300,
+			"height": 87
+		},
+		{
+			"id": "firstProductId",
+			"type": "extract",
+			"data": {
+				"expression": "body.products[0].id",
+				"label": "First product id"
+			},
+			"position": {
+				"x": 2329.8404028895557,
+				"y": 1282.826054613306
+			},
+			"width": 210,
+			"height": 53
+		},
+		{
+			"id": "addProduct",
+			"type": "http",
+			"data": {
+				"method": "POST",
+				"url": "{{env.API_BASE}}/products/add",
+				"headers": {
+					"Content-Type": "application/json"
+				},
+				"body": "{\n  \"title\": \"{{nodes.titleTpl}}\",\n  \"price\": 12.5\n}",
+				"label": "POST /products/add"
+			},
+			"position": {
+				"x": 2407.5409229981915,
+				"y": 1414.7768512729515
+			},
+			"width": 220,
+			"height": 87
+		},
+		{
+			"id": "assertAdd",
+			"type": "assert",
+			"data": {
+				"checks": [
+					{
+						"path": "body.id"
+					},
+					{
+						"path": "body.title"
+					}
+				],
+				"label": "Assert add"
+			},
+			"position": {
+				"x": 2742.5494309112346,
+				"y": 1384.972681054845
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "previewAdd",
+			"type": "json",
+			"data": {
+				"expression": "body",
+				"label": "JSON body"
+			},
+			"position": {
+				"x": 2704.0000000000005,
+				"y": 1552
+			},
+			"width": 280,
+			"height": 220
+		},
+		{
+			"id": "putProduct",
+			"type": "http",
+			"data": {
+				"method": "PUT",
+				"url": "{{env.API_BASE}}/products/{{vars.productId}}",
+				"headers": {
+					"Content-Type": "application/json"
+				},
+				"body": {
+					"title": "Updated via PUT — {{nodes.titleTpl}}"
+				},
+				"label": "PUT /products/:id"
+			},
+			"position": {
+				"x": 3035.053776935299,
+				"y": 1565.360984066807
+			},
+			"width": 290,
+			"height": 87
+		},
+		{
+			"id": "patchProduct",
+			"type": "http",
+			"data": {
+				"method": "PATCH",
+				"url": "{{env.API_BASE}}/products/{{vars.productId}}",
+				"headers": {
+					"Content-Type": "application/json"
+				},
+				"body": {
+					"price": 99.99
+				},
+				"label": "PATCH /products/:id"
+			},
+			"position": {
+				"x": 3280,
+				"y": 1752
+			},
+			"width": 290,
+			"height": 87
+		},
+		{
+			"id": "deleteProduct",
+			"type": "http",
+			"data": {
+				"method": "DELETE",
+				"url": "{{env.API_BASE}}/products/{{vars.productId}}",
+				"label": "DELETE /products/:id"
+			},
+			"position": {
+				"x": 3528,
+				"y": 1880.7999999999997
+			},
+			"width": 290,
+			"height": 87
+		},
+		{
+			"id": "assertDelete",
+			"type": "assert",
+			"data": {
+				"checks": [
+					{
+						"path": "status",
+						"equals": 200
+					},
+					{
+						"path": "body.isDeleted",
+						"equals": true
+					}
+				],
+				"label": "Assert delete"
+			},
+			"position": {
+				"x": 3904,
+				"y": 1867.9999999999998
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "refresh",
+			"type": "http",
+			"data": {
+				"method": "POST",
+				"url": "{{env.API_BASE}}/auth/refresh",
+				"headers": {
+					"Content-Type": "application/json"
+				},
+				"body": {
+					"refreshToken": "{{vars.refreshToken}}",
+					"expiresInMins": 30
+				},
+				"label": "POST /auth/refresh"
+			},
+			"position": {
+				"x": 3904,
+				"y": 2043.9999999999998
+			},
+			"width": 213,
+			"height": 87
+		},
+		{
+			"id": "headTest",
+			"type": "http",
+			"data": {
+				"method": "HEAD",
+				"url": "{{env.API_BASE}}/test",
+				"label": "HEAD /test"
+			},
+			"position": {
+				"x": 4184,
+				"y": 2039.9999999999998
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "optionsTest",
+			"type": "http",
+			"data": {
+				"method": "OPTIONS",
+				"url": "{{env.API_BASE}}/test",
+				"label": "OPTIONS /test"
+			},
+			"position": {
+				"x": 4476,
+				"y": 2031.9999999999998
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "branch",
+			"type": "if",
+			"data": {
+				"condition": "{{vars.runDemo}}",
+				"label": "If runDemo"
+			},
+			"position": {
+				"x": 4764,
+				"y": 2043.9999999999998
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "summary",
+			"type": "merge",
+			"data": {
+				"sources": ["userFields", "vars", "deleteProduct"],
+				"label": "Summary merge"
+			},
+			"position": {
+				"x": 5024,
+				"y": 2007.9999999999998
+			},
+			"width": 257,
+			"height": 53
+		},
+		{
+			"id": "output",
+			"type": "output",
+			"data": {
+				"map": {
+					"greeting": "{{vars.greeting}}",
+					"userId": "{{nodes.userFields.userId}}",
+					"username": "{{nodes.userFields.username}}",
+					"productTitle": "{{nodes.titleTpl}}",
+					"firstSearchHitId": "{{nodes.firstProductId}}",
+					"deleted": "{{nodes.deleteProduct.body.isDeleted}}",
+					"refreshed": "{{nodes.refresh.body.accessToken}}",
+					"headStatus": "{{nodes.headTest.status}}",
+					"optionsStatus": "{{nodes.optionsTest.status}}"
+				},
+				"label": "Result"
+			},
+			"position": {
+				"x": 5360,
+				"y": 1983.9999999999998
+			},
+			"width": 150,
+			"height": 53
+		},
+		{
+			"id": "skipped",
+			"type": "template",
+			"data": {
+				"template": "Skipped kitchen-sink path for {{input.username}}",
+				"label": "False branch"
+			},
+			"position": {
+				"x": 5032,
+				"y": 2208
+			},
+			"width": 300,
+			"height": 91
+		}
+	],
+	"edges": [
+		{
+			"id": "e-start-input",
+			"source": "start",
+			"target": "input",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-input-set",
+			"source": "input",
+			"target": "setDefaults",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-set-ping",
+			"source": "setDefaults",
+			"target": "ping",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-ping-assert",
+			"source": "ping",
+			"target": "assertPing",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-ping-login",
+			"source": "ping",
+			"target": "login",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-login-token",
+			"source": "login",
+			"target": "accessToken",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-token-save",
+			"source": "accessToken",
+			"target": "saveToken",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-save-profile",
+			"source": "saveToken",
+			"target": "profile",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-profile-assert",
+			"source": "profile",
+			"target": "assertProfile",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-profile-xform",
+			"source": "profile",
+			"target": "userFields",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-xform-merge",
+			"source": "userFields",
+			"target": "merged",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-merge-tpl",
+			"source": "merged",
+			"target": "titleTpl",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-tpl-list",
+			"source": "titleTpl",
+			"target": "listProducts",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-list-first",
+			"source": "listProducts",
+			"target": "firstProductId",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-first-add",
+			"source": "firstProductId",
+			"target": "addProduct",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-add-assert",
+			"source": "addProduct",
+			"target": "assertAdd",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-add-json",
+			"source": "addProduct",
+			"target": "previewAdd",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-json-put",
+			"source": "previewAdd",
+			"target": "putProduct",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-put-patch",
+			"source": "putProduct",
+			"target": "patchProduct",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-patch-delete",
+			"source": "patchProduct",
+			"target": "deleteProduct",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-delete-assert",
+			"source": "deleteProduct",
+			"target": "assertDelete",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-delete-refresh",
+			"source": "deleteProduct",
+			"target": "refresh",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-refresh-head",
+			"source": "refresh",
+			"target": "headTest",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-head-options",
+			"source": "headTest",
+			"target": "optionsTest",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-options-if",
+			"source": "optionsTest",
+			"target": "branch",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-if-true",
+			"source": "branch",
+			"target": "summary",
+			"sourceHandle": "true"
+		},
+		{
+			"id": "e-if-false",
+			"source": "branch",
+			"target": "skipped",
+			"sourceHandle": "false"
+		},
+		{
+			"id": "e-summary-out",
+			"source": "summary",
+			"target": "output",
+			"sourceHandle": null
+		}
+	]
+}

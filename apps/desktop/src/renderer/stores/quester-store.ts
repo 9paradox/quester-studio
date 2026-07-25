@@ -27,7 +27,7 @@ import {
 	scheduleIdle,
 	serializePathShapes,
 } from "@/lib/pathShapes.js";
-import { DEFAULT_INPUT } from "@/lib/runDefaults.js";
+import { DEFAULT_INPUT, withInputNodeValue } from "@/lib/runDefaults.js";
 import type { BuiltinNodeType, FlowV1, RequestV1 } from "@quester/schema";
 import { SECRETS_VERSION } from "@quester/schema";
 import type { Edge, Node } from "reactflow";
@@ -356,6 +356,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			return {
 				activeTabId: tabId,
 				canvasDirty: Boolean(tab?.kind === "flow" && tab.dirty),
+				...(tab?.kind === "flow" ? { inputJson: tab.inputJson } : {}),
 			};
 		}),
 	setSelectedEnv: (env) => {
@@ -399,7 +400,47 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	setPanelTab: (tab) => set({ panelTab: tab }),
 	setSidebarSearch: (search) => set({ sidebarSearch: search }),
 	setZoom: (zoom) => set((s) => (s.zoom === zoom ? s : { zoom })),
-	setInputJson: (json) => set({ inputJson: json }),
+	setInputJson: (json) => {
+		let dirtied = false;
+		set((s) => {
+			const { activeTabId } = s;
+			let parsed: unknown;
+			let valid = false;
+			try {
+				parsed = JSON.parse(json) as unknown;
+				valid = true;
+			} catch {
+				// Keep draft text; only persist valid JSON onto the input node.
+			}
+
+			let canvasDirty = s.canvasDirty;
+			const openTabs = s.openTabs.map((t) => {
+				if (t.id !== activeTabId || t.kind !== "flow") return t;
+				let flow = t.flow;
+				let dirty = t.dirty;
+				if (valid) {
+					const nextFlow = withInputNodeValue(flow, parsed);
+					if (!flowJsonEqual(nextFlow, flow)) {
+						flow = nextFlow;
+						dirty = true;
+						canvasDirty = true;
+						dirtied = true;
+					}
+				}
+				if (t.inputJson === json && flow === t.flow && dirty === t.dirty) {
+					return t;
+				}
+				return { ...t, inputJson: json, flow, dirty };
+			});
+
+			return {
+				inputJson: json,
+				openTabs,
+				...(canvasDirty !== s.canvasDirty ? { canvasDirty } : {}),
+			};
+		});
+		if (dirtied) scheduleInspectorAutosave();
+	},
 	setPlaygroundOpen: (open) => set({ playgroundOpen: open }),
 	togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
 	resizeSidebar: (delta) =>
@@ -457,6 +498,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				activeTabId: tab.id,
 				selectedNodeId: tab.kind === "flow" ? null : s.selectedNodeId,
 				canvasDirty: Boolean(active?.kind === "flow" && active.dirty),
+				...(active?.kind === "flow" ? { inputJson: active.inputJson } : {}),
 			};
 		});
 	},
@@ -496,6 +538,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				activeTabId: tabId,
 				selectedNodeId: null,
 				canvasDirty: Boolean(existing.kind === "flow" && existing.dirty),
+				...(existing.kind === "flow" ? { inputJson: existing.inputJson } : {}),
 			});
 			return;
 		}
@@ -812,10 +855,15 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			if (!ok) return;
 		}
 		const remaining = openTabs.filter((t) => t.id !== tabId);
+		const nextActiveId =
+			activeTabId === tabId ? (remaining[0]?.id ?? null) : activeTabId;
+		const nextActive = remaining.find((t) => t.id === nextActiveId);
 		set({
 			openTabs: remaining,
-			activeTabId:
-				activeTabId === tabId ? (remaining[0]?.id ?? null) : activeTabId,
+			activeTabId: nextActiveId,
+			...(nextActive?.kind === "flow"
+				? { inputJson: nextActive.inputJson }
+				: {}),
 		});
 	},
 
@@ -835,22 +883,26 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		try {
 			if (tab.kind === "flow") {
 				const saved = await desktopRpc.saveFlow(tab.flow, workspacePath);
-				set((s) => ({
-					openTabs: s.openTabs.map((t) =>
-						t.id === tab.id
-							? {
-									...t,
-									flowId: saved.id,
-									flow: saved,
-									dirty: false,
-									id: flowTabId(saved.id),
-								}
-							: t,
-					),
-					activeTabId:
-						activeTabId === tab.id ? flowTabId(saved.id) : s.activeTabId,
-					canvasDirty: false,
-				}));
+				set((s) => {
+					const nextId = flowTabId(saved.id);
+					return {
+						openTabs: s.openTabs.map((t) =>
+							t.id === tab.id && t.kind === "flow"
+								? {
+										...t,
+										flowId: saved.id,
+										flow: saved,
+										inputJson: t.inputJson,
+										dirty: false,
+										id: nextId,
+									}
+								: t,
+						),
+						activeTabId: activeTabId === tab.id ? nextId : s.activeTabId,
+						canvasDirty: false,
+						...(activeTabId === tab.id ? { inputJson: tab.inputJson } : {}),
+					};
+				});
 				appendConsole(`Saved flow ${saved.id}`);
 			} else if (tab.kind === "env") {
 				const saved = await desktopRpc.saveEnvironment(

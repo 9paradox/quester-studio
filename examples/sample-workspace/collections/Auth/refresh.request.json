@@ -1,0 +1,14 @@
+{
+	"version": "v1",
+	"id": "refresh",
+	"name": "Refresh tokens",
+	"method": "POST",
+	"url": "{{env.API_BASE}}/auth/refresh",
+	"headers": {
+		"Content-Type": "application/json"
+	},
+	"body": {
+		"refreshToken": "{{secrets.REFRESH_TOKEN}}",
+		"expiresInMins": 30
+	}
+}

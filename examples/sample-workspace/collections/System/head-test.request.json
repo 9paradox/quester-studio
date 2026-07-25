@@ -1,0 +1,8 @@
+{
+	"version": "v1",
+	"id": "head-test",
+	"name": "HEAD /test",
+	"method": "HEAD",
+	"url": "{{env.API_BASE}}/test",
+	"headers": {}
+}

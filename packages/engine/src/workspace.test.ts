@@ -22,8 +22,22 @@ describe("loadWorkspace", () => {
 
 describe("loadSecrets", () => {
 	test("returns empty object when secrets file is missing", async () => {
+		const dir = await mkdtemp(join(tmpdir(), "quester-secrets-missing-"));
+		try {
+			await mkdir(join(dir, "environments"), { recursive: true });
+			const secrets = await loadSecrets(dir, "local");
+			expect(secrets).toEqual({});
+		} finally {
+			await rm(dir, { recursive: true, force: true });
+		}
+	});
+
+	test("loads sample workspace secrets example keys when present", async () => {
 		const secrets = await loadSecrets(sampleWorkspace, "local");
-		expect(secrets).toEqual({});
+		if (Object.keys(secrets).length === 0) return;
+		expect(secrets).toHaveProperty("username");
+		expect(secrets).toHaveProperty("password");
+		expect(secrets).toHaveProperty("API_TOKEN");
 	});
 
 	test("returns empty object for invalid JSON", async () => {

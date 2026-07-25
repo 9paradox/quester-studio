@@ -1,0 +1,11 @@
+{
+	"version": "v1",
+	"id": "ping",
+	"name": "Ping /test",
+	"method": "GET",
+	"url": "{{env.API_BASE}}/test?delay={{env.DEMO_DELAY_MS}}",
+	"headers": {
+		"Accept": "application/json",
+		"X-Quester-Demo": "{{secrets.API_TOKEN}}"
+	}
+}

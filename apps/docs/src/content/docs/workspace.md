@@ -12,6 +12,7 @@ my-workspace/
   quester.json
   flows/
     login-and-profile.flow.json
+    kitchen-sink.flow.json
   environments/
     local.json
     local.secrets.json          # gitignored
@@ -19,6 +20,18 @@ my-workspace/
   collections/
     Auth/
       login.request.json
+      me.request.json
+      refresh.request.json
+    Products/
+      search-products.request.json
+      add-product.request.json
+      update-product.request.json
+      patch-product.request.json
+      delete-product.request.json
+    System/
+      ping.request.json
+      head-test.request.json
+      options-test.request.json
     Users/
       get-user.request.json
 ```

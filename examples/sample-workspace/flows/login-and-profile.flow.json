@@ -13,18 +13,26 @@
 			"position": {
 				"x": -264,
 				"y": 8
-			}
+			},
+			"width": 210,
+			"height": 87
 		},
 		{
 			"id": "input",
 			"type": "input",
 			"data": {
-				"label": "Credentials"
+				"label": "Credentials",
+				"value": {
+					"username": "emilys",
+					"password": "emilyspass"
+				}
 			},
 			"position": {
 				"x": -7,
 				"y": 12
-			}
+			},
+			"width": 150,
+			"height": 87
 		},
 		{
 			"id": "login",
@@ -35,13 +43,15 @@
 				"headers": {
 					"Content-Type": "application/json"
 				},
-				"body": "{\"username\": \"{{input.username}}\", \"password\": \"{{input.password}}\"}",
+				"body": "{\n  \"username\": \"{{secrets.username}}\",\n  \"password\": \"{{secrets.password}}\"\n}",
 				"label": "Login"
 			},
 			"position": {
 				"x": 0,
-				"y": 200
-			}
+				"y": 199.04515841965383
+			},
+			"width": 210,
+			"height": 87
 		},
 		{
 			"id": "accessToken",
@@ -51,9 +61,11 @@
 				"label": "Access token"
 			},
 			"position": {
-				"x": 321,
+				"x": 320.1294494551188,
 				"y": 227
-			}
+			},
+			"width": 210,
+			"height": 53
 		},
 		{
 			"id": "profile",
@@ -67,9 +79,11 @@
 				"label": "Profile"
 			},
 			"position": {
-				"x": -3,
+				"x": -4.047294093282517,
 				"y": 369
-			}
+			},
+			"width": 210,
+			"height": 87
 		},
 		{
 			"id": "assertStatus",
@@ -84,21 +98,25 @@
 				"label": "Assert 200"
 			},
 			"position": {
-				"x": 295,
-				"y": 432
-			}
+				"x": 290.28059298166613,
+				"y": 535.5109416723401
+			},
+			"width": 210,
+			"height": 87
 		},
 		{
 			"id": "extractAge",
 			"type": "extract",
 			"data": {
-				"expression": "body.age",
+				"expression": "body.bank.currency",
 				"label": "Extract age"
 			},
 			"position": {
-				"x": 288,
-				"y": 345
-			}
+				"x": 311.30874971229,
+				"y": 372.4525274389194
+			},
+			"width": 214,
+			"height": 53
 		},
 		{
 			"id": "output",
@@ -107,9 +125,67 @@
 				"label": "Result"
 			},
 			"position": {
-				"x": 560,
-				"y": 369
-			}
+				"x": 312.8593583938059,
+				"y": 449.1696533118233
+			},
+			"width": 150,
+			"height": 53
+		},
+		{
+			"id": "http-6d0ea217",
+			"type": "http",
+			"data": {
+				"method": "POST",
+				"url": "{{env.API_BASE}}/posts/add",
+				"headers": {
+					"Content-type": "application/json"
+				},
+				"body": "{\n  \"title\": \"lol {{nodes.profile.body.address.city}}\",\n  \"userId\": {{nodes.profile.body.id}}\n}",
+				"label": "Add post"
+			},
+			"position": {
+				"x": 237.21789670230652,
+				"y": 662.2260347223958
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "assert-75da9002",
+			"type": "assert",
+			"data": {
+				"checks": [
+					{
+						"path": "status",
+						"equals": 201
+					},
+					{
+						"path": "body.userId",
+						"equals": 1
+					}
+				],
+				"label": "Assert"
+			},
+			"position": {
+				"x": 552.3478404609097,
+				"y": 671.6136590884543
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "json-892c1ee8",
+			"type": "json",
+			"data": {
+				"expression": "body",
+				"label": "JSON"
+			},
+			"position": {
+				"x": 574.6398642023229,
+				"y": 392.9708127193876
+			},
+			"width": 244,
+			"height": 230
 		}
 	],
 	"edges": [
@@ -153,6 +229,24 @@
 			"id": "e6",
 			"source": "profile",
 			"target": "output",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-profile-http-6d0ea217-8d68a4",
+			"source": "profile",
+			"target": "http-6d0ea217",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-http-6d0ea217-assert-75da9002-8b3d1a",
+			"source": "http-6d0ea217",
+			"target": "assert-75da9002",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-http-6d0ea217-json-892c1ee8-378b85",
+			"source": "http-6d0ea217",
+			"target": "json-892c1ee8",
 			"sourceHandle": null
 		}
 	]

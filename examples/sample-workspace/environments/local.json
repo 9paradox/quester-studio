@@ -2,6 +2,14 @@
 	"name": "local",
 	"version": "v1",
 	"variables": {
-		"API_BASE": "https://dummyjson.com"
+		"API_BASE": "https://dummyjson.com",
+		"DEMO_PRODUCT_ID": "1",
+		"DEMO_USER_ID": "1",
+		"DEMO_LIMIT": 3,
+		"DEMO_SKIP": 0,
+		"DEMO_SORT_ORDER": "asc",
+		"DEMO_SEARCH_QUERY": "phone",
+		"DEMO_PRODUCT_TITLE": "Quester Pencil",
+		"DEMO_DELAY_MS": 0
 	}
 }

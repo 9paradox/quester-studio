@@ -41,13 +41,26 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 				type: "string",
 				description: "Optional UI label",
 			},
+			{
+				name: "value",
+				type: "object",
+				description: "Default run payload persisted in the flow file",
+			},
+			{
+				name: "schema",
+				type: "object",
+				description: "Optional shape hint (not enforced at execute time)",
+			},
 		],
 		syntax: [
 			"Typical chain: start → input → http → …",
-			"Edit run payload in the inspector (or Playground) as JSON",
+			"Edit run payload in the inspector (or Playground) as JSON — saved as data.value",
 			"Reference fields later as {{input.fieldName}}",
 		],
-		example: { label: "Credentials" },
+		example: {
+			label: "Credentials",
+			value: { username: "emilys", password: "emilyspass" },
+		},
 		io: {
 			input: "Previous node output (often {} from start)",
 			output: "The flow run input object",

@@ -1,0 +1,13 @@
+{
+	"version": "v1",
+	"id": "patch-product",
+	"name": "Patch product",
+	"method": "PATCH",
+	"url": "{{env.API_BASE}}/products/{{env.DEMO_PRODUCT_ID}}",
+	"headers": {
+		"Content-Type": "application/json"
+	},
+	"body": {
+		"price": 99.99
+	}
+}
