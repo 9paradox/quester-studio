@@ -47,6 +47,12 @@ mock.module("@/lib/electrobun.js", () => ({
 			vars: {},
 			logs: [],
 		}),
+		loadEnvironment: async () => ({
+			name: "local",
+			version: "v1",
+			variables: { API_BASE: "https://example.com" },
+		}),
+		listSecretNames: async () => ["username", "password"],
 	},
 	onNodeRunStatus: () => () => {},
 }));
@@ -73,6 +79,8 @@ function resetStore() {
 		envs: [],
 		secretFiles: [],
 		selectedEnv: "local",
+		templateEnvKeys: [],
+		templateSecretKeys: [],
 		isLoading: false,
 		loadError: null,
 		openTabs: [],

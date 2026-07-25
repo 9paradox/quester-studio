@@ -1,4 +1,4 @@
-/** Quester template token: {{ env.* | input.* | nodes.* | vars.* | ... }}. */
+/** Quester template token: {{ env.* | secrets.* | input.* | nodes.* | vars.* }}. */
 export const TEMPLATE_RE = /\{\{[^{}]*\}\}/g;
 
 export type TemplateRange = { from: number; to: number };
@@ -20,9 +20,19 @@ export type TemplateCompletionContext = {
 	inputKeys: string[];
 	/** Variable names set by `set` nodes (for `vars.<key>`). */
 	varKeys: string[];
+	/** Keys from the selected environment file (for `env.<key>`). */
+	envKeys: string[];
+	/** Keys from the selected env secrets file (for `secrets.<key>`). */
+	secretKeys: string[];
 };
 
-export const TEMPLATE_ROOTS = ["env", "input", "nodes", "vars"] as const;
+export const TEMPLATE_ROOTS = [
+	"env",
+	"secrets",
+	"input",
+	"nodes",
+	"vars",
+] as const;
 
 /** Parse top-level object keys from run-input JSON text; empty on failure. */
 export function inputKeysFromJson(inputJson: string): string[] {
@@ -88,6 +98,16 @@ export function templateSuggestions(
 			return ctx.varKeys.map((key) => ({
 				label: `vars.${key}`,
 				detail: "variable",
+			}));
+		case "env":
+			return ctx.envKeys.map((key) => ({
+				label: `env.${key}`,
+				detail: "environment",
+			}));
+		case "secrets":
+			return ctx.secretKeys.map((key) => ({
+				label: `secrets.${key}`,
+				detail: "secret",
 			}));
 		default:
 			return [];

@@ -86,14 +86,47 @@ export function EditorArea() {
 	}
 
 	if (activeTab.kind === "env") {
+		const envName = activeTab.envName;
 		return (
 			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
 				<div className="relative h-full min-h-0 min-w-0 flex-1 bg-background">
 					<KeyValueEditor
-						title={`${activeTab.envName}.json`}
-						description="Environment variables available as {{env.KEY}} in flows."
+						title={`${envName}.json`}
+						description={
+							<>
+								<p>
+									Use in flows as{" "}
+									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+										{"{{env.KEY}}"}
+									</code>
+									{" — "}
+									e.g.{" "}
+									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+										{"{{env.API_BASE}}"}
+									</code>
+									.
+								</p>
+								<p>
+									Linked to env{" "}
+									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+										{envName}
+									</code>
+									. Pair with{" "}
+									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+										{envName}.secrets.json
+									</code>{" "}
+									(
+									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+										{"{{secrets.KEY}}"}
+									</code>
+									). Select this env when running.
+								</p>
+							</>
+						}
 						rows={activeTab.rows}
 						onChange={handleEnvRowsChange}
+						onSave={onSave}
+						canSave={canSaveTab}
 					/>
 				</div>
 			</EditorContextMenu>
@@ -101,15 +134,49 @@ export function EditorArea() {
 	}
 
 	if (activeTab.kind === "secrets") {
+		const envName = activeTab.envName;
 		return (
 			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
 				<div className="relative h-full min-h-0 min-w-0 flex-1 bg-background">
 					<KeyValueEditor
-						title={`${activeTab.envName}.secrets.json`}
-						description="Secrets are loaded at runtime and never committed to git."
+						title={`${envName}.secrets.json`}
+						description={
+							<>
+								<p>
+									Use in flows as{" "}
+									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+										{"{{secrets.KEY}}"}
+									</code>
+									{" — "}
+									e.g.{" "}
+									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+										{"{{secrets.password}}"}
+									</code>
+									. Loaded at runtime; never committed to git.
+								</p>
+								<p>
+									Linked to env{" "}
+									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+										{envName}
+									</code>
+									. Pair with{" "}
+									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+										{envName}.json
+									</code>{" "}
+									(
+									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+										{"{{env.KEY}}"}
+									</code>
+									). Select this env when running.
+								</p>
+							</>
+						}
 						rows={activeTab.rows}
 						onChange={handleSecretRowsChange}
 						valuePlaceholder="Secret value"
+						maskValues
+						onSave={onSave}
+						canSave={canSaveTab}
 					/>
 				</div>
 			</EditorContextMenu>

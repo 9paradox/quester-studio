@@ -96,6 +96,10 @@ export type QuesterState = {
 	envs: string[];
 	secretFiles: SecretFileMeta[];
 	selectedEnv: string;
+	/** Cached `{{env.*}}` keys for `selectedEnv` (when env tab is closed). */
+	templateEnvKeys: string[];
+	/** Cached `{{secrets.*}}` keys for `selectedEnv` (when secrets tab is closed). */
+	templateSecretKeys: string[];
 	isLoading: boolean;
 	loadError: string | null;
 
@@ -135,6 +139,7 @@ export type QuesterState = {
 
 	setActiveTabId: (tabId: string | null) => void;
 	setSelectedEnv: (env: string) => void;
+	refreshTemplateKeys: () => Promise<void>;
 	setActivityView: (view: ActivityView) => void;
 	setSidebarOpen: (open: boolean) => void;
 	setRightPanelOpen: (open: boolean) => void;
@@ -215,6 +220,8 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	envs: [],
 	secretFiles: [],
 	selectedEnv: "local",
+	templateEnvKeys: [],
+	templateSecretKeys: [],
 	isLoading: true,
 	loadError: null,
 
@@ -258,8 +265,27 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				canvasDirty: Boolean(tab?.kind === "flow" && tab.dirty),
 			};
 		}),
-	setSelectedEnv: (env) =>
-		set((s) => (s.selectedEnv === env ? s : { selectedEnv: env })),
+	setSelectedEnv: (env) => {
+		const { selectedEnv } = get();
+		if (selectedEnv === env) return;
+		set({ selectedEnv: env });
+		void get().refreshTemplateKeys();
+	},
+	refreshTemplateKeys: async () => {
+		const { workspacePath, selectedEnv } = get();
+		if (!workspacePath) {
+			set({ templateEnvKeys: [], templateSecretKeys: [] });
+			return;
+		}
+		const [envResult, secretKeys] = await Promise.all([
+			desktopRpc.loadEnvironment(workspacePath, selectedEnv).catch(() => null),
+			desktopRpc.listSecretNames(workspacePath, selectedEnv).catch(() => []),
+		]);
+		set({
+			templateEnvKeys: envResult ? Object.keys(envResult.variables) : [],
+			templateSecretKeys: secretKeys,
+		});
+	},
 	setActivityView: (view) =>
 		set((s) => (s.activityView === view ? s : { activityView: view })),
 	setSidebarOpen: (open) =>
@@ -430,6 +456,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				workspaceName: summary.name,
 				selectedEnv: env,
 			});
+			await get().refreshTemplateKeys();
 			appendConsole(`Workspace loaded: ${summary.name}`);
 
 			const firstFlow = flowList[0];
@@ -492,43 +519,57 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	handleEnvRowsChange: (rows) => {
-		const { activeTabId } = get();
+		const { activeTabId, selectedEnv } = get();
 		if (!activeTabId) return;
-		set((s) => ({
-			openTabs: s.openTabs.map((t) =>
-				t.id === activeTabId && t.kind === "env"
-					? {
-							...t,
-							rows,
-							environment: {
-								...t.environment,
-								variables: rowsToEnvVariables(rows),
-							},
-							dirty: true,
-						}
-					: t,
-			),
-		}));
+		const keys = rows.map((r) => r.key.trim()).filter(Boolean);
+		set((s) => {
+			const tab = s.openTabs.find((t) => t.id === activeTabId);
+			const matchesSelected =
+				tab?.kind === "env" && tab.envName === selectedEnv;
+			return {
+				openTabs: s.openTabs.map((t) =>
+					t.id === activeTabId && t.kind === "env"
+						? {
+								...t,
+								rows,
+								environment: {
+									...t.environment,
+									variables: rowsToEnvVariables(rows),
+								},
+								dirty: true,
+							}
+						: t,
+				),
+				...(matchesSelected ? { templateEnvKeys: keys } : {}),
+			};
+		});
 	},
 
 	handleSecretRowsChange: (rows) => {
-		const { activeTabId } = get();
+		const { activeTabId, selectedEnv } = get();
 		if (!activeTabId) return;
-		set((s) => ({
-			openTabs: s.openTabs.map((t) =>
-				t.id === activeTabId && t.kind === "secrets"
-					? {
-							...t,
-							rows,
-							secrets: {
-								version: SECRETS_VERSION,
-								secrets: rowsToStringRecord(rows),
-							},
-							dirty: true,
-						}
-					: t,
-			),
-		}));
+		const keys = rows.map((r) => r.key.trim()).filter(Boolean);
+		set((s) => {
+			const tab = s.openTabs.find((t) => t.id === activeTabId);
+			const matchesSelected =
+				tab?.kind === "secrets" && tab.envName === selectedEnv;
+			return {
+				openTabs: s.openTabs.map((t) =>
+					t.id === activeTabId && t.kind === "secrets"
+						? {
+								...t,
+								rows,
+								secrets: {
+									version: SECRETS_VERSION,
+									secrets: rowsToStringRecord(rows),
+								},
+								dirty: true,
+							}
+						: t,
+				),
+				...(matchesSelected ? { templateSecretKeys: keys } : {}),
+			};
+		});
 	},
 
 	handleRequestChange: (request) => {
@@ -721,6 +762,9 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 						activeTabId === tab.id ? envTabId(saved.name) : s.activeTabId,
 				}));
 				appendConsole(`Saved ${saved.name}.json`);
+				if (saved.name === get().selectedEnv) {
+					await get().refreshTemplateKeys();
+				}
 			} else if (tab.kind === "secrets") {
 				const saved = await desktopRpc.saveSecretsFile(
 					workspacePath,
@@ -735,6 +779,9 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					),
 				}));
 				appendConsole(`Saved ${tab.envName}.secrets.json`);
+				if (tab.envName === get().selectedEnv) {
+					await get().refreshTemplateKeys();
+				}
 			} else if (tab.kind === "request") {
 				const saved = await desktopRpc.saveRequest(
 					workspacePath,
