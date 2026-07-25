@@ -21,6 +21,14 @@ type JsonPaneProps = {
 	editError?: string | null;
 	/** Show the Pretty/Raw tabs. Disable when a sibling Raw view already exists. */
 	showRaw?: boolean;
+	/** Enable copy-as-path; when set, also offer `{{nodes.<id>.…}}`. */
+	pathCopyNodeId?: string | null;
+	/**
+	 * Prefix prepended to copied JMESPath / template paths (e.g. `body` when
+	 * viewing only the HTTP body tab).
+	 */
+	pathPrefix?: string;
+	enablePathCopy?: boolean;
 };
 
 /** Body pane with tree and raw text views plus copy support. */
@@ -32,6 +40,9 @@ export function JsonPane({
 	onEdit,
 	editError,
 	showRaw = true,
+	pathCopyNodeId = null,
+	pathPrefix,
+	enablePathCopy = false,
 }: JsonPaneProps) {
 	const [copied, setCopied] = useState(false);
 	const raw = useMemo(() => {
@@ -56,11 +67,19 @@ export function JsonPane({
 		return value;
 	}, [value]);
 
+	/** Wrap value so copied paths include prefix when viewing a subtree. */
+	const pathTreeValue = useMemo(() => {
+		if (!pathPrefix) return treeValue;
+		return { [pathPrefix]: treeValue };
+	}, [treeValue, pathPrefix]);
+
 	const copy = async () => {
 		await navigator.clipboard.writeText(raw);
 		setCopied(true);
 		window.setTimeout(() => setCopied(false), 1200);
 	};
+
+	const pathMode = enablePathCopy || Boolean(pathCopyNodeId);
 
 	const copyButton = (
 		<Button
@@ -83,9 +102,13 @@ export function JsonPane({
 			<div className={cn("relative flex flex-col gap-2", className)}>
 				<div className="absolute top-1 right-1 z-10">{copyButton}</div>
 				<JsonViewer
-					value={treeValue}
-					defaultExpandedDepth={defaultExpandedDepth}
+					value={pathMode ? pathTreeValue : treeValue}
+					defaultExpandedDepth={
+						pathPrefix ? defaultExpandedDepth + 1 : defaultExpandedDepth
+					}
 					showCopy={false}
+					pathCopyNodeId={pathCopyNodeId}
+					enablePathCopy={pathMode}
 				/>
 			</div>
 		);
@@ -107,9 +130,13 @@ export function JsonPane({
 				</div>
 				<TabsContent value="tree" className="mt-2">
 					<JsonViewer
-						value={treeValue}
-						defaultExpandedDepth={defaultExpandedDepth}
+						value={pathMode ? pathTreeValue : treeValue}
+						defaultExpandedDepth={
+							pathPrefix ? defaultExpandedDepth + 1 : defaultExpandedDepth
+						}
 						showCopy={false}
+						pathCopyNodeId={pathCopyNodeId}
+						enablePathCopy={pathMode}
 					/>
 				</TabsContent>
 				<TabsContent value="raw" className="mt-2">

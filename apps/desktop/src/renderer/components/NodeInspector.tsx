@@ -246,7 +246,8 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						<>
 							Use <code className="font-mono text-[10px]">{"{{input.*}}"}</code>
 							, <code className="font-mono text-[10px]">{"{{nodes.id}}"}</code>,{" "}
-							<code className="font-mono text-[10px]">{"{{env.*}}"}</code>
+							<code className="font-mono text-[10px]">{"{{env.*}}"}</code>, or
+							Eta <code className="font-mono text-[10px]">{"<%= it.* %>"}</code>
 						</>
 					}
 				>
@@ -255,6 +256,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						onChange={(template) => setField("template", template)}
 						multiline
 						rows={8}
+						completionMode="template+eta"
 					/>
 				</InspectorField>
 			) : null}
@@ -281,6 +283,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						value={String(data.expression ?? "")}
 						onChange={(expression) => setField("expression", expression)}
 						placeholder="body.id"
+						completionMode="jmespath"
 					/>
 				</InspectorField>
 			) : null}
@@ -344,6 +347,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						value={String(data.expression ?? "")}
 						onChange={(expression) => setField("expression", expression)}
 						placeholder="body"
+						completionMode="jmespath"
 					/>
 				</InspectorField>
 			) : null}

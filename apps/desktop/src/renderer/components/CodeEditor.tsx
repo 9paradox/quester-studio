@@ -1,8 +1,19 @@
 import {
+	jmesPathCompletion,
+	jmesPathLinter,
 	singleLineExtension,
+	staticCompletion,
+	templateAndEtaCompletion,
 	templateCompletion,
+	templateHoverTooltip,
+	templateOrStaticCompletion,
+	templatePathLinter,
 	themeExtensions,
 } from "@/lib/codemirrorSetup.js";
+import {
+	headerNameSuggestions,
+	headerValueSuggestions,
+} from "@/lib/httpHeaders.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectTemplateContext } from "@/stores/selectors.js";
@@ -19,6 +30,14 @@ import { useEffect, useMemo, useRef } from "react";
 
 export type CodeEditorLanguage = "json" | "xml" | "html" | "text";
 
+export type CodeEditorCompletionMode =
+	| "template"
+	| "jmespath"
+	| "template+eta"
+	| "header-key"
+	| "header-value"
+	| "none";
+
 type CodeEditorProps = {
 	value: string;
 	onChange: (value: string) => void;
@@ -32,6 +51,20 @@ type CodeEditorProps = {
 	formatOnBlur?: boolean;
 	/** Collapse to one visual line (blocks newlines) — for URLs, expressions. */
 	singleLine?: boolean;
+	/**
+	 * Autocomplete / path-lint mode.
+	 * - template: `{{…}}` (default)
+	 * - jmespath: bare JMESPath
+	 * - template+eta: `{{…}}` plus Eta `it.*`
+	 * - header-key: common HTTP header names
+	 * - header-value: common values for `headerName` + `{{…}}` templates
+	 * - none: no path completion
+	 */
+	completionMode?: CodeEditorCompletionMode;
+	/** Header name used when `completionMode` is `header-value`. */
+	headerName?: string;
+	/** Warn when template/JMESPath tokens are unknown. Default true when mode ≠ none. */
+	pathLint?: boolean;
 	minHeight?: string;
 	maxHeight?: string;
 	className?: string;
@@ -81,6 +114,9 @@ export function CodeEditor({
 	lint = language === "json",
 	formatOnBlur = false,
 	singleLine = false,
+	completionMode = "template",
+	headerName = "",
+	pathLint = completionMode !== "none" && completionMode !== "header-key",
 	minHeight,
 	maxHeight,
 	className,
@@ -89,6 +125,7 @@ export function CodeEditor({
 }: CodeEditorProps) {
 	// Read completion context lazily so extensions never rebuild on keystroke.
 	const contextRef = useRef(selectTemplateContext(useQuesterStore.getState()));
+	const headerNameRef = useRef(headerName);
 	useEffect(
 		() =>
 			useQuesterStore.subscribe((state) => {
@@ -96,23 +133,52 @@ export function CodeEditor({
 			}),
 		[],
 	);
+	useEffect(() => {
+		headerNameRef.current = headerName;
+	}, [headerName]);
 
 	const extensions = useMemo<Extension[]>(() => {
 		const ext: Extension[] = [
 			...(themeExtensions as Extension[]),
-			templateCompletion(() => contextRef.current),
 			EditorView.contentAttributes.of(
 				ariaLabel ? { "aria-label": ariaLabel } : {},
 			),
 			...languageExtensions(language, lint),
 		];
+
+		if (completionMode === "template") {
+			ext.push(templateCompletion(() => contextRef.current));
+			ext.push(templateHoverTooltip(() => contextRef.current));
+			if (pathLint) ext.push(templatePathLinter(() => contextRef.current));
+		} else if (completionMode === "template+eta") {
+			ext.push(templateAndEtaCompletion(() => contextRef.current));
+			ext.push(templateHoverTooltip(() => contextRef.current));
+			if (pathLint) ext.push(templatePathLinter(() => contextRef.current));
+		} else if (completionMode === "jmespath") {
+			ext.push(jmesPathCompletion(() => contextRef.current.jmesPaths));
+			if (pathLint) {
+				ext.push(jmesPathLinter(() => contextRef.current.jmesPaths));
+			}
+		} else if (completionMode === "header-key") {
+			ext.push(staticCompletion(headerNameSuggestions));
+		} else if (completionMode === "header-value") {
+			ext.push(
+				templateOrStaticCompletion(
+					() => contextRef.current,
+					(word) => headerValueSuggestions(word, headerNameRef.current),
+				),
+			);
+			ext.push(templateHoverTooltip(() => contextRef.current));
+			if (pathLint) ext.push(templatePathLinter(() => contextRef.current));
+		}
+
 		if (singleLine) {
 			ext.push(singleLineExtension as Extension);
 		} else {
 			ext.push(EditorView.lineWrapping);
 		}
 		return ext;
-	}, [language, lint, singleLine, ariaLabel]);
+	}, [language, lint, singleLine, ariaLabel, completionMode, pathLint]);
 
 	const handleBlur = () => {
 		if (formatOnBlur && language === "json" && value.trim()) {

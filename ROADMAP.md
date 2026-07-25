@@ -17,7 +17,7 @@
 - [x] Node inspector — edit `data` fields, Help dialog, per-node Response view
 - [ ] Save flow back to disk (git-friendly JSON)
 - [ ] Live node run status on canvas (idle / running / success / error / skipped) — #31
-- [ ] Context-aware autocomplete for templates and output paths — #40
+- [x] Context-aware autocomplete for templates and output paths — #40
 - [x] Settings activity view — theme (light / dark / system)
 - [x] Node palette drag-and-drop onto canvas
 

@@ -104,4 +104,8 @@ export const desktopRpc = {
 		workspace: string;
 		env?: string;
 	}) => getRpc().request.executeRequestRpc(params),
+	readPathShapes: (workspace: string) =>
+		getRpc().request.readPathShapes({ workspace }),
+	writePathShapes: (workspace: string, data: unknown) =>
+		getRpc().request.writePathShapes({ workspace, data }),
 };

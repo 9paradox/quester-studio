@@ -1,8 +1,8 @@
 import { HeadersEditor } from "@/components/HeadersEditor.js";
 import { JsonViewer } from "@/components/JsonViewer.js";
+import { TemplateField } from "@/components/TemplateField.js";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
-import { Input } from "@/components/ui/input.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import {
 	Select,
@@ -171,11 +171,11 @@ export function RequestEditor({
 						))}
 					</SelectContent>
 				</Select>
-				<Input
+				<TemplateField
 					value={request.url}
-					onChange={(e) => onChange({ ...request, url: e.target.value })}
-					placeholder="https://…"
-					className="h-7 min-w-0 flex-1 font-mono text-xs"
+					onChange={(url) => onChange({ ...request, url })}
+					placeholder="https://… or {{env.API_BASE}}/…"
+					className="h-7 min-w-0 flex-1"
 				/>
 				{envs.length > 0 ? (
 					<Select
@@ -310,7 +310,11 @@ export function RequestEditor({
 										<div className="mb-1 text-xs font-medium text-muted-foreground">
 											Body
 										</div>
-										<JsonViewer value={responseBody} defaultExpandedDepth={2} />
+										<JsonViewer
+											value={responseBody}
+											defaultExpandedDepth={2}
+											enablePathCopy
+										/>
 									</div>
 								</div>
 							) : null}

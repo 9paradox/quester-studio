@@ -5,7 +5,6 @@ import {
 } from "@/components/KeyValueEditor.js";
 import { TemplateField } from "@/components/TemplateField.js";
 import { Button } from "@/components/ui/button.js";
-import { Input } from "@/components/ui/input.js";
 import {
 	Tabs,
 	TabsContent,
@@ -70,16 +69,17 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 						key={row.id}
 						className="grid grid-cols-[1fr_1fr_auto] items-start gap-1.5"
 					>
-						<Input
+						<TemplateField
 							value={row.key}
-							onChange={(e) => {
+							onChange={(key) => {
 								const next = rows.map((r) =>
-									r.id === row.id ? { ...r, key: e.target.value } : r,
+									r.id === row.id ? { ...r, key } : r,
 								);
 								commitRows(next);
 							}}
 							placeholder="Content-Type"
-							className="h-8 font-mono text-xs"
+							completionMode="header-key"
+							className="h-8"
 						/>
 						<TemplateField
 							value={row.value}
@@ -90,6 +90,8 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 								commitRows(next);
 							}}
 							placeholder="application/json"
+							completionMode="header-value"
+							headerName={row.key}
 						/>
 						<Button
 							type="button"

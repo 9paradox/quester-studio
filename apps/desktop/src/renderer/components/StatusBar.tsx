@@ -4,6 +4,7 @@ import {
 	selectAnyDirty,
 	selectStatusLabel,
 } from "@/stores/selectors.js";
+import { IconLoader2 } from "@tabler/icons-react";
 
 export function StatusBar() {
 	const workspaceName = useQuesterStore((s) => s.workspaceName);
@@ -12,6 +13,7 @@ export function StatusBar() {
 	const activeFlowTab = useQuesterStore(selectActiveFlowTab);
 	const openTabCount = useQuesterStore((s) => s.openTabs.length);
 	const isRunning = useQuesterStore((s) => s.isRunning);
+	const pathIndexStatus = useQuesterStore((s) => s.pathIndexStatus);
 	const zoom = useQuesterStore((s) => s.zoom);
 	const dirty = useQuesterStore(selectAnyDirty);
 
@@ -34,6 +36,15 @@ export function StatusBar() {
 					<>
 						<span className="text-border">|</span>
 						<span className="text-primary">Running…</span>
+					</>
+				) : null}
+				{pathIndexStatus === "updating" ? (
+					<>
+						<span className="text-border">|</span>
+						<span className="inline-flex items-center gap-1 text-primary">
+							<IconLoader2 className="size-3 animate-spin" aria-hidden />
+							Indexing paths…
+						</span>
 					</>
 				) : null}
 			</div>

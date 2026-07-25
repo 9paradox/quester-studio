@@ -25,11 +25,13 @@ function ResultWithInput({
 	input,
 	error,
 	resultLabel = "Result",
+	pathCopyNodeId = null,
 }: {
 	result: unknown;
 	input: unknown;
 	error?: string;
 	resultLabel?: string;
+	pathCopyNodeId?: string | null;
 }) {
 	return (
 		<div className="flex flex-col gap-4">
@@ -38,7 +40,13 @@ function ResultWithInput({
 				<h3 className="text-xs font-medium text-muted-foreground">
 					{resultLabel}
 				</h3>
-				{!error ? <JsonPane value={result} defaultExpandedDepth={4} /> : null}
+				{!error ? (
+					<JsonPane
+						value={result}
+						defaultExpandedDepth={4}
+						pathCopyNodeId={pathCopyNodeId}
+					/>
+				) : null}
 			</section>
 			<Separator />
 			<section className="flex flex-col gap-2">
@@ -85,7 +93,7 @@ function AssertPanels({ step }: { step: StepView }) {
 			{!step.error ? (
 				<section className="flex flex-col gap-2">
 					<h3 className="text-xs font-medium text-muted-foreground">Output</h3>
-					<JsonPane value={step.output} />
+					<JsonPane value={step.output} pathCopyNodeId={step.nodeId} />
 				</section>
 			) : null}
 
@@ -257,7 +265,11 @@ export function NodeResponsePanels({
 					<h3 className="text-xs font-medium text-muted-foreground">
 						Response
 					</h3>
-					<HttpResponsePanel output={step.output} error={step.error} />
+					<HttpResponsePanel
+						output={step.output}
+						error={step.error}
+						pathCopyNodeId={step.nodeId}
+					/>
 				</section>
 			</>
 		);
@@ -280,6 +292,7 @@ export function NodeResponsePanels({
 					result={step.output}
 					input={step.input}
 					error={step.error}
+					pathCopyNodeId={step.nodeId}
 				/>
 			);
 		case "transform":
@@ -290,6 +303,7 @@ export function NodeResponsePanels({
 					input={step.input}
 					error={step.error}
 					resultLabel="Merged / mapped result"
+					pathCopyNodeId={step.nodeId}
 				/>
 			);
 		case "input":
@@ -299,6 +313,7 @@ export function NodeResponsePanels({
 					input={step.input}
 					error={step.error}
 					resultLabel="Run payload"
+					pathCopyNodeId={step.nodeId}
 				/>
 			);
 		case "output":
@@ -308,6 +323,7 @@ export function NodeResponsePanels({
 					input={step.input}
 					error={step.error}
 					resultLabel="Flow result"
+					pathCopyNodeId={step.nodeId}
 				/>
 			);
 		default:

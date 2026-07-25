@@ -1,0 +1,8 @@
+{
+	"version": "v1",
+	"id": "search-user",
+	"name": "Search User",
+	"method": "GET",
+	"url": "{{env.API_BASE}}/users/search?q=John",
+	"headers": {}
+}

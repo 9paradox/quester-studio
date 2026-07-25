@@ -5,6 +5,7 @@ import {
 	autocompletion,
 } from "@codemirror/autocomplete";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { type Diagnostic, linter } from "@codemirror/lint";
 import {
 	EditorState,
 	type Extension,
@@ -17,11 +18,17 @@ import {
 	type PluginValue,
 	ViewPlugin,
 	type ViewUpdate,
+	hoverTooltip,
 } from "@codemirror/view";
 import { tags as t } from "@lezer/highlight";
 import {
 	type TemplateCompletionContext,
+	classifyJmesPath,
+	classifyTemplatePath,
+	etaSuggestions,
 	findTemplateRanges,
+	jmesPathSuggestions,
+	resolveTemplateHover,
 	templateSuggestions,
 } from "./templates.js";
 
@@ -59,6 +66,10 @@ export const questerEditorTheme = EditorView.theme({
 	".cm-lintRange-error": {
 		textDecoration: "underline wavy var(--destructive)",
 	},
+	".cm-lintRange-warning": {
+		textDecoration:
+			"underline wavy color-mix(in oklch, var(--muted-foreground) 80%, var(--primary))",
+	},
 	".cm-tooltip": {
 		backgroundColor: "var(--popover)",
 		color: "var(--popover-foreground)",
@@ -81,6 +92,22 @@ export const questerEditorTheme = EditorView.theme({
 		marginLeft: "0.75rem",
 	},
 	".cm-placeholder": { color: "var(--muted-foreground)" },
+	".cm-tooltip.cm-tooltip-hover": {
+		padding: "0.35rem 0.5rem",
+		fontFamily: "var(--font-mono, ui-monospace, monospace)",
+		fontSize: "11px",
+		maxWidth: "20rem",
+		lineHeight: "1.4",
+	},
+	".cm-template-hover-path": {
+		color: "var(--muted-foreground)",
+		marginBottom: "0.15rem",
+	},
+	".cm-template-hover-value": {
+		color: "var(--foreground)",
+		wordBreak: "break-all",
+		whiteSpace: "pre-wrap",
+	},
 });
 
 /** Token colors mapped to theme tokens (JSON / XML / HTML). */
@@ -130,6 +157,16 @@ export const templateHighlighter = ViewPlugin.fromClass(
 	{ decorations: (plugin) => plugin.decorations },
 );
 
+function toCompletionOptions(
+	suggestions: { label: string; detail: string }[],
+): Completion[] {
+	return suggestions.map((s) => ({
+		label: s.label,
+		detail: s.detail,
+		type: "variable",
+	}));
+}
+
 /**
  * Autocomplete for identifiers typed inside `{{ }}`. Reads the completion
  * context lazily so extensions stay stable across live flow edits.
@@ -148,18 +185,228 @@ export function templateCompletion(
 		if (suggestions.length === 0) return null;
 
 		const leading = word.length - word.replace(/^\s+/, "").length;
-		const options: Completion[] = suggestions.map((s) => ({
-			label: s.label,
-			detail: s.detail,
-			type: "variable",
-		}));
 		return {
 			from: open + 2 + leading,
-			options,
+			options: toCompletionOptions(suggestions),
 			validFor: /^[\w.[\]"']*$/,
 		};
 	};
 	return autocompletion({ override: [source], icons: false });
+}
+
+/** Prefix completion from a static suggestion list (e.g. HTTP header names). */
+export function staticCompletion(
+	getSuggestions: (word: string) => { label: string; detail: string }[],
+): Extension {
+	const source = (context: CompletionContext): CompletionResult | null => {
+		const line = context.state.doc.lineAt(context.pos);
+		const word = line.text.slice(0, context.pos - line.from);
+		const suggestions = getSuggestions(word);
+		if (suggestions.length === 0) return null;
+		return {
+			from: line.from,
+			options: toCompletionOptions(suggestions),
+			validFor: /^[\w\-./+ ;=*]*$/,
+		};
+	};
+	return autocompletion({ override: [source], icons: false });
+}
+
+/**
+ * Prefer `{{…}}` template completion when inside braces; otherwise use static
+ * suggestions (e.g. common header values).
+ */
+export function templateOrStaticCompletion(
+	getContext: () => TemplateCompletionContext,
+	getStatic: (word: string) => { label: string; detail: string }[],
+): Extension {
+	const source = (context: CompletionContext): CompletionResult | null => {
+		const before = context.state.doc.sliceString(0, context.pos);
+		const open = before.lastIndexOf("{{");
+		if (open !== -1) {
+			const word = before.slice(open + 2);
+			if (!word.includes("}}")) {
+				const suggestions = templateSuggestions(word, getContext());
+				if (suggestions.length > 0) {
+					const leading = word.length - word.replace(/^\s+/, "").length;
+					return {
+						from: open + 2 + leading,
+						options: toCompletionOptions(suggestions),
+						validFor: /^[\w.[\]"']*$/,
+					};
+				}
+			}
+		}
+
+		const line = context.state.doc.lineAt(context.pos);
+		const word = line.text.slice(0, context.pos - line.from);
+		const suggestions = getStatic(word);
+		if (suggestions.length === 0) return null;
+		return {
+			from: line.from,
+			options: toCompletionOptions(suggestions),
+			validFor: /^[\w\-./+ ;=*{}]*$/,
+		};
+	};
+	return autocompletion({ override: [source], icons: false });
+}
+
+/** Always-on JMESPath path completion. */
+export function jmesPathCompletion(getPaths: () => string[]): Extension {
+	const source = (context: CompletionContext): CompletionResult | null => {
+		const line = context.state.doc.lineAt(context.pos);
+		const word = line.text.slice(0, context.pos - line.from);
+		const suggestions = jmesPathSuggestions(word, getPaths());
+		if (suggestions.length === 0) return null;
+		return {
+			from: line.from,
+			options: toCompletionOptions(suggestions),
+			validFor: /^[\w.[\]"']*$/,
+		};
+	};
+	return autocompletion({ override: [source], icons: false });
+}
+
+/**
+ * Eta `it.*` completion inside `<%= %>` / `<% %>`, combined with template
+ * completion via a single override source.
+ */
+export function templateAndEtaCompletion(
+	getContext: () => TemplateCompletionContext,
+): Extension {
+	const source = (context: CompletionContext): CompletionResult | null => {
+		const before = context.state.doc.sliceString(0, context.pos);
+		const after = context.state.doc.sliceString(context.pos);
+
+		// Prefer open {{ }} template token
+		const openTpl = before.lastIndexOf("{{");
+		if (openTpl !== -1) {
+			const word = before.slice(openTpl + 2);
+			if (!word.includes("}}")) {
+				const suggestions = templateSuggestions(word, getContext());
+				if (suggestions.length > 0) {
+					const leading = word.length - word.replace(/^\s+/, "").length;
+					return {
+						from: openTpl + 2 + leading,
+						options: toCompletionOptions(suggestions),
+						validFor: /^[\w.[\]"']*$/,
+					};
+				}
+			}
+		}
+
+		// Eta tag: find last <% or <%= before cursor, ensure %> not closed
+		const openEtaAssign = before.lastIndexOf("<%=");
+		const openEta = before.lastIndexOf("<%");
+		const open =
+			openEtaAssign >= openEta ? openEtaAssign : openEta >= 0 ? openEta : -1;
+		if (open === -1) return null;
+		const tagStart = before.slice(open).startsWith("<%=") ? open + 3 : open + 2;
+		const inside = before.slice(tagStart);
+		if (inside.includes("%>")) return null;
+		// Also require closing %> somewhere after cursor or allow incomplete
+		if (after.includes("%>") === false && !context.explicit) {
+			// still allow if cursor is mid-tag
+		}
+
+		const itIdx = inside.lastIndexOf("it");
+		if (itIdx === -1) {
+			if (context.explicit || /\bit$/.test(inside) || inside.trim() === "") {
+				const suggestions = etaSuggestions("it", getContext());
+				return {
+					from: context.pos,
+					options: toCompletionOptions(suggestions),
+					validFor: /^[\w.]*$/,
+				};
+			}
+			return null;
+		}
+		const word = inside.slice(itIdx);
+		if (/[^.\w]/.test(word.slice(2))) return null;
+		const suggestions = etaSuggestions(word, getContext());
+		if (suggestions.length === 0) return null;
+		return {
+			from: tagStart + itIdx,
+			options: toCompletionOptions(suggestions),
+			validFor: /^[\w.]*$/,
+		};
+	};
+	return autocompletion({ override: [source], icons: false });
+}
+
+/** Hover preview for complete `{{…}}` tokens (env shows value; secrets stay masked). */
+export function templateHoverTooltip(
+	getContext: () => TemplateCompletionContext,
+): Extension {
+	return hoverTooltip((view, pos) => {
+		const text = view.state.doc.toString();
+		for (const range of findTemplateRanges(text)) {
+			if (pos < range.from || pos > range.to) continue;
+			const token = text.slice(range.from, range.to);
+			const body = token.slice(2, -2);
+			const info = resolveTemplateHover(body, getContext());
+			if (!info) return null;
+			return {
+				pos: range.from,
+				end: range.to,
+				above: true,
+				create: () => {
+					const dom = document.createElement("div");
+					const pathEl = document.createElement("div");
+					pathEl.className = "cm-template-hover-path";
+					pathEl.textContent = `${info.source} · ${info.path}`;
+					const valueEl = document.createElement("div");
+					valueEl.className = "cm-template-hover-value";
+					valueEl.textContent = info.display;
+					dom.append(pathEl, valueEl);
+					return { dom };
+				},
+			};
+		}
+		return null;
+	});
+}
+
+/** Warn-only lint for unknown template paths. */
+export function templatePathLinter(
+	getContext: () => TemplateCompletionContext,
+): Extension {
+	return linter((view) => {
+		const text = view.state.doc.toString();
+		const ctx = getContext();
+		const diagnostics: Diagnostic[] = [];
+		for (const range of findTemplateRanges(text)) {
+			const token = text.slice(range.from, range.to);
+			const body = token.slice(2, -2);
+			const status = classifyTemplatePath(body, ctx);
+			if (status === "unknown") {
+				diagnostics.push({
+					from: range.from,
+					to: range.to,
+					severity: "warning",
+					message: "Unknown path — not seen in last run, env, or node contract",
+				});
+			}
+		}
+		return diagnostics;
+	});
+}
+
+/** Warn-only lint for unknown JMESPath against known paths. */
+export function jmesPathLinter(getPaths: () => string[]): Extension {
+	return linter((view) => {
+		const text = view.state.doc.toString().trim();
+		const status = classifyJmesPath(text, getPaths());
+		if (status !== "unknown") return [];
+		return [
+			{
+				from: 0,
+				to: view.state.doc.length,
+				severity: "warning",
+				message: "Unknown path — not seen in last run or node contract",
+			},
+		];
+	});
 }
 
 /** Collapses newlines to keep an editor visually single-line. */

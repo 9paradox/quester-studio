@@ -204,6 +204,14 @@ export type DesktopRPC = {
 				};
 				response: ExecuteRequestRpcResult;
 			};
+			readPathShapes: {
+				params: { workspace: string };
+				response: unknown;
+			};
+			writePathShapes: {
+				params: { workspace: string; data: unknown };
+				response: { ok: true };
+			};
 		};
 		messages: Record<string, never>;
 	}>;
