@@ -130,6 +130,7 @@ export function Panel() {
 	const togglePanel = useQuesterStore((s) => s.togglePanel);
 	const setPanelHeight = useQuesterStore((s) => s.setPanelHeight);
 	const clearConsole = useQuesterStore((s) => s.clearConsole);
+	const clearLogs = useQuesterStore((s) => s.clearLogs);
 
 	const logs = runResult?.logs ?? [];
 	const dragging = useRef(false);
@@ -305,6 +306,15 @@ export function Panel() {
 									aria-label="Copy logs"
 								>
 									<IconCopy />
+								</Button>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon-xs"
+									onClick={clearLogs}
+									aria-label="Clear logs"
+								>
+									<IconTrash />
 								</Button>
 							</>
 						)}

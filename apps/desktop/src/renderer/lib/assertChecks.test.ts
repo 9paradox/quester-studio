@@ -12,6 +12,13 @@ describe("assert checks helpers", () => {
 		expect(normalizeAssertChecks([])).toEqual([{ path: "ok" }]);
 	});
 
+	test("normalizeAssertChecks preserves empty draft paths", () => {
+		expect(normalizeAssertChecks([{ path: "" }])).toEqual([{ path: "" }]);
+		expect(normalizeAssertChecks([{ path: "", equals: 1 }])).toEqual([
+			{ path: "", equals: 1 },
+		]);
+	});
+
 	test("preserves equals including falsy values", () => {
 		const checks = normalizeAssertChecks([
 			{ path: "status", equals: 0 },

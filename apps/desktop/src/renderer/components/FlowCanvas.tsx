@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button.js";
 import {
 	ContextMenu,
 	ContextMenuContent,
@@ -14,6 +15,7 @@ import {
 import { readNodeDragData, readRequestDragData } from "@/lib/dnd.js";
 import { flowToReactFlow, reactFlowToFlow } from "@/lib/flowEditor.js";
 import type { BuiltinNodeType, FlowV1 } from "@quester/schema";
+import { IconFocusCentered, IconMinus, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	Background,
@@ -23,6 +25,7 @@ import {
 	type EdgeChange,
 	type Node,
 	type NodeChange,
+	Panel,
 	ReactFlow,
 	ReactFlowProvider,
 	addEdge,
@@ -200,7 +203,8 @@ function FlowCanvasInner({
 	onSave?: () => void;
 	canSave?: boolean;
 }) {
-	const { zoomIn, zoomOut, getZoom, screenToFlowPosition } = useReactFlow();
+	const { zoomIn, zoomOut, fitView, getZoom, screenToFlowPosition } =
+		useReactFlow();
 	const [nodes, setNodes] = useState<Node[]>(() => flowToReactFlow(flow).nodes);
 	const [edges, setEdges] = useState<Edge[]>(() => flowToReactFlow(flow).edges);
 	const [contextTarget, setContextTarget] = useState<ContextTarget>({
@@ -254,9 +258,14 @@ function FlowCanvasInner({
 
 	const handleNodesChange = useCallback(
 		(changes: NodeChange[]) => {
-			const graphEdit = changes.some(
-				(change) => change.type !== "select" && change.type !== "dimensions",
+			const resizeEnded = changes.some(
+				(change) => change.type === "dimensions" && change.resizing === false,
 			);
+			const graphEdit =
+				resizeEnded ||
+				changes.some(
+					(change) => change.type !== "select" && change.type !== "dimensions",
+				);
 			setNodes((current) => {
 				const next = applyNodeChanges(changes, current);
 				if (graphEdit) {
@@ -397,6 +406,41 @@ function FlowCanvasInner({
 						size={1.5}
 						color="color-mix(in oklch, var(--foreground) 22%, transparent)"
 					/>
+					<Panel
+						position="bottom-right"
+						className="m-3 flex flex-col overflow-hidden rounded-md border border-border bg-background/95 p-0 shadow-sm backdrop-blur-sm"
+					>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon-sm"
+							className="rounded-none border-b border-border"
+							aria-label="Zoom in"
+							onClick={() => zoomIn()}
+						>
+							<IconPlus />
+						</Button>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon-sm"
+							className="rounded-none border-b border-border"
+							aria-label="Zoom out"
+							onClick={() => zoomOut()}
+						>
+							<IconMinus />
+						</Button>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon-sm"
+							className="rounded-none"
+							aria-label="Fit view"
+							onClick={() => void fitView({ padding: 0.15, duration: 200 })}
+						>
+							<IconFocusCentered />
+						</Button>
+					</Panel>
 					<FitViewOnLoad
 						flowId={flow.id}
 						workspacePath={workspacePath}

@@ -47,9 +47,12 @@ export const questerEditorTheme = EditorView.theme({
 	".cm-content": { padding: "0", caretColor: "var(--foreground)" },
 	".cm-line": { padding: "0 2px" },
 	".cm-cursor, .cm-dropCursor": { borderLeftColor: "var(--foreground)" },
+	/* Opaque mid-tone so light syntax keys stay readable over the highlight */
 	".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
-		backgroundColor: "color-mix(in oklch, var(--primary) 25%, transparent)",
+		backgroundColor: "var(--editor-selection) !important",
 	},
+	"& ::selection": { backgroundColor: "transparent" },
+	"& ::-moz-selection": { backgroundColor: "transparent" },
 	".cm-activeLine": { backgroundColor: "transparent" },
 	".cm-gutters": {
 		backgroundColor: "transparent",

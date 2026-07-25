@@ -1,4 +1,5 @@
 import { Alert, AlertDescription } from "@/components/ui/alert.js";
+import { Toaster } from "@/components/ui/sonner.js";
 import { TooltipProvider } from "@/components/ui/tooltip.js";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
@@ -59,6 +60,7 @@ export function AppShell() {
 					<StatusBar />
 				</div>
 				<PlaygroundSheet />
+				<Toaster position="top-center" richColors closeButton />
 			</div>
 		</TooltipProvider>
 	);

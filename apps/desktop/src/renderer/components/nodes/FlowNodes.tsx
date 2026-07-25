@@ -4,14 +4,19 @@ import {
 } from "@/components/AssertChecksEditor.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectNodeRunStatus } from "@/stores/selectors.js";
+import { NodeResizer } from "@reactflow/node-resizer";
 import type { NodeProps } from "reactflow";
 import { useEdges } from "reactflow";
+import "@reactflow/node-resizer/dist/style.css";
 import {
 	BaseFlowNode,
 	type FlowNodeData,
 	isHandleConnected,
 } from "../BaseFlowNode.js";
 import { JsonViewer } from "../JsonViewer.js";
+
+const JSON_NODE_MIN_WIDTH = 210;
+const JSON_NODE_MIN_HEIGHT = 140;
 
 function useNodeRunStatus(nodeId: string) {
 	return useQuesterStore((s) => selectNodeRunStatus(s, nodeId));
@@ -251,23 +256,33 @@ export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const runResult = useQuesterStore((s) => s.runResult);
 	const output = runResult?.nodeOutputs?.[id];
 	return (
-		<BaseFlowNode
-			type="json"
-			title={data.label ?? "JSON"}
-			subtitle={String(data.expression ?? "previous")}
-			selected={selected}
-			runStatus={runStatus}
-			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
-			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
-		>
-			{output !== undefined ? (
-				<div className="max-h-40 max-w-[280px] overflow-auto rounded border bg-background/80 p-1 text-left">
-					<JsonViewer value={output} defaultExpandedDepth={1} />
-				</div>
-			) : (
-				<span className="text-muted-foreground">Run flow to preview</span>
-			)}
-		</BaseFlowNode>
+		<>
+			<NodeResizer
+				isVisible={Boolean(selected)}
+				minWidth={JSON_NODE_MIN_WIDTH}
+				minHeight={JSON_NODE_MIN_HEIGHT}
+				lineClassName="!border-primary"
+				handleClassName="!size-2 !rounded-sm !border-primary !bg-background"
+			/>
+			<BaseFlowNode
+				type="json"
+				title={data.label ?? "JSON"}
+				subtitle={String(data.expression ?? "previous")}
+				selected={selected}
+				runStatus={runStatus}
+				fill
+				targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+				sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+			>
+				{output !== undefined ? (
+					<div className="min-h-0 flex-1 overflow-auto rounded border bg-background/80 p-1 text-left">
+						<JsonViewer value={output} defaultExpandedDepth={1} />
+					</div>
+				) : (
+					<span className="text-muted-foreground">Run flow to preview</span>
+				)}
+			</BaseFlowNode>
+		</>
 	);
 }
 

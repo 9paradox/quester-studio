@@ -1,9 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import type { FlowV1 } from "@quester/schema";
 import {
+	addNodeToFlow,
 	deleteEdgesFromFlow,
 	deleteNodesFromFlow,
 	duplicateNodeInFlow,
+	flowToReactFlow,
+	reactFlowToFlow,
 } from "./flowEditor.js";
 
 const sampleFlow: FlowV1 = {
@@ -81,5 +84,76 @@ describe("duplicateNodeInFlow", () => {
 			edges: [],
 		};
 		expect(duplicateNodeInFlow(withStart, "start")).toBeNull();
+	});
+
+	test("preserves width and height when duplicating", () => {
+		const withJson: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				...sampleFlow.nodes,
+				{
+					id: "json-1",
+					type: "json",
+					data: { label: "Out" },
+					position: { x: 400, y: 80 },
+					width: 320,
+					height: 240,
+				},
+			],
+		};
+		const result = duplicateNodeInFlow(withJson, "json-1");
+		expect(result).not.toBeNull();
+		if (!result) return;
+		const copy = result.flow.nodes.find((n) => n.id === result.newNodeId);
+		expect(copy?.width).toBe(320);
+		expect(copy?.height).toBe(240);
+	});
+});
+
+describe("json node size mapping", () => {
+	test("addNodeToFlow sets default size for json nodes", () => {
+		const next = addNodeToFlow(sampleFlow, "json", { x: 10, y: 20 });
+		const json = next.nodes.find((n) => n.type === "json");
+		expect(json?.width).toBe(280);
+		expect(json?.height).toBe(220);
+	});
+
+	test("flowToReactFlow applies default size for json nodes", () => {
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{
+					id: "json-1",
+					type: "json",
+					data: { label: "JSON" },
+					position: { x: 0, y: 0 },
+				},
+			],
+			edges: [],
+		};
+		const { nodes } = flowToReactFlow(flow);
+		expect(nodes[0]?.width).toBe(280);
+		expect(nodes[0]?.height).toBe(220);
+	});
+
+	test("reactFlowToFlow persists width and height", () => {
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{
+					id: "json-1",
+					type: "json",
+					data: { label: "JSON" },
+					position: { x: 0, y: 0 },
+					width: 300,
+					height: 200,
+				},
+			],
+			edges: [],
+		};
+		const rf = flowToReactFlow(flow);
+		const roundTrip = reactFlowToFlow(flow, rf.nodes, rf.edges);
+		expect(roundTrip.nodes[0]?.width).toBe(300);
+		expect(roundTrip.nodes[0]?.height).toBe(200);
 	});
 });
