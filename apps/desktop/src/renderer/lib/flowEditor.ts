@@ -2,6 +2,9 @@ import type { BuiltinNodeType, FlowV1 } from "@quester/schema";
 import type { Edge, Node } from "reactflow";
 import { defaultNodeData, newNodeId } from "./nodeCatalog.js";
 
+const JSON_NODE_DEFAULT_WIDTH = 280;
+const JSON_NODE_DEFAULT_HEIGHT = 220;
+
 export type FlowTab = {
 	flowId: string;
 	flow: FlowV1;
@@ -22,15 +25,30 @@ export function flowToReactFlow(flow: FlowV1): {
 	nodes: Node[];
 	edges: Edge[];
 } {
-	const nodes = flow.nodes.map((n) => ({
-		id: n.id,
-		type: n.type,
-		position: n.position ?? { x: 0, y: 0 },
-		data: {
-			...(n.data as Record<string, unknown>),
-			label: (n.data as { label?: string })?.label ?? `${n.type} (${n.id})`,
-		},
-	}));
+	const nodes = flow.nodes.map((n) => {
+		const width =
+			n.width ?? (n.type === "json" ? JSON_NODE_DEFAULT_WIDTH : undefined);
+		const height =
+			n.height ?? (n.type === "json" ? JSON_NODE_DEFAULT_HEIGHT : undefined);
+		return {
+			id: n.id,
+			type: n.type,
+			position: n.position ?? { x: 0, y: 0 },
+			...(width != null ? { width } : {}),
+			...(height != null ? { height } : {}),
+			style:
+				width != null || height != null
+					? {
+							...(width != null ? { width } : {}),
+							...(height != null ? { height } : {}),
+						}
+					: undefined,
+			data: {
+				...(n.data as Record<string, unknown>),
+				label: (n.data as { label?: string })?.label ?? `${n.type} (${n.id})`,
+			},
+		};
+	});
 	const edges = flow.edges.map((e) => ({
 		id: e.id,
 		source: e.source,
@@ -47,12 +65,18 @@ export function reactFlowToFlow(
 ): FlowV1 {
 	return {
 		...baseFlow,
-		nodes: nodes.map((n) => ({
-			id: n.id,
-			type: n.type ?? "input",
-			data: stripNodeData(n.data as Record<string, unknown>),
-			position: n.position,
-		})),
+		nodes: nodes.map((n) => {
+			const width = readNodeSize(n, "width");
+			const height = readNodeSize(n, "height");
+			return {
+				id: n.id,
+				type: n.type ?? "input",
+				data: stripNodeData(n.data as Record<string, unknown>),
+				position: n.position,
+				...(width != null ? { width } : {}),
+				...(height != null ? { height } : {}),
+			};
+		}),
 		edges: edges.map((e) => ({
 			id: e.id,
 			source: e.source,
@@ -60,6 +84,33 @@ export function reactFlowToFlow(
 			sourceHandle: e.sourceHandle ?? null,
 		})),
 	};
+}
+
+function readNodeSize(
+	node: Node,
+	axis: "width" | "height",
+): number | undefined {
+	const fromNode = node[axis];
+	if (
+		typeof fromNode === "number" &&
+		Number.isFinite(fromNode) &&
+		fromNode > 0
+	) {
+		return fromNode;
+	}
+	const fromStyle = node.style?.[axis];
+	if (
+		typeof fromStyle === "number" &&
+		Number.isFinite(fromStyle) &&
+		fromStyle > 0
+	) {
+		return fromStyle;
+	}
+	if (typeof fromStyle === "string") {
+		const parsed = Number.parseFloat(fromStyle);
+		if (Number.isFinite(parsed) && parsed > 0) return parsed;
+	}
+	return undefined;
 }
 
 function stripNodeData(data: Record<string, unknown>): Record<string, unknown> {
@@ -87,6 +138,9 @@ export function addNodeToFlow(
 				type,
 				data: defaultNodeData(type),
 				position,
+				...(type === "json"
+					? { width: JSON_NODE_DEFAULT_WIDTH, height: JSON_NODE_DEFAULT_HEIGHT }
+					: {}),
 			},
 		],
 	};
@@ -146,6 +200,8 @@ export function duplicateNodeInFlow(
 					type,
 					data,
 					position,
+					...(node.width != null ? { width: node.width } : {}),
+					...(node.height != null ? { height: node.height } : {}),
 				},
 			],
 		},

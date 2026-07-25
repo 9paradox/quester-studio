@@ -51,8 +51,6 @@ export function EditorArea() {
 	const selectedEnv = useQuesterStore((s) => s.selectedEnv);
 	const isRunning = useQuesterStore((s) => s.isRunning);
 	const canRun = useQuesterStore(selectCanRun);
-	const canvasDirty = useQuesterStore((s) => s.canvasDirty);
-
 	const setSelectedEnv = useQuesterStore((s) => s.setSelectedEnv);
 	const runFlow = useQuesterStore((s) => s.runFlow);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
@@ -76,6 +74,7 @@ export function EditorArea() {
 
 	const onSave = () => void saveActiveTab();
 	const canSaveTab = Boolean(activeTab?.dirty);
+	const canSaveFlow = Boolean(activeTab?.kind === "flow" && activeTab.dirty);
 
 	if (!activeTab) {
 		return (
@@ -220,7 +219,7 @@ export function EditorArea() {
 					void handleDropRequest(path, position)
 				}
 				onSave={onSave}
-				canSave={canvasDirty}
+				canSave={canSaveFlow}
 			/>
 			<CanvasControls
 				envs={envs}
@@ -229,7 +228,7 @@ export function EditorArea() {
 				isRunning={isRunning}
 				canRun={canRun}
 				onRun={() => void runFlow()}
-				canSave={canvasDirty}
+				canSave={canSaveFlow}
 				onSave={onSave}
 			/>
 		</div>

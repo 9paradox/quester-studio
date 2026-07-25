@@ -31,6 +31,7 @@ import { DEFAULT_INPUT } from "@/lib/runDefaults.js";
 import type { BuiltinNodeType, FlowV1, RequestV1 } from "@quester/schema";
 import { SECRETS_VERSION } from "@quester/schema";
 import type { Edge, Node } from "reactflow";
+import { toast } from "sonner";
 import { create } from "zustand";
 import type {
 	ExecuteFlowRpcResult,
@@ -246,6 +247,7 @@ export type QuesterState = {
 
 	appendConsole: (line: string) => void;
 	clearConsole: () => void;
+	clearLogs: () => void;
 	showError: (message: string) => void;
 	handleActivityView: (view: ActivityView) => void;
 	openTab: (tab: EditorTab) => void;
@@ -422,8 +424,15 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	appendConsole: (line) =>
 		set((s) => ({ consoleLines: [...s.consoleLines, `> ${line}`] })),
 	clearConsole: () => set({ consoleLines: ["> Console cleared"] }),
-	showError: (message) =>
-		set({ runError: message, panelTab: "logs", panelOpen: true }),
+	clearLogs: () =>
+		set((s) => ({
+			runError: null,
+			runResult: s.runResult ? { ...s.runResult, logs: [] } : null,
+		})),
+	showError: (message) => {
+		toast.error(message);
+		set({ runError: message, panelTab: "logs", panelOpen: true });
+	},
 
 	handleActivityView: (view) => {
 		const { sidebarOpen, activityView } = get();
@@ -754,6 +763,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			...flow,
 			nodes: flow.nodes.map((n) => (n.id === nodeId ? { ...n, data } : n)),
 		}));
+		set({ canvasDirty: true });
 		scheduleInspectorAutosave();
 	},
 
@@ -1134,6 +1144,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			});
 			scheduleIndexNodeOutputs(result.nodeOutputs);
 			if (result.error) {
+				toast.error(result.error);
 				appendConsole(`Run failed: ${result.error}`);
 				const failedStep = result.steps.find((s) => s.error);
 				if (failedStep) {
@@ -1162,6 +1173,9 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				err instanceof Error
 					? [err.message, err.stack].filter(Boolean).join("\n")
 					: "Flow execution failed";
+			const short =
+				err instanceof Error ? err.message : "Flow execution failed";
+			toast.error(short);
 			const { activeRunId, nodeStatuses } = get();
 			if (activeRunId === runId) {
 				const reconciled = reconcileNodeStatuses(nodeIds, [], nodeStatuses);

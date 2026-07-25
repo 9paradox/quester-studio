@@ -57,6 +57,9 @@ export const flowNodeSchemaV1 = z.object({
 	type: z.string().min(1),
 	data: z.record(z.unknown()).default({}),
 	position: z.object({ x: z.number(), y: z.number() }).optional(),
+	/** Canvas layout size (UI only; optional for resizable nodes like `json`). */
+	width: z.number().positive().optional(),
+	height: z.number().positive().optional(),
 });
 
 export const flowEdgeSchemaV1 = z.object({

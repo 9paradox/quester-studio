@@ -29,7 +29,8 @@ export function normalizeAssertChecks(value: unknown): AssertCheck[] {
 			return { path: "ok" };
 		}
 		const row = item as Record<string, unknown>;
-		const path = typeof row.path === "string" && row.path ? row.path : "ok";
+		// Preserve empty draft paths while editing; only default when missing/invalid.
+		const path = typeof row.path === "string" ? row.path : "ok";
 		if ("equals" in row) return { path, equals: row.equals };
 		return { path };
 	});

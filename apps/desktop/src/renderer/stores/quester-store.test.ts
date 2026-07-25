@@ -341,7 +341,35 @@ describe("useQuesterStore", () => {
 			checks: [{ path: "status", equals: 200 }],
 		});
 		expect(next?.dirty).toBe(true);
+		expect(useQuesterStore.getState().canvasDirty).toBe(true);
 		expect(useQuesterStore.getState().selectedNodeId).toBe("assert-1");
+	});
+
+	test("clearLogs clears run logs and runError", () => {
+		resetStore();
+		useQuesterStore.setState({
+			runError: "Flow validation failed",
+			runResult: {
+				output: undefined,
+				nodeInputs: {},
+				nodeOutputs: {},
+				steps: [],
+				vars: {},
+				error: "Flow validation failed",
+				logs: [
+					{
+						ts: Date.now(),
+						level: "error",
+						phase: "error",
+						message: "Flow validation failed",
+					},
+				],
+			},
+		});
+		useQuesterStore.getState().clearLogs();
+		const state = useQuesterStore.getState();
+		expect(state.runError).toBeNull();
+		expect(state.runResult?.logs).toEqual([]);
 	});
 
 	test("handleEnvRowsChange keeps empty draft rows", () => {

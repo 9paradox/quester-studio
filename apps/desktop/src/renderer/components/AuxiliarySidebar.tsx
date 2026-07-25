@@ -1,5 +1,6 @@
 import { NodeInspector } from "@/components/NodeInspector.js";
 import { ResponseViewScroll } from "@/components/ResponseView.js";
+import { Button } from "@/components/ui/button.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { Separator } from "@/components/ui/separator.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
@@ -7,6 +8,7 @@ import {
 	selectActiveFlowTab,
 	selectRightPanelVisible,
 } from "@/stores/selectors.js";
+import { IconDeviceFloppy } from "@tabler/icons-react";
 
 export type { RightPanelTab } from "@/stores/quester-store.js";
 
@@ -19,6 +21,8 @@ export function AuxiliarySidebar() {
 	const runResult = useQuesterStore((s) => s.runResult);
 	const runError = useQuesterStore((s) => s.runError);
 	const handleUpdateNode = useQuesterStore((s) => s.handleUpdateNode);
+	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
+	const dirty = Boolean(flowTab?.dirty);
 
 	if (!open) return null;
 
@@ -30,8 +34,22 @@ export function AuxiliarySidebar() {
 			style={{ width }}
 			className="flex h-full min-h-0 shrink-0 flex-col border-l bg-sidebar text-sidebar-foreground"
 		>
-			<div className="shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/70">
-				{activeTab === "inspector" ? "Inspector" : "Response"}
+			<div className="flex h-9 shrink-0 items-center justify-between gap-2 px-3">
+				<span className="text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/70">
+					{activeTab === "inspector" ? "Inspector" : "Response"}
+				</span>
+				{activeTab === "inspector" ? (
+					<Button
+						type="button"
+						variant="outline"
+						size="xs"
+						disabled={!dirty}
+						onClick={() => void saveActiveTab()}
+					>
+						<IconDeviceFloppy data-icon="inline-start" />
+						Save
+					</Button>
+				) : null}
 			</div>
 			<Separator className="shrink-0 bg-sidebar-border" />
 			{activeTab === "inspector" ? (

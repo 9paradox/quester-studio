@@ -41,6 +41,9 @@ type BaseFlowNodeProps = {
 	sourcePorts?: PortSpec[];
 	selected?: boolean;
 	runStatus?: NodeRunStatus;
+	/** Fill the React Flow node box (for resizable nodes). */
+	fill?: boolean;
+	className?: string;
 };
 
 export function BaseFlowNode({
@@ -52,6 +55,8 @@ export function BaseFlowNode({
 	sourcePorts = [{}],
 	selected,
 	runStatus,
+	fill = false,
+	className,
 }: BaseFlowNodeProps) {
 	const presentation = getNodePresentation(type);
 	const TypeIcon = presentation.icon;
@@ -59,13 +64,17 @@ export function BaseFlowNode({
 	return (
 		<div
 			className={cn(
-				"relative min-w-[210px] max-w-[300px] overflow-hidden rounded-lg border bg-card text-card-foreground",
+				"relative overflow-hidden rounded-lg border bg-card text-card-foreground",
+				fill
+					? "flex h-full min-h-0 w-full min-w-0 flex-col"
+					: "min-w-[210px] max-w-[300px]",
 				presentation.accentTone,
 				"border-l-[3px]",
 				selected && "border-primary shadow-sm",
 				runStatus === "running" && "ring-1 ring-primary/40",
 				runStatus === "error" && "ring-1 ring-destructive/50",
 				runStatus === "skipped" && "opacity-70",
+				className,
 			)}
 			data-run-status={runStatus ?? "none"}
 		>
@@ -90,7 +99,7 @@ export function BaseFlowNode({
 				/>
 			))}
 
-			<div className="flex items-center gap-2 border-b border-border/60 bg-muted/20 px-2.5 py-2">
+			<div className="flex shrink-0 items-center gap-2 border-b border-border/60 bg-muted/20 px-2.5 py-2">
 				<Badge
 					variant="secondary"
 					className={cn(
@@ -114,7 +123,12 @@ export function BaseFlowNode({
 				{runStatus ? <NodeStatusIndicator status={runStatus} /> : null}
 			</div>
 			{children ? (
-				<div className="px-2.5 py-2 text-[11px] leading-relaxed text-muted-foreground">
+				<div
+					className={cn(
+						"px-2.5 py-2 text-[11px] leading-relaxed text-muted-foreground",
+						fill && "flex min-h-0 flex-1 flex-col",
+					)}
+				>
 					{children}
 				</div>
 			) : null}
