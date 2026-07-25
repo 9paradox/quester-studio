@@ -19,6 +19,14 @@ import {
 	reactFlowToFlow,
 } from "@/lib/flowEditor.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
+import { indexCollectionResponse, indexNodeOutputs } from "@/lib/pathIndex.js";
+import {
+	type PathShapeIndex,
+	emptyPathShapeIndex,
+	parsePathShapes,
+	scheduleIdle,
+	serializePathShapes,
+} from "@/lib/pathShapes.js";
 import { DEFAULT_INPUT } from "@/lib/runDefaults.js";
 import type { BuiltinNodeType, FlowV1, RequestV1 } from "@quester/schema";
 import { SECRETS_VERSION } from "@quester/schema";
@@ -48,13 +56,16 @@ import { slugifyName } from "./slugify.js";
 
 export type RightPanelTab = "inspector" | "response";
 export type PanelTab = "console" | "logs";
+export type PathIndexStatus = "idle" | "updating";
 
 const DEFAULT_PANEL_HEIGHT = 180;
 const DEFAULT_SIDEBAR_WIDTH = 240;
 const DEFAULT_RIGHT_WIDTH = 320;
 const INSPECTOR_AUTOSAVE_MS = 500;
+const PATH_SHAPES_WRITE_MS = 800;
 
 let inspectorAutosaveTimer: ReturnType<typeof setTimeout> | null = null;
+let pathShapesWriteTimer: ReturnType<typeof setTimeout> | null = null;
 
 function scheduleInspectorAutosave() {
 	if (inspectorAutosaveTimer) clearTimeout(inspectorAutosaveTimer);
@@ -68,6 +79,78 @@ export function cancelInspectorAutosave() {
 	if (!inspectorAutosaveTimer) return;
 	clearTimeout(inspectorAutosaveTimer);
 	inspectorAutosaveTimer = null;
+}
+
+function schedulePathShapesPersist() {
+	if (pathShapesWriteTimer) clearTimeout(pathShapesWriteTimer);
+	pathShapesWriteTimer = setTimeout(() => {
+		pathShapesWriteTimer = null;
+		void persistPathShapes();
+	}, PATH_SHAPES_WRITE_MS);
+}
+
+async function persistPathShapes() {
+	const { workspacePath, pathShapeIndex } = useQuesterStore.getState();
+	if (!workspacePath) return;
+	try {
+		await desktopRpc.writePathShapes(
+			workspacePath,
+			serializePathShapes(pathShapeIndex),
+		);
+	} catch {
+		/* non-blocking */
+	}
+}
+
+function hydratePathShapes(workspace: string) {
+	void (async () => {
+		try {
+			const raw = await desktopRpc.readPathShapes(workspace);
+			if (useQuesterStore.getState().workspacePath !== workspace) return;
+			useQuesterStore.setState({
+				pathShapeIndex: parsePathShapes(raw),
+			});
+		} catch {
+			/* missing/corrupt → keep empty */
+		}
+	})();
+}
+
+function scheduleIndexNodeOutputs(
+	nodeOutputs: Record<string, unknown> | undefined,
+) {
+	if (!nodeOutputs) return;
+	useQuesterStore.setState({ pathIndexStatus: "updating" });
+	scheduleIdle(() => {
+		const { pathShapeIndex } = useQuesterStore.getState();
+		const next = indexNodeOutputs(pathShapeIndex, nodeOutputs);
+		useQuesterStore.setState({
+			pathShapeIndex: next,
+			pathIndexStatus: "idle",
+		});
+		schedulePathShapesPersist();
+	});
+}
+
+function scheduleIndexCollectionResponse(
+	requestPath: string,
+	httpOutput: unknown,
+) {
+	if (httpOutput === undefined || httpOutput === null) return;
+	useQuesterStore.setState({ pathIndexStatus: "updating" });
+	scheduleIdle(() => {
+		const { pathShapeIndex } = useQuesterStore.getState();
+		const next = indexCollectionResponse(
+			pathShapeIndex,
+			requestPath,
+			httpOutput,
+		);
+		useQuesterStore.setState({
+			pathShapeIndex: next,
+			pathIndexStatus: "idle",
+		});
+		schedulePathShapesPersist();
+	});
 }
 
 function flowJsonEqual(a: FlowV1, b: FlowV1): boolean {
@@ -98,8 +181,13 @@ export type QuesterState = {
 	selectedEnv: string;
 	/** Cached `{{env.*}}` keys for `selectedEnv` (when env tab is closed). */
 	templateEnvKeys: string[];
+	/** Cached env variable values for hover previews (never secrets). */
+	templateEnvValues: Record<string, string | number | boolean>;
 	/** Cached `{{secrets.*}}` keys for `selectedEnv` (when secrets tab is closed). */
 	templateSecretKeys: string[];
+	/** Learned JSON paths (keys only) for autocomplete. */
+	pathShapeIndex: PathShapeIndex;
+	pathIndexStatus: PathIndexStatus;
 	isLoading: boolean;
 	loadError: string | null;
 
@@ -221,7 +309,10 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	secretFiles: [],
 	selectedEnv: "local",
 	templateEnvKeys: [],
+	templateEnvValues: {},
 	templateSecretKeys: [],
+	pathShapeIndex: emptyPathShapeIndex(),
+	pathIndexStatus: "idle",
 	isLoading: true,
 	loadError: null,
 
@@ -274,7 +365,11 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	refreshTemplateKeys: async () => {
 		const { workspacePath, selectedEnv } = get();
 		if (!workspacePath) {
-			set({ templateEnvKeys: [], templateSecretKeys: [] });
+			set({
+				templateEnvKeys: [],
+				templateEnvValues: {},
+				templateSecretKeys: [],
+			});
 			return;
 		}
 		const [envResult, secretKeys] = await Promise.all([
@@ -283,6 +378,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		]);
 		set({
 			templateEnvKeys: envResult ? Object.keys(envResult.variables) : [],
+			templateEnvValues: envResult ? { ...envResult.variables } : {},
 			templateSecretKeys: secretKeys,
 		});
 	},
@@ -446,6 +542,8 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			openTabs: [],
 			activeTabId: null,
 			canvasDirty: false,
+			pathShapeIndex: emptyPathShapeIndex(),
+			pathIndexStatus: "idle",
 		});
 		try {
 			const summary = await desktopRpc.openWorkspaceSummary(path);
@@ -456,6 +554,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				workspaceName: summary.name,
 				selectedEnv: env,
 			});
+			hydratePathShapes(path);
 			await get().refreshTemplateKeys();
 			appendConsole(`Workspace loaded: ${summary.name}`);
 
@@ -522,6 +621,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const { activeTabId, selectedEnv } = get();
 		if (!activeTabId) return;
 		const keys = rows.map((r) => r.key.trim()).filter(Boolean);
+		const values = rowsToEnvVariables(rows);
 		set((s) => {
 			const tab = s.openTabs.find((t) => t.id === activeTabId);
 			const matchesSelected =
@@ -534,13 +634,15 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 								rows,
 								environment: {
 									...t.environment,
-									variables: rowsToEnvVariables(rows),
+									variables: values,
 								},
 								dirty: true,
 							}
 						: t,
 				),
-				...(matchesSelected ? { templateEnvKeys: keys } : {}),
+				...(matchesSelected
+					? { templateEnvKeys: keys, templateEnvValues: values }
+					: {}),
 			};
 		});
 	},
@@ -1030,6 +1132,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				runError: result.error ?? null,
 				...(activeRunId === runId ? { nodeStatuses: reconciled } : {}),
 			});
+			scheduleIndexNodeOutputs(result.nodeOutputs);
 			if (result.error) {
 				appendConsole(`Run failed: ${result.error}`);
 				const failedStep = result.steps.find((s) => s.error);
@@ -1186,6 +1289,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				requestResult: result,
 				requestError: result.error ?? null,
 			});
+			scheduleIndexCollectionResponse(tab.requestPath, result.httpOutput);
 			if (result.error) {
 				appendConsole(`Request failed: ${result.error}`);
 			} else {

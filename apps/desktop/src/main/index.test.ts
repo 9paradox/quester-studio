@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import {
 	createFlow,
@@ -16,9 +17,11 @@ import {
 	loadSecretsFile,
 	openWorkspace,
 	openWorkspaceSummary,
+	readPathShapes,
 	renameFlow,
 	saveEnvironment,
 	saveFlow,
+	writePathShapes,
 } from "./handlers.js";
 
 const sampleWorkspace = join(
@@ -418,5 +421,23 @@ describe("desktop main handlers", () => {
 	test("listSecretFiles returns secret file metadata", async () => {
 		const files = await listSecretFiles(sampleWorkspace);
 		expect(Array.isArray(files)).toBe(true);
+	});
+
+	test("readPathShapes writePathShapes round-trip under .quester", async () => {
+		const payload = {
+			version: 1,
+			updatedAt: 1,
+			sources: {
+				"nodes.login": { paths: ["status", "body.id"], lastSeen: 1 },
+			},
+		};
+		await writePathShapes(sampleWorkspace, payload);
+		const loaded = await readPathShapes(sampleWorkspace);
+		expect(loaded).toEqual(payload);
+		await rm(join(sampleWorkspace, ".quester"), {
+			recursive: true,
+			force: true,
+		});
+		expect(await readPathShapes(sampleWorkspace)).toBeNull();
 	});
 });

@@ -138,6 +138,10 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 					workspace,
 					env,
 				}),
+			readPathShapes: async ({ workspace }) =>
+				(await import("./handlers.js")).readPathShapes(workspace),
+			writePathShapes: async ({ workspace, data }) =>
+				(await import("./handlers.js")).writePathShapes(workspace, data),
 		},
 		messages: {},
 	},

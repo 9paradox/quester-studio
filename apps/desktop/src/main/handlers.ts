@@ -759,3 +759,37 @@ export async function executeRequestRpc(
 		throw error;
 	}
 }
+
+const PATH_SHAPES_FILE = "path-shapes.json";
+
+function pathShapesFilePath(workspace: string): string {
+	const root = resolve(workspace);
+	const dir = join(root, ".quester");
+	const file = join(dir, PATH_SHAPES_FILE);
+	const resolvedFile = resolve(file);
+	if (!resolvedFile.startsWith(root)) {
+		throw new Error("Invalid path shapes location");
+	}
+	return resolvedFile;
+}
+
+/** Read learned path-shape cache (paths only). Missing file → null. */
+export async function readPathShapes(workspace: string): Promise<unknown> {
+	const file = pathShapesFilePath(workspace);
+	try {
+		return JSON.parse(await readFile(file, "utf8")) as unknown;
+	} catch {
+		return null;
+	}
+}
+
+/** Write learned path-shape cache under workspace/.quester/. */
+export async function writePathShapes(
+	workspace: string,
+	data: unknown,
+): Promise<{ ok: true }> {
+	const file = pathShapesFilePath(workspace);
+	await mkdir(dirname(file), { recursive: true });
+	await writeFile(file, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+	return { ok: true };
+}

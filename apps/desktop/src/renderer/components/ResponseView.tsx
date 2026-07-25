@@ -72,7 +72,11 @@ export function ResponseView({
 							</h3>
 							<Badge variant="outline">final</Badge>
 						</div>
-						<JsonViewer value={runResult.output} defaultExpandedDepth={3} />
+						<JsonViewer
+							value={runResult.output}
+							defaultExpandedDepth={3}
+							enablePathCopy
+						/>
 					</section>
 				) : null}
 			</div>

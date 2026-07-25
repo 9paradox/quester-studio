@@ -4,7 +4,7 @@ import {
 	formatAssertCheckSummary,
 	normalizeAssertChecks,
 	setAssertCheckMode,
-} from "../components/AssertChecksEditor.js";
+} from "./assertChecks.js";
 
 describe("assert checks helpers", () => {
 	test("normalizeAssertChecks fills a minimal valid check", () => {

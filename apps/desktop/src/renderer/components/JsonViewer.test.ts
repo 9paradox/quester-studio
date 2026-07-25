@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { stringifyJson } from "./JsonViewer.js";
+import { pathFromSegments, stringifyJson } from "./JsonViewer.js";
 
 describe("stringifyJson", () => {
 	test("pretty-prints objects", () => {
@@ -10,5 +10,12 @@ describe("stringifyJson", () => {
 		expect(stringifyJson("hi")).toBe('"hi"');
 		expect(stringifyJson(null)).toBe("null");
 		expect(stringifyJson(true)).toBe("true");
+	});
+});
+
+describe("pathFromSegments", () => {
+	test("matches JMESPath-style paths", () => {
+		expect(pathFromSegments(["body", "user", "id"])).toBe("body.user.id");
+		expect(pathFromSegments(["items", 0, "name"])).toBe("items[0].name");
 	});
 });

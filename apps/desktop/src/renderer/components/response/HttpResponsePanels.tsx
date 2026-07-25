@@ -78,9 +78,11 @@ export function HttpRequestPanel({
 export function HttpResponsePanel({
 	output,
 	error,
+	pathCopyNodeId = null,
 }: {
 	output: unknown;
 	error?: string;
+	pathCopyNodeId?: string | null;
 }) {
 	const http: HttpOutputShape | null = isHttpOutput(output) ? output : null;
 
@@ -121,6 +123,8 @@ export function HttpResponsePanel({
 							value={http.body}
 							defaultExpandedDepth={4}
 							showRaw={false}
+							pathCopyNodeId={pathCopyNodeId}
+							pathPrefix="body"
 						/>
 					</TabsContent>
 					<TabsContent value="headers" className="mt-2">
@@ -133,7 +137,7 @@ export function HttpResponsePanel({
 					</TabsContent>
 				</Tabs>
 			) : !error ? (
-				<JsonPane value={output} />
+				<JsonPane value={output} pathCopyNodeId={pathCopyNodeId} />
 			) : null}
 		</div>
 	);

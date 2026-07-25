@@ -8,5 +8,6 @@ apps/desktop/build/
 .env.*
 !.env.example
 *.secrets.json
+.quester/
 coverage/
 .astro/

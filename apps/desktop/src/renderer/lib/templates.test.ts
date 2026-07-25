@@ -1,7 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import {
+	classifyJmesPath,
+	classifyTemplatePath,
+	etaSuggestions,
 	findTemplateRanges,
+	formatHoverDisplay,
+	getValueAtPath,
 	inputKeysFromJson,
+	jmesPathSuggestions,
+	resolveTemplateHover,
 	templateSuggestions,
 	varKeysFromNodes,
 } from "./templates.js";
@@ -41,15 +48,28 @@ describe("varKeysFromNodes", () => {
 	});
 });
 
-describe("templateSuggestions", () => {
-	const ctx = {
-		nodeIds: ["login", "profile"],
-		inputKeys: ["username"],
-		varKeys: ["token"],
-		envKeys: ["API_BASE"],
-		secretKeys: ["password", "username"],
-	};
+const ctx = {
+	nodeIds: ["login", "profile"],
+	inputKeys: ["username"],
+	inputPaths: ["username", "profile.age"],
+	varKeys: ["token"],
+	envKeys: ["API_BASE"],
+	envValues: { API_BASE: "https://api.example.com" },
+	secretKeys: ["password", "username"],
+	nodePaths: {
+		login: ["status", "body.id", "body.token"],
+		profile: ["body.name"],
+	},
+	jmesPaths: ["status", "body.id"],
+	previousPaths: ["status", "body.id"],
+	inputValue: { username: "alice", profile: { age: 30 } },
+	varValues: { token: "abc" },
+	nodeOutputs: {
+		login: { status: 200, body: { id: 42, token: "t" } },
+	},
+};
 
+describe("templateSuggestions", () => {
 	test("suggests roots before a dot", () => {
 		expect(templateSuggestions("", ctx).map((s) => s.label)).toEqual([
 			"env",
@@ -63,13 +83,19 @@ describe("templateSuggestions", () => {
 	test("suggests node ids after nodes.", () => {
 		expect(templateSuggestions("nodes.lo", ctx).map((s) => s.label)).toEqual([
 			"nodes.login",
-			"nodes.profile",
 		]);
+	});
+
+	test("suggests nested node paths", () => {
+		expect(
+			templateSuggestions("nodes.login.body", ctx).map((s) => s.label),
+		).toEqual(["nodes.login.body.id", "nodes.login.body.token"]);
 	});
 
 	test("suggests input and vars keys", () => {
 		expect(templateSuggestions("input.", ctx).map((s) => s.label)).toEqual([
 			"input.username",
+			"input.profile.age",
 		]);
 		expect(templateSuggestions("vars.", ctx).map((s) => s.label)).toEqual([
 			"vars.token",
@@ -84,5 +110,96 @@ describe("templateSuggestions", () => {
 			"secrets.password",
 			"secrets.username",
 		]);
+	});
+});
+
+describe("jmesPathSuggestions", () => {
+	test("filters by prefix", () => {
+		expect(
+			jmesPathSuggestions("body", ctx.jmesPaths).map((s) => s.label),
+		).toEqual(["body.id"]);
+	});
+});
+
+describe("etaSuggestions", () => {
+	test("suggests it roots", () => {
+		expect(etaSuggestions("it.", ctx).map((s) => s.label)).toEqual([
+			"it.input",
+			"it.vars",
+			"it.nodes",
+			"it.previous",
+		]);
+	});
+
+	test("suggests nested previous paths", () => {
+		expect(etaSuggestions("it.previous.body", ctx).map((s) => s.label)).toEqual(
+			["it.previous.body.id"],
+		);
+	});
+});
+
+describe("classifyTemplatePath", () => {
+	test("known env and unknown path", () => {
+		expect(classifyTemplatePath("env.API_BASE", ctx)).toBe("known");
+		expect(classifyTemplatePath("env.MISSING", ctx)).toBe("unknown");
+	});
+
+	test("known node path and secret name only", () => {
+		expect(classifyTemplatePath("nodes.login.body.id", ctx)).toBe("known");
+		expect(classifyTemplatePath("secrets.password", ctx)).toBe("known");
+		expect(classifyTemplatePath("secrets.nope", ctx)).toBe("unknown");
+	});
+
+	test("skips empty", () => {
+		expect(classifyTemplatePath("  ", ctx)).toBe("skip");
+	});
+});
+
+describe("classifyJmesPath", () => {
+	test("known and unknown", () => {
+		expect(classifyJmesPath("body.id", ctx.jmesPaths)).toBe("known");
+		expect(classifyJmesPath("nope", ctx.jmesPaths)).toBe("unknown");
+		expect(classifyJmesPath("body.id | length(@)", ctx.jmesPaths)).toBe("skip");
+	});
+});
+
+describe("getValueAtPath", () => {
+	test("walks objects and arrays", () => {
+		expect(getValueAtPath({ body: { id: 1 } }, "body.id")).toBe(1);
+		expect(getValueAtPath({ items: [{ n: "a" }] }, "items[0].n")).toBe("a");
+	});
+});
+
+describe("resolveTemplateHover", () => {
+	test("shows env value", () => {
+		const hover = resolveTemplateHover("env.API_BASE", ctx);
+		expect(hover?.found).toBe(true);
+		expect(hover?.display).toBe("https://api.example.com");
+		expect(hover?.source).toBe("environment");
+	});
+
+	test("never reveals secret values", () => {
+		const hover = resolveTemplateHover("secrets.password", ctx);
+		expect(hover?.found).toBe(true);
+		expect(hover?.display).toBe("(secret — value hidden)");
+		expect(hover?.display).not.toContain("pass");
+	});
+
+	test("shows input and node paths", () => {
+		expect(resolveTemplateHover("input.username", ctx)?.display).toBe("alice");
+		expect(resolveTemplateHover("nodes.login.body.id", ctx)?.display).toBe(
+			"42",
+		);
+	});
+
+	test("missing env key", () => {
+		expect(resolveTemplateHover("env.MISSING", ctx)?.found).toBe(false);
+	});
+});
+
+describe("formatHoverDisplay", () => {
+	test("truncates long strings", () => {
+		const long = "x".repeat(300);
+		expect(formatHoverDisplay(long).endsWith("…")).toBe(true);
 	});
 });
