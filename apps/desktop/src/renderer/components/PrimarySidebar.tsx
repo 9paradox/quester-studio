@@ -394,6 +394,7 @@ export function PrimarySidebar() {
 				}
 				onSave={({ name, description, http }) => {
 					updateActiveFlowMeta({ name, description, http });
+					void useQuesterStore.getState().saveActiveTab();
 				}}
 			/>
 		</aside>

@@ -1246,10 +1246,16 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			appendConsole,
 			openTabs,
 			activeTabId,
+			saveActiveTab,
+			canvasDirty,
 		} = get();
 		const activeTab = openTabs.find((t) => t.id === activeTabId);
 		const activeFlowTab = activeTab?.kind === "flow" ? activeTab : null;
 		if (!activeFlowTab || !workspacePath) return;
+
+		if (activeFlowTab.dirty || canvasDirty) {
+			await saveActiveTab(activeFlowTab.id);
+		}
 
 		let input: unknown;
 		try {
