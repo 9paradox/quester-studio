@@ -12,6 +12,7 @@ import { setNodeDataSchema } from "./nodes/set.js";
 import { startNodeDataSchema } from "./nodes/start.js";
 import { templateNodeDataSchema } from "./nodes/template.js";
 import { transformNodeDataSchema } from "./nodes/transform.js";
+import { settingsSchemaV1 } from "./settings.js";
 
 export const builtinNodeTypes = [
 	"start",
@@ -74,6 +75,7 @@ export const flowSchemaV1 = z.object({
 	version: z.literal(FLOW_VERSION),
 	name: z.string().optional(),
 	description: z.string().optional(),
+	settings: settingsSchemaV1.optional(),
 	nodes: z.array(flowNodeSchemaV1).min(1),
 	edges: z.array(flowEdgeSchemaV1).default([]),
 });

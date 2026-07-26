@@ -2,6 +2,7 @@
 export * from "./workspace.js";
 export * from "./environment.js";
 export * from "./secrets.js";
+export * from "./settings.js";
 export * from "./flow.js";
 export * from "./request.js";
 export * from "./nodes/index.js";

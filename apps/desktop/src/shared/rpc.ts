@@ -4,6 +4,7 @@ import type {
 	FlowV1,
 	RequestV1,
 	SecretsV1,
+	WorkspaceV1,
 } from "@quester/schema";
 import type { RPCSchema } from "electrobun";
 
@@ -12,6 +13,7 @@ export type WorkspaceSummary = {
 	root: string;
 	envNames: string[];
 	flowCount: number;
+	manifest?: WorkspaceV1;
 };
 
 export type FlowMeta = { id: string; name: string };
@@ -80,6 +82,17 @@ export type DesktopRPC = {
 			openWorkspaceSummary: {
 				params: { path: string };
 				response: WorkspaceSummary;
+			};
+			loadWorkspaceManifest: {
+				params: { workspace: string };
+				response: WorkspaceV1;
+			};
+			saveWorkspaceManifest: {
+				params: {
+					workspace: string;
+					manifest: WorkspaceV1;
+				};
+				response: WorkspaceV1;
 			};
 			listFlows: {
 				params: { workspace: string };
@@ -211,6 +224,14 @@ export type DesktopRPC = {
 			writePathShapes: {
 				params: { workspace: string; data: unknown };
 				response: { ok: true };
+			};
+			setAppTlsVerify: {
+				params: { verifyTls: boolean };
+				response: { ok: true; verifyTls: boolean };
+			};
+			getAppTlsVerify: {
+				params: Record<string, never>;
+				response: { verifyTls: boolean };
 			};
 		};
 		messages: Record<string, never>;

@@ -44,9 +44,12 @@ Manifest that names the workspace and optional directory overrides.
 | --- | --- | --- | --- |
 | `name` | string | required | Workspace display name |
 | `version` | `"v1"` | required | Manifest version |
+| `description` | string | optional | Human-readable notes |
 | `flowsDir` | string | `"flows"` | Relative path to flow files |
 | `environmentsDir` | string | `"environments"` | Relative path to env / secrets |
 | `collectionsDir` | string | `"collections"` | Relative path to request collections |
+| `settings.http.defaultHeaders` | object | `{}` | Headers merged into every HTTP node (node keys win) |
+| `settings.http.timeoutMs` | number | omitted | Request timeout in ms; `0` = none |
 
 ### Example
 
@@ -54,9 +57,16 @@ Manifest that names the workspace and optional directory overrides.
 {
   "name": "sample-workspace",
   "version": "v1",
+  "description": "Sample flows for local development",
   "flowsDir": "flows",
   "environmentsDir": "environments",
-  "collectionsDir": "collections"
+  "collectionsDir": "collections",
+  "settings": {
+    "http": {
+      "defaultHeaders": { "Accept": "application/json" },
+      "timeoutMs": 30000
+    }
+  }
 }
 ```
 
@@ -70,6 +80,7 @@ Each flow is a graph of nodes and edges.
 | `version` | `"v1"` | Flow format version |
 | `name` | string | Optional display name |
 | `description` | string | Optional description |
+| `settings.http` | object | Optional HTTP defaults (same shape as workspace; overrides workspace) |
 | `nodes` | array | At least one node; must include exactly one `start` |
 | `edges` | array | Connections between nodes |
 

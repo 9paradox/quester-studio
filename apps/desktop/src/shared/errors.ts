@@ -57,5 +57,17 @@ export function isTlsCertificateError(error: unknown): boolean {
 	);
 }
 
+/**
+ * Suggestion when a TLS cert error occurs while verification is still on.
+ * Returns null when verify is already off (no point suggesting Settings).
+ */
+export function tlsCertificateHint(options: {
+	verifyEnabled: boolean;
+}): string | null {
+	if (!options.verifyEnabled) return null;
+	return "TLS certificate verification failed. Fix your system CA store, or turn off SSL certificate verification in Settings (dev only). You can also restart with QUESTR_INSECURE_TLS=1.";
+}
+
 export const TLS_INSECURE_HINT =
-	"TLS certificate verification failed. Fix your system CA store, or restart the desktop app with QUESTR_INSECURE_TLS=1 (dev only — disables HTTPS verification).";
+	tlsCertificateHint({ verifyEnabled: true }) ??
+	"TLS certificate verification failed.";

@@ -22,6 +22,14 @@ Quester does not encrypt secrets at rest. Protect workspace directories with OS-
 - Quester does **not** sandbox network egress. Users are responsible for URLs their flows call.
 - Flows run with the privileges of the user running the CLI or desktop app.
 
+## TLS certificate verification
+
+- By default, HTTPS requests **verify** TLS certificates.
+- Desktop: Settings → **SSL certificate verification** (stored on this machine). Turning it **Off** disables verification for all runs in the app (dev / self-signed certs only).
+- Override for a process: set `QUESTR_INSECURE_TLS=1` (or `NODE_TLS_REJECT_UNAUTHORIZED=0`) before starting the desktop app or CLI. Env overrides the Settings preference.
+- Disabling verification exposes you to man-in-the-middle risk. Prefer fixing the system CA store when possible.
+- If a run fails with a certificate error while verification is on, Quester logs a hint to fix the CA store or turn verification off in Settings.
+
 ## Desktop downloads
 
 Desktop release artifacts are **unsigned development builds**. Verify checksums published on GitHub Releases before running. See your platform documentation for running unsigned applications safely.

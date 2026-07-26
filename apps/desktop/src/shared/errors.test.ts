@@ -3,6 +3,7 @@ import {
 	formatErrorForConsole,
 	isTlsCertificateError,
 	serializeError,
+	tlsCertificateHint,
 } from "./errors.js";
 
 describe("serializeError", () => {
@@ -32,6 +33,18 @@ describe("isTlsCertificateError", () => {
 		);
 		expect(isTlsCertificateError(err)).toBe(true);
 		expect(isTlsCertificateError(new Error("timeout"))).toBe(false);
+	});
+});
+
+describe("tlsCertificateHint", () => {
+	test("suggests Settings when verify is on", () => {
+		const hint = tlsCertificateHint({ verifyEnabled: true });
+		expect(hint).toContain("Settings");
+		expect(hint).toContain("QUESTR_INSECURE_TLS");
+	});
+
+	test("returns null when verify is already off", () => {
+		expect(tlsCertificateHint({ verifyEnabled: false })).toBeNull();
 	});
 });
 

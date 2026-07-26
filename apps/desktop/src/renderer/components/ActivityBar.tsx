@@ -54,14 +54,13 @@ export function ActivityBar() {
 			</div>
 			<Tooltip>
 				<TooltipTrigger
-					className={cn(buttonClass(sidebarOpen && activeView === "settings"))}
+					className={cn(buttonClass(false))}
 					onClick={() => handleActivityView("settings")}
-					aria-label="Settings"
-					aria-pressed={sidebarOpen && activeView === "settings"}
+					aria-label="Preferences"
 				>
 					<IconSettings className="size-4" />
 				</TooltipTrigger>
-				<TooltipContent side="right">Settings</TooltipContent>
+				<TooltipContent side="right">Preferences</TooltipContent>
 			</Tooltip>
 		</nav>
 	);

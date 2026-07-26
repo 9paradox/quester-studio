@@ -45,6 +45,13 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				(await import("./handlers.js")).pickWorkspaceFolder(),
 			openWorkspaceSummary: async ({ path }) =>
 				(await import("./handlers.js")).openWorkspaceSummary(path),
+			loadWorkspaceManifest: async ({ workspace }) =>
+				(await import("./handlers.js")).loadWorkspaceManifest(workspace),
+			saveWorkspaceManifest: async ({ workspace, manifest }) =>
+				(await import("./handlers.js")).saveWorkspaceManifest(
+					workspace,
+					manifest,
+				),
 			listFlows: async ({ workspace }) =>
 				(await import("./handlers.js")).listFlows(workspace),
 			listEnvs: async ({ workspace }) =>
@@ -142,6 +149,15 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				(await import("./handlers.js")).readPathShapes(workspace),
 			writePathShapes: async ({ workspace, data }) =>
 				(await import("./handlers.js")).writePathShapes(workspace, data),
+			setAppTlsVerify: async ({ verifyTls }) => {
+				const { setAppTlsVerify } = await import("./handlers.js");
+				setAppTlsVerify(verifyTls);
+				return { ok: true as const, verifyTls };
+			},
+			getAppTlsVerify: async () => {
+				const { getAppTlsVerify } = await import("./handlers.js");
+				return { verifyTls: getAppTlsVerify() };
+			},
 		},
 		messages: {},
 	},
