@@ -1,0 +1,35 @@
+# @quester-studio/cli
+
+## 0.4.0
+
+### Minor Changes
+
+- 946cd98: HTTP settings MVP: flow settings UI, maxResponseBytes, in-run cookie jar, proxyUrl, caFile, workspace/flow verifyTls, and Preferences shortcuts (Ctrl/⌘ Enter, Ctrl/⌘ W).
+- 70012c9: Add `quester init` to scaffold a new workspace with a start → input starter flow.
+- 38d00d0: Rename npm scope from `@quester/*` to `@quester-studio/*` to match the publishable npm org (first public release).
+- 368b4d3: Add desktop workspace welcome (open / create / sample / recents) and share scaffoldWorkspace with the CLI.
+
+### Patch Changes
+
+- 8789f58: Governance foundation: CI gates, contributor docs, security hardening, and release tooling.
+- 87ef4d2: Add a DummyJSON kitchen-sink sample flow plus matching collections, local env vars, and secrets template.
+- f3ce31c: Point the sample workspace login flow at dummyjson auth (`emilys` / `emilyspass`) with assert + extract side branches.
+- a50e569: Include validation issue details and fix suggestions in flow validation errors (save/run/CLI).
+- Updated dependencies [e04dd22]
+- Updated dependencies [3f98c6e]
+- Updated dependencies [6bb1e87]
+- Updated dependencies [f4a90fb]
+- Updated dependencies [d863bb0]
+- Updated dependencies [8789f58]
+- Updated dependencies [946cd98]
+- Updated dependencies [87ef4d2]
+- Updated dependencies [87ef4d2]
+- Updated dependencies [e04dd22]
+- Updated dependencies [896fdb4]
+- Updated dependencies [38d00d0]
+- Updated dependencies [f3ce31c]
+- Updated dependencies [896fdb4]
+- Updated dependencies [a50e569]
+- Updated dependencies [368b4d3]
+  - @quester-studio/schema@0.2.0
+  - @quester-studio/engine@0.2.0
