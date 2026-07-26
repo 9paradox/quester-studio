@@ -5,25 +5,37 @@ description: Planned features and milestones
 
 High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox/quester-studio/issues) and [ROADMAP.md](https://github.com/9paradox/quester-studio/blob/main/ROADMAP.md).
 
-## Now — v0.2.0 Desktop MVP
+## Now — v0.4.0 Platform closeout + public preview
 
-- Electrobun IPC for main-process RPCs
-- Workspace folder picker
-- Flow list and canvas loader
-- Run panel with env selector and output
+- CLI `quester init` — scaffold a workspace
+- Renderer smoke tests
+- First public test release — npm packages + unsigned Windows/Linux desktop on GitHub Releases
+- [Try Quester](/try/) — download and smoke-test path for external testers
 
-## Next — v0.3.0 Builder UX
+Settings / HTTP MVP and collections already shipped.
 
-- Custom React Flow node components per type
-- If-node branch handles
-- Node inspector for editing `data` fields
-- Save flows back to disk
+## Next
 
-## Later — v0.4.0 Platform
+### v0.5.0 — Flow nodes
 
-- New node types and `quester init` scaffold
-- Generate per-node docs from emitted JSON Schema (hand-written [node reference](/nodes/) exists today)
+- `note`, `delay` / `wait`, `switch`
+
+### v0.6.0 — Control & composition
+
+- `foreach` (with max-item limits), `try` / `catch`, `subflow` / `call`
+
+### v0.7.0 — Runs & observability
+
+- Flow run history and replay
+- `log` / `inspect` nodes
+- Disk-persisted cookie jar
+
+## Later — v1.0.0 Stable
+
+- Flow format v1 freeze
+- Polished desktop
+- Thin collection import (Postman / OpenAPI)
 
 ## Releases
 
-See [CHANGELOG.md](https://github.com/9paradox/quester-studio/blob/main/CHANGELOG.md) for shipped versions.
+See [CHANGELOG.md](https://github.com/9paradox/quester-studio/blob/main/CHANGELOG.md) and [GitHub Releases](https://github.com/9paradox/quester-studio/releases). Desktop builds are unsigned development artifacts — see [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md).

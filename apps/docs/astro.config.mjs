@@ -18,7 +18,7 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: "Start",
-					items: ["getting-started", "contributing", "roadmap"],
+					items: ["try", "getting-started", "contributing", "roadmap"],
 				},
 				{
 					label: "Workspace",

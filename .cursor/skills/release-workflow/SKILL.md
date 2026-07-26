@@ -30,8 +30,10 @@ Open PR with version bumps. Merge to `main`.
 ## Publish release
 
 1. Ensure `NPM_TOKEN` is set in GitHub repo secrets (npm Automation token).
-2. Run **Release** workflow manually (`workflow_dispatch`) with version e.g. `0.1.0`.
-3. Workflow publishes npm packages and creates GitHub Release `v0.1.0` with unsigned desktop artifacts.
+2. Check the **Release gate** checklist in [ROADMAP.md](../../ROADMAP.md) (first public preview: v0.4.0).
+3. Run **Release** workflow manually (`workflow_dispatch`) with version e.g. `0.4.0`.
+4. Workflow publishes npm packages and creates GitHub Release `v0.4.0` with unsigned desktop artifacts (Windows + Linux; no macOS yet).
+5. Confirm [Try Quester](../../apps/docs/src/content/docs/try.md) docs match the live Release links.
 
 Release notes include: *Development build — see SECURITY.md for download verification.*
 

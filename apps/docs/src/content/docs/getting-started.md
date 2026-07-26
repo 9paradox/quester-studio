@@ -3,11 +3,19 @@ title: Getting started
 description: Run and validate flows with the Quester CLI
 ---
 
-## Install
+Prefer a downloadable desktop build? See [Try Quester](/try/).
+
+## Install (from source)
 
 ```bash
 bun install
 bun run build
+```
+
+After **v0.4.0** npm publish, you can also run the CLI without cloning:
+
+```bash
+bunx @quester/cli --help
 ```
 
 ## Validate a workspace
@@ -36,6 +44,7 @@ bunx quester run examples/sample-workspace/flows/kitchen-sink.flow.json \
 
 ## Learn more
 
+- [Try Quester](/try/) — download desktop preview and tester checklist
 - [Workspace files](/workspace/) — `quester.json`, flows, layout
 - [Environments & secrets](/workspace-secrets/) — `{{env.*}}` and `{{secrets.*}}`
 - [Collections & requests](/collections/) — standalone `*.request.json`
