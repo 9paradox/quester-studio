@@ -11,6 +11,8 @@ Quester is a local-first visual API flow tool. This page is for **external teste
 
 1. Open the latest [GitHub Release](https://github.com/9paradox/quester-studio/releases).
 2. Download the **Windows** or **Linux** desktop artifact (macOS is not published yet).
+   - Windows: `*-Quester-Setup*.zip` → extract → run `Quester-Setup.exe` (self-extractor unpacks the app).
+   - Linux: use the published setup / AppImage artifact for your architecture.
 3. Builds are **unsigned development builds**. Prefer verifying published checksums when available. See [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md) for the trust model and how to run unsigned apps safely on your OS.
 4. Launch the app. On first open you see a welcome screen: **Open workspace**, **Create workspace**, or **Open sample**. Closing a workspace returns here.
 5. Select a flow (e.g. `hello` from create, or `login-and-profile` from the sample) → pick env `local` → run.

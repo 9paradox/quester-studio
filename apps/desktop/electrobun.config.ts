@@ -3,7 +3,7 @@ import type { ElectrobunConfig } from "electrobun/bun";
 export default {
 	app: {
 		name: "Quester",
-		identifier: "dev.quester.app",
+		identifier: "com.9paradox.quester",
 		version: "0.1.0",
 	},
 	build: {

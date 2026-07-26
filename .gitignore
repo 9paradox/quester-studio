@@ -2,6 +2,7 @@
 .turbo/
 dist/
 apps/desktop/build/
+apps/desktop/artifacts/
 *.log
 .DS_Store
 .env
