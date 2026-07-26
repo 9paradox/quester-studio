@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeAll, describe, expect, test } from "bun:test";
 import {
 	readTlsVerifyPreference,
 	writeTlsVerifyPreference,
@@ -6,12 +6,30 @@ import {
 
 const STORAGE_KEY = "quester.verifyTls";
 
+const store = new Map<string, string>();
+
+const localStorageMock = {
+	getItem: (key: string) => store.get(key) ?? null,
+	setItem: (key: string, value: string) => {
+		store.set(key, String(value));
+	},
+	removeItem: (key: string) => {
+		store.delete(key);
+	},
+	clear: () => {
+		store.clear();
+	},
+};
+
+beforeAll(() => {
+	Object.defineProperty(globalThis, "localStorage", {
+		value: localStorageMock,
+		configurable: true,
+	});
+});
+
 afterEach(() => {
-	try {
-		localStorage.removeItem(STORAGE_KEY);
-	} catch {
-		/* ignore */
-	}
+	store.clear();
 });
 
 describe("tlsPreference", () => {

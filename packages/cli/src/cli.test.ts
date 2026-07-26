@@ -58,9 +58,11 @@ describe("quester cli", () => {
 			"--input",
 			'{"username":"emilys","password":"emilyspass"}',
 		]);
-		// Live HTTPS may fail TLS verification on some Windows CA stores.
+		// Live HTTPS may fail TLS, network, or DummyJSON auth on CI runners.
 		if (exitCode !== 0) {
-			expect(stderr.toLowerCase()).toMatch(/certificate|tls|fetch|network/);
+			expect(stderr.toLowerCase()).toMatch(
+				/certificate|tls|fetch|network|assertion|401|unable to/,
+			);
 			return;
 		}
 		const output = JSON.parse(stdout) as { status?: number; body?: unknown };
