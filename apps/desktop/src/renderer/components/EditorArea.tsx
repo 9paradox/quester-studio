@@ -16,6 +16,7 @@ import { FlowCanvas } from "./FlowCanvas.js";
 import { KeyValueEditor } from "./KeyValueEditor.js";
 import { RequestEditor } from "./RequestEditor.js";
 import { WorkspaceSettingsEditor } from "./WorkspaceSettingsEditor.js";
+import { WorkspaceWelcome } from "./WorkspaceWelcome.js";
 
 function saveShortcutLabel(): string {
 	if (typeof navigator === "undefined") return "Ctrl+S";
@@ -80,6 +81,10 @@ export function EditorArea() {
 	const onSave = () => void saveActiveTab();
 	const canSaveTab = Boolean(activeTab?.dirty);
 	const canSaveFlow = Boolean(activeTab?.kind === "flow" && activeTab.dirty);
+
+	if (!workspacePath) {
+		return <WorkspaceWelcome />;
+	}
 
 	if (!activeTab) {
 		return (

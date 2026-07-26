@@ -45,6 +45,8 @@ export function onNodeRunStatus(listener: NodeRunStatusListener): () => void {
 export const desktopRpc = {
 	getDefaultWorkspace: () => getRpc().request.getDefaultWorkspace({}),
 	pickWorkspaceFolder: () => getRpc().request.pickWorkspaceFolder({}),
+	scaffoldWorkspace: (path: string, name?: string) =>
+		getRpc().request.scaffoldWorkspace({ path, name }),
 	openWorkspaceSummary: (path: string) =>
 		getRpc().request.openWorkspaceSummary({ path }),
 	loadWorkspaceManifest: (workspace: string) =>
