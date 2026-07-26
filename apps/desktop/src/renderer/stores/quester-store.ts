@@ -20,6 +20,7 @@ import {
 	duplicateNodeInFlow,
 	reactFlowToFlow,
 } from "@/lib/flowEditor.js";
+import { promptName } from "@/lib/namePrompt.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
 import { indexCollectionResponse, indexNodeOutputs } from "@/lib/pathIndex.js";
 import {
@@ -1050,8 +1051,12 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			showError,
 		} = get();
 		if (!workspacePath) return;
-		const name = window.prompt("New flow name");
-		if (!name?.trim()) return;
+		const name = await promptName({
+			title: "New flow",
+			label: "Name",
+			confirmLabel: "Create",
+		});
+		if (!name) return;
 		const flowId = slugifyName(name);
 		try {
 			const flow = await desktopRpc.createFlow(
@@ -1076,8 +1081,12 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			showError,
 		} = get();
 		if (!workspacePath) return;
-		const name = window.prompt("New environment name");
-		if (!name?.trim()) return;
+		const name = await promptName({
+			title: "New environment",
+			label: "Name",
+			confirmLabel: "Create",
+		});
+		if (!name) return;
 		const envName = slugifyName(name);
 		try {
 			const environment = await desktopRpc.createEnvironment(
@@ -1104,11 +1113,13 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			showError,
 		} = get();
 		if (!workspacePath) return;
-		const name = window.prompt(
-			"Environment name for secrets file",
-			envs[0] ?? "local",
-		);
-		if (!name?.trim()) return;
+		const name = await promptName({
+			title: "New secrets file",
+			label: "Environment name",
+			defaultValue: envs[0] ?? "local",
+			confirmLabel: "Create",
+		});
+		if (!name) return;
 		const envName = slugifyName(name);
 		try {
 			const secrets = await desktopRpc.createSecretsFile(
@@ -1140,8 +1151,13 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			tab?.kind === "flow"
 				? (tab.flow.name ?? tab.flowId)
 				: (meta?.name ?? flowId);
-		const name = window.prompt("Rename flow", currentName);
-		if (!name?.trim() || name.trim() === currentName) return;
+		const name = await promptName({
+			title: "Rename flow",
+			label: "Name",
+			defaultValue: currentName,
+			confirmLabel: "Rename",
+		});
+		if (!name || name === currentName) return;
 
 		const newId = slugifyName(name);
 		try {
@@ -1322,8 +1338,12 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const { workspacePath, refreshWorkspaceLists, appendConsole, showError } =
 			get();
 		if (!workspacePath) return;
-		const name = window.prompt("New collection name");
-		if (!name?.trim()) return;
+		const name = await promptName({
+			title: "New collection",
+			label: "Name",
+			confirmLabel: "Create",
+		});
+		if (!name) return;
 		const folder = slugifyName(name);
 		if (!folder) {
 			showError("Invalid collection name");
@@ -1350,8 +1370,12 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			showError,
 		} = get();
 		if (!workspacePath) return;
-		const name = window.prompt("New request name");
-		if (!name?.trim()) return;
+		const name = await promptName({
+			title: "New request",
+			label: "Name",
+			confirmLabel: "Create",
+		});
+		if (!name) return;
 		const slug = slugifyName(name);
 		const requestPath = collection ? `${collection}/${slug}` : slug;
 		try {

@@ -9,6 +9,7 @@ import { ActivityBar } from "./ActivityBar.js";
 import { AuxiliaryActivityBar } from "./AuxiliaryActivityBar.js";
 import { AuxiliarySidebar } from "./AuxiliarySidebar.js";
 import { EditorArea } from "./EditorArea.js";
+import { NamePromptDialog } from "./NamePromptDialog.js";
 import { Panel } from "./Panel.js";
 import { PlaygroundSheet } from "./PlaygroundSheet.js";
 import { PrimarySidebar } from "./PrimarySidebar.js";
@@ -60,6 +61,7 @@ export function AppShell() {
 					<StatusBar />
 				</div>
 				<PlaygroundSheet />
+				<NamePromptDialog />
 				<Toaster position="top-center" richColors closeButton />
 			</div>
 		</TooltipProvider>
