@@ -1,4 +1,4 @@
-﻿import { templateNodeDataSchema } from "@quester/schema";
+import { templateNodeDataSchema } from "@quester-studio/schema";
 import { Eta } from "eta";
 import type { FlowNodePlugin } from "../types.js";
 

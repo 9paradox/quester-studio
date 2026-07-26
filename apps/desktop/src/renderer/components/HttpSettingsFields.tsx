@@ -11,7 +11,7 @@ import {
 	type HttpSettingsPatch,
 	applyHttpSettingsPatch,
 } from "@/lib/httpSettingsPatch.js";
-import type { HttpSettingsV1 } from "@quester/schema";
+import type { HttpSettingsV1 } from "@quester-studio/schema";
 import { SettingsField } from "./SettingsPageLayout.js";
 
 export type { HttpSettingsPatch };

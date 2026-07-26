@@ -28,7 +28,7 @@ jobs:
       - name: Install
         run: bun install --frozen-lockfile
       - name: Build docs
-        run: bun run --filter @quester/docs build
+        run: bun run --filter @quester-studio/docs build
         env:
           BASE_PATH: /quester-studio/
       - name: Upload Pages artifact

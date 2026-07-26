@@ -3,17 +3,17 @@
 ## Package dependency graph
 
 ```
-@quester/schema  (no internal deps)
+@quester-studio/schema  (no internal deps)
        ↓
-@quester/nodes   → schema (node data Zod schemas)
+@quester-studio/nodes   → schema (node data Zod schemas)
        ↓
-@quester/engine  → schema, nodes
+@quester-studio/engine  → schema, nodes
        ↓
-@quester/cli     → schema, engine
-@quester/desktop → schema, engine
+@quester-studio/cli     → schema, engine
+@quester-studio/desktop → schema, engine
 ```
 
-## Schema layer (`@quester/schema`)
+## Schema layer (`@quester-studio/schema`)
 
 - **flow.ts** — `flowSchemaV1`, `builtinNodeTypes`, per-type `nodeDataSchemaForType`
 - **workspace.ts** — `quester.json` manifest
@@ -23,13 +23,13 @@
 
 ## Execution layer
 
-### `@quester/nodes`
+### `@quester-studio/nodes`
 
 - `FlowNodePlugin`: `{ type, execute(ctx) → { output, branch?, vars? } }`
 - `NodeExecutionContext`: node, input, flowInput, vars, nodeOutputs, resolveTemplate, fetch
 - Builtins auto-register in `src/index.ts`
 
-### `@quester/engine`
+### `@quester-studio/engine`
 
 - `loadWorkspace(root)` — reads manifest, flows, environments
 - `executeFlow(flow, { input, env, secrets, vars, fetch, events })` — topological walk with if-branching

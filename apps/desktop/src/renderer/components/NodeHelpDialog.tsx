@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog.js";
 import { Separator } from "@/components/ui/separator.js";
 import { getNodePresentation } from "@/lib/nodeCatalog.js";
-import type { BuiltinNodeType } from "@quester/schema";
+import type { BuiltinNodeType } from "@quester-studio/schema";
 import { IconHelp } from "@tabler/icons-react";
 import { useState } from "react";
 

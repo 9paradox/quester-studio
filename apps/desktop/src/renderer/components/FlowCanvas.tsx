@@ -19,7 +19,7 @@ import {
 	isValidFlowConnection,
 	reactFlowToFlow,
 } from "@/lib/flowEditor.js";
-import type { BuiltinNodeType, FlowV1 } from "@quester/schema";
+import type { BuiltinNodeType, FlowV1 } from "@quester-studio/schema";
 import { IconFocusCentered, IconMinus, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {

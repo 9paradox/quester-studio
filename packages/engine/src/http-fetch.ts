@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
-import type { HttpSettingsV1 } from "@quester/schema";
+import type { HttpSettingsV1 } from "@quester-studio/schema";
 
 export type CreateHttpFetchOptions = {
 	httpDefaults?: HttpSettingsV1 | null;

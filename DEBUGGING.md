@@ -8,7 +8,7 @@ This guide covers debugging **engine**, **CLI**, **desktop main process**, and *
 - **Bun for Visual Studio Code** extension (`oven.bun-vscode`) — recommended in [`.vscode/extensions.json`](.vscode/extensions.json)
 - Open the **repository root** as the workspace folder (so `${workspaceFolder}` paths resolve)
 
-Build workspace packages before debugging anything that imports `@quester/engine` or `@quester/schema`:
+Build workspace packages before debugging anything that imports `@quester-studio/engine` or `@quester-studio/schema`:
 
 ```bash
 bun run build:pkgs
@@ -22,15 +22,15 @@ Most launch configs run the `build:pkgs` preLaunchTask automatically.
 |--------|----------------------|--------|
 | Any open `*.test.ts` | **Debug Current Test File** | Current editor file |
 | Any open `.ts` file | **Debug Current File** | Current editor file |
-| `@quester/engine` tests | **Debug Current Test File** | `packages/engine/src/**/*.test.ts` |
-| `@quester/cli` | **Debug CLI: validate sample workspace** / **run sample flow** | `packages/cli/src/cli.ts` |
+| `@quester-studio/engine` tests | **Debug Current Test File** | `packages/engine/src/**/*.test.ts` |
+| `@quester-studio/cli` | **Debug CLI: validate sample workspace** / **run sample flow** | `packages/cli/src/cli.ts` |
 | Desktop main (RPC, handlers) | **Desktop: Attach Main Process** | `apps/desktop/src/main/` |
 | Desktop main + UI HMR | **Desktop: Attach Main (HMR + DevTools)** | `apps/desktop/src/main/` |
 | React renderer only | **Debug Desktop Renderer** | `apps/desktop/src/renderer/` |
 
 ---
 
-## Engine (`@quester/engine`)
+## Engine (`@quester-studio/engine`)
 
 Engine logic lives in `packages/engine/src/`. Tests are colocated as `*.test.ts`.
 
@@ -45,7 +45,7 @@ Engine logic lives in `packages/engine/src/`. Tests are colocated as `*.test.ts`
 1. Open a source file (e.g. `packages/engine/src/execute.ts`)
 2. Run **Debug Current File**
 
-If you change `@quester/schema` or `@quester/nodes`, rebuild first:
+If you change `@quester-studio/schema` or `@quester-studio/nodes`, rebuild first:
 
 ```bash
 bun run build:pkgs
@@ -61,9 +61,9 @@ bun --inspect-wait src/execute.test.ts   # wait for debugger on port 6499, then 
 
 ---
 
-## CLI (`@quester/cli`)
+## CLI (`@quester-studio/cli`)
 
-Entry point: `packages/cli/src/cli.ts`. Depends on built `@quester/engine`.
+Entry point: `packages/cli/src/cli.ts`. Depends on built `@quester-studio/engine`.
 
 ### VS Code launch configs
 
@@ -120,8 +120,8 @@ Set breakpoints in `apps/desktop/src/main/handlers.ts` (or `index.ts`), then sta
 
 ```bash
 bun run build:pkgs
-bun run --filter @quester/desktop dev:debug      # bundled UI + inspect-wait
-bun run --filter @quester/desktop dev:hmr:debug    # Vite HMR + inspect-wait
+bun run --filter @quester-studio/desktop dev:debug      # bundled UI + inspect-wait
+bun run --filter @quester-studio/desktop dev:hmr:debug    # Vite HMR + inspect-wait
 ```
 
 Then attach with **Attach to Bun**.
@@ -131,7 +131,7 @@ Then attach with **Attach to Bun**.
 If the window is blank or port 5173 is stuck, stop leftover Vite / launcher processes:
 
 ```bash
-bun run --filter @quester/desktop dev:stop
+bun run --filter @quester-studio/desktop dev:stop
 ```
 
 Close any open Quester window before restarting on Windows (Electrobun locks the build folder).
@@ -161,7 +161,7 @@ Run **Desktop: Attach Main (HMR + DevTools)** or `dev:hmr:debug`. The Electrobun
 
 ```bash
 bun run build:pkgs
-bun run --filter @quester/desktop dev:hmr
+bun run --filter @quester-studio/desktop dev:hmr
 ```
 
 Edit files under `src/renderer/` — Vite hot-reloads the webview.
@@ -181,11 +181,11 @@ Edit files under `src/renderer/` — Vite hot-reloads the webview.
 
 | Symptom | Fix |
 |---------|-----|
-| White Electrobun window in debug | `bun run --filter @quester/desktop dev:stop`, then retry |
+| White Electrobun window in debug | `bun run --filter @quester-studio/desktop dev:stop`, then retry |
 | `EADDRINUSE` on port 5173 | `dev:stop`; Vite uses `strictPort` and will not silently move ports |
 | Breakpoints not hit in CLI/desktop | Run `bun run build:pkgs` so workspace packages match source |
 | Desktop will not restart | Close the Quester window; on Windows kill `launcher` / `bun` if needed |
-| Schema / engine types out of date | `bun run --filter @quester/schema build` then `bun run build:pkgs` |
+| Schema / engine types out of date | `bun run --filter @quester-studio/schema build` then `bun run build:pkgs` |
 
 ## Related docs
 

@@ -5,7 +5,7 @@ import {
 	FLOW_VERSION,
 	SECRETS_VERSION,
 	WORKSPACE_VERSION,
-} from "@quester/schema";
+} from "@quester-studio/schema";
 
 export type ScaffoldWorkspaceOptions = {
 	/** Workspace display/manifest name. Defaults from directory basename. */

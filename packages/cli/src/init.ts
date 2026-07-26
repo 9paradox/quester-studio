@@ -2,7 +2,7 @@ import {
 	type ScaffoldWorkspaceOptions,
 	type ScaffoldWorkspaceResult,
 	scaffoldWorkspace,
-} from "@quester/engine";
+} from "@quester-studio/engine";
 
 export type InitOptions = ScaffoldWorkspaceOptions;
 export type InitResult = ScaffoldWorkspaceResult;

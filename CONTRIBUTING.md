@@ -20,11 +20,11 @@ bun run test
 Package-scoped work:
 
 ```bash
-bun run --filter @quester/schema build
-bun run --filter @quester/schema test
+bun run --filter @quester-studio/schema build
+bun run --filter @quester-studio/schema test
 ```
 
-After changing `@quester/schema`, confirm `schemas/` was regenerated (do not hand-edit JSON Schema files).
+After changing `@quester-studio/schema`, confirm `schemas/` was regenerated (do not hand-edit JSON Schema files).
 
 ### Debugging
 
@@ -127,10 +127,10 @@ Apply these labels when triaging (create in GitHub → Issues → Labels):
 | `type:chore` | Tooling / hygiene |
 | `type:docs` | Documentation |
 | `type:security` | Security |
-| `area:schema` | `@quester/schema` |
-| `area:nodes` | `@quester/nodes` |
-| `area:engine` | `@quester/engine` |
-| `area:cli` | `@quester/cli` |
+| `area:schema` | `@quester-studio/schema` |
+| `area:nodes` | `@quester-studio/nodes` |
+| `area:engine` | `@quester-studio/engine` |
+| `area:cli` | `@quester-studio/cli` |
 | `area:desktop` | Desktop app |
 | `area:docs` | Docs / web apps |
 | `area:infra` | CI, release, hooks |
@@ -155,10 +155,10 @@ Create a **Quester Studio** project board with columns: Backlog → Planned → 
 
 ## Package boundaries
 
-- `@quester/schema` — Zod validation only
-- `@quester/nodes` — node `execute()` plugins
-- `@quester/engine` — workspace load + flow execution
-- `@quester/cli` — `quester validate` / `quester run`
+- `@quester-studio/schema` — Zod validation only
+- `@quester-studio/nodes` — node `execute()` plugins
+- `@quester-studio/engine` — workspace load + flow execution
+- `@quester-studio/cli` — `quester validate` / `quester run`
 
 Do not put execution logic in schema or UI in engine.
 

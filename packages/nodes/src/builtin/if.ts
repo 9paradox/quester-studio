@@ -1,4 +1,4 @@
-﻿import { type ValueCheck, ifNodeDataSchema } from "@quester/schema";
+import { type ValueCheck, ifNodeDataSchema } from "@quester-studio/schema";
 import jmespath from "jmespath";
 import type { FlowNodePlugin, NodeExecutionContext } from "../types.js";
 import {

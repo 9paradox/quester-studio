@@ -1,4 +1,8 @@
-import { type CheckOp, checkOps, checkOpsNeedingValue } from "@quester/schema";
+import {
+	type CheckOp,
+	checkOps,
+	checkOpsNeedingValue,
+} from "@quester-studio/schema";
 
 export type AssertCheck = {
 	path: string;

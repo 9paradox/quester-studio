@@ -1,4 +1,4 @@
-﻿import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import {
 	type EnvironmentV1,
@@ -8,7 +8,7 @@ import {
 	validateEnvironment,
 	validateFlow,
 	validateWorkspace,
-} from "@quester/schema";
+} from "@quester-studio/schema";
 
 export type LoadedWorkspace = {
 	root: string;

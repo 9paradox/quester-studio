@@ -30,10 +30,10 @@ Write the change in the right package. Keep diffs small; match existing patterns
 
 | Area | Touch |
 |------|-------|
-| Validation / flow format | `@quester/schema` |
-| Node execution | `@quester/nodes` |
-| Graph / workspace / run | `@quester/engine` |
-| CLI commands | `@quester/cli` |
+| Validation / flow format | `@quester-studio/schema` |
+| Node execution | `@quester-studio/nodes` |
+| Graph / workspace / run | `@quester-studio/engine` |
+| CLI commands | `@quester-studio/cli` |
 | UI / IPC | `apps/desktop` |
 
 Conventions: ESM + `.js` import suffixes; tests in `src/**/*.test.ts`; user-facing → `.changeset/*.md`; never commit secrets or hand-edited `schemas/`.
@@ -44,8 +44,8 @@ Conventions: ESM + `.js` import suffixes; tests in `src/**/*.test.ts`; user-faci
 
 ```powershell
 # Fast feedback on one package
-bun run --filter @quester/engine test
-bun run --filter @quester/engine build
+bun run --filter @quester-studio/engine test
+bun run --filter @quester-studio/engine build
 
 # Run a single test file
 bun test packages/engine/src/some.test.ts
@@ -54,7 +54,7 @@ bun test packages/engine/src/some.test.ts
 After schema changes, rebuild and confirm `schemas/` regenerated:
 
 ```powershell
-bun run --filter @quester/schema build
+bun run --filter @quester-studio/schema build
 ```
 
 Compare engine/nodes behavior to CLI:
@@ -71,19 +71,19 @@ bunx --bun quester run examples/sample-workspace/flows/login-and-profile.flow.js
 
 ```powershell
 bun run build:pkgs
-bun run --filter @quester/desktop dev
+bun run --filter @quester-studio/desktop dev
 ```
 
 For renderer HMR while iterating UI:
 
 ```powershell
-bun run --filter @quester/desktop dev:hmr
+bun run --filter @quester-studio/desktop dev:hmr
 ```
 
 Desktop tests (main-process RPCs):
 
 ```powershell
-bun run --filter @quester/desktop test
+bun run --filter @quester-studio/desktop test
 ```
 
 ### Debug checklist

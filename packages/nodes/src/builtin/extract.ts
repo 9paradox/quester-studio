@@ -1,4 +1,4 @@
-﻿import { extractNodeDataSchema } from "@quester/schema";
+import { extractNodeDataSchema } from "@quester-studio/schema";
 import jmespath from "jmespath";
 import type { FlowNodePlugin } from "../types.js";
 

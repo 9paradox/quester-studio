@@ -5,7 +5,7 @@ import {
 	createSecretsEditorTab,
 	flowTabId,
 } from "@/lib/editorTabs.js";
-import type { EnvironmentV1, FlowV1, SecretsV1 } from "@quester/schema";
+import type { EnvironmentV1, FlowV1, SecretsV1 } from "@quester-studio/schema";
 import type { useQuesterStore as UseQuesterStore } from "./quester-store.js";
 import {
 	selectActiveFlowTab,

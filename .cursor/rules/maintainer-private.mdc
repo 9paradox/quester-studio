@@ -12,7 +12,7 @@ Apply these defaults when proposing CI, release, or infrastructure changes.
 - GitHub Actions, Issues, Projects, Pages, Releases
 - Biome, Bun, Lefthook, Changesets, Turborepo (local cache)
 - Dependabot, `bun audit`
-- Public npm packages (`@quester/*`)
+- Public npm packages (`@quester-studio/*`)
 - Unsigned desktop builds on GitHub Releases
 - GitHub Pages for docs and web
 

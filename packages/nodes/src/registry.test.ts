@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { builtinNodeTypes } from "@quester/schema";
+import { builtinNodeTypes } from "@quester-studio/schema";
 import { getNodePlugin, listNodePlugins } from "./registry.js";
 import "./index.js";
 

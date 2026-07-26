@@ -18,7 +18,7 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
-import type { FlowNodeV1 } from "@quester/schema";
+import type { FlowNodeV1 } from "@quester-studio/schema";
 
 function ResultWithInput({
 	result,

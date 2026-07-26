@@ -47,7 +47,7 @@ jobs:
       - name: Build desktop app
         # vite renderer + Electrobun package → apps/desktop/artifacts/
         # Windows: Quester-Setup.zip; Linux: AppImage / setup artifacts
-        run: bun run --filter @quester/desktop build:app
+        run: bun run --filter @quester-studio/desktop build:app
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -81,6 +81,6 @@ jobs:
 
             ## npm packages
 
-            `@quester/schema`, `@quester/nodes`, `@quester/engine`, `@quester/cli` at v${{ inputs.version }}.
+            `@quester-studio/schema`, `@quester-studio/nodes`, `@quester-studio/engine`, `@quester-studio/cli` at v${{ inputs.version }}.
           files: artifacts/**
           draft: false

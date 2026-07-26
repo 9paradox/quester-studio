@@ -1,5 +1,5 @@
-﻿import { describe, expect, mock, test } from "bun:test";
-import type { FlowV1 } from "@quester/schema";
+import { describe, expect, mock, test } from "bun:test";
+import type { FlowV1 } from "@quester-studio/schema";
 import { FlowExecutionError, executeFlow } from "./execute.js";
 
 const httpFlow: FlowV1 = {

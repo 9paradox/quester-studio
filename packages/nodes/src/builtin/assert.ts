@@ -1,4 +1,4 @@
-import { assertNodeDataSchema } from "@quester/schema";
+import { assertNodeDataSchema } from "@quester-studio/schema";
 import jmespath from "jmespath";
 import type { FlowNodePlugin } from "../types.js";
 import {

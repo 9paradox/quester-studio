@@ -123,8 +123,8 @@ Full trust model: [SECURITY.md](https://github.com/9paradox/quester-studio/blob/
 
 ## JSON Schema
 
-Emitted schemas live under `schemas/quester/`. After changing `@quester/schema`:
+Emitted schemas live under `schemas/quester/`. After changing `@quester-studio/schema`:
 
 ```bash
-bun run --filter @quester/schema build
+bun run --filter @quester-studio/schema build
 ```

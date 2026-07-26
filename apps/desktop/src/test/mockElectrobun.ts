@@ -1,5 +1,9 @@
 import { mock } from "bun:test";
-import type { EnvironmentV1, FlowV1, WorkspaceV1 } from "@quester/schema";
+import type {
+	EnvironmentV1,
+	FlowV1,
+	WorkspaceV1,
+} from "@quester-studio/schema";
 
 export const SMOKE_WORKSPACE = "/smoke/workspace";
 

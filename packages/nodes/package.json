@@ -1,5 +1,5 @@
 {
-	"name": "@quester/nodes",
+	"name": "@quester-studio/nodes",
 	"version": "0.1.0",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -20,12 +20,12 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@quester/schema": "workspace:*",
+		"@quester-studio/schema": "workspace:*",
 		"eta": "^3.5.0",
 		"jmespath": "^0.16.0"
 	},
 	"devDependencies": {
-		"@quester/tsconfig": "workspace:*",
+		"@quester-studio/tsconfig": "workspace:*",
 		"@types/jmespath": "^0.15.2",
 		"typescript": "^5.8.3",
 		"@types/node": "^22.15.3"

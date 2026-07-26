@@ -1,4 +1,4 @@
-﻿---
+---
 title: Getting started
 description: Run and validate flows with the Quester CLI
 ---
@@ -15,7 +15,7 @@ bun run build
 After **v0.4.0** npm publish, you can also run the CLI without cloning:
 
 ```bash
-bunx @quester/cli --help
+bunx @quester-studio/cli --help
 ```
 
 ## Scaffold a workspace

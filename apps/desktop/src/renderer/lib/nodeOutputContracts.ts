@@ -1,4 +1,4 @@
-import type { BuiltinNodeType } from "@quester/schema";
+import type { BuiltinNodeType } from "@quester-studio/schema";
 
 /**
  * Static output path contracts for builtin nodes — available before any run.

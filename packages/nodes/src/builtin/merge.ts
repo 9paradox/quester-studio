@@ -1,4 +1,4 @@
-import { mergeNodeDataSchema } from "@quester/schema";
+import { mergeNodeDataSchema } from "@quester-studio/schema";
 import type { FlowNodePlugin } from "../types.js";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

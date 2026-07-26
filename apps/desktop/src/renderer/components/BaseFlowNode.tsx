@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/tooltip.js";
 import { getNodePresentation } from "@/lib/nodeCatalog.js";
 import { cn } from "@/lib/utils.js";
-import type { BuiltinNodeType } from "@quester/schema";
+import type { BuiltinNodeType } from "@quester-studio/schema";
 import {
 	IconCircleCheck,
 	IconCircleDashed,

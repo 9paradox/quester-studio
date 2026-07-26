@@ -1,4 +1,4 @@
-﻿import type { FlowNodeV1, HttpSettingsV1 } from "@quester/schema";
+import type { FlowNodeV1, HttpSettingsV1 } from "@quester-studio/schema";
 import type { CookieJar } from "./cookie-jar.js";
 
 export type NodeExecutionContext = {

@@ -1,4 +1,4 @@
-import { transformNodeDataSchema } from "@quester/schema";
+import { transformNodeDataSchema } from "@quester-studio/schema";
 import jmespath from "jmespath";
 import type { FlowNodePlugin } from "../types.js";
 

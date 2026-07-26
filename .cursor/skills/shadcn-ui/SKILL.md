@@ -72,9 +72,9 @@ npx shadcn@latest apply --preset <code> --only theme,font -c apps/desktop
 ## Verify
 
 ```bash
-bun run --filter @quester/desktop lint
-bun run --filter @quester/desktop typecheck
-bun run --filter @quester/desktop build
+bun run --filter @quester-studio/desktop lint
+bun run --filter @quester-studio/desktop typecheck
+bun run --filter @quester-studio/desktop build
 ```
 
 ## Refresh official skills

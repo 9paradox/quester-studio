@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join, resolve } from "node:path";
@@ -7,13 +7,13 @@ import {
 	executeFlow,
 	loadSecrets,
 	loadWorkspace,
-} from "@quester/engine";
+} from "@quester-studio/engine";
 import {
 	mergeHttpSettings,
 	validateEnvironment,
 	validateFlow,
 	validateWorkspace,
-} from "@quester/schema";
+} from "@quester-studio/schema";
 import { Command } from "commander";
 import { initWorkspace } from "./init.js";
 

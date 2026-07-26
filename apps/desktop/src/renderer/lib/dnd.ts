@@ -1,4 +1,4 @@
-import type { BuiltinNodeType } from "@quester/schema";
+import type { BuiltinNodeType } from "@quester-studio/schema";
 
 export const QUESTER_NODE_MIME = "application/quester-node";
 export const QUESTER_REQUEST_MIME = "application/quester-request";

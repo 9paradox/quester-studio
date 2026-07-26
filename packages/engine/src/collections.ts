@@ -11,7 +11,7 @@ import {
 	type RequestV1,
 	type WorkspaceV1,
 	validateRequest,
-} from "@quester/schema";
+} from "@quester-studio/schema";
 
 export type RequestMeta = {
 	/** Relative path without `.request.json`, e.g. `Auth/login`. */

@@ -30,7 +30,7 @@ import {
 	type BuiltinNodeType,
 	type FlowNodeV1,
 	builtinNodeTypes,
-} from "@quester/schema";
+} from "@quester-studio/schema";
 import type { ReactNode } from "react";
 
 type NodeInspectorProps = {

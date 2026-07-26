@@ -26,7 +26,7 @@ apps/desktop/
 
 Exports used as RPC handlers:
 
-- `openWorkspace(path?)` — `loadWorkspace` from `@quester/engine`
+- `openWorkspace(path?)` — `loadWorkspace` from `@quester-studio/engine`
 - `listFlows(path?)` — flow id/name list
 - `executeFlowRpc(flowId, { env, input })` — validate + `executeFlow`
 - `loadSampleFlowJson()` — reads example flow file
@@ -43,8 +43,8 @@ Default workspace: `examples/sample-workspace` (relative to repo root).
 ## Development
 
 ```bash
-bun run --filter @quester/desktop dev    # electrobun dev
-bun run --filter @quester/desktop build  # vite build → dist/renderer/
+bun run --filter @quester-studio/desktop dev    # electrobun dev
+bun run --filter @quester-studio/desktop build  # vite build → dist/renderer/
 ```
 
 Build packages first if engine/schema changed:
@@ -89,8 +89,8 @@ const rfEdges = flow.edges.map((e) => ({
 
 ## Dependencies
 
-- `@quester/engine` — `loadWorkspace`, `executeFlow`
-- `@quester/schema` — `validateFlow` (main process before run)
+- `@quester-studio/engine` — `loadWorkspace`, `executeFlow`
+- `@quester-studio/schema` — `validateFlow` (main process before run)
 - shadcn/ui — renderer UI components (`@/components/ui/*`)
 
 Keep validation in main process; renderer sends flow id + input, never executes HTTP directly.
@@ -105,10 +105,10 @@ Keep validation in main process; renderer sends flow id + input, never executes 
 ## Verify
 
 ```bash
-bun run --filter @quester/desktop lint
-bun run --filter @quester/desktop test
-bun run --filter @quester/desktop test:smoke   # AppShell / settings render smoke
-bun run --filter @quester/desktop dev          # manual Electrobun smoke
+bun run --filter @quester-studio/desktop lint
+bun run --filter @quester-studio/desktop test
+bun run --filter @quester-studio/desktop test:smoke   # AppShell / settings render smoke
+bun run --filter @quester-studio/desktop dev          # manual Electrobun smoke
 ```
 
 After IPC + run panel: execute sample flow and compare output to CLI:

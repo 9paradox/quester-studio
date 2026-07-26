@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { Textarea } from "@/components/ui/textarea.js";
 import type { WorkspaceSettingsEditorTab } from "@/lib/editorTabs.js";
-import type { WorkspaceV1 } from "@quester/schema";
+import type { WorkspaceV1 } from "@quester-studio/schema";
 import { useState } from "react";
 import {
 	SettingsField,

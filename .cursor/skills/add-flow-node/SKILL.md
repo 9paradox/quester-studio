@@ -18,7 +18,7 @@ Adding a node touches **schema** (validation) and **nodes** (execution). Keep bo
 - [ ] 6. Export from packages/nodes/src/builtin/index.ts
 - [ ] 7. Register in packages/nodes/src/index.ts builtins array
 - [ ] 8. Tests (schema validation + plugin behavior)
-- [ ] 9. bun run --filter @quester/schema build (regenerates schemas/)
+- [ ] 9. bun run --filter @quester-studio/schema build (regenerates schemas/)
 - [ ] 10. bun run test
 ```
 
@@ -54,7 +54,7 @@ In `emit-schemas.ts`, add to `specs`:
 ## 4. Plugin (`packages/nodes/src/builtin/<type>.ts`)
 
 ```typescript
-import { myNodeDataSchema } from "@quester/schema";
+import { myNodeDataSchema } from "@quester-studio/schema";
 import type { FlowNodePlugin } from "../types.js";
 
 export const myPlugin: FlowNodePlugin = {
@@ -114,9 +114,9 @@ test("executes", async () => {
 ## Verify
 
 ```bash
-bun run --filter @quester/schema build
-bun run --filter @quester/nodes test
-bun run --filter @quester/engine test
+bun run --filter @quester-studio/schema build
+bun run --filter @quester-studio/nodes test
+bun run --filter @quester-studio/engine test
 ```
 
 Optionally add a node to `examples/sample-workspace/flows/` and run:

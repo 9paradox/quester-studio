@@ -1,5 +1,5 @@
 import { type NodeHelp, nodeHelpByType } from "@/lib/nodeHelp.js";
-import { type BuiltinNodeType, builtinNodeTypes } from "@quester/schema";
+import { type BuiltinNodeType, builtinNodeTypes } from "@quester-studio/schema";
 import {
 	IconArrowBarToDown,
 	IconArrowBarToUp,

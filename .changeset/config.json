@@ -3,7 +3,12 @@
 	"changelog": "@changesets/cli/changelog",
 	"commit": false,
 	"fixed": [
-		["@quester/schema", "@quester/nodes", "@quester/engine", "@quester/cli"]
+		[
+			"@quester-studio/schema",
+			"@quester-studio/nodes",
+			"@quester-studio/engine",
+			"@quester-studio/cli"
+		]
 	],
 	"access": "public",
 	"baseBranch": "main",

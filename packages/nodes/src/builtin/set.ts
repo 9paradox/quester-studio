@@ -1,4 +1,4 @@
-﻿import { setNodeDataSchema } from "@quester/schema";
+import { setNodeDataSchema } from "@quester-studio/schema";
 import type { FlowNodePlugin } from "../types.js";
 
 export const setPlugin: FlowNodePlugin = {
