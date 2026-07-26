@@ -1,0 +1,18 @@
+---
+description: When the user says "git it", run the full ship loop
+alwaysApply: true
+---
+
+# "git it" means full ship
+
+When the user says **git it** (or equivalent), do the complete workflow — not commit-only:
+
+1. **Branch** — `feat/*`, `fix/*`, or `chore/*` from up-to-date `main` (never leave feature commits only on `main`)
+2. **Commit** — Conventional Commit; changeset if user-facing; do not commit secrets, `.env`, or hand-edited `schemas/`
+3. **Push** — `git push -u origin HEAD`
+4. **PR** — `gh pr create` (title = squash message); wait for CI if needed
+5. **Merge** — `gh pr merge --squash --delete-branch`
+6. **Clean** — delete merged local/remote head branch; `git fetch --prune`
+7. **Sync** — `git checkout main`; `git pull origin main`
+
+Follow `.cursor/skills/dev-workflow` and `.cursor/skills/git-tidy`. PowerShell: use `;`, not `&&`.
