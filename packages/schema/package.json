@@ -1,6 +1,6 @@
 {
 	"name": "@quester-studio/schema",
-	"version": "0.1.0",
+	"version": "0.4.0",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -11,7 +11,7 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc \u0026\u0026 bun run emit-schemas",
+		"build": "tsc && bun run emit-schemas",
 		"emit-schemas": "bun run src/emit-schemas.ts",
 		"typecheck": "tsc --noEmit",
 		"test": "bun test",
