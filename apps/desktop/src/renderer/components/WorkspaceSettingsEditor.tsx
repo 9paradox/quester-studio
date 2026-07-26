@@ -1,4 +1,8 @@
-import { HeadersEditor } from "@/components/HeadersEditor.js";
+import {
+	HttpSettingsFields,
+	type HttpSettingsPatch,
+	applyHttpSettingsPatch,
+} from "@/components/HttpSettingsFields.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { Textarea } from "@/components/ui/textarea.js";
@@ -36,25 +40,12 @@ export function WorkspaceSettingsEditor({
 		onChange({ ...manifest, ...partial });
 	};
 
-	const patchHttp = (partial: {
-		defaultHeaders?: Record<string, string>;
-		timeoutMs?: number;
-	}) => {
+	const patchHttp = (partial: HttpSettingsPatch) => {
 		onChange({
 			...manifest,
 			settings: {
 				...manifest.settings,
-				http: {
-					defaultHeaders:
-						partial.defaultHeaders ??
-						manifest.settings?.http?.defaultHeaders ??
-						{},
-					...(partial.timeoutMs !== undefined
-						? { timeoutMs: partial.timeoutMs }
-						: manifest.settings?.http?.timeoutMs !== undefined
-							? { timeoutMs: manifest.settings.http.timeoutMs }
-							: {}),
-				},
+				http: applyHttpSettingsPatch(manifest.settings?.http, partial),
 			},
 		});
 	};
@@ -107,40 +98,13 @@ export function WorkspaceSettingsEditor({
 
 			{category === "http" ? (
 				<SettingsSection title="HTTP defaults">
-					<SettingsField
-						label="Request timeout (ms)"
-						htmlFor="ws-timeout"
-						description="How long HTTP requests wait before timing out. Set to 0 for no timeout. Applied to flows unless a flow overrides it."
-					>
-						<Input
-							id="ws-timeout"
-							type="number"
-							min={0}
-							value={manifest.settings?.http?.timeoutMs ?? 0}
-							onChange={(e) => {
-								const n = Number(e.target.value);
-								patchHttp({
-									timeoutMs: Number.isFinite(n)
-										? Math.max(0, Math.floor(n))
-										: 0,
-								});
-							}}
-							className="bg-background"
-						/>
-					</SettingsField>
-					<div className="flex flex-col gap-2">
-						<p className="text-xs font-medium text-foreground">
-							Default headers
-						</p>
-						<p className="text-xs text-muted-foreground">
-							Merged into every HTTP node. Node-level headers override the same
-							keys.
-						</p>
-						<HeadersEditor
-							headers={manifest.settings?.http?.defaultHeaders ?? {}}
-							onChange={(defaultHeaders) => patchHttp({ defaultHeaders })}
-						/>
-					</div>
+					<HttpSettingsFields
+						idPrefix="ws"
+						http={manifest.settings?.http}
+						onPatch={patchHttp}
+						allowInherit
+						inheritHint="Unset TLS inherits App Preferences / env. Cookie jar defaults to on when unset."
+					/>
 				</SettingsSection>
 			) : null}
 		</SettingsPageLayout>

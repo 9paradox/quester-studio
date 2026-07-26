@@ -21,7 +21,14 @@ Layers: **Details** (identity) → git files; **Settings** (runtime) → git fil
 - [x] App / Workspace settings as editor tabs (move theme into App Preferences) — #51
 - [x] Workspace HTTP defaults (headers, timeout) + engine merge — #52
 - [x] TLS verification preference (app Settings) + SECURITY.md — #53
-- Later: flow-level HTTP settings UI, max response size, cookie jar, proxy, certificates, shortcuts, workspace-scoped TLS
+- [x] Flow-level HTTP settings UI — #60
+- [x] Max response size (`maxResponseBytes`) — #60
+- [x] In-run cookie jar — #60
+- [x] Proxy URL — #60
+- [x] Custom CA file (`caFile`) — #60
+- [x] Workspace/flow-scoped TLS (`verifyTls`) — #60
+- [x] Shortcuts prefs page + Ctrl/⌘ Enter / Ctrl/⌘ W — #60
+- Later: client certificates (mTLS), disk-persisted cookie jar, remappable shortcuts
 
 
 ## Done recently

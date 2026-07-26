@@ -65,7 +65,7 @@ export function tlsCertificateHint(options: {
 	verifyEnabled: boolean;
 }): string | null {
 	if (!options.verifyEnabled) return null;
-	return "TLS certificate verification failed. Fix your system CA store, or turn off SSL certificate verification in Settings (dev only). You can also restart with QUESTR_INSECURE_TLS=1.";
+	return "TLS certificate verification failed. Fix your system CA store, set settings.http.caFile, or turn off SSL verification in workspace/flow settings or App Preferences (dev only). You can also restart with QUESTR_INSECURE_TLS=1.";
 }
 
 export const TLS_INSECURE_HINT =

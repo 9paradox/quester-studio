@@ -1,4 +1,5 @@
-import { httpNodeDataSchema } from "@quester/schema";
+import { httpNodeDataSchema, isCookieJarEnabled } from "@quester/schema";
+import type { CookieJar } from "../cookie-jar.js";
 import type { FlowNodePlugin } from "../types.js";
 import { assertHttpUrl } from "./validate-http-url.js";
 
@@ -38,6 +39,61 @@ export class HttpNodeError extends Error {
 	}
 }
 
+export async function readResponseTextLimited(
+	res: Response,
+	maxBytes: number | undefined,
+): Promise<{ text: string; size: number }> {
+	const unlimited = maxBytes === undefined || maxBytes === 0;
+	const contentLength = res.headers.get("content-length");
+	if (
+		!unlimited &&
+		contentLength !== null &&
+		Number(contentLength) > (maxBytes as number)
+	) {
+		throw new Error(
+			`Response Content-Length ${contentLength} exceeds maxResponseBytes (${maxBytes})`,
+		);
+	}
+
+	if (unlimited || !res.body) {
+		const text = await res.text();
+		return { text, size: new TextEncoder().encode(text).length };
+	}
+
+	const reader = res.body.getReader();
+	const chunks: Uint8Array[] = [];
+	let size = 0;
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		if (!value) continue;
+		size += value.byteLength;
+		if (size > (maxBytes as number)) {
+			await reader.cancel();
+			throw new Error(`Response body exceeds maxResponseBytes (${maxBytes})`);
+		}
+		chunks.push(value);
+	}
+	const merged = new Uint8Array(size);
+	let offset = 0;
+	for (const chunk of chunks) {
+		merged.set(chunk, offset);
+		offset += chunk.byteLength;
+	}
+	return { text: new TextDecoder().decode(merged), size };
+}
+
+function collectSetCookie(headers: Headers): string[] {
+	const getSetCookie = (headers as Headers & { getSetCookie?: () => string[] })
+		.getSetCookie;
+	if (typeof getSetCookie === "function") return getSetCookie.call(headers);
+	const out: string[] = [];
+	headers.forEach((value, key) => {
+		if (key.toLowerCase() === "set-cookie") out.push(value);
+	});
+	return out;
+}
+
 export const httpPlugin: FlowNodePlugin = {
 	type: "http",
 	async execute(ctx) {
@@ -53,6 +109,12 @@ export const httpPlugin: FlowNodePlugin = {
 		for (const [k, v] of Object.entries(data.headers)) {
 			headers[k] = ctx.resolveTemplate(v);
 		}
+
+		const jar: CookieJar | undefined =
+			isCookieJarEnabled(ctx.httpDefaults) && ctx.cookieJar
+				? ctx.cookieJar
+				: undefined;
+		jar?.applyToHeaders(url, headers);
 
 		let body: string | undefined;
 		if (data.body !== undefined) {
@@ -92,7 +154,23 @@ export const httpPlugin: FlowNodePlugin = {
 			throw new HttpNodeError(message, request, error);
 		}
 		const endedAt = Date.now();
-		const text = await res.text();
+
+		let text: string;
+		let size: number;
+		try {
+			({ text, size } = await readResponseTextLimited(
+				res,
+				ctx.httpDefaults?.maxResponseBytes,
+			));
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			throw new HttpNodeError(message, request, error);
+		}
+
+		if (jar) {
+			jar.storeFromSetCookie(url, collectSetCookie(res.headers));
+		}
+
 		let json: unknown = text;
 		try {
 			json = JSON.parse(text);
@@ -117,7 +195,7 @@ export const httpPlugin: FlowNodePlugin = {
 				endedAt,
 				durationMs: endedAt - startedAt,
 			},
-			size: new TextEncoder().encode(text).length,
+			size,
 		};
 
 		return { output };

@@ -1,5 +1,6 @@
-﻿import { HttpNodeError, getNodePlugin } from "@quester/nodes";
+﻿import { CookieJar, HttpNodeError, getNodePlugin } from "@quester/nodes";
 import type { FlowV1, HttpSettingsV1 } from "@quester/schema";
+import { isCookieJarEnabled } from "@quester/schema";
 import "@quester/nodes";
 import { EngineEventEmitter } from "./events.js";
 import { selectNextEdges, topologicalSort } from "./graph.js";
@@ -14,6 +15,8 @@ export type ExecuteFlowOptions = {
 	events?: EngineEventEmitter;
 	/** Resolved HTTP defaults (workspace→flow already merged by caller). */
 	httpDefaults?: HttpSettingsV1;
+	/** Optional shared jar; created automatically when cookie jar is enabled. */
+	cookieJar?: CookieJar;
 };
 
 export type NodeStepResult = {
@@ -71,6 +74,10 @@ export async function executeFlow(
 	const queue: string[] = startNodes.map((n) => n.id);
 	if (queue.length === 0 && order[0]) queue.push(order[0].id);
 
+	const cookieJar =
+		options.cookieJar ??
+		(isCookieJarEnabled(options.httpDefaults) ? new CookieJar() : undefined);
+
 	const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));
 	let lastOutput: unknown = {};
 
@@ -117,6 +124,7 @@ export async function executeFlow(
 				resolveTemplate: (t) => resolveTemplate(t, resolverCtx),
 				fetch: fetchFn,
 				httpDefaults: options.httpDefaults,
+				cookieJar,
 			});
 			if (result.vars) vars = { ...vars, ...result.vars };
 			nodeOutputs[node.id] = result.output;

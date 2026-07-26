@@ -42,7 +42,7 @@ import type { ComponentType, ReactNode, SVGProps } from "react";
 import { useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { RequestMeta } from "../../shared/rpc.js";
-import { FlowDetailsDialog } from "./FlowDetailsDialog.js";
+import { FlowSettingsDialog } from "./FlowSettingsDialog.js";
 import { SettingsSidebar } from "./SettingsSidebar.js";
 
 type ListIcon = ComponentType<SVGProps<SVGSVGElement> & { className?: string }>;
@@ -374,23 +374,26 @@ export function PrimarySidebar() {
 
 			{view === "settings" ? <SettingsSidebar /> : null}
 
-			<FlowDetailsDialog
+			<FlowSettingsDialog
 				open={Boolean(flowDetailsId)}
 				onOpenChange={(open) => {
 					if (!open) setFlowDetailsId(null);
 				}}
-				name={
+				flow={
 					activeFlowTab?.flowId === flowDetailsId
-						? (activeFlowTab.flow.name ?? activeFlowTab.flowId)
-						: (flowDetailsTarget?.name ?? "")
+						? {
+								name: activeFlowTab.flow.name,
+								description: activeFlowTab.flow.description,
+								settings: activeFlowTab.flow.settings,
+							}
+						: {
+								name: flowDetailsTarget?.name,
+								description: undefined,
+								settings: undefined,
+							}
 				}
-				description={
-					activeFlowTab?.flowId === flowDetailsId
-						? (activeFlowTab.flow.description ?? "")
-						: ""
-				}
-				onSave={({ name, description }) => {
-					updateActiveFlowMeta({ name, description });
+				onSave={({ name, description, http }) => {
+					updateActiveFlowMeta({ name, description, http });
 				}}
 			/>
 		</aside>
@@ -577,7 +580,7 @@ function FileListItem({
 				<ContextMenuItem onClick={onSelect}>Open</ContextMenuItem>
 				{onEditDetails ? (
 					<ContextMenuItem onClick={onEditDetails}>
-						Edit details…
+						Flow settings…
 					</ContextMenuItem>
 				) : null}
 				{onRename ? (

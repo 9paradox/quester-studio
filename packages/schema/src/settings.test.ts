@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mergeHttpSettings } from "./settings.js";
+import { isCookieJarEnabled, mergeHttpSettings } from "./settings.js";
 
 describe("mergeHttpSettings", () => {
 	test("merges headers with flow overriding workspace keys", () => {
@@ -25,5 +25,50 @@ describe("mergeHttpSettings", () => {
 				{ defaultHeaders: {}, timeoutMs: 0 },
 			).timeoutMs,
 		).toBe(0);
+	});
+
+	test("inherits maxResponseBytes, proxyUrl, caFile, verifyTls, cookieJar", () => {
+		const merged = mergeHttpSettings(
+			{
+				defaultHeaders: {},
+				maxResponseBytes: 1024,
+				proxyUrl: "http://proxy:8080",
+				caFile: "certs/ca.pem",
+				verifyTls: true,
+				cookieJar: false,
+			},
+			{ defaultHeaders: {}, maxResponseBytes: 0, verifyTls: false },
+		);
+		expect(merged.maxResponseBytes).toBe(0);
+		expect(merged.proxyUrl).toBe("http://proxy:8080");
+		expect(merged.caFile).toBe("certs/ca.pem");
+		expect(merged.verifyTls).toBe(false);
+		expect(merged.cookieJar).toBe(false);
+	});
+
+	test("empty string proxyUrl/caFile from flow clears workspace", () => {
+		const merged = mergeHttpSettings(
+			{
+				defaultHeaders: {},
+				proxyUrl: "http://proxy:8080",
+				caFile: "certs/ca.pem",
+			},
+			{ defaultHeaders: {}, proxyUrl: "", caFile: "" },
+		);
+		expect(merged.proxyUrl).toBe("");
+		expect(merged.caFile).toBe("");
+	});
+});
+
+describe("isCookieJarEnabled", () => {
+	test("defaults to true when unset", () => {
+		expect(isCookieJarEnabled(undefined)).toBe(true);
+		expect(isCookieJarEnabled({ defaultHeaders: {} })).toBe(true);
+	});
+
+	test("respects explicit false", () => {
+		expect(isCookieJarEnabled({ defaultHeaders: {}, cookieJar: false })).toBe(
+			false,
+		);
 	});
 });

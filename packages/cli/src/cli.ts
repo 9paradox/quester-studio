@@ -2,7 +2,12 @@
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join, resolve } from "node:path";
-import { executeFlow, loadSecrets, loadWorkspace } from "@quester/engine";
+import {
+	createHttpFetch,
+	executeFlow,
+	loadSecrets,
+	loadWorkspace,
+} from "@quester/engine";
 import {
 	mergeHttpSettings,
 	validateEnvironment,
@@ -93,15 +98,20 @@ program
 			const envVars = ws?.environments[opts.env]?.variables ?? {};
 			const secrets = await loadSecrets(wsPath, opts.env);
 			const input = JSON.parse(opts.input) as unknown;
+			const httpDefaults = mergeHttpSettings(
+				ws?.manifest.settings?.http,
+				validated.data.settings?.http,
+			);
 
 			const result = await executeFlow(validated.data, {
 				input,
 				env: envVars,
 				secrets,
-				httpDefaults: mergeHttpSettings(
-					ws?.manifest.settings?.http,
-					validated.data.settings?.http,
-				),
+				httpDefaults,
+				fetch: createHttpFetch({
+					httpDefaults,
+					workspaceRoot: wsPath,
+				}),
 			});
 			console.log(JSON.stringify(result.output, null, 2));
 		},

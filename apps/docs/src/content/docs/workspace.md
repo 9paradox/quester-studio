@@ -50,6 +50,11 @@ Manifest that names the workspace and optional directory overrides.
 | `collectionsDir` | string | `"collections"` | Relative path to request collections |
 | `settings.http.defaultHeaders` | object | `{}` | Headers merged into every HTTP node (node keys win) |
 | `settings.http.timeoutMs` | number | omitted | Request timeout in ms; `0` = none |
+| `settings.http.maxResponseBytes` | number | omitted | Max response body size; `0` = unlimited |
+| `settings.http.proxyUrl` | string | omitted | HTTP(S) proxy URL; `""` clears an outer proxy |
+| `settings.http.caFile` | string | omitted | Workspace-relative PEM CA path; `""` clears |
+| `settings.http.verifyTls` | boolean | omitted | Verify TLS (inherits → app preference / env) |
+| `settings.http.cookieJar` | boolean | omitted | In-run cookie jar; default on when unset |
 
 ### Example
 

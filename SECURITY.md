@@ -25,10 +25,18 @@ Quester does not encrypt secrets at rest. Protect workspace directories with OS-
 ## TLS certificate verification
 
 - By default, HTTPS requests **verify** TLS certificates.
-- Desktop: Settings → **SSL certificate verification** (stored on this machine). Turning it **Off** disables verification for all runs in the app (dev / self-signed certs only).
-- Override for a process: set `QUESTR_INSECURE_TLS=1` (or `NODE_TLS_REJECT_UNAUTHORIZED=0`) before starting the desktop app or CLI. Env overrides the Settings preference.
-- Disabling verification exposes you to man-in-the-middle risk. Prefer fixing the system CA store when possible.
-- If a run fails with a certificate error while verification is on, Quester logs a hint to fix the CA store or turn verification off in Settings.
+- Precedence (first match wins for “insecure”):
+  1. Process env: `QUESTR_INSECURE_TLS=1` or `NODE_TLS_REJECT_UNAUTHORIZED=0`
+  2. Workspace / flow `settings.http.verifyTls` when set (`false` disables verify for that run)
+  3. Desktop App Preferences → **SSL certificate verification** (machine-local)
+- Prefer a workspace `settings.http.caFile` (PEM CA bundle, path relative to the workspace root) over disabling verification.
+- Disabling verification exposes you to man-in-the-middle risk.
+- If a run fails with a certificate error while verification is on, Quester logs a hint to fix the CA store, set `caFile`, or turn verification off.
+
+## HTTP proxy
+
+- Optional `settings.http.proxyUrl` (workspace or flow) routes HTTPS/HTTP through that proxy for the run.
+- Treat proxy endpoints as trusted infrastructure; they can see request metadata and (for HTTPS MITM proxies) content if you also disable TLS verify.
 
 ## Desktop downloads
 

@@ -34,6 +34,7 @@ import { DEFAULT_INPUT, withInputNodeValue } from "@/lib/runDefaults.js";
 import type {
 	BuiltinNodeType,
 	FlowV1,
+	HttpSettingsV1,
 	RequestV1,
 	WorkspaceV1,
 } from "@quester/schema";
@@ -264,6 +265,7 @@ export type QuesterState = {
 	updateActiveFlowMeta: (meta: {
 		name?: string;
 		description?: string;
+		http?: HttpSettingsV1;
 	}) => void;
 	openTab: (tab: EditorTab) => void;
 	applyNodeRunStatusEvent: (event: NodeRunStatusEvent) => void;
@@ -533,12 +535,20 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		}));
 	},
 
-	updateActiveFlowMeta: ({ name, description }) => {
+	updateActiveFlowMeta: ({ name, description, http }) => {
 		get().updateActiveFlow((flow) => ({
 			...flow,
 			...(name !== undefined ? { name: name || flow.id } : {}),
 			...(description !== undefined
 				? { description: description || undefined }
+				: {}),
+			...(http !== undefined
+				? {
+						settings: {
+							...flow.settings,
+							http,
+						},
+					}
 				: {}),
 		}));
 	},

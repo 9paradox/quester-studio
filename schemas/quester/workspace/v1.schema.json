@@ -40,6 +40,22 @@
             "timeoutMs": {
               "type": "integer",
               "minimum": 0
+            },
+            "maxResponseBytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "proxyUrl": {
+              "type": "string"
+            },
+            "caFile": {
+              "type": "string"
+            },
+            "verifyTls": {
+              "type": "boolean"
+            },
+            "cookieJar": {
+              "type": "boolean"
             }
           },
           "additionalProperties": false

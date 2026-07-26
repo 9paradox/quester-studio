@@ -9,6 +9,30 @@ export const httpSettingsSchemaV1 = z.object({
 	 * Omitted = inherit from the next outer layer (or none).
 	 */
 	timeoutMs: z.number().int().nonnegative().optional(),
+	/**
+	 * Max response body size in bytes. `0` = unlimited.
+	 * Omitted = inherit.
+	 */
+	maxResponseBytes: z.number().int().nonnegative().optional(),
+	/**
+	 * HTTP(S) proxy URL for fetches. Empty string clears an outer proxy.
+	 * Omitted = inherit.
+	 */
+	proxyUrl: z.string().optional(),
+	/**
+	 * Workspace-relative path to a PEM CA bundle for TLS.
+	 * Empty string clears an outer CA. Omitted = inherit.
+	 */
+	caFile: z.string().optional(),
+	/**
+	 * Verify TLS certificates. Omitted = inherit (then app preference / env).
+	 */
+	verifyTls: z.boolean().optional(),
+	/**
+	 * Persist cookies across hops within a single run.
+	 * Omitted = inherit; default on when unset at all layers.
+	 */
+	cookieJar: z.boolean().optional(),
 });
 
 export const settingsSchemaV1 = z.object({
@@ -18,7 +42,14 @@ export const settingsSchemaV1 = z.object({
 export type HttpSettingsV1 = z.infer<typeof httpSettingsSchemaV1>;
 export type SettingsV1 = z.infer<typeof settingsSchemaV1>;
 
-/** Merge workspace → flow HTTP settings (flow wins on timeout; headers deep-merge with flow overriding keys). */
+function pickInherited<T>(
+	flowValue: T | undefined,
+	workspaceValue: T | undefined,
+): T | undefined {
+	return flowValue !== undefined ? flowValue : workspaceValue;
+}
+
+/** Merge workspace → flow HTTP settings (flow wins when set; headers merge with flow overriding keys). */
 export function mergeHttpSettings(
 	workspace?: HttpSettingsV1 | null,
 	flow?: HttpSettingsV1 | null,
@@ -27,14 +58,29 @@ export function mergeHttpSettings(
 		...(workspace?.defaultHeaders ?? {}),
 		...(flow?.defaultHeaders ?? {}),
 	};
-	const timeoutMs =
-		flow?.timeoutMs !== undefined
-			? flow.timeoutMs
-			: workspace?.timeoutMs !== undefined
-				? workspace.timeoutMs
-				: undefined;
+
+	const timeoutMs = pickInherited(flow?.timeoutMs, workspace?.timeoutMs);
+	const maxResponseBytes = pickInherited(
+		flow?.maxResponseBytes,
+		workspace?.maxResponseBytes,
+	);
+	const proxyUrl = pickInherited(flow?.proxyUrl, workspace?.proxyUrl);
+	const caFile = pickInherited(flow?.caFile, workspace?.caFile);
+	const verifyTls = pickInherited(flow?.verifyTls, workspace?.verifyTls);
+	const cookieJar = pickInherited(flow?.cookieJar, workspace?.cookieJar);
+
 	return {
 		defaultHeaders,
 		...(timeoutMs !== undefined ? { timeoutMs } : {}),
+		...(maxResponseBytes !== undefined ? { maxResponseBytes } : {}),
+		...(proxyUrl !== undefined ? { proxyUrl } : {}),
+		...(caFile !== undefined ? { caFile } : {}),
+		...(verifyTls !== undefined ? { verifyTls } : {}),
+		...(cookieJar !== undefined ? { cookieJar } : {}),
 	};
+}
+
+/** Effective cookie jar: default on when neither layer sets it. */
+export function isCookieJarEnabled(http?: HttpSettingsV1 | null): boolean {
+	return http?.cookieJar !== false;
 }
