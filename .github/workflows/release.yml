@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version tag (e.g. 0.1.0)"
+        description: "Release version tag (e.g. 0.4.0)"
         required: true
         type: string
 
@@ -44,13 +44,16 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Build packages
         run: bun run build:pkgs
-      - name: Build desktop
-        run: bun run --filter @quester/desktop build
+      - name: Build desktop app
+        # vite renderer + Electrobun package → apps/desktop/artifacts/
+        # Windows: Quester-Setup.zip; Linux: AppImage / setup artifacts
+        run: bun run --filter @quester/desktop build:app
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: desktop-${{ matrix.os }}
-          path: apps/desktop/dist/**
+          path: apps/desktop/artifacts/**
+          if-no-files-found: error
 
   github-release:
     needs: release-desktop
@@ -69,6 +72,12 @@ jobs:
           name: v${{ inputs.version }}
           body: |
             Development build — see [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md) for download verification.
+
+            ## Desktop (unsigned)
+
+            - **Windows:** download `*-Quester-Setup*.zip`, extract, run `Quester-Setup.exe` (self-extractor).
+            - **Linux:** download the Linux setup / AppImage artifact for your arch.
+            - macOS is not published yet.
 
             ## npm packages
 
