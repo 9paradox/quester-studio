@@ -1,4 +1,4 @@
-import { httpNodeDataSchema, isCookieJarEnabled } from "@quester/schema";
+import { httpNodeDataSchema, isCookieJarEnabled } from "@quester-studio/schema";
 import type { CookieJar } from "../cookie-jar.js";
 import type { FlowNodePlugin } from "../types.js";
 import { assertHttpUrl } from "./validate-http-url.js";

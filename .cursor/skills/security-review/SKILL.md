@@ -21,7 +21,7 @@ Read [SECURITY.md](../../SECURITY.md).
 
 ## Validation
 
-- [ ] Flow/workspace/env input validated via `@quester/schema` before execution
+- [ ] Flow/workspace/env input validated via `@quester-studio/schema` before execution
 - [ ] Zod `parse` / `safeParse` at plugin boundaries
 
 ## Tests

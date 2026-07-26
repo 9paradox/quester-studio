@@ -17,7 +17,7 @@
 		{
 			"label": "desktop: dev:hmr",
 			"type": "shell",
-			"command": "bun run build:pkgs; bun run --filter @quester/desktop dev:hmr",
+			"command": "bun run build:pkgs; bun run --filter @quester-studio/desktop dev:hmr",
 			"options": {
 				"cwd": "${workspaceFolder}"
 			},
@@ -37,7 +37,7 @@
 		{
 			"label": "desktop: dev:debug",
 			"type": "shell",
-			"command": "bun run build:pkgs; bun run --filter @quester/desktop dev:debug",
+			"command": "bun run build:pkgs; bun run --filter @quester-studio/desktop dev:debug",
 			"options": {
 				"cwd": "${workspaceFolder}"
 			},
@@ -57,7 +57,7 @@
 		{
 			"label": "desktop: dev:hmr:debug",
 			"type": "shell",
-			"command": "bun run build:pkgs; bun run --filter @quester/desktop dev:hmr:debug",
+			"command": "bun run build:pkgs; bun run --filter @quester-studio/desktop dev:hmr:debug",
 			"options": {
 				"cwd": "${workspaceFolder}"
 			},

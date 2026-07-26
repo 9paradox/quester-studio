@@ -1,4 +1,4 @@
-import type { FlowV1 } from "@quester/schema";
+import type { FlowV1 } from "@quester-studio/schema";
 
 export const DEFAULT_INPUT = "{}\n";
 

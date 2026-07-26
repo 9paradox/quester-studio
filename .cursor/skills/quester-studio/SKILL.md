@@ -13,15 +13,15 @@ Local-first visual API flow platform. **Quester** = desktop product; **Quester S
 apps/desktop     Electrobun + React Flow (visual builder)
 apps/web         Marketing site (Astro)
 apps/docs        Documentation (Astro Starlight)
-packages/schema  Zod schemas + validation (@quester/schema)
-packages/nodes   Node plugins — execute() per node type (@quester/nodes)
-packages/engine  Flow execution, workspace loading (@quester/engine)
-packages/cli     quester validate | run (@quester/cli)
-schemas/         JSON Schema emitted from @quester/schema (do not hand-edit)
+packages/schema  Zod schemas + validation (@quester-studio/schema)
+packages/nodes   Node plugins — execute() per node type (@quester-studio/nodes)
+packages/engine  Flow execution, workspace loading (@quester-studio/engine)
+packages/cli     quester validate | run (@quester-studio/cli)
+schemas/         JSON Schema emitted from @quester-studio/schema (do not hand-edit)
 examples/        Sample workspaces (*.flow.json)
 ```
 
-**Data flow:** `*.flow.json` → `@quester/schema` validates → `@quester/engine` executes via `@quester/nodes` plugins.
+**Data flow:** `*.flow.json` → `@quester-studio/schema` validates → `@quester-studio/engine` executes via `@quester-studio/nodes` plugins.
 
 ## Requirements
 
@@ -39,8 +39,8 @@ bun run lint           # biome check .
 bun run dev            # turbo run dev
 
 # Package-scoped
-bun run --filter @quester/schema build
-bun run --filter @quester/desktop dev
+bun run --filter @quester-studio/schema build
+bun run --filter @quester-studio/desktop dev
 
 # CLI (after build)
 bunx --bun quester validate examples/sample-workspace
@@ -74,7 +74,7 @@ Flow nodes use `{{env.VAR}}`, `{{input.field}}`, `{{nodes.nodeId}}`, `{{vars.key
 | Execution logic | `packages/nodes` plugin + `packages/engine` if graph/vars |
 | CLI | `packages/cli/src/cli.ts` |
 | Desktop UI | See skill `quester-desktop` |
-| Public JSON Schema | Rebuild `@quester/schema` (updates `schemas/`) |
+| Public JSON Schema | Rebuild `@quester-studio/schema` (updates `schemas/`) |
 
 ## Conventions
 
@@ -102,11 +102,11 @@ Every package with logic must have `bun:test` coverage in `src/**/*.test.ts`:
 
 | Package | Test focus |
 |---------|------------|
-| `@quester/schema` | Zod validation, graph rules, workspace/env manifests |
-| `@quester/nodes` | Plugin registry, each builtin `execute()` |
-| `@quester/engine` | Templates, graph sort, workspace load, flow execution |
-| `@quester/cli` | End-to-end CLI against `examples/sample-workspace` |
-| `@quester/desktop` | Main-process workspace RPCs |
+| `@quester-studio/schema` | Zod validation, graph rules, workspace/env manifests |
+| `@quester-studio/nodes` | Plugin registry, each builtin `execute()` |
+| `@quester-studio/engine` | Templates, graph sort, workspace load, flow execution |
+| `@quester-studio/cli` | End-to-end CLI against `examples/sample-workspace` |
+| `@quester-studio/desktop` | Main-process workspace RPCs |
 
 Run all tests: `bun run test`
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { FlowV1 } from "@quester/schema";
+import type { FlowV1 } from "@quester-studio/schema";
 import {
 	DEFAULT_INPUT,
 	formatRunInputJson,

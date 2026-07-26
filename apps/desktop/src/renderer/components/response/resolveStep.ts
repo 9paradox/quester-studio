@@ -1,4 +1,4 @@
-import type { FlowNodeV1 } from "@quester/schema";
+import type { FlowNodeV1 } from "@quester-studio/schema";
 import type { ExecuteFlowRpcResult } from "../../../shared/rpc.js";
 import type { StepView } from "./types.js";
 

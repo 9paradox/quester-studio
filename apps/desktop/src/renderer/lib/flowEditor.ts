@@ -1,4 +1,4 @@
-import type { BuiltinNodeType, FlowV1 } from "@quester/schema";
+import type { BuiltinNodeType, FlowV1 } from "@quester-studio/schema";
 import type { Edge, Node } from "reactflow";
 import { defaultNodeData, newNodeId } from "./nodeCatalog.js";
 

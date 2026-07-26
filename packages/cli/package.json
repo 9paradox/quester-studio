@@ -1,5 +1,5 @@
 {
-	"name": "@quester/cli",
+	"name": "@quester-studio/cli",
 	"version": "0.1.0",
 	"type": "module",
 	"bin": {
@@ -16,12 +16,12 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@quester/engine": "workspace:*",
-		"@quester/schema": "workspace:*",
+		"@quester-studio/engine": "workspace:*",
+		"@quester-studio/schema": "workspace:*",
 		"commander": "^13.1.0"
 	},
 	"devDependencies": {
-		"@quester/tsconfig": "workspace:*",
+		"@quester-studio/tsconfig": "workspace:*",
 		"typescript": "^5.8.3",
 		"@types/node": "^22.15.3"
 	}

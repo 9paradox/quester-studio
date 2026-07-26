@@ -9,10 +9,10 @@ Monorepo for **Quester** (local-first visual API flows). Use **Bun 1.3.14**.
 
 ## Packages
 
-- `@quester/schema` — Zod validation only
-- `@quester/nodes` — node `execute()` plugins
-- `@quester/engine` — workspace load + flow execution
-- `@quester/cli` — `quester validate` / `quester run`
+- `@quester-studio/schema` — Zod validation only
+- `@quester-studio/nodes` — node `execute()` plugins
+- `@quester-studio/engine` — workspace load + flow execution
+- `@quester-studio/cli` — `quester validate` / `quester run`
 
 Do not put execution logic in schema or UI in engine.
 
@@ -27,7 +27,7 @@ Do not put execution logic in schema or UI in engine.
 
 - `*.flow.json` version `v1`, git-friendly workspace under `quester.json`
 - Templates: `{{env.*}}`, `{{input.*}}`, `{{nodes.id}}`, `{{vars.*}}`
-- Rebuild `@quester/schema` after schema changes (updates `schemas/`)
+- Rebuild `@quester-studio/schema` after schema changes (updates `schemas/`)
 
 ## Governance
 

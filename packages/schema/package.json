@@ -1,5 +1,5 @@
 {
-	"name": "@quester/schema",
+	"name": "@quester-studio/schema",
 	"version": "0.1.0",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -25,7 +25,7 @@
 		"zod-to-json-schema": "^3.24.5"
 	},
 	"devDependencies": {
-		"@quester/tsconfig": "workspace:*",
+		"@quester-studio/tsconfig": "workspace:*",
 		"typescript": "^5.8.3",
 		"@types/node": "^22.15.3"
 	}

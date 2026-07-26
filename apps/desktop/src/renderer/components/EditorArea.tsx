@@ -8,7 +8,7 @@ import {
 import type { EditorTab } from "@/lib/editorTabs.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectActiveTab, selectCanRun } from "@/stores/selectors.js";
-import type { FlowV1 } from "@quester/schema";
+import type { FlowV1 } from "@quester-studio/schema";
 import type { ReactNode } from "react";
 import { AppPreferencesEditor } from "./AppPreferencesEditor.js";
 import { CanvasControls } from "./CanvasControls.js";

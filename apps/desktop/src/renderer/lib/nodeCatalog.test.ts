@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { builtinNodeTypes, validateNodeData } from "@quester/schema";
+import { builtinNodeTypes, validateNodeData } from "@quester-studio/schema";
 import {
 	allPresentationTypes,
 	defaultNodeData,

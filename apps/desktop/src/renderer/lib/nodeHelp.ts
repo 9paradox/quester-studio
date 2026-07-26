@@ -1,4 +1,4 @@
-import type { BuiltinNodeType } from "@quester/schema";
+import type { BuiltinNodeType } from "@quester-studio/schema";
 
 export type NodeHelpField = {
 	name: string;

@@ -1,11 +1,11 @@
-import type { ExecuteFlowResult } from "@quester/engine";
+import type { ExecuteFlowResult } from "@quester-studio/engine";
 import type {
 	EnvironmentV1,
 	FlowV1,
 	RequestV1,
 	SecretsV1,
 	WorkspaceV1,
-} from "@quester/schema";
+} from "@quester-studio/schema";
 import type { RPCSchema } from "electrobun";
 
 export type WorkspaceSummary = {

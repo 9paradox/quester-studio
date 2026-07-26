@@ -13,7 +13,7 @@
       },
     },
     "apps/desktop": {
-      "name": "@quester/desktop",
+      "name": "@quester-studio/desktop",
       "version": "0.1.0",
       "dependencies": {
         "@base-ui/react": "^1.6.0",
@@ -27,8 +27,8 @@
         "@codemirror/view": "^6.43.6",
         "@fontsource-variable/geist": "^5.2.9",
         "@lezer/highlight": "^1.2.3",
-        "@quester/engine": "workspace:*",
-        "@quester/schema": "workspace:*",
+        "@quester-studio/engine": "workspace:*",
+        "@quester-studio/schema": "workspace:*",
         "@reactflow/node-resizer": "2.2.14",
         "@tabler/icons-react": "^3.44.0",
         "@uiw/react-codemirror": "^4.25.11",
@@ -47,7 +47,7 @@
       },
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.11.1",
-        "@quester/tsconfig": "workspace:*",
+        "@quester-studio/tsconfig": "workspace:*",
         "@tailwindcss/vite": "^4",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/jest-dom": "^7.0.0",
@@ -67,7 +67,7 @@
       },
     },
     "apps/docs": {
-      "name": "@quester/docs",
+      "name": "@quester-studio/docs",
       "version": "0.1.0",
       "dependencies": {
         "@astrojs/starlight": "^0.34.3",
@@ -76,72 +76,72 @@
       },
     },
     "apps/web": {
-      "name": "@quester/web",
+      "name": "@quester-studio/web",
       "version": "0.1.0",
       "dependencies": {
         "astro": "^5.7.10",
       },
     },
     "packages/cli": {
-      "name": "@quester/cli",
+      "name": "@quester-studio/cli",
       "version": "0.1.0",
       "bin": {
         "quester": "./dist/cli.js",
       },
       "dependencies": {
-        "@quester/engine": "workspace:*",
-        "@quester/schema": "workspace:*",
+        "@quester-studio/engine": "workspace:*",
+        "@quester-studio/schema": "workspace:*",
         "commander": "^13.1.0",
       },
       "devDependencies": {
-        "@quester/tsconfig": "workspace:*",
+        "@quester-studio/tsconfig": "workspace:*",
         "@types/node": "^22.15.3",
         "typescript": "^5.8.3",
       },
     },
     "packages/engine": {
-      "name": "@quester/engine",
+      "name": "@quester-studio/engine",
       "version": "0.1.0",
       "dependencies": {
-        "@quester/nodes": "workspace:*",
-        "@quester/schema": "workspace:*",
+        "@quester-studio/nodes": "workspace:*",
+        "@quester-studio/schema": "workspace:*",
       },
       "devDependencies": {
-        "@quester/tsconfig": "workspace:*",
+        "@quester-studio/tsconfig": "workspace:*",
         "@types/node": "^22.15.3",
         "typescript": "^5.8.3",
       },
     },
     "packages/nodes": {
-      "name": "@quester/nodes",
+      "name": "@quester-studio/nodes",
       "version": "0.1.0",
       "dependencies": {
-        "@quester/schema": "workspace:*",
+        "@quester-studio/schema": "workspace:*",
         "eta": "^3.5.0",
         "jmespath": "^0.16.0",
       },
       "devDependencies": {
-        "@quester/tsconfig": "workspace:*",
+        "@quester-studio/tsconfig": "workspace:*",
         "@types/jmespath": "^0.15.2",
         "@types/node": "^22.15.3",
         "typescript": "^5.8.3",
       },
     },
     "packages/schema": {
-      "name": "@quester/schema",
+      "name": "@quester-studio/schema",
       "version": "0.1.0",
       "dependencies": {
         "zod": "^3.24.2",
         "zod-to-json-schema": "^3.24.5",
       },
       "devDependencies": {
-        "@quester/tsconfig": "workspace:*",
+        "@quester-studio/tsconfig": "workspace:*",
         "@types/node": "^22.15.3",
         "typescript": "^5.8.3",
       },
     },
     "packages/tsconfig": {
-      "name": "@quester/tsconfig",
+      "name": "@quester-studio/tsconfig",
       "version": "0.0.0",
     },
   },
@@ -511,21 +511,21 @@
 
     "@pagefind/windows-x64": ["@pagefind/windows-x64@1.5.2", "", { "os": "win32", "cpu": "x64" }, "sha512-Fa2Iyw7kaDRzGMfNYNUXNW2zbL5FQVDgSOcbDHdzBrDEdpqOqg8TcZ68F22ol6NJ9IGzvUdmeyZypLW5dyhqsg=="],
 
-    "@quester/cli": ["@quester/cli@workspace:packages/cli"],
+    "@quester-studio/cli": ["@quester-studio/cli@workspace:packages/cli"],
 
-    "@quester/desktop": ["@quester/desktop@workspace:apps/desktop"],
+    "@quester-studio/desktop": ["@quester-studio/desktop@workspace:apps/desktop"],
 
-    "@quester/docs": ["@quester/docs@workspace:apps/docs"],
+    "@quester-studio/docs": ["@quester-studio/docs@workspace:apps/docs"],
 
-    "@quester/engine": ["@quester/engine@workspace:packages/engine"],
+    "@quester-studio/engine": ["@quester-studio/engine@workspace:packages/engine"],
 
-    "@quester/nodes": ["@quester/nodes@workspace:packages/nodes"],
+    "@quester-studio/nodes": ["@quester-studio/nodes@workspace:packages/nodes"],
 
-    "@quester/schema": ["@quester/schema@workspace:packages/schema"],
+    "@quester-studio/schema": ["@quester-studio/schema@workspace:packages/schema"],
 
-    "@quester/tsconfig": ["@quester/tsconfig@workspace:packages/tsconfig"],
+    "@quester-studio/tsconfig": ["@quester-studio/tsconfig@workspace:packages/tsconfig"],
 
-    "@quester/web": ["@quester/web@workspace:apps/web"],
+    "@quester-studio/web": ["@quester-studio/web@workspace:apps/web"],
 
     "@reactflow/background": ["@reactflow/background@11.3.14", "", { "dependencies": { "@reactflow/core": "11.11.4", "classcat": "^5.0.3", "zustand": "^4.4.1" }, "peerDependencies": { "react": ">=17", "react-dom": ">=17" } }, "sha512-Gewd7blEVT5Lh6jqrvOgd4G6Qk17eGKQfsDXgyRSqM+CTwDqRldG2LsWN4sNeno6sbqVIC2fZ+rAUBFA9ZEUDA=="],
 

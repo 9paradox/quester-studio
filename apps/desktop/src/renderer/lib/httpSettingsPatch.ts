@@ -1,4 +1,4 @@
-import type { HttpSettingsV1 } from "@quester/schema";
+import type { HttpSettingsV1 } from "@quester-studio/schema";
 
 export type HttpSettingsPatch = {
 	defaultHeaders?: Record<string, string>;

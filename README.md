@@ -22,11 +22,11 @@ Legacy [apitester](https://github.com/9paradox/apitester) remains separate.
 apps/desktop   Quester desktop app
 apps/web       Marketing site (quester.9paradox.com)
 apps/docs      Documentation (docs.quester.9paradox.com)
-packages/schema   @quester/schema
-packages/engine   @quester/engine
-packages/nodes    @quester/nodes
+packages/schema   @quester-studio/schema
+packages/engine   @quester-studio/engine
+packages/nodes    @quester-studio/nodes
 packages/cli      quester CLI
-schemas/       JSON Schema emitted from @quester/schema
+schemas/       JSON Schema emitted from @quester-studio/schema
 ```
 
 ## Requirements

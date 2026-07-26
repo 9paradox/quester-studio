@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/tabs.js";
 import { Textarea } from "@/components/ui/textarea.js";
 import { cn } from "@/lib/utils.js";
-import type { RequestV1 } from "@quester/schema";
+import type { RequestV1 } from "@quester-studio/schema";
 import { IconPlayerPlay } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ExecuteRequestRpcResult } from "../../shared/rpc.js";

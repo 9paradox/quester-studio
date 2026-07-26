@@ -2,7 +2,7 @@ import {
 	type CheckOp,
 	type ValueCheck,
 	checkOpsNeedingValue,
-} from "@quester/schema";
+} from "@quester-studio/schema";
 
 export type NormalizedCheck = {
 	path: string;

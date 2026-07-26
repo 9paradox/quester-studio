@@ -1,4 +1,4 @@
-﻿# Quester Desktop (Electrobun)
+# Quester Desktop (Electrobun)
 
 Visual flow builder with Electrobun IPC, workspace loading, and live flow execution.
 
@@ -6,20 +6,20 @@ Visual flow builder with Electrobun IPC, workspace loading, and live flow execut
 
 1. Install dependencies from the monorepo root: `bun install`
 2. Build packages: `bun run build:pkgs`
-3. Start desktop dev: `bun run --filter @quester/desktop dev`
+3. Start desktop dev: `bun run --filter @quester-studio/desktop dev`
 
 Close any running Quester window before restarting `dev` (Electrobun locks the build folder on Windows).
 
 For HMR during UI work:
 
 ```bash
-bun run --filter @quester/desktop dev:hmr
+bun run --filter @quester-studio/desktop dev:hmr
 ```
 
 Stop leftover Vite / launcher processes if the window is blank or port 5173 is stuck:
 
 ```bash
-bun run --filter @quester/desktop dev:stop
+bun run --filter @quester-studio/desktop dev:stop
 ```
 
 ## Debugging
@@ -52,14 +52,14 @@ Install the Bun extension (`oven.bun-vscode`) for breakpoints and attach.
 ## Verify
 
 ```bash
-bun run --filter @quester/desktop lint
-bun run --filter @quester/desktop test
-bun run --filter @quester/desktop test:smoke   # AppShell / flow / settings render paths
-bun run --filter @quester/desktop build:app    # vite + Electrobun → artifacts/ (for releases)
-bun run --filter @quester/desktop dev
+bun run --filter @quester-studio/desktop lint
+bun run --filter @quester-studio/desktop test
+bun run --filter @quester-studio/desktop test:smoke   # AppShell / flow / settings render paths
+bun run --filter @quester-studio/desktop build:app    # vite + Electrobun → artifacts/ (for releases)
+bun run --filter @quester-studio/desktop dev
 ```
 
-Renderer smoke tests (`AppShell.smoke.test.tsx`) mount the shell with mocked Electrobun RPC (Happy DOM + Testing Library). They run as part of `bun run --filter @quester/desktop test` and therefore CI.
+Renderer smoke tests (`AppShell.smoke.test.tsx`) mount the shell with mocked Electrobun RPC (Happy DOM + Testing Library). They run as part of `bun run --filter @quester-studio/desktop test` and therefore CI.
 
 Release packaging: `build:app` writes distributables under `apps/desktop/artifacts/` (Windows `*-Quester-Setup*.zip`). The Release workflow uploads those files to the GitHub Release.
 

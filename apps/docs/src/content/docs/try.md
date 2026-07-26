@@ -34,8 +34,8 @@ Quester is a local-first visual API flow tool. This page is for **external teste
 After packages are published to npm (v0.4.0+):
 
 ```bash
-bunx @quester/cli validate ./my-workspace
-bunx @quester/cli run ./my-workspace/flows/example.flow.json \
+bunx @quester-studio/cli validate ./my-workspace
+bunx @quester-studio/cli run ./my-workspace/flows/example.flow.json \
   --workspace ./my-workspace \
   --env local \
   --input '{}'

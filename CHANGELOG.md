@@ -10,7 +10,7 @@ Releases use [Changesets](https://github.com/changesets/changesets). After `chan
 
 - Governance foundation: CI gates (lint, typecheck, audit), contributor docs, pre-commit hooks
 - Security hardening: desktop secrets loading, HTTP URL validation
-- Changesets release workflow for `@quester/*` npm packages
+- Changesets release workflow for `@quester-studio/*` npm packages
 - Roadmap and feature planning workflow
 
 ## 0.1.0
@@ -18,6 +18,6 @@ Releases use [Changesets](https://github.com/changesets/changesets). After `chan
 ### Added
 
 - Initial Quester Studio monorepo
-- `@quester/schema`, `@quester/nodes`, `@quester/engine`, `@quester/cli`
+- `@quester-studio/schema`, `@quester-studio/nodes`, `@quester-studio/engine`, `@quester-studio/cli`
 - Sample workspace and CLI `validate` / `run` commands
 - Desktop app stub with React Flow canvas

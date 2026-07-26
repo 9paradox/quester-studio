@@ -1,5 +1,5 @@
 {
-	"extends": "@quester/tsconfig/base.json",
+	"extends": "@quester-studio/tsconfig/base.json",
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"noEmit": true,

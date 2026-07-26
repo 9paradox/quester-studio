@@ -1,4 +1,4 @@
-﻿import type { FlowEdgeV1, FlowNodeV1, FlowV1 } from "@quester/schema";
+import type { FlowEdgeV1, FlowNodeV1, FlowV1 } from "@quester-studio/schema";
 
 export function topologicalSort(flow: FlowV1): FlowNodeV1[] {
 	const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));

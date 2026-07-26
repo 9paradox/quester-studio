@@ -42,8 +42,8 @@ import type {
 	HttpSettingsV1,
 	RequestV1,
 	WorkspaceV1,
-} from "@quester/schema";
-import { SECRETS_VERSION } from "@quester/schema";
+} from "@quester-studio/schema";
+import { SECRETS_VERSION } from "@quester-studio/schema";
 import type { Edge, Node } from "reactflow";
 import { toast } from "sonner";
 import { create } from "zustand";

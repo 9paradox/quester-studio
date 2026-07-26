@@ -1,7 +1,7 @@
-﻿import { CookieJar, HttpNodeError, getNodePlugin } from "@quester/nodes";
-import type { FlowV1, HttpSettingsV1 } from "@quester/schema";
-import { isCookieJarEnabled } from "@quester/schema";
-import "@quester/nodes";
+import { CookieJar, HttpNodeError, getNodePlugin } from "@quester-studio/nodes";
+import type { FlowV1, HttpSettingsV1 } from "@quester-studio/schema";
+import { isCookieJarEnabled } from "@quester-studio/schema";
+import "@quester-studio/nodes";
 import { EngineEventEmitter } from "./events.js";
 import { selectNextEdges, topologicalSort } from "./graph.js";
 import { resolveTemplate } from "./variables.js";

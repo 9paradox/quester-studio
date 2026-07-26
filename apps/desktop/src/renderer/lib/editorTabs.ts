@@ -7,7 +7,7 @@ import type {
 	RequestV1,
 	SecretsV1,
 	WorkspaceV1,
-} from "@quester/schema";
+} from "@quester-studio/schema";
 
 export type FlowEditorTab = {
 	kind: "flow";

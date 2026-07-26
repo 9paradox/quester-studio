@@ -30,10 +30,10 @@ See [DEBUGGING.md](https://github.com/9paradox/quester-studio/blob/main/DEBUGGIN
 
 | Package | Responsibility |
 |---------|----------------|
-| `@quester/schema` | Zod validation only |
-| `@quester/nodes` | Node `execute()` plugins |
-| `@quester/engine` | Workspace load + flow execution |
-| `@quester/cli` | `quester validate` / `quester run` |
+| `@quester-studio/schema` | Zod validation only |
+| `@quester-studio/nodes` | Node `execute()` plugins |
+| `@quester-studio/engine` | Workspace load + flow execution |
+| `@quester-studio/cli` | `quester validate` / `quester run` |
 
 ## Pre-commit hooks
 

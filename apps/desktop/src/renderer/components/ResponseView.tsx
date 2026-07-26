@@ -10,7 +10,7 @@ import {
 	type BuiltinNodeType,
 	type FlowNodeV1,
 	builtinNodeTypes,
-} from "@quester/schema";
+} from "@quester-studio/schema";
 import type { ExecuteFlowRpcResult } from "../../shared/rpc.js";
 
 type ResponseViewProps = {

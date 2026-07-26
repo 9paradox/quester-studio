@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog.js";
 import { Input } from "@/components/ui/input.js";
 import { Textarea } from "@/components/ui/textarea.js";
-import type { FlowV1, HttpSettingsV1 } from "@quester/schema";
+import type { FlowV1, HttpSettingsV1 } from "@quester-studio/schema";
 import { useEffect, useState } from "react";
 import {
 	SettingsField,

@@ -16,14 +16,14 @@ import {
 	loadWorkspace,
 	resolveTlsVerifyActive,
 	saveRequest as saveRequestFile,
-} from "@quester/engine";
+} from "@quester-studio/engine";
 import type {
 	EnvironmentV1,
 	FlowV1,
 	HttpSettingsV1,
 	RequestV1,
 	SecretsV1,
-} from "@quester/schema";
+} from "@quester-studio/schema";
 import {
 	ENVIRONMENT_VERSION,
 	FLOW_VERSION,
@@ -35,8 +35,8 @@ import {
 	validateFlow,
 	validateRequest,
 	validateWorkspace,
-} from "@quester/schema";
-import type { WorkspaceV1 } from "@quester/schema";
+} from "@quester-studio/schema";
+import type { WorkspaceV1 } from "@quester-studio/schema";
 import {
 	formatErrorForConsole,
 	isTlsCertificateError,
@@ -588,7 +588,7 @@ export async function scaffoldWorkspaceRpc(
 	path: string,
 	name?: string,
 ): Promise<{ root: string; name: string; flowId: string }> {
-	const { scaffoldWorkspace } = await import("@quester/engine");
+	const { scaffoldWorkspace } = await import("@quester-studio/engine");
 	return scaffoldWorkspace(path, { name });
 }
 
