@@ -13,6 +13,8 @@ type SettingsPageLayoutProps = {
 	onCategoryChange: (id: string) => void;
 	children: ReactNode;
 	footer?: ReactNode;
+	className?: string;
+	hideTitleBar?: boolean;
 };
 
 export function SettingsPageLayout({
@@ -22,13 +24,22 @@ export function SettingsPageLayout({
 	onCategoryChange,
 	children,
 	footer,
+	className,
+	hideTitleBar = false,
 }: SettingsPageLayoutProps) {
 	return (
-		<div className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background">
-			<div className="flex items-center justify-between border-b border-border px-4 py-3">
-				<h1 className="text-sm font-medium text-foreground">{title}</h1>
-				{footer}
-			</div>
+		<div
+			className={cn(
+				"flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background",
+				className,
+			)}
+		>
+			{hideTitleBar ? null : (
+				<div className="flex items-center justify-between border-b border-border px-4 py-3">
+					<h1 className="text-sm font-medium text-foreground">{title}</h1>
+					{footer}
+				</div>
+			)}
 			<div className="flex min-h-0 flex-1">
 				<nav className="flex w-44 shrink-0 flex-col gap-0.5 border-r border-border bg-sidebar p-2">
 					{categories.map((cat) => (

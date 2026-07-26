@@ -39,7 +39,8 @@ describe("isTlsCertificateError", () => {
 describe("tlsCertificateHint", () => {
 	test("suggests Settings when verify is on", () => {
 		const hint = tlsCertificateHint({ verifyEnabled: true });
-		expect(hint).toContain("Settings");
+		expect(hint).toContain("App Preferences");
+		expect(hint).toContain("caFile");
 		expect(hint).toContain("QUESTR_INSECURE_TLS");
 	});
 

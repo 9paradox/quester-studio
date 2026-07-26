@@ -230,4 +230,66 @@ describe("builtin node plugins", () => {
 		expect(output.size).toBeGreaterThan(0);
 		expect(output.body).toEqual({ ok: true });
 	});
+
+	test("http plugin enforces maxResponseBytes via Content-Length", async () => {
+		await expect(
+			httpPlugin.execute(
+				ctx({
+					node: {
+						id: "http",
+						type: "http",
+						data: { method: "GET", url: "https://example.com" },
+					},
+					httpDefaults: { defaultHeaders: {}, maxResponseBytes: 4 },
+					fetch: (async () =>
+						new Response("hello world", {
+							status: 200,
+							headers: { "content-length": "11" },
+						})) as typeof fetch,
+				}),
+			),
+		).rejects.toThrow(/maxResponseBytes/);
+	});
+
+	test("http plugin applies cookie jar across responses", async () => {
+		const { CookieJar } = await import("../cookie-jar.js");
+		const jar = new CookieJar();
+		let calls = 0;
+		const fetchMock = (async (url: RequestInfo | URL, init?: RequestInit) => {
+			calls += 1;
+			if (calls === 1) {
+				return new Response("{}", {
+					status: 200,
+					headers: { "set-cookie": "session=abc; Path=/" },
+				});
+			}
+			const headers = init?.headers as Record<string, string>;
+			expect(headers.Cookie).toBe("session=abc");
+			return new Response("{}", { status: 200 });
+		}) as typeof fetch;
+
+		await httpPlugin.execute(
+			ctx({
+				node: {
+					id: "http",
+					type: "http",
+					data: { method: "GET", url: "https://api.example.com/login" },
+				},
+				cookieJar: jar,
+				fetch: fetchMock,
+			}),
+		);
+		await httpPlugin.execute(
+			ctx({
+				node: {
+					id: "http",
+					type: "http",
+					data: { method: "GET", url: "https://api.example.com/me" },
+				},
+				cookieJar: jar,
+				fetch: fetchMock,
+			}),
+		);
+		expect(calls).toBe(2);
+	});
 });

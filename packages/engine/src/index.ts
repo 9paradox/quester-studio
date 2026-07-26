@@ -4,3 +4,4 @@ export * from "./events.js";
 export * from "./workspace.js";
 export * from "./collections.js";
 export * from "./execute.js";
+export * from "./http-fetch.js";

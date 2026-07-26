@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import {
 	EngineEventEmitter,
 	FlowExecutionError,
+	createHttpFetch,
 	deleteRequest as deleteRequestFile,
 	ensureCollectionsDir,
 	executeFlow,
@@ -13,11 +14,13 @@ import {
 	loadRequest as loadRequestFile,
 	loadSecrets,
 	loadWorkspace,
+	resolveTlsVerifyActive,
 	saveRequest as saveRequestFile,
 } from "@quester/engine";
 import type {
 	EnvironmentV1,
 	FlowV1,
+	HttpSettingsV1,
 	RequestV1,
 	SecretsV1,
 } from "@quester/schema";
@@ -47,24 +50,23 @@ import type {
 	RequestMeta,
 	SecretFileMeta,
 } from "../shared/rpc.js";
-import {
-	getAppTlsVerify,
-	isInsecureTlsEnabled,
-	isTlsVerifyActive,
-	setAppTlsVerify,
-} from "../shared/tlsRuntime.js";
+import { getAppTlsVerify, setAppTlsVerify } from "../shared/tlsRuntime.js";
 
 export { getAppTlsVerify, setAppTlsVerify };
 
-/** Bun-aware fetch that can skip TLS verification for local/dev. */
-function createExecutionFetch(): typeof fetch {
-	if (!isInsecureTlsEnabled()) return fetch;
-	return ((input: RequestInfo | URL, init?: RequestInit) =>
-		fetch(input, {
-			...init,
-			// Bun extension — ignored by standard fetch typings
-			tls: { rejectUnauthorized: false },
-		} as RequestInit)) as typeof fetch;
+function createRunFetch(workspaceRoot: string, httpDefaults: HttpSettingsV1) {
+	return createHttpFetch({
+		httpDefaults,
+		workspaceRoot,
+		appVerifyTls: getAppTlsVerify(),
+	});
+}
+
+function tlsVerifyActiveForRun(httpDefaults: HttpSettingsV1): boolean {
+	return resolveTlsVerifyActive({
+		httpDefaults,
+		appVerifyTls: getAppTlsVerify(),
+	});
 }
 
 function pushTlsCertificateHint(
@@ -75,8 +77,11 @@ function pushTlsCertificateHint(
 	) => void,
 	nodeId: string,
 	type: string,
+	httpDefaults: HttpSettingsV1,
 ) {
-	const hint = tlsCertificateHint({ verifyEnabled: isTlsVerifyActive() });
+	const hint = tlsCertificateHint({
+		verifyEnabled: tlsVerifyActiveForRun(httpDefaults),
+	});
 	if (!hint) return;
 	pushLog("error", hint, {
 		nodeId,
@@ -199,6 +204,10 @@ export async function executeFlowRpc(
 	const envName = options?.env ?? "local";
 	const envVars = ws.environments[envName]?.variables ?? {};
 	const secrets = await loadSecrets(root, envName, ws.manifest.environmentsDir);
+	const httpDefaults = mergeHttpSettings(
+		ws.manifest.settings?.http,
+		validated.data.settings?.http,
+	);
 
 	const logs: ExecutionLogEntry[] = [];
 	const pushLog = (
@@ -264,7 +273,7 @@ export async function executeFlowRpc(
 		});
 		emitStatus("error", nodeId, type);
 		if (isTlsCertificateError(error)) {
-			pushTlsCertificateHint(pushLog, nodeId, type);
+			pushTlsCertificateHint(pushLog, nodeId, type, httpDefaults);
 		}
 	});
 	events.on("flow:complete", ({ output }) => {
@@ -275,10 +284,10 @@ export async function executeFlowRpc(
 	});
 
 	pushLog("info", `Run started · env=${envName}`, { phase: "start" });
-	if (isInsecureTlsEnabled()) {
+	if (!tlsVerifyActiveForRun(httpDefaults)) {
 		pushLog(
 			"info",
-			"TLS verification disabled (Settings or QUESTR_INSECURE_TLS / NODE_TLS_REJECT_UNAUTHORIZED)",
+			"TLS verification disabled (workspace/flow settings, App Preferences, or QUESTR_INSECURE_TLS / NODE_TLS_REJECT_UNAUTHORIZED)",
 			{
 				phase: "start",
 			},
@@ -291,11 +300,8 @@ export async function executeFlowRpc(
 			env: envVars,
 			secrets,
 			events,
-			fetch: createExecutionFetch(),
-			httpDefaults: mergeHttpSettings(
-				ws.manifest.settings?.http,
-				validated.data.settings?.http,
-			),
+			fetch: createRunFetch(root, httpDefaults),
+			httpDefaults,
 		});
 		return { ...result, logs };
 	} catch (error) {
@@ -727,6 +733,8 @@ export async function executeRequestRpc(
 	const validated = validateFlow(flow);
 	if (!validated.success) throw new Error(validated.error);
 
+	const httpDefaults = mergeHttpSettings(ws.manifest.settings?.http, undefined);
+
 	const logs: ExecutionLogEntry[] = [];
 	const pushLog = (
 		level: ExecutionLogEntry["level"],
@@ -770,15 +778,15 @@ export async function executeRequestRpc(
 			data,
 		});
 		if (isTlsCertificateError(error)) {
-			pushTlsCertificateHint(pushLog, nodeId, type);
+			pushTlsCertificateHint(pushLog, nodeId, type, httpDefaults);
 		}
 	});
 
 	pushLog("info", `Request started · env=${envName}`, { phase: "start" });
-	if (isInsecureTlsEnabled()) {
+	if (!tlsVerifyActiveForRun(httpDefaults)) {
 		pushLog(
 			"info",
-			"TLS verification disabled (Settings or QUESTR_INSECURE_TLS / NODE_TLS_REJECT_UNAUTHORIZED)",
+			"TLS verification disabled (workspace/flow settings, App Preferences, or QUESTR_INSECURE_TLS / NODE_TLS_REJECT_UNAUTHORIZED)",
 			{
 				phase: "start",
 			},
@@ -791,8 +799,8 @@ export async function executeRequestRpc(
 			env: envVars,
 			secrets,
 			events,
-			fetch: createExecutionFetch(),
-			httpDefaults: mergeHttpSettings(ws.manifest.settings?.http, undefined),
+			fetch: createRunFetch(root, httpDefaults),
+			httpDefaults,
 		});
 		const httpOutput = result.nodeOutputs.http ?? null;
 		return { ...result, httpOutput, logs };

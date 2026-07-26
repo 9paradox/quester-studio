@@ -1,4 +1,5 @@
 ﻿import type { FlowNodeV1, HttpSettingsV1 } from "@quester/schema";
+import type { CookieJar } from "./cookie-jar.js";
 
 export type NodeExecutionContext = {
 	node: FlowNodeV1;
@@ -10,6 +11,8 @@ export type NodeExecutionContext = {
 	fetch: typeof fetch;
 	/** Resolved workspace→flow HTTP defaults (headers merged; timeout inherited). */
 	httpDefaults?: HttpSettingsV1;
+	/** In-run cookie jar shared across HTTP hops (when enabled). */
+	cookieJar?: CookieJar;
 };
 
 export type NodeExecutionResult = {

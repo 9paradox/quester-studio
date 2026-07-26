@@ -35,7 +35,14 @@ async function syncTlsVerifyToMain(verifyTls: boolean): Promise<void> {
 const CATEGORIES = [
 	{ id: "appearance", label: "Appearance" },
 	{ id: "network", label: "Network" },
+	{ id: "shortcuts", label: "Shortcuts" },
 	{ id: "about", label: "About" },
+] as const;
+
+const SHORTCUTS = [
+	{ action: "Save active tab", keys: "Ctrl/⌘ S" },
+	{ action: "Run flow / Send request", keys: "Ctrl/⌘ Enter" },
+	{ action: "Close active tab", keys: "Ctrl/⌘ W" },
 ] as const;
 
 export function AppPreferencesEditor() {
@@ -103,7 +110,7 @@ export function AppPreferencesEditor() {
 					<SettingsField
 						label="SSL certificate verification"
 						htmlFor="tls-verify-select"
-						description="When on, HTTPS requests verify certificates (recommended). Turn off only for local/dev servers with self-signed certs — this disables HTTPS verification for all runs in this app."
+						description="Machine-local fallback when workspace/flow settings.http.verifyTls is unset. Env QUESTR_INSECURE_TLS=1 always wins. Prefer workspace caFile for self-signed servers."
 					>
 						<Select
 							value={verifyTls ? "on" : "off"}
@@ -125,6 +132,34 @@ export function AppPreferencesEditor() {
 							</SelectContent>
 						</Select>
 					</SettingsField>
+				</SettingsSection>
+			) : null}
+
+			{category === "shortcuts" ? (
+				<SettingsSection title="Shortcuts">
+					<p className="text-xs text-muted-foreground">
+						Hardwired bindings for this app. Remapping is not available yet.
+					</p>
+					<div className="overflow-hidden rounded-md border border-border">
+						<table className="w-full text-xs">
+							<thead className="bg-muted/40 text-left text-muted-foreground">
+								<tr>
+									<th className="px-3 py-2 font-medium">Action</th>
+									<th className="px-3 py-2 font-medium">Keys</th>
+								</tr>
+							</thead>
+							<tbody>
+								{SHORTCUTS.map((row) => (
+									<tr key={row.action} className="border-t border-border">
+										<td className="px-3 py-2 text-foreground">{row.action}</td>
+										<td className="px-3 py-2 font-mono text-muted-foreground">
+											{row.keys}
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
 				</SettingsSection>
 			) : null}
 
