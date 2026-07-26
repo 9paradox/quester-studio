@@ -7,64 +7,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select.js";
+import {
+	type HttpSettingsPatch,
+	applyHttpSettingsPatch,
+} from "@/lib/httpSettingsPatch.js";
 import type { HttpSettingsV1 } from "@quester/schema";
 import { SettingsField } from "./SettingsPageLayout.js";
 
-export type HttpSettingsPatch = {
-	defaultHeaders?: Record<string, string>;
-	timeoutMs?: number;
-	maxResponseBytes?: number;
-	proxyUrl?: string;
-	caFile?: string;
-	verifyTls?: boolean | null;
-	cookieJar?: boolean | null;
-};
-
-/** Apply UI patch onto existing HTTP settings (null clears optional tri-state fields). */
-export function applyHttpSettingsPatch(
-	current: HttpSettingsV1 | undefined,
-	partial: HttpSettingsPatch,
-): HttpSettingsV1 {
-	const next: HttpSettingsV1 = {
-		defaultHeaders: partial.defaultHeaders ?? current?.defaultHeaders ?? {},
-	};
-
-	const timeoutMs =
-		partial.timeoutMs !== undefined ? partial.timeoutMs : current?.timeoutMs;
-	if (timeoutMs !== undefined) next.timeoutMs = timeoutMs;
-
-	const maxResponseBytes =
-		partial.maxResponseBytes !== undefined
-			? partial.maxResponseBytes
-			: current?.maxResponseBytes;
-	if (maxResponseBytes !== undefined) next.maxResponseBytes = maxResponseBytes;
-
-	const proxyUrl =
-		partial.proxyUrl !== undefined ? partial.proxyUrl : current?.proxyUrl;
-	if (proxyUrl !== undefined) next.proxyUrl = proxyUrl;
-
-	const caFile =
-		partial.caFile !== undefined ? partial.caFile : current?.caFile;
-	if (caFile !== undefined) next.caFile = caFile;
-
-	if (partial.verifyTls === null) {
-		/* omit — inherit */
-	} else if (partial.verifyTls !== undefined) {
-		next.verifyTls = partial.verifyTls;
-	} else if (current?.verifyTls !== undefined) {
-		next.verifyTls = current.verifyTls;
-	}
-
-	if (partial.cookieJar === null) {
-		/* omit — inherit / default on */
-	} else if (partial.cookieJar !== undefined) {
-		next.cookieJar = partial.cookieJar;
-	} else if (current?.cookieJar !== undefined) {
-		next.cookieJar = current.cookieJar;
-	}
-
-	return next;
-}
+export type { HttpSettingsPatch };
+export { applyHttpSettingsPatch };
 
 type HttpSettingsFieldsProps = {
 	idPrefix: string;
@@ -95,15 +46,21 @@ export function HttpSettingsFields({
 			<SettingsField
 				label="Request timeout (ms)"
 				htmlFor={`${idPrefix}-timeout`}
-				description="0 = no timeout. Omitted layers inherit from the outer scope."
+				description="Blank = inherit from outer scope. 0 = no timeout."
 			>
 				<Input
 					id={`${idPrefix}-timeout`}
 					type="number"
 					min={0}
-					value={http?.timeoutMs ?? 0}
+					value={http?.timeoutMs ?? ""}
+					placeholder="Inherit"
 					onChange={(e) => {
-						const n = Number(e.target.value);
+						const raw = e.target.value.trim();
+						if (raw === "") {
+							onPatch({ timeoutMs: null });
+							return;
+						}
+						const n = Number(raw);
 						onPatch({
 							timeoutMs: Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0,
 						});
@@ -114,15 +71,21 @@ export function HttpSettingsFields({
 			<SettingsField
 				label="Max response size (bytes)"
 				htmlFor={`${idPrefix}-max-bytes`}
-				description="0 = unlimited. Responses larger than this fail the HTTP node."
+				description="Blank = inherit. 0 = unlimited. Responses larger than this fail the HTTP node."
 			>
 				<Input
 					id={`${idPrefix}-max-bytes`}
 					type="number"
 					min={0}
-					value={http?.maxResponseBytes ?? 0}
+					value={http?.maxResponseBytes ?? ""}
+					placeholder="Inherit"
 					onChange={(e) => {
-						const n = Number(e.target.value);
+						const raw = e.target.value.trim();
+						if (raw === "") {
+							onPatch({ maxResponseBytes: null });
+							return;
+						}
+						const n = Number(raw);
 						onPatch({
 							maxResponseBytes: Number.isFinite(n)
 								? Math.max(0, Math.floor(n))

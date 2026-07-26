@@ -284,6 +284,15 @@ export async function executeFlowRpc(
 	});
 
 	pushLog("info", `Run started · env=${envName}`, { phase: "start" });
+	if (httpDefaults.timeoutMs !== undefined) {
+		pushLog(
+			"info",
+			httpDefaults.timeoutMs === 0
+				? "HTTP timeout: none"
+				: `HTTP timeout: ${httpDefaults.timeoutMs}ms`,
+			{ phase: "start" },
+		);
+	}
 	if (!tlsVerifyActiveForRun(httpDefaults)) {
 		pushLog(
 			"info",

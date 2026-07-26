@@ -129,7 +129,7 @@ export function FlowSettingsDialog({
 							onOpenChange(false);
 						}}
 					>
-						Apply
+						Save
 					</Button>
 				</DialogFooter>
 			</DialogContent>
