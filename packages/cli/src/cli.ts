@@ -15,6 +15,7 @@ import {
 	validateWorkspace,
 } from "@quester/schema";
 import { Command } from "commander";
+import { initWorkspace } from "./init.js";
 
 const require = createRequire(import.meta.url);
 const { version } = require("../package.json") as { version: string };
@@ -22,6 +23,19 @@ const { version } = require("../package.json") as { version: string };
 const program = new Command();
 
 program.name("quester").description("Quester Studio CLI").version(version);
+
+program
+	.command("init")
+	.argument("[dir]", "directory to scaffold (created if missing)", ".")
+	.option("--name <name>", "workspace name (default: directory basename)")
+	.description("Scaffold a new Quester workspace")
+	.action(async (dir: string, opts: { name?: string }) => {
+		const result = await initWorkspace(dir, { name: opts.name });
+		console.log(`Initialized workspace: ${result.name}`);
+		console.log(`  path: ${result.root}`);
+		console.log(`  flow: ${result.flowId}`);
+		console.log(`Next: quester validate ${dir === "." ? "." : dir}`);
+	});
 
 program
 	.command("validate")

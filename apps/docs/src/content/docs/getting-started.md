@@ -18,6 +18,15 @@ After **v0.4.0** npm publish, you can also run the CLI without cloning:
 bunx @quester/cli --help
 ```
 
+## Scaffold a workspace
+
+```bash
+bunx --bun quester init ./my-workspace
+bunx --bun quester validate ./my-workspace
+```
+
+Creates `quester.json`, `flows/hello.flow.json` (`start` → `input`), `environments/local.json`, a secrets example, and `.gitignore` for `*.secrets.json`.
+
 ## Validate a workspace
 
 ```bash
