@@ -3,5 +3,9 @@
 	| {
 			success: false;
 			error: string;
-			issues?: { path: string; message: string }[];
+			issues?: {
+				path: string;
+				message: string;
+				suggestion?: string;
+			}[];
 	  };

@@ -5,6 +5,9 @@ import { defaultNodeData, newNodeId } from "./nodeCatalog.js";
 const JSON_NODE_DEFAULT_WIDTH = 280;
 const JSON_NODE_DEFAULT_HEIGHT = 220;
 
+/** Wider hit target so edges are easier to select, delete, and reconnect. */
+export const EDGE_INTERACTION_WIDTH = 24;
+
 export type FlowTab = {
 	flowId: string;
 	flow: FlowV1;
@@ -54,8 +57,35 @@ export function flowToReactFlow(flow: FlowV1): {
 		source: e.source,
 		target: e.target,
 		sourceHandle: e.sourceHandle ?? undefined,
+		interactionWidth: EDGE_INTERACTION_WIDTH,
+		reconnectable: true as const,
 	}));
 	return { nodes, edges };
+}
+
+type ConnectionNodes = ReadonlyArray<{ id: string; type?: string | null }>;
+type ConnectionEdges = ReadonlyArray<{ id: string; source: string }>;
+
+/**
+ * Canvas connection rules: no incoming edges to `start`; `start` has at most
+ * one outgoing edge (ignoreEdgeId lets reconnect move the existing edge).
+ */
+export function isValidFlowConnection(options: {
+	source: string | null | undefined;
+	target: string | null | undefined;
+	nodes: ConnectionNodes;
+	edges: ConnectionEdges;
+	ignoreEdgeId?: string | null;
+}): boolean {
+	const { source, target, nodes, edges, ignoreEdgeId } = options;
+	if (!source || !target) return false;
+	const sourceNode = nodes.find((n) => n.id === source);
+	const targetNode = nodes.find((n) => n.id === target);
+	if (targetNode?.type === "start") return false;
+	if (sourceNode?.type === "start") {
+		return !edges.some((e) => e.source === source && e.id !== ignoreEdgeId);
+	}
+	return true;
 }
 
 export function reactFlowToFlow(

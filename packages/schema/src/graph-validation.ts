@@ -3,6 +3,8 @@
 export type FlowValidationIssue = {
 	path: string;
 	message: string;
+	/** Short, actionable hint for fixing this issue in the editor. */
+	suggestion?: string;
 };
 
 export type FlowGraphValidationResult = {
@@ -22,7 +24,11 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 	const seen = new Set<string>();
 	for (const id of ids) {
 		if (seen.has(id)) {
-			issues.push({ path: "nodes", message: `Duplicate node id: ${id}` });
+			issues.push({
+				path: "nodes",
+				message: `Duplicate node id: ${id}`,
+				suggestion: "Rename or delete the extra node so each id is unique",
+			});
 		}
 		seen.add(id);
 	}
@@ -32,12 +38,14 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 			issues.push({
 				path: `edges/${edge.id}`,
 				message: `Unknown source node: ${edge.source}`,
+				suggestion: `Delete edge ${edge.id}, or reconnect it from an existing node`,
 			});
 		}
 		if (!nodeById.has(edge.target)) {
 			issues.push({
 				path: `edges/${edge.id}`,
 				message: `Unknown target node: ${edge.target}`,
+				suggestion: `Delete edge ${edge.id}, or reconnect it to an existing node`,
 			});
 		}
 	}
@@ -47,11 +55,16 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 		issues.push({
 			path: "nodes",
 			message: "Flow must contain exactly one start node",
+			suggestion:
+				"Add a Start node from the palette and connect it to the first step",
 		});
 	} else if (startNodes.length > 1) {
 		issues.push({
 			path: "nodes",
 			message: `Flow must contain exactly one start node (found ${startNodes.length})`,
+			suggestion: `Keep one Start node and delete the extras (${startNodes
+				.map((n) => n.id)
+				.join(", ")})`,
 		});
 	}
 
@@ -62,6 +75,9 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 			issues.push({
 				path: `nodes/${start.id}`,
 				message: "start node cannot have incoming edges",
+				suggestion: `Remove edges into Start (${incoming
+					.map((e) => e.id)
+					.join(", ")}) — Start must be the root`,
 			});
 		}
 		const outgoing = flow.edges.filter((e) => e.source === start.id);
@@ -69,6 +85,9 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 			issues.push({
 				path: `nodes/${start.id}`,
 				message: "start node can have at most one outgoing edge",
+				suggestion: `Keep one edge from Start and delete the extras (${outgoing
+					.map((e) => e.id)
+					.join(", ")})`,
 			});
 		}
 	}
@@ -106,7 +125,12 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 		}
 	}
 	if (cycleNodes.size > 0) {
-		issues.push({ path: "edges", message: "Flow graph contains a cycle" });
+		const nodes = [...cycleNodes].join(", ");
+		issues.push({
+			path: "edges",
+			message: "Flow graph contains a cycle",
+			suggestion: `Remove an edge that loops back (near ${nodes}) so the graph is a DAG`,
+		});
 	}
 
 	const reachable = new Set<string>();
@@ -130,6 +154,7 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 			issues.push({
 				path: `nodes/${node.id}`,
 				message: `Node is not reachable from start: ${node.id}`,
+				suggestion: `Connect ${node.id} from a reachable node (or from Start), or delete it`,
 			});
 		}
 	}

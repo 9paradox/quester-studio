@@ -54,7 +54,9 @@ export function ErrorAlert({
 		<Alert variant="destructive">
 			<IconAlertTriangle />
 			<AlertTitle>{title}</AlertTitle>
-			<AlertDescription>{message}</AlertDescription>
+			<AlertDescription className="break-words whitespace-pre-wrap text-pretty">
+				{message}
+			</AlertDescription>
 		</Alert>
 	);
 }

@@ -358,9 +358,9 @@ export function Panel() {
 								))}
 								{runError && logLevel !== "info" ? (
 									<div className="rounded-md border border-destructive/20 bg-destructive/5 px-2 py-1.5">
-										<div className="flex flex-wrap items-center gap-2 pl-5">
+										<div className="flex flex-wrap items-start gap-2 pl-5">
 											<Badge variant="destructive">error</Badge>
-											<span className="font-mono text-xs text-destructive">
+											<span className="min-w-0 flex-1 break-words font-mono text-xs whitespace-pre-wrap text-destructive">
 												{runError}
 											</span>
 										</div>
