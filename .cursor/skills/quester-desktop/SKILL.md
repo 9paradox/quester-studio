@@ -106,7 +106,9 @@ Keep validation in main process; renderer sends flow id + input, never executes 
 
 ```bash
 bun run --filter @quester/desktop lint
-bun run --filter @quester/desktop dev   # manual smoke test
+bun run --filter @quester/desktop test
+bun run --filter @quester/desktop test:smoke   # AppShell / settings render smoke
+bun run --filter @quester/desktop dev          # manual Electrobun smoke
 ```
 
 After IPC + run panel: execute sample flow and compare output to CLI:

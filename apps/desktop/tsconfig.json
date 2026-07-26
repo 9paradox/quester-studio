@@ -13,5 +13,9 @@
 		"vite.config.ts",
 		"electrobun.config.ts"
 	],
-	"exclude": ["src/**/*.test.ts"]
+	"exclude": [
+		"src/**/*.test.ts",
+		"src/**/*.test.tsx",
+		"src/**/*.smoke.test.tsx"
+	]
 }
