@@ -94,6 +94,36 @@ describe("builtin node plugins", () => {
 		expect(falseResult.branch).toBe("false");
 	});
 
+	test("if evaluates checks against previous output", async () => {
+		const trueResult = await ifPlugin.execute(
+			ctx({
+				node: {
+					id: "if",
+					type: "if",
+					data: {
+						checks: [{ path: "status", op: "gte", value: 200 }],
+					},
+				},
+				input: { status: 201 },
+			}),
+		);
+		expect(trueResult.branch).toBe("true");
+
+		const falseResult = await ifPlugin.execute(
+			ctx({
+				node: {
+					id: "if",
+					type: "if",
+					data: {
+						checks: [{ path: "status", op: "lt", value: 300 }],
+					},
+				},
+				input: { status: 500 },
+			}),
+		);
+		expect(falseResult.branch).toBe("false");
+	});
+
 	test("template renders with eta context", async () => {
 		const result = await templatePlugin.execute(
 			ctx({

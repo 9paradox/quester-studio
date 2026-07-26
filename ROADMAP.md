@@ -7,6 +7,7 @@
 
 - [x] Collections — standalone `*.request.json` + Request editor tab
 - [x] New node types (`assert`, `transform`, `merge`, `json`)
+- [x] Richer `if` / `assert` condition operators (`eq`, `gte`, `contains`, …) — #56
 - [ ] CLI `quester init` — scaffold workspace
 - [ ] Renderer smoke tests
 - [x] Per-node reference pages in docs (hand-written; emit-from-schema optional follow-up)

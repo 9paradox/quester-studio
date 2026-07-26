@@ -148,12 +148,22 @@ export function SetFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 export function IfFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
 	const runStatus = useNodeRunStatus(id);
+	const checks = Array.isArray(data.checks)
+		? normalizeAssertChecks(data.checks, { allowEmpty: true })
+		: [];
+	const condition =
+		typeof data.condition === "string" && data.condition.length > 0
+			? data.condition
+			: null;
+	const subtitle =
+		condition ??
+		(checks.length > 0 ? formatAssertCheckSummary(checks) : "condition");
 	return (
 		<BaseFlowNode
 			type="if"
 			nodeId={id}
 			title={data.label ?? "If"}
-			subtitle={String(data.condition ?? "")}
+			subtitle={subtitle}
 			selected={selected}
 			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
@@ -168,7 +178,10 @@ export function IfFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 				},
 			]}
 		>
-			<span className="font-mono">{String(data.condition ?? "true")}</span>
+			<span className="font-mono">
+				{condition ??
+					(checks.length > 0 ? formatAssertCheckSummary(checks) : "true")}
+			</span>
 		</BaseFlowNode>
 	);
 }

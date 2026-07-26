@@ -17,10 +17,29 @@ Runs one or more checks against the previous node’s output. On failure, execut
 | Field | Type | Description |
 | --- | --- | --- |
 | `path` | string | JMESPath against previous output |
-| `equals` | any | Optional; deep-equal expected value |
+| `op` | string | Optional operator (default `truthy`, or `eq` when `equals` is set) |
+| `value` | any | Comparison value for ops that need one |
+| `equals` | any | Legacy alias for `op: "eq"` + `value` |
 
-- With `equals`: value at `path` must **exactly** deep-equal `equals` (JSON stringify compare — not a partial/subset match).
-- Without `equals`: value at `path` must be truthy.
+### Operators
+
+| `op` | Needs `value` | Passes when |
+| --- | --- | --- |
+| `eq` | yes | Deep equal (`JSON.stringify`) |
+| `neq` | yes | Not deep equal |
+| `gt` / `gte` / `lt` / `lte` | yes | Numeric compare when both sides are numbers (or numeric strings); otherwise string compare |
+| `contains` | yes | String includes, or array has a deep-equal element |
+| `notContains` | yes | Inverse of `contains` |
+| `startsWith` / `endsWith` | yes | String prefix / suffix |
+| `matches` | yes | `RegExp(value).test(actual)` on a string (or stringified number/boolean) |
+| `exists` | no | Value is not `null` / `undefined` |
+| `truthy` | no | JavaScript truthiness |
+| `falsy` | no | JavaScript falsiness |
+
+Legacy forms still work:
+
+- `{ "path": "body.id" }` → `truthy`
+- `{ "path": "status", "equals": 200 }` → `eq`
 
 ## Input / output
 
@@ -32,25 +51,36 @@ Runs one or more checks against the previous node’s output. On failure, execut
 
 ## Examples
 
-### Status equals 200
-
-After an `http` node:
+### Status in 2xx
 
 ```json
 {
   "id": "assertOk",
   "type": "assert",
   "data": {
-    "checks": [{ "path": "status", "equals": 200 }]
+    "checks": [
+      { "path": "status", "op": "gte", "value": 200 },
+      { "path": "status", "op": "lt", "value": 300 }
+    ]
   }
 }
 ```
 
-### Body field present
+### Body message contains text
 
 ```json
 {
-  "checks": [{ "path": "body.id" }]
+  "checks": [
+    { "path": "body.message", "op": "contains", "value": "created" }
+  ]
+}
+```
+
+### Legacy equals (still valid)
+
+```json
+{
+  "checks": [{ "path": "status", "equals": 200 }]
 }
 ```
 
@@ -63,9 +93,9 @@ After an `http` node:
   "data": {
     "label": "Login ok",
     "checks": [
-      { "path": "status", "equals": 201 },
-      { "path": "body.id" },
-      { "path": "body.email", "equals": "demo@example.com" }
+      { "path": "status", "op": "eq", "value": 201 },
+      { "path": "body.id", "op": "exists" },
+      { "path": "body.email", "op": "eq", "value": "demo@example.com" }
     ]
   }
 }
@@ -73,58 +103,15 @@ After an `http` node:
 
 ### Nested / object equality
 
-`equals` compares with **exact deep equality** (`JSON.stringify` on both sides). The value at `path` must match `equals` fully — same keys, same nested values. Extra fields on the actual value cause a failure.
-
-**Previous HTTP output:**
-
-```json
-{
-  "status": 200,
-  "body": { "ok": true, "role": "admin" }
-}
-```
-
-**Pass — whole object matches:**
-
-```json
-{
-  "checks": [
-    {
-      "path": "body",
-      "equals": { "ok": true, "role": "admin" }
-    }
-  ]
-}
-```
-
-**Fail — actual body has an extra field** (`id`), so it is not equal:
-
-```json
-{
-  "body": { "ok": true, "role": "admin", "id": 1 }
-}
-```
+`eq` (and legacy `equals`) compares with **exact deep equality** (`JSON.stringify` on both sides). The value at `path` must match fully — same keys, same nested values. Extra fields on the actual value cause a failure.
 
 Prefer asserting fields separately when you only care about some keys:
 
 ```json
 {
   "checks": [
-    { "path": "body.ok", "equals": true },
-    { "path": "body.role", "equals": "admin" }
-  ]
-}
-```
-
-You can also point `path` at a nested object and still require an exact match:
-
-```json
-{
-  "checks": [
-    {
-      "path": "body.user.profile",
-      "equals": { "theme": "dark", "locale": "en" }
-    }
+    { "path": "body.ok", "op": "eq", "value": true },
+    { "path": "body.role", "op": "eq", "value": "admin" }
   ]
 }
 ```

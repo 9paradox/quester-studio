@@ -1,10 +1,11 @@
 import { assertNodeDataSchema } from "@quester/schema";
 import jmespath from "jmespath";
 import type { FlowNodePlugin } from "../types.js";
-
-function valuesEqual(a: unknown, b: unknown): boolean {
-	return JSON.stringify(a) === JSON.stringify(b);
-}
+import {
+	evaluateNormalizedCheck,
+	formatCheckFailure,
+	normalizeValueCheck,
+} from "./evaluate-check.js";
 
 export const assertPlugin: FlowNodePlugin = {
 	type: "assert",
@@ -12,15 +13,11 @@ export const assertPlugin: FlowNodePlugin = {
 		const data = assertNodeDataSchema.parse(ctx.node.data);
 		const failures: string[] = [];
 		for (const check of data.checks) {
-			const value = jmespath.search(ctx.input, check.path);
-			if (check.equals !== undefined) {
-				if (!valuesEqual(value, check.equals)) {
-					failures.push(
-						`${check.path}: expected ${JSON.stringify(check.equals)}, got ${JSON.stringify(value)}`,
-					);
-				}
-			} else if (!value) {
-				failures.push(`${check.path}: expected truthy value`);
+			const normalized = normalizeValueCheck(check);
+			const value = jmespath.search(ctx.input, normalized.path);
+			const result = evaluateNormalizedCheck(value, normalized);
+			if (!result.ok) {
+				failures.push(formatCheckFailure(normalized.path, result));
 			}
 		}
 		if (failures.length > 0) {
