@@ -41,8 +41,10 @@ program
 					failed = true;
 					console.error(result.error);
 					if (result.issues)
-						for (const i of result.issues)
+						for (const i of result.issues) {
 							console.error(`  ${i.path}: ${i.message}`);
+							if (i.suggestion) console.error(`    hint: ${i.suggestion}`);
+						}
 				} else {
 					console.log(`Flow OK: ${result.data.id}`);
 				}

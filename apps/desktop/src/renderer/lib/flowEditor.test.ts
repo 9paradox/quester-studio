@@ -1,11 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import type { FlowV1 } from "@quester/schema";
 import {
+	EDGE_INTERACTION_WIDTH,
 	addNodeToFlow,
 	deleteEdgesFromFlow,
 	deleteNodesFromFlow,
 	duplicateNodeInFlow,
 	flowToReactFlow,
+	isValidFlowConnection,
 	reactFlowToFlow,
 } from "./flowEditor.js";
 
@@ -61,6 +63,78 @@ describe("deleteEdgesFromFlow", () => {
 		const next = deleteEdgesFromFlow(sampleFlow, ["e-1"]);
 		expect(next.nodes).toHaveLength(2);
 		expect(next.edges).toEqual([]);
+	});
+});
+
+describe("isValidFlowConnection", () => {
+	const nodes = [
+		{ id: "start", type: "start" },
+		{ id: "a", type: "http" },
+		{ id: "b", type: "http" },
+	];
+
+	test("rejects edges into start", () => {
+		expect(
+			isValidFlowConnection({
+				source: "a",
+				target: "start",
+				nodes,
+				edges: [],
+			}),
+		).toBe(false);
+	});
+
+	test("allows one outgoing from start", () => {
+		expect(
+			isValidFlowConnection({
+				source: "start",
+				target: "a",
+				nodes,
+				edges: [],
+			}),
+		).toBe(true);
+	});
+
+	test("blocks a second outgoing from start", () => {
+		expect(
+			isValidFlowConnection({
+				source: "start",
+				target: "b",
+				nodes,
+				edges: [{ id: "e0", source: "start" }],
+			}),
+		).toBe(false);
+	});
+
+	test("allows reconnecting the existing start edge", () => {
+		expect(
+			isValidFlowConnection({
+				source: "start",
+				target: "b",
+				nodes,
+				edges: [{ id: "e0", source: "start" }],
+				ignoreEdgeId: "e0",
+			}),
+		).toBe(true);
+	});
+
+	test("allows normal node-to-node edges", () => {
+		expect(
+			isValidFlowConnection({
+				source: "a",
+				target: "b",
+				nodes,
+				edges: [],
+			}),
+		).toBe(true);
+	});
+});
+
+describe("flowToReactFlow edges", () => {
+	test("marks edges reconnectable with a wide hit target", () => {
+		const { edges } = flowToReactFlow(sampleFlow);
+		expect(edges[0]?.interactionWidth).toBe(EDGE_INTERACTION_WIDTH);
+		expect(edges[0]?.reconnectable).toBe(true);
 	});
 });
 

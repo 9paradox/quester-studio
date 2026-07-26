@@ -13,7 +13,12 @@ import {
 	writeCanvasViewport,
 } from "@/lib/canvasViewport.js";
 import { readNodeDragData, readRequestDragData } from "@/lib/dnd.js";
-import { flowToReactFlow, reactFlowToFlow } from "@/lib/flowEditor.js";
+import {
+	EDGE_INTERACTION_WIDTH,
+	flowToReactFlow,
+	isValidFlowConnection,
+	reactFlowToFlow,
+} from "@/lib/flowEditor.js";
 import type { BuiltinNodeType, FlowV1 } from "@quester/schema";
 import { IconFocusCentered, IconMinus, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -31,6 +36,7 @@ import {
 	addEdge,
 	applyEdgeChanges,
 	applyNodeChanges,
+	reconnectEdge,
 	useNodesInitialized,
 	useOnSelectionChange,
 	useReactFlow,
@@ -158,14 +164,21 @@ function FitViewOnLoad({
 }
 
 function resolveContextTarget(event: React.MouseEvent): ContextTarget {
-	const el = event.target as HTMLElement | null;
+	const el = event.target as Element | null;
 	const nodeEl = el?.closest?.(".react-flow__node") as HTMLElement | null;
 	if (nodeEl?.dataset.id) {
 		return { kind: "node", id: nodeEl.dataset.id };
 	}
-	const edgeEl = el?.closest?.(".react-flow__edge") as HTMLElement | null;
-	if (edgeEl?.dataset.id) {
-		return { kind: "edge", id: edgeEl.dataset.id };
+	const edgeEl = el?.closest?.(
+		".react-flow__edge, .react-flow__edge-path, .react-flow__edge-interaction",
+	) as HTMLElement | null;
+	const edgeRoot = edgeEl?.closest?.(".react-flow__edge") as HTMLElement | null;
+	const edgeId =
+		edgeRoot?.dataset.id ??
+		edgeEl?.dataset.id ??
+		edgeRoot?.getAttribute("data-testid")?.replace(/^rf__edge-/, "");
+	if (edgeId) {
+		return { kind: "edge", id: edgeId };
 	}
 	return { kind: "pane" };
 }
@@ -212,6 +225,7 @@ function FlowCanvasInner({
 	});
 	const nodesRef = useRef(nodes);
 	const edgesRef = useRef(edges);
+	const reconnectingEdgeIdRef = useRef<string | null>(null);
 	nodesRef.current = nodes;
 	edgesRef.current = edges;
 
@@ -244,7 +258,16 @@ function FlowCanvasInner({
 				};
 			}),
 		);
-		setEdges(mapped.edges);
+		setEdges((current) =>
+			mapped.edges.map((me) => {
+				const existing = current.find((e) => e.id === me.id);
+				if (!existing) return me;
+				return {
+					...me,
+					selected: existing.selected,
+				};
+			}),
+		);
 	}, [flow]);
 
 	const emitGraphChange = useCallback(
@@ -293,17 +316,13 @@ function FlowCanvasInner({
 
 	const onConnect = useCallback(
 		(connection: Connection) => {
-			if (!connection.source || !connection.target) return;
-			const sourceNode = nodesRef.current.find(
-				(n) => n.id === connection.source,
-			);
-			const targetNode = nodesRef.current.find(
-				(n) => n.id === connection.target,
-			);
-			if (targetNode?.type === "start") return;
 			if (
-				sourceNode?.type === "start" &&
-				edgesRef.current.some((e) => e.source === connection.source)
+				!isValidFlowConnection({
+					source: connection.source,
+					target: connection.target,
+					nodes: nodesRef.current,
+					edges: edgesRef.current,
+				})
 			) {
 				return;
 			}
@@ -312,6 +331,8 @@ function FlowCanvasInner({
 					{
 						...connection,
 						id: `e-${connection.source}-${connection.target}-${crypto.randomUUID().slice(0, 6)}`,
+						interactionWidth: EDGE_INTERACTION_WIDTH,
+						reconnectable: true,
 					},
 					current,
 				);
@@ -322,15 +343,54 @@ function FlowCanvasInner({
 		[emitGraphChange],
 	);
 
+	const onReconnect = useCallback(
+		(oldEdge: Edge, newConnection: Connection) => {
+			if (
+				!isValidFlowConnection({
+					source: newConnection.source,
+					target: newConnection.target,
+					nodes: nodesRef.current,
+					edges: edgesRef.current,
+					ignoreEdgeId: oldEdge.id,
+				})
+			) {
+				return;
+			}
+			setEdges((current) => {
+				const next = reconnectEdge(oldEdge, newConnection, current, {
+					shouldReplaceId: false,
+				}).map((e) =>
+					e.id === oldEdge.id
+						? {
+								...e,
+								interactionWidth: EDGE_INTERACTION_WIDTH,
+								reconnectable: true,
+							}
+						: e,
+				);
+				emitGraphChange(nodesRef.current, next);
+				return next;
+			});
+		},
+		[emitGraphChange],
+	);
+
+	const onReconnectStart = useCallback((_: React.MouseEvent, edge: Edge) => {
+		reconnectingEdgeIdRef.current = edge.id;
+	}, []);
+
+	const onReconnectEnd = useCallback(() => {
+		reconnectingEdgeIdRef.current = null;
+	}, []);
+
 	const isValidConnection = useCallback((connection: Connection | Edge) => {
-		if (!connection.source || !connection.target) return false;
-		const sourceNode = nodesRef.current.find((n) => n.id === connection.source);
-		const targetNode = nodesRef.current.find((n) => n.id === connection.target);
-		if (targetNode?.type === "start") return false;
-		if (sourceNode?.type === "start") {
-			return !edgesRef.current.some((e) => e.source === connection.source);
-		}
-		return true;
+		return isValidFlowConnection({
+			source: connection.source,
+			target: connection.target,
+			nodes: nodesRef.current,
+			edges: edgesRef.current,
+			ignoreEdgeId: reconnectingEdgeIdRef.current,
+		});
 	}, []);
 
 	useEffect(() => {
@@ -385,7 +445,19 @@ function FlowCanvasInner({
 					onNodesChange={handleNodesChange}
 					onEdgesChange={handleEdgesChange}
 					onConnect={onConnect}
+					onReconnect={onReconnect}
+					onReconnectStart={onReconnectStart}
+					onReconnectEnd={onReconnectEnd}
 					isValidConnection={isValidConnection}
+					onEdgeContextMenu={(_, edge) => {
+						setContextTarget({ kind: "edge", id: edge.id });
+					}}
+					onNodeContextMenu={(_, node) => {
+						setContextTarget({ kind: "node", id: node.id });
+					}}
+					onPaneContextMenu={() => {
+						setContextTarget({ kind: "pane" });
+					}}
 					onDragOver={onDragOver}
 					onDrop={onDrop}
 					onMoveEnd={(_, viewport) => {
@@ -395,6 +467,13 @@ function FlowCanvasInner({
 					nodesDraggable
 					nodesConnectable
 					elementsSelectable
+					edgesUpdatable
+					edgesFocusable
+					deleteKeyCode={["Backspace", "Delete"]}
+					defaultEdgeOptions={{
+						interactionWidth: EDGE_INTERACTION_WIDTH,
+						reconnectable: true,
+					}}
 					proOptions={{ hideAttribution: true }}
 					className="bg-muted/50"
 					minZoom={CANVAS_MIN_ZOOM}
@@ -472,6 +551,7 @@ function FlowCanvasInner({
 						onClick={() => onDeleteEdges?.([contextTarget.id])}
 					>
 						Delete edge
+						<ContextMenuShortcut>Del</ContextMenuShortcut>
 					</ContextMenuItem>
 				) : null}
 				{contextTarget.kind === "pane" ? (

@@ -9,7 +9,7 @@ export * from "./graph-validation.js";
 export * from "./validation-types.js";
 export { validateWorkspace } from "./validate-workspace.js";
 export { validateEnvironment } from "./validate-environment.js";
-export { validateFlow } from "./validate-flow.js";
+export { validateFlow, formatFlowValidationError } from "./validate-flow.js";
 export { validateRequest } from "./validate-request.js";
 
 export { z } from "zod";

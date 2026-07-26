@@ -40,6 +40,9 @@ describe("validateFlowGraph", () => {
 		expect(none.issues.some((i) => i.message.includes("start node"))).toBe(
 			true,
 		);
+		expect(none.issues.some((i) => i.suggestion?.includes("Add a Start"))).toBe(
+			true,
+		);
 
 		const many = validateFlowGraph(
 			flow({
@@ -136,5 +139,10 @@ describe("validateFlowGraph", () => {
 		expect(result.issues.some((i) => i.message.includes("not reachable"))).toBe(
 			true,
 		);
+		expect(
+			result.issues.some((i) =>
+				i.suggestion?.includes("Connect orphan from a reachable node"),
+			),
+		).toBe(true);
 	});
 });
