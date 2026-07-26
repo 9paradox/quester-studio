@@ -51,6 +51,11 @@ export function mockDesktopRpc() {
 		desktopRpc: {
 			getDefaultWorkspace: async () => SMOKE_WORKSPACE,
 			pickWorkspaceFolder: async () => null,
+			scaffoldWorkspace: async (path: string, name?: string) => ({
+				root: path,
+				name: name ?? "scaffolded",
+				flowId: "hello",
+			}),
 			openWorkspaceSummary: async () => ({
 				name: smokeManifest.name,
 				root: SMOKE_WORKSPACE,

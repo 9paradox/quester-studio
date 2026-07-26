@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { rememberWorkspacePath } from "@/lib/workspacePreference.js";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { mockDesktopRpc } from "../../test/mockElectrobun.js";
+import { SMOKE_WORKSPACE, mockDesktopRpc } from "../../test/mockElectrobun.js";
 
 mockDesktopRpc();
 
@@ -16,6 +17,7 @@ const { AppShell } = await import("./AppShell.js");
 const { useQuesterStore } = await import("@/stores/quester-store.js");
 
 async function mountReadyShell() {
+	rememberWorkspacePath(SMOKE_WORKSPACE);
 	const view = render(<AppShell />);
 	await waitFor(() => {
 		expect(useQuesterStore.getState().isLoading).toBe(false);
@@ -25,6 +27,10 @@ async function mountReadyShell() {
 }
 
 describe("renderer smoke", () => {
+	beforeEach(() => {
+		localStorage.clear();
+	});
+
 	afterEach(() => {
 		useQuesterStore.setState({
 			openTabs: [],
@@ -35,7 +41,29 @@ describe("renderer smoke", () => {
 			runResult: null,
 			runError: null,
 			isRunning: false,
+			workspacePath: "",
+			workspaceName: "",
 		});
+		localStorage.clear();
+	});
+
+	test("shows welcome when no last workspace is stored", async () => {
+		render(<AppShell />);
+		await waitFor(() => {
+			expect(useQuesterStore.getState().isLoading).toBe(false);
+		});
+		expect(
+			screen.getByRole("heading", { name: "Quester" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /open workspace/i }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /create workspace/i }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /open sample/i }),
+		).toBeInTheDocument();
 	});
 
 	test("mounts AppShell and opens flow UI without crashing", async () => {
