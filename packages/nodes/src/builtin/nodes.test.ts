@@ -161,6 +161,36 @@ describe("builtin node plugins", () => {
 		).rejects.toThrow(/http or https/);
 	});
 
+	test("http plugin merges defaultHeaders under node headers", async () => {
+		const result = await httpPlugin.execute(
+			ctx({
+				node: {
+					id: "http",
+					type: "http",
+					data: {
+						method: "GET",
+						url: "https://example.com",
+						headers: { Accept: "text/plain", "X-Node": "1" },
+					},
+				},
+				httpDefaults: {
+					defaultHeaders: {
+						Accept: "application/json",
+						"X-Default": "yes",
+					},
+				},
+				fetch: (async (_url, init) => {
+					const h = init?.headers as Record<string, string>;
+					expect(h.Accept).toBe("text/plain");
+					expect(h["X-Default"]).toBe("yes");
+					expect(h["X-Node"]).toBe("1");
+					return new Response("{}", { status: 200 });
+				}) as typeof fetch,
+			}),
+		);
+		expect((result.output as { status: number }).status).toBe(200);
+	});
+
 	test("http plugin returns request snapshot and timing", async () => {
 		const result = await httpPlugin.execute(
 			ctx({

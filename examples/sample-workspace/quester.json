@@ -1,6 +1,7 @@
 {
 	"name": "sample-workspace",
 	"version": "v1",
+	"description": "Sample flows, environments, and collections for local development.",
 	"flowsDir": "flows",
 	"environmentsDir": "environments",
 	"collectionsDir": "collections"

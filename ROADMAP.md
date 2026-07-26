@@ -16,12 +16,13 @@
 
 Layers: **Details** (identity) → git files; **Settings** (runtime) → git files; **Preferences** (editor UX) → machine-local. Inheritance for HTTP: workspace → flow → node.
 
-- [ ] Edit flow name & description — #49
-- [ ] Workspace description in `quester.json` + editor — #50
-- [ ] App / Workspace settings as editor tabs (move theme into App Preferences) — #51
-- [ ] Workspace HTTP defaults (headers, timeout) + engine merge — #52
-- [ ] TLS verification preference (app/workspace) + SECURITY.md — #53
-- Later: flow-level HTTP overrides, max response size, cookie jar, proxy, certificates, shortcuts
+- [x] Edit flow name & description — #49
+- [x] Workspace description in `quester.json` + editor — #50
+- [x] App / Workspace settings as editor tabs (move theme into App Preferences) — #51
+- [x] Workspace HTTP defaults (headers, timeout) + engine merge — #52
+- [x] TLS verification preference (app Settings) + SECURITY.md — #53
+- Later: flow-level HTTP settings UI, max response size, cookie jar, proxy, certificates, shortcuts, workspace-scoped TLS
+
 
 ## Done recently
 

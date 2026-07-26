@@ -1,9 +1,11 @@
 import {
 	type EditorTab,
+	createAppSettingsEditorTab,
 	createEnvEditorTab,
 	createFlowEditorTab,
 	createRequestEditorTab,
 	createSecretsEditorTab,
+	createWorkspaceSettingsEditorTab,
 	editorTabLabel,
 	envTabId,
 	flowTabId,
@@ -28,7 +30,12 @@ import {
 	serializePathShapes,
 } from "@/lib/pathShapes.js";
 import { DEFAULT_INPUT, withInputNodeValue } from "@/lib/runDefaults.js";
-import type { BuiltinNodeType, FlowV1, RequestV1 } from "@quester/schema";
+import type {
+	BuiltinNodeType,
+	FlowV1,
+	RequestV1,
+	WorkspaceV1,
+} from "@quester/schema";
 import { SECRETS_VERSION } from "@quester/schema";
 import type { Edge, Node } from "reactflow";
 import { toast } from "sonner";
@@ -250,6 +257,13 @@ export type QuesterState = {
 	clearLogs: () => void;
 	showError: (message: string) => void;
 	handleActivityView: (view: ActivityView) => void;
+	openAppPreferences: () => void;
+	openWorkspaceSettings: () => Promise<void>;
+	updateWorkspaceSettingsManifest: (manifest: WorkspaceV1) => void;
+	updateActiveFlowMeta: (meta: {
+		name?: string;
+		description?: string;
+	}) => void;
 	openTab: (tab: EditorTab) => void;
 	applyNodeRunStatusEvent: (event: NodeRunStatusEvent) => void;
 	refreshWorkspaceLists: (path: string) => Promise<{
@@ -476,12 +490,56 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	handleActivityView: (view) => {
+		if (view === "settings") {
+			get().openAppPreferences();
+			return;
+		}
 		const { sidebarOpen, activityView } = get();
 		if (sidebarOpen && activityView === view) {
 			set({ sidebarOpen: false });
 			return;
 		}
 		set({ activityView: view, sidebarOpen: true });
+	},
+
+	openAppPreferences: () => {
+		get().openTab(createAppSettingsEditorTab());
+	},
+
+	openWorkspaceSettings: async () => {
+		const { workspacePath, showError, openTab } = get();
+		if (!workspacePath) {
+			showError("Open a workspace first");
+			return;
+		}
+		try {
+			const manifest = await desktopRpc.loadWorkspaceManifest(workspacePath);
+			openTab(createWorkspaceSettingsEditorTab(manifest));
+		} catch (err) {
+			showError(
+				err instanceof Error
+					? err.message
+					: "Failed to load workspace settings",
+			);
+		}
+	},
+
+	updateWorkspaceSettingsManifest: (manifest) => {
+		set((s) => ({
+			openTabs: s.openTabs.map((t) =>
+				t.kind === "workspaceSettings" ? { ...t, manifest, dirty: true } : t,
+			),
+		}));
+	},
+
+	updateActiveFlowMeta: ({ name, description }) => {
+		get().updateActiveFlow((flow) => ({
+			...flow,
+			...(name !== undefined ? { name: name || flow.id } : {}),
+			...(description !== undefined
+				? { description: description || undefined }
+				: {}),
+		}));
 	},
 
 	openTab: (tab) => {
@@ -960,6 +1018,22 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					),
 				}));
 				appendConsole(`Saved request ${tab.requestPath}`);
+			} else if (tab.kind === "workspaceSettings") {
+				const saved = await desktopRpc.saveWorkspaceManifest(
+					workspacePath,
+					tab.manifest,
+				);
+				set((s) => ({
+					workspaceName: saved.name,
+					openTabs: s.openTabs.map((t) =>
+						t.id === tab.id && t.kind === "workspaceSettings"
+							? { ...t, manifest: saved, dirty: false }
+							: t,
+					),
+				}));
+				appendConsole(`Saved workspace ${saved.name}`);
+			} else if (tab.kind === "appSettings") {
+				return;
 			}
 			await refreshWorkspaceLists(workspacePath);
 		} catch (err) {

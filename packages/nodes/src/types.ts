@@ -1,4 +1,4 @@
-﻿import type { FlowNodeV1 } from "@quester/schema";
+﻿import type { FlowNodeV1, HttpSettingsV1 } from "@quester/schema";
 
 export type NodeExecutionContext = {
 	node: FlowNodeV1;
@@ -8,6 +8,8 @@ export type NodeExecutionContext = {
 	nodeOutputs: Record<string, unknown>;
 	resolveTemplate: (template: string) => string;
 	fetch: typeof fetch;
+	/** Resolved workspace→flow HTTP defaults (headers merged; timeout inherited). */
+	httpDefaults?: HttpSettingsV1;
 };
 
 export type NodeExecutionResult = {

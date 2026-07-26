@@ -171,6 +171,14 @@ describe("useQuesterStore", () => {
 		expect(useQuesterStore.getState()).toBe(before);
 	});
 
+	test("handleActivityView settings opens Preferences tab", () => {
+		resetStore();
+		useQuesterStore.getState().handleActivityView("settings");
+		const state = useQuesterStore.getState();
+		expect(state.openTabs.some((t) => t.kind === "appSettings")).toBe(true);
+		expect(state.activeTabId).toBe("settings:app");
+	});
+
 	test("handleActivityView toggles sidebar when same view clicked", () => {
 		resetStore();
 		useQuesterStore.setState({

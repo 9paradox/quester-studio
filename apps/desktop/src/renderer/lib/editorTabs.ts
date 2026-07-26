@@ -6,6 +6,7 @@ import type {
 	FlowV1,
 	RequestV1,
 	SecretsV1,
+	WorkspaceV1,
 } from "@quester/schema";
 
 export type FlowEditorTab = {
@@ -46,11 +47,26 @@ export type RequestEditorTab = {
 	dirty: boolean;
 };
 
+export type AppSettingsEditorTab = {
+	kind: "appSettings";
+	id: string;
+	dirty: boolean;
+};
+
+export type WorkspaceSettingsEditorTab = {
+	kind: "workspaceSettings";
+	id: string;
+	manifest: WorkspaceV1;
+	dirty: boolean;
+};
+
 export type EditorTab =
 	| FlowEditorTab
 	| EnvEditorTab
 	| SecretsEditorTab
-	| RequestEditorTab;
+	| RequestEditorTab
+	| AppSettingsEditorTab
+	| WorkspaceSettingsEditorTab;
 
 export function flowTabId(flowId: string): string {
 	return `flow:${flowId}`;
@@ -66,6 +82,14 @@ export function secretsTabId(envName: string): string {
 
 export function requestTabId(requestPath: string): string {
 	return `request:${requestPath}`;
+}
+
+export function appSettingsTabId(): string {
+	return "settings:app";
+}
+
+export function workspaceSettingsTabId(): string {
+	return "settings:workspace";
 }
 
 export function createFlowEditorTab(flow: FlowV1): FlowEditorTab {
@@ -117,6 +141,25 @@ export function createRequestEditorTab(
 	};
 }
 
+export function createAppSettingsEditorTab(): AppSettingsEditorTab {
+	return {
+		kind: "appSettings",
+		id: appSettingsTabId(),
+		dirty: false,
+	};
+}
+
+export function createWorkspaceSettingsEditorTab(
+	manifest: WorkspaceV1,
+): WorkspaceSettingsEditorTab {
+	return {
+		kind: "workspaceSettings",
+		id: workspaceSettingsTabId(),
+		manifest,
+		dirty: false,
+	};
+}
+
 export function editorTabLabel(tab: EditorTab): string {
 	switch (tab.kind) {
 		case "flow":
@@ -127,11 +170,21 @@ export function editorTabLabel(tab: EditorTab): string {
 			return `${tab.envName}.secrets.json`;
 		case "request":
 			return tab.request.name;
+		case "appSettings":
+			return "Preferences";
+		case "workspaceSettings":
+			return "Workspace settings";
 	}
 }
 
 export function editorTabIcon(
 	tab: EditorTab,
-): "flow" | "env" | "secrets" | "request" {
+):
+	| "flow"
+	| "env"
+	| "secrets"
+	| "request"
+	| "appSettings"
+	| "workspaceSettings" {
 	return tab.kind;
 }

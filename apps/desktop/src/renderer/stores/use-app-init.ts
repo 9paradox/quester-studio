@@ -1,4 +1,5 @@
 import { desktopRpc, onNodeRunStatus } from "@/lib/electrobun.js";
+import { readTlsVerifyPreference } from "@/lib/tlsPreference.js";
 import { useEffect } from "react";
 import { useQuesterStore } from "./quester-store.js";
 
@@ -14,6 +15,11 @@ export function useAppInit() {
 
 	useEffect(() => {
 		void (async () => {
+			try {
+				await desktopRpc.setAppTlsVerify(readTlsVerifyPreference());
+			} catch {
+				/* ignore — preference sync is best-effort at boot */
+			}
 			try {
 				const path = await desktopRpc.getDefaultWorkspace();
 				await loadWorkspace(path);

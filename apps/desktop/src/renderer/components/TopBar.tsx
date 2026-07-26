@@ -16,6 +16,7 @@ import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	IconFile,
 	IconKey,
+	IconSettings,
 	IconTopologyRing2,
 	IconWorld,
 	IconX,
@@ -28,6 +29,9 @@ function TabIcon({ tab }: { tab: EditorTab }) {
 	if (kind === "flow") return <IconTopologyRing2 className={className} />;
 	if (kind === "env") return <IconFile className={className} />;
 	if (kind === "request") return <IconWorld className={className} />;
+	if (kind === "appSettings" || kind === "workspaceSettings") {
+		return <IconSettings className={className} />;
+	}
 	return <IconKey className={className} />;
 }
 

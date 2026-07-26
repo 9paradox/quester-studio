@@ -1,5 +1,5 @@
 ﻿import { HttpNodeError, getNodePlugin } from "@quester/nodes";
-import type { FlowV1 } from "@quester/schema";
+import type { FlowV1, HttpSettingsV1 } from "@quester/schema";
 import "@quester/nodes";
 import { EngineEventEmitter } from "./events.js";
 import { selectNextEdges, topologicalSort } from "./graph.js";
@@ -12,6 +12,8 @@ export type ExecuteFlowOptions = {
 	vars?: Record<string, unknown>;
 	fetch?: typeof fetch;
 	events?: EngineEventEmitter;
+	/** Resolved HTTP defaults (workspace→flow already merged by caller). */
+	httpDefaults?: HttpSettingsV1;
 };
 
 export type NodeStepResult = {
@@ -114,6 +116,7 @@ export async function executeFlow(
 				nodeOutputs,
 				resolveTemplate: (t) => resolveTemplate(t, resolverCtx),
 				fetch: fetchFn,
+				httpDefaults: options.httpDefaults,
 			});
 			if (result.vars) vars = { ...vars, ...result.vars };
 			nodeOutputs[node.id] = result.output;

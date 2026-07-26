@@ -20,7 +20,11 @@ import type { ActivityView } from "@/lib/nodeCatalog.js";
 import { nodeCatalogGroups } from "@/lib/nodeCatalog.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
-import { selectActiveTab, selectDirtyTabIds } from "@/stores/selectors.js";
+import {
+	selectActiveFlowTab,
+	selectActiveTab,
+	selectDirtyTabIds,
+} from "@/stores/selectors.js";
 import {
 	IconDeviceFloppy,
 	IconFile,
@@ -29,14 +33,16 @@ import {
 	IconKey,
 	IconPencil,
 	IconPlus,
+	IconSettings,
 	IconTopologyRing2,
 	IconTrash,
 	IconWorld,
 } from "@tabler/icons-react";
 import type { ComponentType, ReactNode, SVGProps } from "react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { RequestMeta } from "../../shared/rpc.js";
+import { FlowDetailsDialog } from "./FlowDetailsDialog.js";
 import { SettingsSidebar } from "./SettingsSidebar.js";
 
 type ListIcon = ComponentType<SVGProps<SVGSVGElement> & { className?: string }>;
@@ -55,6 +61,7 @@ export function PrimarySidebar() {
 	const secretFiles = useQuesterStore((s) => s.secretFiles);
 	const search = useQuesterStore((s) => s.sidebarSearch);
 	const activeTab = useQuesterStore(selectActiveTab);
+	const activeFlowTab = useQuesterStore(selectActiveFlowTab);
 	const canSave = Boolean(activeTab?.dirty);
 
 	const setSidebarSearch = useQuesterStore((s) => s.setSidebarSearch);
@@ -74,6 +81,12 @@ export function PrimarySidebar() {
 	const deleteFlow = useQuesterStore((s) => s.deleteFlow);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const handleAddNode = useQuesterStore((s) => s.handleAddNode);
+	const openWorkspaceSettings = useQuesterStore((s) => s.openWorkspaceSettings);
+	const updateActiveFlowMeta = useQuesterStore((s) => s.updateActiveFlowMeta);
+
+	const [flowDetailsId, setFlowDetailsId] = useState<string | null>(null);
+	const flowDetailsTarget = flows.find((f) => f.id === flowDetailsId);
+
 	const filteredFlows = flows.filter((f) => {
 		const q = search.trim().toLowerCase();
 		if (!q) return true;
@@ -126,6 +139,7 @@ export function PrimarySidebar() {
 					onSearchChange={setSidebarSearch}
 					workspaceName={workspaceName}
 					onOpenWorkspace={() => void openWorkspacePicker()}
+					onWorkspaceSettings={() => void openWorkspaceSettings()}
 					onCreate={() => void createFlow()}
 					onSave={() => void saveActiveTab()}
 					canSave={canSave}
@@ -141,6 +155,12 @@ export function PrimarySidebar() {
 							dirty={dirtyTabIds.includes(flowTabId(flow.id))}
 							onSelect={() => void loadFlow(flow.id, workspacePath)}
 							onRename={() => void renameFlow(flow.id)}
+							onEditDetails={() => {
+								void (async () => {
+									await loadFlow(flow.id, workspacePath);
+									setFlowDetailsId(flow.id);
+								})();
+							}}
 							onDelete={() => void deleteFlow(flow.id)}
 						/>
 					))}
@@ -353,6 +373,26 @@ export function PrimarySidebar() {
 			) : null}
 
 			{view === "settings" ? <SettingsSidebar /> : null}
+
+			<FlowDetailsDialog
+				open={Boolean(flowDetailsId)}
+				onOpenChange={(open) => {
+					if (!open) setFlowDetailsId(null);
+				}}
+				name={
+					activeFlowTab?.flowId === flowDetailsId
+						? (activeFlowTab.flow.name ?? activeFlowTab.flowId)
+						: (flowDetailsTarget?.name ?? "")
+				}
+				description={
+					activeFlowTab?.flowId === flowDetailsId
+						? (activeFlowTab.flow.description ?? "")
+						: ""
+				}
+				onSave={({ name, description }) => {
+					updateActiveFlowMeta({ name, description });
+				}}
+			/>
 		</aside>
 	);
 }
@@ -362,6 +402,7 @@ function SidebarFileList({
 	onSearchChange,
 	workspaceName,
 	onOpenWorkspace,
+	onWorkspaceSettings,
 	onCreate,
 	onSave,
 	canSave,
@@ -373,6 +414,7 @@ function SidebarFileList({
 	onSearchChange: (value: string) => void;
 	workspaceName?: string;
 	onOpenWorkspace?: () => void;
+	onWorkspaceSettings?: () => void;
 	onCreate: () => void;
 	onSave: () => void;
 	canSave: boolean;
@@ -385,20 +427,44 @@ function SidebarFileList({
 			<div className="flex shrink-0 flex-col gap-2 p-2">
 				{workspaceName ? (
 					<div className="flex items-center justify-between gap-1 px-1">
-						<span className="truncate text-xs font-medium">
-							{workspaceName}
-						</span>
-						{onOpenWorkspace ? (
-							<Button
+						{onWorkspaceSettings ? (
+							<button
 								type="button"
-								variant="ghost"
-								size="icon-xs"
-								onClick={onOpenWorkspace}
-								aria-label="Open workspace folder"
+								className="truncate text-left text-xs font-medium hover:underline"
+								onClick={onWorkspaceSettings}
+								title="Workspace settings"
 							>
-								<IconFolderOpen />
-							</Button>
-						) : null}
+								{workspaceName}
+							</button>
+						) : (
+							<span className="truncate text-xs font-medium">
+								{workspaceName}
+							</span>
+						)}
+						<div className="flex shrink-0 items-center gap-0.5">
+							{onWorkspaceSettings ? (
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon-xs"
+									onClick={onWorkspaceSettings}
+									aria-label="Workspace settings"
+								>
+									<IconSettings className="size-3.5" />
+								</Button>
+							) : null}
+							{onOpenWorkspace ? (
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon-xs"
+									onClick={onOpenWorkspace}
+									aria-label="Open workspace folder"
+								>
+									<IconFolderOpen />
+								</Button>
+							) : null}
+						</div>
 					</div>
 				) : null}
 				<div className="flex gap-1 px-1">
@@ -445,6 +511,7 @@ function FileListItem({
 	dirty,
 	onSelect,
 	onRename,
+	onEditDetails,
 	onDelete,
 }: {
 	icon: ListIcon;
@@ -453,6 +520,7 @@ function FileListItem({
 	dirty: boolean;
 	onSelect: () => void;
 	onRename?: () => void;
+	onEditDetails?: () => void;
 	onDelete?: () => void;
 }) {
 	const item = (
@@ -507,6 +575,11 @@ function FileListItem({
 			<ContextMenuTrigger className="block w-full">{item}</ContextMenuTrigger>
 			<ContextMenuContent>
 				<ContextMenuItem onClick={onSelect}>Open</ContextMenuItem>
+				{onEditDetails ? (
+					<ContextMenuItem onClick={onEditDetails}>
+						Edit details…
+					</ContextMenuItem>
+				) : null}
 				{onRename ? (
 					<ContextMenuItem onClick={onRename}>Rename</ContextMenuItem>
 				) : null}

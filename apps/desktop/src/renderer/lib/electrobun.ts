@@ -3,6 +3,7 @@ import type {
 	FlowV1,
 	RequestV1,
 	SecretsV1,
+	WorkspaceV1,
 } from "@quester/schema";
 import { Electroview } from "electrobun/view";
 import type { DesktopRPC, NodeRunStatusEvent } from "../../shared/rpc.js";
@@ -46,6 +47,10 @@ export const desktopRpc = {
 	pickWorkspaceFolder: () => getRpc().request.pickWorkspaceFolder({}),
 	openWorkspaceSummary: (path: string) =>
 		getRpc().request.openWorkspaceSummary({ path }),
+	loadWorkspaceManifest: (workspace: string) =>
+		getRpc().request.loadWorkspaceManifest({ workspace }),
+	saveWorkspaceManifest: (workspace: string, manifest: WorkspaceV1) =>
+		getRpc().request.saveWorkspaceManifest({ workspace, manifest }),
 	listFlows: (workspace: string) => getRpc().request.listFlows({ workspace }),
 	listEnvs: (workspace: string) => getRpc().request.listEnvs({ workspace }),
 	loadFlow: (flowId: string, workspace: string) =>
@@ -108,4 +113,7 @@ export const desktopRpc = {
 		getRpc().request.readPathShapes({ workspace }),
 	writePathShapes: (workspace: string, data: unknown) =>
 		getRpc().request.writePathShapes({ workspace, data }),
+	setAppTlsVerify: (verifyTls: boolean) =>
+		getRpc().request.setAppTlsVerify({ verifyTls }),
+	getAppTlsVerify: () => getRpc().request.getAppTlsVerify({}),
 };

@@ -10,10 +10,12 @@ import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectActiveTab, selectCanRun } from "@/stores/selectors.js";
 import type { FlowV1 } from "@quester/schema";
 import type { ReactNode } from "react";
+import { AppPreferencesEditor } from "./AppPreferencesEditor.js";
 import { CanvasControls } from "./CanvasControls.js";
 import { FlowCanvas } from "./FlowCanvas.js";
 import { KeyValueEditor } from "./KeyValueEditor.js";
 import { RequestEditor } from "./RequestEditor.js";
+import { WorkspaceSettingsEditor } from "./WorkspaceSettingsEditor.js";
 
 function saveShortcutLabel(): string {
 	if (typeof navigator === "undefined") return "Ctrl+S";
@@ -70,6 +72,9 @@ export function EditorArea() {
 	const deleteNodes = useQuesterStore((s) => s.deleteNodes);
 	const deleteEdges = useQuesterStore((s) => s.deleteEdges);
 	const duplicateNode = useQuesterStore((s) => s.duplicateNode);
+	const updateWorkspaceSettingsManifest = useQuesterStore(
+		(s) => s.updateWorkspaceSettingsManifest,
+	);
 	const setZoom = useQuesterStore((s) => s.setZoom);
 
 	const onSave = () => void saveActiveTab();
@@ -182,6 +187,25 @@ export function EditorArea() {
 		);
 	}
 
+	if (activeTab.kind === "appSettings") {
+		return <AppPreferencesEditor />;
+	}
+
+	if (activeTab.kind === "workspaceSettings") {
+		return (
+			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
+				<div className="relative h-full min-h-0 min-w-0 flex-1">
+					<WorkspaceSettingsEditor
+						tab={activeTab}
+						onChange={updateWorkspaceSettingsManifest}
+						onSave={onSave}
+						canSave={canSaveTab}
+					/>
+				</div>
+			</EditorContextMenu>
+		);
+	}
+
 	if (activeTab.kind === "request") {
 		return (
 			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
@@ -199,6 +223,14 @@ export function EditorArea() {
 					/>
 				</div>
 			</EditorContextMenu>
+		);
+	}
+
+	if (activeTab.kind !== "flow") {
+		return (
+			<div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center text-sm text-muted-foreground">
+				Unsupported tab
+			</div>
 		);
 	}
 

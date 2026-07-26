@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { basename, join, resolve } from "node:path";
 import { executeFlow, loadSecrets, loadWorkspace } from "@quester/engine";
 import {
+	mergeHttpSettings,
 	validateEnvironment,
 	validateFlow,
 	validateWorkspace,
@@ -97,6 +98,10 @@ program
 				input,
 				env: envVars,
 				secrets,
+				httpDefaults: mergeHttpSettings(
+					ws?.manifest.settings?.http,
+					validated.data.settings?.http,
+				),
 			});
 			console.log(JSON.stringify(result.output, null, 2));
 		},

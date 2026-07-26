@@ -44,10 +44,16 @@ export const httpPlugin: FlowNodePlugin = {
 		const data = httpNodeDataSchema.parse(ctx.node.data);
 		const url = ctx.resolveTemplate(data.url);
 		assertHttpUrl(url);
+
 		const headers: Record<string, string> = {};
+		const defaults = ctx.httpDefaults?.defaultHeaders ?? {};
+		for (const [k, v] of Object.entries(defaults)) {
+			headers[k] = ctx.resolveTemplate(v);
+		}
 		for (const [k, v] of Object.entries(data.headers)) {
 			headers[k] = ctx.resolveTemplate(v);
 		}
+
 		let body: string | undefined;
 		if (data.body !== undefined) {
 			body =
@@ -63,6 +69,12 @@ export const httpPlugin: FlowNodePlugin = {
 			...(body !== undefined ? { body } : {}),
 		};
 
+		const timeoutMs = ctx.httpDefaults?.timeoutMs;
+		const signal =
+			timeoutMs !== undefined && timeoutMs > 0
+				? AbortSignal.timeout(timeoutMs)
+				: undefined;
+
 		const startedAt = Date.now();
 		let res: Response;
 		try {
@@ -73,6 +85,7 @@ export const httpPlugin: FlowNodePlugin = {
 					body && data.method !== "GET" && data.method !== "HEAD"
 						? body
 						: undefined,
+				...(signal ? { signal } : {}),
 			});
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
