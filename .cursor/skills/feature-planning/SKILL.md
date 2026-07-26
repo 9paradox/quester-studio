@@ -50,5 +50,8 @@ PR must include:
 |-----------|-------|
 | v0.2.0 | Desktop MVP |
 | v0.3.0 | Builder UX |
-| v0.4.0 | Platform |
-| v1.0.0 | Stable |
+| v0.4.0 | Platform closeout + public preview (`quester init`, smoke tests, first release) |
+| v0.5.0 | Flow nodes — `note`, `delay`, `switch` |
+| v0.6.0 | Control & composition — `foreach`, `try`/`catch`, `subflow` |
+| v0.7.0 | Runs & observability — history/replay, `log`/`inspect` |
+| v1.0.0 | Stable — format freeze, polished desktop |

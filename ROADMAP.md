@@ -1,144 +1,112 @@
 # Quester Studio Roadmap
 
 > Living document. Trackable work lives in [GitHub Issues](https://github.com/9paradox/quester-studio/issues).  
+> Known bugs: [BUGS.md](BUGS.md).  
 > Last updated: 2026-07-26
 
-## Now (v0.4.0 — Platform)
+## Now (v0.4.0 — Platform closeout + public test release)
 
-- [x] Collections — standalone `*.request.json` + Request editor tab
-- [x] New node types (`assert`, `transform`, `merge`, `json`)
-- [x] Richer `if` / `assert` condition operators (`eq`, `gte`, `contains`, …) — #56
-- [ ] CLI `quester init` — scaffold workspace
-- [ ] Renderer smoke tests
-- [x] Per-node reference pages in docs (hand-written; emit-from-schema optional follow-up)
+Settings / HTTP MVP and related platform work already shipped (#49–#62). Remaining:
 
-### Details, settings & preferences
+- [ ] CLI `quester init` — scaffold workspace — #63
+- [ ] Renderer smoke tests — #64
+- [ ] First public test release — npm `@quester/*` + unsigned Windows/Linux desktop on GitHub Releases + [Try Quester](apps/docs/src/content/docs/try.md) docs — #65
 
-Layers: **Details** (identity) → git files; **Settings** (runtime) → git files; **Preferences** (editor UX) → machine-local. Inheritance for HTTP: workspace → flow → node.
+### Release gate (before cutting v0.4.0)
 
-- [x] Edit flow name & description — #49
-- [x] Workspace description in `quester.json` + editor — #50
-- [x] App / Workspace settings as editor tabs (move theme into App Preferences) — #51
-- [x] Workspace HTTP defaults (headers, timeout) + engine merge — #52
-- [x] TLS verification preference (app Settings) + SECURITY.md — #53
-- [x] Flow-level HTTP settings UI — #60
-- [x] Max response size (`maxResponseBytes`) — #60
-- [x] In-run cookie jar — #60
-- [x] Proxy URL — #60
-- [x] Custom CA file (`caFile`) — #60
-- [x] Workspace/flow-scoped TLS (`verifyTls`) — #60
-- [x] Shortcuts prefs page + Ctrl/⌘ Enter / Ctrl/⌘ W — #60
-- Later: client certificates (mTLS), disk-persisted cookie jar, remappable shortcuts
+Mechanical steps: [.cursor/skills/release-workflow/SKILL.md](.cursor/skills/release-workflow/SKILL.md). Workflow: `.github/workflows/release.yml` (`workflow_dispatch`).
 
+- [ ] `main` CI green; `bun run lint && bun run test` locally
+- [ ] Changesets version PR merged → package versions `0.4.0`
+- [ ] Repo secret `NPM_TOKEN` present
+- [ ] Run **Release** workflow with `version: 0.4.0`
+- [ ] Verify GitHub Release assets downloadable; smoke-open desktop on Windows
+- [ ] Docs “Try Quester” live on GitHub Pages
+- [ ] Release notes include: development/unsigned build disclaimer; known limits (no macOS artifact, no code signing, secrets not encrypted at rest)
 
-## Done recently
+Desktop artifacts are **unsigned**. Testers should verify checksums when published (see [SECURITY.md](SECURITY.md)).
 
-### v0.3.0 — Builder UX
+## Next
 
-- [x] Custom React Flow `nodeTypes` per builtin (`http`, `input`, `if`, …)
-- [x] If-node dual handles (`true` / `false` branches)
-- [x] Node inspector — edit `data` fields, Help dialog, per-node Response view
-- [x] Save flow back to disk (git-friendly JSON)
-- [x] Live node run status on canvas (idle / running / success / error / skipped) — #31
-- [x] Context-aware autocomplete for templates and output paths — #40
-- [x] Settings activity view — theme (light / dark / system)
-- [x] Node palette drag-and-drop onto canvas
+### v0.5.0 — Flow nodes
 
-### v0.2.0 — Desktop MVP
+Canvas-only nodes must not break CLI runs.
 
-- [x] Electrobun IPC — expose main-process RPCs to renderer
-- [x] Workspace folder picker — open real `quester.json` workspace
-- [x] Flow list + loader — canvas loads selected `*.flow.json`
-- [x] Run panel — env selector, JSON input, `executeFlowRpc`, output display
+- [ ] `note` — markdown/text sticky on canvas; no execute (or passthrough) — #66
+- [ ] `delay` / `wait` — sleep N ms (optional jitter)
+- [ ] `switch` — multi-branch on expression / status / JMESPath (extends `if` + `sourceHandle`)
 
-## Known bugs (desktop)
+### v0.6.0 — Control & composition
 
-- [x] Hardcoded req/resp placeholders in UI — #32
-- [x] Canvas zoom not persisted — #33
-- [x] Assert node UI layout incorrect — #34
-- [x] Node accents use red/error-like colors (conflicts with fail status) — #35
-- [x] Assert node input box broken — #36
-- [x] Canvas nodes don’t match palette icons — #37
+Loops need max-iteration / timeout limits (see [SECURITY.md](SECURITY.md)).
 
-## Ideas (backlog)
+- [ ] `foreach` — iterate array; max items (+ optional concurrency)
+- [ ] `try` / `catch` (or `onError`) — soft-fail / fallback branch
+- [ ] `subflow` / `call` — run another `*.flow.json` with inputs; return output
+
+### v0.7.0 — Runs & observability
+
+- [ ] Flow run history and replay
+- [ ] `log` — message + resolved template to run log (passthrough)
+- [ ] `inspect` / `preview` — pinned pretty JSON on canvas
+- [ ] Disk-persisted cookie jar
+
+## Later / backlog
+
+Unscheduled. Do not expand the current milestone without updating this file and opening an issue.
 
 ### Product
 
-- Flow run history and replay
 - Workspace secret encryption at rest
 - VS Code extension for flow editing
-- API collection import
+- API collection import (also targeted for v1.0 thin slice)
+- macOS desktop release artifact
+- Client certificates (mTLS)
+- Remappable shortcuts
 
-### New node types (priority)
+### New node types
 
-Canvas-only nodes should not affect CLI runs. Loops need max-iteration / timeout limits (see SECURITY.md).
+**Control flow:** `loop` / `while`, `parallel`, `group` / `frame`, `gate` / `breakpoint`  
+**Data:** `pick` / `omit`, richer query, `csv` / `table`, `uuid` / `timestamp` / `random`, `hash` / `sign`, `diff`, `schema`  
+**HTTP / API:** `graphql`, `multipart` / `form`, `pagination`, `mock`, `websocket` (post-v1)  
+**Observability:** `metric`, `chart`  
+**Auth helpers:** `oauth2`, `bearer` / `basicAuth`, `apiKey`
 
-1. **`note`** — markdown/text sticky on canvas; no execute (or passthrough)
-2. **`switch`** — multi-branch on expression / status / JMESPath (extends `if` + `sourceHandle`)
-3. **`delay` / `wait`** — sleep N ms (optional jitter) for rate limits and polling
-4. **`foreach`** — iterate array; run steps per item (max items + optional concurrency)
-5. **`chart`** — line / bar / pie from JSON path (display node; engine passes series data)
-6. **`try` / `catch`** (or `onError`) — soft-fail / fallback branch on node or subgraph error
-7. **`subflow` / `call`** — run another `*.flow.json` with inputs; return its output
-8. Auth helpers — `oauth2`, `bearer` / `basicAuth`, `apiKey` (from secrets into headers/vars)
+## Done
 
-### New node types (later)
+### v0.4.0 (in progress — shipped so far)
 
-**Control flow**
+- Collections — standalone `*.request.json` + Request editor tab
+- New node types (`assert`, `transform`, `merge`, `json`)
+- Richer `if` / `assert` condition operators — #56
+- Per-node reference pages in docs
+- Details / Settings / Preferences layers; HTTP inheritance workspace → flow → node (#49–#53, #60)
+- Flow HTTP settings UI, max response size, in-run cookie jar, proxy, `caFile`, scoped TLS, shortcuts prefs
 
-- `loop` / `while` — repeat until condition or max iterations (poll job status)
-- `parallel` — fan-out N requests, then join
-- `group` / `frame` — visual-only container for large canvases
-- `gate` / `breakpoint` — pause for human confirm in desktop runs
+### v0.3.0 — Builder UX
 
-**Data & payloads**
-
-- `pick` / `omit` — shape objects without a full `transform` script
-- Richer query (`jq` or power-user JMESPath) if `extract` stays simple
-- `csv` / `table` — CSV ↔ JSON rows for fixtures and bulk cases
-- `uuid` / `timestamp` / `random` — generate IDs and dates for bodies
-- `hash` / `sign` — HMAC, SHA, base64 for webhook signatures
-- `diff` — compare two node outputs (regression / contract)
-- `schema` — validate payload against JSON Schema
-
-**HTTP / API**
-
-- `graphql` — query + variables
-- `multipart` / `form` — file + fields upload helper
-- `cookieJar` — persist cookies across hops in one run
-- `pagination` — cursor / page / link-header loop (or specialize `foreach`)
-- `mock` — fixed status/body without network (offline / CI)
-- `websocket` — connect, send, collect N messages (harder; post-v1)
-
-**Observability / DX**
-
-- `log` — message + resolved template to run log (passthrough)
-- `inspect` / `preview` — pinned pretty JSON on canvas
-- `metric` — capture duration / status into run summary
-
-## Shipped
-
-### v0.3.0
-
-- Custom per-builtin canvas nodes, if true/false handles, save-to-disk, live run status
+- Custom React Flow `nodeTypes`, if true/false handles, save-to-disk, live run status
 - Inspector, template autocomplete, theme settings, palette DnD
 
-### v0.2.0
+### v0.2.0 — Desktop MVP
 
 - Electrobun IPC, workspace picker, flow list/loader, run panel
 
-### v0.1.0
+### v0.1.0 — Foundation
 
-- Governance foundation: CI, docs, security, release tooling
+- CI, docs, security, release tooling
 - CLI `validate` / `run`, schema validation, sample workspace
-- Desktop main-process stubs and static React Flow view
+- Desktop stubs and static React Flow view
 
 ## Milestones
 
 | Milestone | Theme |
 |-----------|-------|
-| v0.1.0 | Foundation — CI, docs, security, first release |
+| v0.1.0 | Foundation — CI, docs, security, first tooling |
 | v0.2.0 | Desktop MVP — IPC, workspace, run panel |
 | v0.3.0 | Builder UX — custom nodes, inspector, save |
-| v0.4.0 | Platform — new nodes, `quester init`, docs |
-| v1.0.0 | Stable — flow format v1 freeze, polished desktop |
+| v0.4.0 | Platform closeout + **public preview** — `quester init`, smoke tests, first GitHub/npm release |
+| v0.5.0 | Flow nodes — `note`, `delay`, `switch` |
+| v0.6.0 | Control & composition — `foreach`, `try`/`catch`, `subflow` |
+| v0.7.0 | Runs & observability — history/replay, `log`/`inspect`, disk cookies |
+| v1.0.0 | Stable — flow format v1 freeze, polished desktop, thin collection import |
