@@ -79,14 +79,19 @@ Object bodies are stringified, then templated:
 
 ### Conditions (`if`)
 
-The condition is templated, then treated as truthy unless the result is `""`, `"0"`, or `"false"`:
+Use a templated `condition` string and/or `checks` (same operators as `assert`). When both are set, they are AND’d:
 
 ```json
 {
   "type": "if",
-  "data": { "condition": "{{input.active}}" }
+  "data": {
+    "condition": "{{input.active}}",
+    "checks": [{ "path": "status", "op": "gte", "value": 200 }]
+  }
 }
 ```
+
+A bare `condition` is treated as truthy unless the resolved string is `""`, `"0"`, or `"false"`.
 
 ### `set` variables
 

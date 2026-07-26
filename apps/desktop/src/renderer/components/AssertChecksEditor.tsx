@@ -12,6 +12,10 @@ import { Textarea } from "@/components/ui/textarea.js";
 import {
 	type AssertCheck,
 	assertCheckMode,
+	assertCheckModes,
+	assertCheckValue,
+	checkOpLabel,
+	checkOpNeedsValue,
 	normalizeAssertChecks,
 	setAssertCheckMode,
 } from "@/lib/assertChecks.js";
@@ -35,25 +39,30 @@ export {
 type AssertChecksEditorProps = {
 	checks: unknown;
 	onChange: (checks: AssertCheck[]) => void;
+	/** Minimum rows (assert defaults to 1; if can be 0). */
+	minChecks?: number;
 };
 
 export function AssertChecksEditor({
 	checks,
 	onChange,
+	minChecks = 1,
 }: AssertChecksEditorProps) {
-	const rows = normalizeAssertChecks(checks);
+	const rows = normalizeAssertChecks(checks, {
+		allowEmpty: minChecks === 0,
+	});
 
 	const updateRow = (index: number, next: AssertCheck) => {
 		onChange(rows.map((row, i) => (i === index ? next : row)));
 	};
 
 	const removeRow = (index: number) => {
-		if (rows.length <= 1) return;
+		if (rows.length <= minChecks) return;
 		onChange(rows.filter((_, i) => i !== index));
 	};
 
 	const addRow = () => {
-		onChange([...rows, { path: "ok" }]);
+		onChange([...rows, { path: "ok", op: "truthy" }]);
 	};
 
 	return (
@@ -62,7 +71,7 @@ export function AssertChecksEditor({
 				<AssertCheckRow
 					key={`check-${index}-${assertCheckMode(row)}`}
 					check={row}
-					canRemove={rows.length > 1}
+					canRemove={rows.length > minChecks}
 					onChange={(next) => updateRow(index, next)}
 					onRemove={() => removeRow(index)}
 				/>
@@ -87,28 +96,27 @@ function AssertCheckRow({
 	onRemove: () => void;
 }) {
 	const mode = assertCheckMode(check);
-	const [equalsDraft, setEqualsDraft] = useState<JsonDraftState>(() =>
-		createJsonDraft(check.equals ?? null),
+	const needsValue = checkOpNeedsValue(mode);
+	const [valueDraft, setValueDraft] = useState<JsonDraftState>(() =>
+		createJsonDraft(assertCheckValue(check)),
 	);
 
 	useEffect(() => {
-		if (mode !== "equals") return;
-		setEqualsDraft((current) => {
+		if (!needsValue) return;
+		const expected = assertCheckValue(check);
+		setValueDraft((current) => {
 			if (current.error === null) {
 				try {
-					if (
-						JSON.stringify(current.committed) ===
-						JSON.stringify(check.equals ?? null)
-					) {
+					if (JSON.stringify(current.committed) === JSON.stringify(expected)) {
 						return current;
 					}
 				} catch {
 					/* fall through */
 				}
 			}
-			return createJsonDraft(check.equals ?? null);
+			return createJsonDraft(expected);
 		});
-	}, [mode, check.equals]);
+	}, [needsValue, check]);
 
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-border/70 bg-muted/10 p-2">
@@ -138,43 +146,48 @@ function AssertCheckRow({
 			</div>
 
 			<div className="flex flex-col gap-1.5">
-				<Label className="text-xs text-muted-foreground">Mode</Label>
+				<Label className="text-xs text-muted-foreground">Operator</Label>
 				<Select
 					value={mode}
 					onValueChange={(value) => {
-						if (value !== "truthy" && value !== "equals") return;
-						onChange(setAssertCheckMode(check, value));
+						if (!assertCheckModes.includes(value as typeof mode)) return;
+						onChange(setAssertCheckMode(check, value as typeof mode));
 					}}
 				>
 					<SelectTrigger className="w-full">
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="truthy">Truthy (path must be truthy)</SelectItem>
-						<SelectItem value="equals">Equals (exact match)</SelectItem>
+						{assertCheckModes.map((op) => (
+							<SelectItem key={op} value={op}>
+								{checkOpLabel(op)}
+							</SelectItem>
+						))}
 					</SelectContent>
 				</Select>
 			</div>
 
-			{mode === "equals" ? (
+			{needsValue ? (
 				<div className="flex flex-col gap-1.5">
-					<Label className="text-xs text-muted-foreground">
-						Expected value (JSON)
-					</Label>
+					<Label className="text-xs text-muted-foreground">Value (JSON)</Label>
 					<Textarea
-						value={equalsDraft.text}
+						value={valueDraft.text}
 						onChange={(e) => {
-							const next = updateJsonDraft(equalsDraft, e.target.value);
-							setEqualsDraft(next);
-							if (jsonDraftDidCommit(equalsDraft, next)) {
-								onChange({ ...check, equals: next.committed });
+							const next = updateJsonDraft(valueDraft, e.target.value);
+							setValueDraft(next);
+							if (jsonDraftDidCommit(valueDraft, next)) {
+								onChange({
+									path: check.path,
+									op: mode,
+									value: next.committed,
+								});
 							}
 						}}
 						className="min-h-16 font-mono text-xs"
 						spellCheck={false}
 					/>
-					{equalsDraft.error ? (
-						<p className="text-xs text-destructive">{equalsDraft.error}</p>
+					{valueDraft.error ? (
+						<p className="text-xs text-destructive">{valueDraft.error}</p>
 					) : null}
 				</div>
 			) : null}

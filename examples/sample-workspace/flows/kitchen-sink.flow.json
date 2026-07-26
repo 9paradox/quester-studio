@@ -89,11 +89,13 @@
 				"checks": [
 					{
 						"path": "status",
-						"equals": 200
+						"op": "eq",
+						"value": 200
 					},
 					{
 						"path": "body.status",
-						"equals": "ok"
+						"op": "eq",
+						"value": "ok"
 					}
 				],
 				"label": "Assert ping"

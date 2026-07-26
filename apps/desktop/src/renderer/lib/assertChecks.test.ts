@@ -8,18 +8,22 @@ import {
 
 describe("assert checks helpers", () => {
 	test("normalizeAssertChecks fills a minimal valid check", () => {
-		expect(normalizeAssertChecks(undefined)).toEqual([{ path: "ok" }]);
-		expect(normalizeAssertChecks([])).toEqual([{ path: "ok" }]);
+		expect(normalizeAssertChecks(undefined)).toEqual([
+			{ path: "ok", op: "truthy" },
+		]);
+		expect(normalizeAssertChecks([])).toEqual([{ path: "ok", op: "truthy" }]);
 	});
 
 	test("normalizeAssertChecks preserves empty draft paths", () => {
-		expect(normalizeAssertChecks([{ path: "" }])).toEqual([{ path: "" }]);
+		expect(normalizeAssertChecks([{ path: "" }])).toEqual([
+			{ path: "", op: "truthy" },
+		]);
 		expect(normalizeAssertChecks([{ path: "", equals: 1 }])).toEqual([
-			{ path: "", equals: 1 },
+			{ path: "", op: "eq", value: 1 },
 		]);
 	});
 
-	test("preserves equals including falsy values", () => {
+	test("preserves equals including falsy values as eq", () => {
 		const checks = normalizeAssertChecks([
 			{ path: "status", equals: 0 },
 			{ path: "body.ok", equals: false },
@@ -27,10 +31,10 @@ describe("assert checks helpers", () => {
 			{ path: "body.id" },
 		]);
 		expect(checks).toEqual([
-			{ path: "status", equals: 0 },
-			{ path: "body.ok", equals: false },
-			{ path: "body.name", equals: null },
-			{ path: "body.id" },
+			{ path: "status", op: "eq", value: 0 },
+			{ path: "body.ok", op: "eq", value: false },
+			{ path: "body.name", op: "eq", value: null },
+			{ path: "body.id", op: "truthy" },
 		]);
 		const truthy = checks[3];
 		expect(truthy).toBeDefined();
@@ -38,22 +42,34 @@ describe("assert checks helpers", () => {
 		expect(assertCheckMode(truthy)).toBe("truthy");
 	});
 
-	test("setAssertCheckMode toggles equals presence", () => {
-		const withEquals = setAssertCheckMode({ path: "status" }, "equals");
-		expect(withEquals).toEqual({ path: "status", equals: null });
-		expect(setAssertCheckMode(withEquals, "truthy")).toEqual({
+	test("normalizes op + value", () => {
+		expect(
+			normalizeAssertChecks([{ path: "status", op: "gte", value: 200 }]),
+		).toEqual([{ path: "status", op: "gte", value: 200 }]);
+	});
+
+	test("setAssertCheckMode toggles ops", () => {
+		const withEq = setAssertCheckMode({ path: "status" }, "eq");
+		expect(withEq).toEqual({ path: "status", op: "eq", value: null });
+		expect(setAssertCheckMode(withEq, "truthy")).toEqual({
 			path: "status",
+			op: "truthy",
+		});
+		expect(setAssertCheckMode(withEq, "contains")).toEqual({
+			path: "status",
+			op: "contains",
+			value: null,
 		});
 	});
 
 	test("formatAssertCheckSummary shows first check and remainder", () => {
-		expect(formatAssertCheckSummary([{ path: "status", equals: 200 }])).toBe(
-			"status = 200",
-		);
+		expect(
+			formatAssertCheckSummary([{ path: "status", op: "eq", value: 200 }]),
+		).toBe("status eq 200");
 		expect(
 			formatAssertCheckSummary([
-				{ path: "ok" },
-				{ path: "status", equals: 200 },
+				{ path: "ok", op: "truthy" },
+				{ path: "status", op: "eq", value: 200 },
 			]),
 		).toBe("ok (truthy) +1 more");
 	});

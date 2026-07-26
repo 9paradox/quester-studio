@@ -264,16 +264,49 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			) : null}
 
 			{node.type === "if" ? (
-				<InspectorField
-					label="Condition"
-					hint='Truthy unless the resolved string is "", "0", or "false".'
-				>
-					<TemplateField
-						value={String(data.condition ?? "")}
-						onChange={(condition) => setField("condition", condition)}
-						placeholder="{{input.active}}"
-					/>
-				</InspectorField>
+				<>
+					<InspectorField
+						label="Condition"
+						hint='Optional templated truthy string. Combined with checks using AND when both are set. Truthy unless "", "0", or "false".'
+					>
+						<TemplateField
+							value={String(data.condition ?? "")}
+							onChange={(condition) => {
+								const hasChecks =
+									Array.isArray(data.checks) && data.checks.length > 0;
+								if (condition === "") {
+									onUpdate({
+										...data,
+										condition: hasChecks ? undefined : "true",
+									});
+									return;
+								}
+								setField("condition", condition);
+							}}
+							placeholder="{{input.active}}"
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Checks"
+						hint="Optional JMESPath checks on the previous output (same operators as assert). All must pass."
+					>
+						<AssertChecksEditor
+							checks={data.checks}
+							minChecks={0}
+							onChange={(checks) => {
+								onUpdate({
+									...data,
+									checks: checks.length > 0 ? checks : undefined,
+									condition:
+										checks.length === 0 &&
+										(data.condition === undefined || data.condition === "")
+											? "true"
+											: data.condition,
+								});
+							}}
+						/>
+					</InspectorField>
+				</>
 			) : null}
 
 			{node.type === "extract" ? (
@@ -305,7 +338,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "assert" ? (
 				<InspectorField
 					label="Checks"
-					hint="With equals: deep equality. Without: path must be truthy."
+					hint="JMESPath path + operator (eq, gte, contains, …). Legacy equals still works."
 				>
 					<AssertChecksEditor
 						checks={normalizeAssertChecks(data.checks)}

@@ -37,4 +37,31 @@ describe("assertPlugin", () => {
 			),
 		).rejects.toThrow(/Assertion failed/);
 	});
+
+	test("supports comparison ops", async () => {
+		const result = await assertPlugin.execute(
+			ctx(
+				{
+					checks: [
+						{ path: "status", op: "gte", value: 200 },
+						{ path: "status", op: "lt", value: 300 },
+						{ path: "body.message", op: "contains", value: "ok" },
+					],
+				},
+				{ status: 201, body: { message: "all ok" } },
+			),
+		);
+		expect(result.output).toEqual({ ok: true, failures: [] });
+	});
+
+	test("fails comparison ops with detail", async () => {
+		await expect(
+			assertPlugin.execute(
+				ctx(
+					{ checks: [{ path: "status", op: "lt", value: 300 }] },
+					{ status: 500 },
+				),
+			),
+		).rejects.toThrow(/expected lt 300/);
+	});
 });

@@ -319,7 +319,7 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 	},
 	if: {
 		summary:
-			"Branches the flow on a templated condition. Connect edges with sourceHandle true or false.",
+			"Branches the flow on a templated condition and/or JMESPath checks. Connect edges with sourceHandle true or false.",
 		fields: [
 			{
 				name: "label",
@@ -329,16 +329,24 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 			{
 				name: "condition",
 				type: "string",
-				description: "Templated expression evaluated as truthy/falsey string",
+				description:
+					"Optional templated expression evaluated as truthy/falsey string",
+			},
+			{
+				name: "checks",
+				type: "array",
+				description:
+					"Optional list of { path, op, value? } on previous output (same ops as assert). AND with condition when both set.",
 			},
 		],
 		syntax: [
 			'{{input.active}} — true unless "", "0", or "false"',
+			'{ "path": "status", "op": "gte", "value": 200 }',
 			'Edge sourceHandle must be "true" or "false"',
 		],
 		example: {
-			label: "Has token?",
-			condition: "{{nodes.login.body.token}}",
+			label: "2xx?",
+			checks: [{ path: "status", op: "gte", value: 200 }],
 		},
 		io: {
 			input: "Previous node output",
@@ -358,17 +366,20 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 				name: "checks",
 				type: "array",
 				description:
-					"List of { path, equals? }. With equals: deep equality. Without: truthy.",
+					"List of { path, op?, value?, equals? }. Ops: eq, neq, gt, gte, lt, lte, contains, notContains, startsWith, endsWith, matches, exists, truthy, falsy.",
 			},
 		],
 		syntax: [
-			'{ "path": "status", "equals": 200 }',
+			'{ "path": "status", "op": "gte", "value": 200 }',
+			'{ "path": "status", "equals": 200 } — legacy eq',
 			'{ "path": "body.id" } — truthy check',
-			"Equals uses exact deep equality (JSON stringify compare)",
 		],
 		example: {
 			label: "Assert OK",
-			checks: [{ path: "status", equals: 200 }, { path: "body.id" }],
+			checks: [
+				{ path: "status", op: "gte", value: 200 },
+				{ path: "body.id", op: "exists" },
+			],
 		},
 		io: {
 			input: "Previous node output",

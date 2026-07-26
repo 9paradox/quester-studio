@@ -1,9 +1,7 @@
 import { z } from "zod";
+import { valueCheckSchema } from "./check.js";
 
-export const assertCheckSchema = z.object({
-	path: z.string().min(1),
-	equals: z.unknown().optional(),
-});
+export const assertCheckSchema = valueCheckSchema;
 
 export const assertNodeDataSchema = z.object({
 	label: z.string().optional(),
