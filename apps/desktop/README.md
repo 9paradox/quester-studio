@@ -1,4 +1,4 @@
-﻿# Quester Desktop (Electrobun)
+# Quester Desktop (Electrobun)
 
 Visual flow builder with Electrobun IPC, workspace loading, and live flow execution.
 
@@ -54,8 +54,11 @@ Install the Bun extension (`oven.bun-vscode`) for breakpoints and attach.
 ```bash
 bun run --filter @quester/desktop lint
 bun run --filter @quester/desktop test
+bun run --filter @quester/desktop test:smoke   # AppShell / flow / settings render paths
 bun run --filter @quester/desktop dev
 ```
+
+Renderer smoke tests (`AppShell.smoke.test.tsx`) mount the shell with mocked Electrobun RPC (Happy DOM + Testing Library). They run as part of `bun run --filter @quester/desktop test` and therefore CI.
 
 Compare run output to CLI:
 

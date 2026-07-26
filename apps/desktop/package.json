@@ -12,6 +12,7 @@
 		"build": "vite build",
 		"typecheck": "tsc --noEmit",
 		"test": "bun test src",
+		"test:smoke": "bun test src/renderer/components/AppShell.smoke.test.tsx",
 		"lint": "biome check src"
 	},
 	"dependencies": {
@@ -45,14 +46,20 @@
 		"zustand": "^5.0.14"
 	},
 	"devDependencies": {
+		"@happy-dom/global-registrator": "^20.11.1",
 		"@quester/tsconfig": "workspace:*",
 		"@tailwindcss/vite": "^4",
+		"@testing-library/dom": "^10.4.1",
+		"@testing-library/jest-dom": "^7.0.0",
+		"@testing-library/react": "^16.3.2",
+		"@testing-library/user-event": "^14.6.1",
 		"@types/node": "^22.15.3",
 		"@types/react": "^19.1.2",
 		"@types/react-dom": "^19.1.2",
 		"@types/three": "^0.165.0",
 		"@vitejs/plugin-react": "^4.4.1",
 		"concurrently": "^9.2.1",
+		"happy-dom": "^20.11.1",
 		"lightningcss": "^1.32.0",
 		"tailwindcss": "^4",
 		"typescript": "^5.8.3",

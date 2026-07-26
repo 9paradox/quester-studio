@@ -9,7 +9,7 @@
 Settings / HTTP MVP and related platform work already shipped (#49–#62). Remaining:
 
 - [x] CLI `quester init` — scaffold workspace — #63
-- [ ] Renderer smoke tests — #64
+- [x] Renderer smoke tests — #64
 - [ ] First public test release — npm `@quester/*` + unsigned Windows/Linux desktop on GitHub Releases + [Try Quester](apps/docs/src/content/docs/try.md) docs — #65
 
 ### Release gate (before cutting v0.4.0)
