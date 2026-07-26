@@ -584,6 +584,14 @@ export async function pickWorkspaceFolder(): Promise<string | null> {
 	return paths[0] ?? null;
 }
 
+export async function scaffoldWorkspaceRpc(
+	path: string,
+	name?: string,
+): Promise<{ root: string; name: string; flowId: string }> {
+	const { scaffoldWorkspace } = await import("@quester/engine");
+	return scaffoldWorkspace(path, { name });
+}
+
 export async function loadSampleFlowJson() {
 	const path = resolve(
 		defaultWorkspaceRoot,

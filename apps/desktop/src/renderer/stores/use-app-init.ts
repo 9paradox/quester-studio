@@ -1,5 +1,6 @@
 import { desktopRpc, onNodeRunStatus } from "@/lib/electrobun.js";
 import { readTlsVerifyPreference } from "@/lib/tlsPreference.js";
+import { readLastWorkspacePath } from "@/lib/workspacePreference.js";
 import { useEffect } from "react";
 import { useQuesterStore } from "./quester-store.js";
 
@@ -20,13 +21,21 @@ export function useAppInit() {
 			} catch {
 				/* ignore — preference sync is best-effort at boot */
 			}
+			const last = readLastWorkspacePath();
+			if (!last) {
+				useQuesterStore.setState({ isLoading: false, loadError: null });
+				return;
+			}
 			try {
-				const path = await desktopRpc.getDefaultWorkspace();
-				await loadWorkspace(path);
+				await loadWorkspace(last);
 			} catch (err) {
 				useQuesterStore.setState({
+					workspacePath: "",
+					workspaceName: "",
 					loadError:
-						err instanceof Error ? err.message : "Failed to initialize",
+						err instanceof Error
+							? err.message
+							: "Failed to restore last workspace",
 					isLoading: false,
 				});
 			}

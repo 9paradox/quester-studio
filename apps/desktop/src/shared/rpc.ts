@@ -79,6 +79,10 @@ export type DesktopRPC = {
 				params: Record<string, never>;
 				response: string | null;
 			};
+			scaffoldWorkspace: {
+				params: { path: string; name?: string };
+				response: { root: string; name: string; flowId: string };
+			};
 			openWorkspaceSummary: {
 				params: { path: string };
 				response: WorkspaceSummary;

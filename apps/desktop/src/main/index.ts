@@ -43,6 +43,8 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				(await import("./handlers.js")).getDefaultWorkspace(),
 			pickWorkspaceFolder: async () =>
 				(await import("./handlers.js")).pickWorkspaceFolder(),
+			scaffoldWorkspace: async ({ path, name }) =>
+				(await import("./handlers.js")).scaffoldWorkspaceRpc(path, name),
 			openWorkspaceSummary: async ({ path }) =>
 				(await import("./handlers.js")).openWorkspaceSummary(path),
 			loadWorkspaceManifest: async ({ workspace }) =>

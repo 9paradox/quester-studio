@@ -31,6 +31,11 @@ import {
 	serializePathShapes,
 } from "@/lib/pathShapes.js";
 import { DEFAULT_INPUT, withInputNodeValue } from "@/lib/runDefaults.js";
+import {
+	clearLastWorkspacePath,
+	readRecentWorkspacePaths,
+	rememberWorkspacePath,
+} from "@/lib/workspacePreference.js";
 import type {
 	BuiltinNodeType,
 	FlowV1,
@@ -183,6 +188,7 @@ function mapOpenTabsIfChanged(
 export type QuesterState = {
 	workspacePath: string;
 	workspaceName: string;
+	recentWorkspacePaths: string[];
 	flows: FlowMeta[];
 	requests: RequestMeta[];
 	collections: string[];
@@ -282,6 +288,10 @@ export type QuesterState = {
 	loadRequest: (requestPath: string, workspace: string) => Promise<void>;
 	loadWorkspace: (path: string) => Promise<void>;
 	openWorkspacePicker: () => Promise<void>;
+	closeWorkspace: () => void;
+	createWorkspaceViaPicker: () => Promise<void>;
+	openSampleWorkspace: () => Promise<void>;
+	openRecentWorkspace: (path: string) => Promise<void>;
 	updateActiveFlow: (
 		updater: (flow: FlowV1) => FlowV1,
 		dirty?: boolean,
@@ -321,6 +331,7 @@ export type QuesterState = {
 export const useQuesterStore = create<QuesterState>((set, get) => ({
 	workspacePath: "",
 	workspaceName: "",
+	recentWorkspacePaths: readRecentWorkspacePaths(),
 	flows: [],
 	requests: [],
 	collections: [],
@@ -674,6 +685,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				workspacePath: path,
 				workspaceName: summary.name,
 				selectedEnv: env,
+				recentWorkspacePaths: rememberWorkspacePath(path),
 			});
 			hydratePathShapes(path);
 			await get().refreshTemplateKeys();
@@ -703,6 +715,65 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					err instanceof Error ? err.message : "Failed to open workspace",
 			});
 		}
+	},
+
+	closeWorkspace: () => {
+		clearLastWorkspacePath();
+		set({
+			workspacePath: "",
+			workspaceName: "",
+			flows: [],
+			requests: [],
+			collections: [],
+			envs: [],
+			secretFiles: [],
+			openTabs: [],
+			activeTabId: null,
+			selectedNodeId: null,
+			canvasDirty: false,
+			pathShapeIndex: emptyPathShapeIndex(),
+			pathIndexStatus: "idle",
+			runResult: null,
+			runError: null,
+			isRunning: false,
+			activeRunId: null,
+			runFlowId: null,
+			nodeStatuses: {},
+			loadError: null,
+			isLoading: false,
+			requestResult: null,
+			requestError: null,
+		});
+	},
+
+	createWorkspaceViaPicker: async () => {
+		try {
+			const path = await desktopRpc.pickWorkspaceFolder();
+			if (!path) return;
+			await desktopRpc.scaffoldWorkspace(path);
+			await get().loadWorkspace(path);
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : "Failed to create workspace";
+			set({ loadError: message });
+			toast.error(message);
+		}
+	},
+
+	openSampleWorkspace: async () => {
+		try {
+			const path = await desktopRpc.getDefaultWorkspace();
+			await get().loadWorkspace(path);
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : "Failed to open sample workspace";
+			set({ loadError: message });
+			toast.error(message);
+		}
+	},
+
+	openRecentWorkspace: async (path) => {
+		await get().loadWorkspace(path);
 	},
 
 	updateActiveFlow: (updater, dirty = true) => {

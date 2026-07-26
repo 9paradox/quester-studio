@@ -6,6 +6,13 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "@/components/ui/context-menu.js";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu.js";
 import { Input } from "@/components/ui/input.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { Separator } from "@/components/ui/separator.js";
@@ -26,6 +33,7 @@ import {
 	selectDirtyTabIds,
 } from "@/stores/selectors.js";
 import {
+	IconChevronDown,
 	IconDeviceFloppy,
 	IconFile,
 	IconFolder,
@@ -37,6 +45,7 @@ import {
 	IconTopologyRing2,
 	IconTrash,
 	IconWorld,
+	IconX,
 } from "@tabler/icons-react";
 import type { ComponentType, ReactNode, SVGProps } from "react";
 import { useMemo, useState } from "react";
@@ -66,6 +75,7 @@ export function PrimarySidebar() {
 
 	const setSidebarSearch = useQuesterStore((s) => s.setSidebarSearch);
 	const openWorkspacePicker = useQuesterStore((s) => s.openWorkspacePicker);
+	const closeWorkspace = useQuesterStore((s) => s.closeWorkspace);
 	const loadFlow = useQuesterStore((s) => s.loadFlow);
 	const loadEnvironment = useQuesterStore((s) => s.loadEnvironment);
 	const loadSecretsFile = useQuesterStore((s) => s.loadSecretsFile);
@@ -139,6 +149,7 @@ export function PrimarySidebar() {
 					onSearchChange={setSidebarSearch}
 					workspaceName={workspaceName}
 					onOpenWorkspace={() => void openWorkspacePicker()}
+					onCloseWorkspace={workspacePath ? () => closeWorkspace() : undefined}
 					onWorkspaceSettings={() => void openWorkspaceSettings()}
 					onCreate={() => void createFlow()}
 					onSave={() => void saveActiveTab()}
@@ -406,6 +417,7 @@ function SidebarFileList({
 	onSearchChange,
 	workspaceName,
 	onOpenWorkspace,
+	onCloseWorkspace,
 	onWorkspaceSettings,
 	onCreate,
 	onSave,
@@ -418,6 +430,7 @@ function SidebarFileList({
 	onSearchChange: (value: string) => void;
 	workspaceName?: string;
 	onOpenWorkspace?: () => void;
+	onCloseWorkspace?: () => void;
 	onWorkspaceSettings?: () => void;
 	onCreate: () => void;
 	onSave: () => void;
@@ -430,45 +443,58 @@ function SidebarFileList({
 		<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
 			<div className="flex shrink-0 flex-col gap-2 p-2">
 				{workspaceName ? (
-					<div className="flex items-center justify-between gap-1 px-1">
-						{onWorkspaceSettings ? (
-							<button
-								type="button"
-								className="truncate text-left text-xs font-medium hover:underline"
-								onClick={onWorkspaceSettings}
-								title="Workspace settings"
-							>
-								{workspaceName}
-							</button>
-						) : (
-							<span className="truncate text-xs font-medium">
-								{workspaceName}
-							</span>
-						)}
-						<div className="flex shrink-0 items-center gap-0.5">
-							{onWorkspaceSettings ? (
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon-xs"
-									onClick={onWorkspaceSettings}
-									aria-label="Workspace settings"
+					<div className="flex items-center gap-1 px-1">
+						<span
+							className="min-w-0 flex-1 truncate text-xs font-medium"
+							title={workspaceName}
+						>
+							{workspaceName}
+						</span>
+						{onWorkspaceSettings || onOpenWorkspace || onCloseWorkspace ? (
+							<DropdownMenu>
+								<DropdownMenuTrigger
+									render={
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon-xs"
+											className="shrink-0"
+											aria-label="Workspace actions"
+										/>
+									}
 								>
-									<IconSettings className="size-3.5" />
-								</Button>
-							) : null}
-							{onOpenWorkspace ? (
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon-xs"
-									onClick={onOpenWorkspace}
-									aria-label="Open workspace folder"
-								>
-									<IconFolderOpen />
-								</Button>
-							) : null}
-						</div>
+									<IconChevronDown className="size-3.5 opacity-70" />
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end" className="min-w-44">
+									{onWorkspaceSettings ? (
+										<DropdownMenuItem onClick={onWorkspaceSettings}>
+											<IconSettings />
+											Settings
+										</DropdownMenuItem>
+									) : null}
+									{onOpenWorkspace ? (
+										<DropdownMenuItem onClick={onOpenWorkspace}>
+											<IconFolderOpen />
+											Open workspace
+										</DropdownMenuItem>
+									) : null}
+									{onCloseWorkspace ? (
+										<>
+											{(onWorkspaceSettings || onOpenWorkspace) && (
+												<DropdownMenuSeparator />
+											)}
+											<DropdownMenuItem
+												variant="destructive"
+												onClick={onCloseWorkspace}
+											>
+												<IconX />
+												Close workspace
+											</DropdownMenuItem>
+										</>
+									) : null}
+								</DropdownMenuContent>
+							</DropdownMenu>
+						) : null}
 					</div>
 				) : null}
 				<div className="flex gap-1 px-1">

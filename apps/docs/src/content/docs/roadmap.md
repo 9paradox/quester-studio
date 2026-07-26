@@ -8,6 +8,7 @@ High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox
 ## Now — v0.4.0 Platform closeout + public preview
 
 - CLI `quester init` — scaffold a workspace (done)
+- Desktop workspace welcome / empty state (open, create, sample, close)
 - Renderer smoke tests (done)
 - First public test release — npm packages + unsigned Windows/Linux desktop on GitHub Releases
 - [Try Quester](/try/) — download and smoke-test path for external testers

@@ -112,6 +112,23 @@ describe("slugifyName", () => {
 });
 
 describe("useQuesterStore", () => {
+	test("closeWorkspace clears path and keeps shell ready for welcome", () => {
+		useQuesterStore.setState({
+			workspacePath: "/tmp/ws",
+			workspaceName: "Demo",
+			flows: [{ id: "a", name: "A" }],
+			openTabs: [createFlowEditorTab(sampleFlow)],
+			activeTabId: flowTabId("login"),
+		});
+		useQuesterStore.getState().closeWorkspace();
+		const s = useQuesterStore.getState();
+		expect(s.workspacePath).toBe("");
+		expect(s.workspaceName).toBe("");
+		expect(s.openTabs).toEqual([]);
+		expect(s.activeTabId).toBeNull();
+		expect(s.flows).toEqual([]);
+	});
+
 	test("openTab activates tab and clears node selection for flows", () => {
 		resetStore();
 		useQuesterStore.setState({ selectedNodeId: "node-1" });
