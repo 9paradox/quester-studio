@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { rememberWorkspacePath } from "@/lib/workspacePreference.js";
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SMOKE_WORKSPACE, mockDesktopRpc } from "../../test/mockElectrobun.js";
 
@@ -16,6 +16,32 @@ mock.module(
 const { AppShell } = await import("./AppShell.js");
 const { useQuesterStore } = await import("@/stores/quester-store.js");
 
+function clearWorkspacePrefs() {
+	try {
+		globalThis.localStorage?.clear();
+	} catch {
+		/* ignore */
+	}
+}
+
+function resetShellState() {
+	useQuesterStore.getState().closeWorkspace();
+	useQuesterStore.setState({
+		openTabs: [],
+		activeTabId: null,
+		selectedNodeId: null,
+		loadError: null,
+		isLoading: false,
+		runResult: null,
+		runError: null,
+		isRunning: false,
+		workspacePath: "",
+		workspaceName: "",
+		recentWorkspacePaths: [],
+	});
+	clearWorkspacePrefs();
+}
+
 async function mountReadyShell() {
 	rememberWorkspacePath(SMOKE_WORKSPACE);
 	const view = render(<AppShell />);
@@ -28,32 +54,23 @@ async function mountReadyShell() {
 
 describe("renderer smoke", () => {
 	beforeEach(() => {
-		localStorage.clear();
+		cleanup();
+		resetShellState();
 	});
 
 	afterEach(() => {
-		useQuesterStore.setState({
-			openTabs: [],
-			activeTabId: null,
-			selectedNodeId: null,
-			loadError: null,
-			isLoading: false,
-			runResult: null,
-			runError: null,
-			isRunning: false,
-			workspacePath: "",
-			workspaceName: "",
-		});
-		localStorage.clear();
+		cleanup();
+		resetShellState();
 	});
 
 	test("shows welcome when no last workspace is stored", async () => {
 		render(<AppShell />);
 		await waitFor(() => {
 			expect(useQuesterStore.getState().isLoading).toBe(false);
+			expect(useQuesterStore.getState().workspacePath).toBe("");
 		});
 		expect(
-			screen.getByRole("heading", { name: "Quester" }),
+			await screen.findByRole("heading", { name: "Quester" }),
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", { name: /open workspace/i }),
