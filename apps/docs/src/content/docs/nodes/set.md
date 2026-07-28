@@ -70,7 +70,7 @@ Or after an HTTP node:
 
 ### Branch labels
 
-Often paired with [`if`](/nodes/if/):
+Often paired with [`if`](../if/):
 
 ```json
 {

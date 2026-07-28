@@ -7,7 +7,7 @@ Each **environment** is a named config used when you validate or run a flow (`--
 
 ## Files
 
-Under `environments/` (or `environmentsDir` from [`quester.json`](/workspace/)):
+Under `environments/` (or `environmentsDir` from [`quester.json`](../workspace/)):
 
 | File | Committed? | Purpose |
 | --- | --- | --- |

@@ -11,7 +11,7 @@ High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox
 - Desktop workspace welcome / empty state (open, create, sample, close)
 - Renderer smoke tests (done)
 - First public test release — npm packages + unsigned Windows/Linux desktop on GitHub Releases
-- [Try Quester](/try/) — download and smoke-test path for external testers
+- [Try Quester](../try/) — download and smoke-test path for external testers
 
 Settings / HTTP MVP and collections already shipped.
 

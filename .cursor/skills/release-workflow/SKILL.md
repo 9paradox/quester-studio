@@ -29,12 +29,13 @@ Open PR with version bumps. Merge to `main`.
 
 ## Publish release
 
-1. Ensure `NPM_TOKEN` is set in GitHub repo secrets (npm Automation token).
+1. Ensure `NPM_TOKEN` is set in GitHub repo secrets (granular token with read/write on `@quester-studio`, or classic Automation token).
 2. Check the **Release gate** checklist in [ROADMAP.md](../../ROADMAP.md) (first public preview: v0.4.0).
 3. Run **Release** workflow manually (`workflow_dispatch`) with version e.g. `0.4.0`.
 4. Workflow publishes npm packages and creates GitHub Release `v0.4.0` with unsigned desktop artifacts (Windows + Linux; no macOS yet).
-   - Desktop job runs `bun run --filter @quester-studio/desktop build:app` (`vite build` + `electrobun build --env=stable`).
-   - Uploads `apps/desktop/artifacts/**` (e.g. Windows `*-Quester-Setup*.zip`), not Vite `dist/` alone.
+   - `publish-npm` uses `actions/setup-node` with `registry-url` so `NODE_AUTH_TOKEN` reaches npm.
+   - Desktop job runs `bun run --filter @quester-studio/desktop build:app` (`vite` + `electrobun build --env=stable` + Windows `package-windows.mjs`).
+   - Windows CI installs NSIS; uploads `apps/desktop/artifacts/**` including `Quester-*-win-x64-portable.zip` and `Quester-*-win-x64-setup.exe`.
 5. Confirm [Try Quester](../../apps/docs/src/content/docs/try.md) docs match the live Release links.
 
 Release notes include: *Development build — see SECURITY.md for download verification.*

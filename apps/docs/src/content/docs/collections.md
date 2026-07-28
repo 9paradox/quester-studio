@@ -26,7 +26,7 @@ collections/
 - Files must end with `.request.json`.
 - Nested folders are allowed; the request path is the relative path without the extension (e.g. `Auth/login`).
 
-The directory name comes from `collectionsDir` in [`quester.json`](/workspace/) (default `"collections"`).
+The directory name comes from `collectionsDir` in [`quester.json`](../workspace/) (default `"collections"`).
 
 ## Request file (`*.request.json`)
 
@@ -119,4 +119,4 @@ You can mirror a request’s method/url/headers/body into an `http` node when bu
 
 Request files are validated with the same schema as the engine (`request` v1). Invalid JSON or missing required fields fail load/save.
 
-See also [Workspace files](/workspace/) and [HTTP node](/nodes/http/).
+See also [Workspace files](../workspace/) and [HTTP node](../nodes/http/).
