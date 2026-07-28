@@ -3,7 +3,7 @@ title: Getting started
 description: Run and validate flows with the Quester CLI
 ---
 
-Prefer a downloadable desktop build? See [Try Quester](/try/).
+Prefer a downloadable desktop build? See [Try Quester](../try/).
 
 ## Install (from source)
 
@@ -53,10 +53,10 @@ bunx quester run examples/sample-workspace/flows/kitchen-sink.flow.json \
 
 ## Learn more
 
-- [Try Quester](/try/) — download desktop preview and tester checklist
-- [Workspace files](/workspace/) — `quester.json`, flows, layout
-- [Environments & secrets](/workspace-secrets/) — `{{env.*}}` and `{{secrets.*}}`
-- [Collections & requests](/collections/) — standalone `*.request.json`
-- [Template syntax](/templates/) — `{{input.*}}` vs previous / `{{nodes.*}}`
-- [Nodes](/nodes/) — every builtin type with input/output examples
-- [extract](/nodes/extract/) — JMESPath on the previous node only
+- [Try Quester](../try/) — download desktop preview and tester checklist
+- [Workspace files](../workspace/) — `quester.json`, flows, layout
+- [Environments & secrets](../workspace-secrets/) — `{{env.*}}` and `{{secrets.*}}`
+- [Collections & requests](../collections/) — standalone `*.request.json`
+- [Template syntax](../templates/) — `{{input.*}}` vs previous / `{{nodes.*}}`
+- [Nodes](../nodes/) — every builtin type with input/output examples
+- [extract](../nodes/extract/) — JMESPath on the previous node only

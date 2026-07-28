@@ -106,7 +106,7 @@ Graph rules: exactly one `start` (no incoming edges, ≤1 outgoing); no cycles; 
 | --- | --- |
 | `id` | Unique within the flow; used in `{{nodes.id}}` |
 | `type` | Builtin type (`input`, `http`, …) or custom |
-| `data` | Type-specific config (see [Nodes](/nodes/)) |
+| `data` | Type-specific config (see [Nodes](../nodes/)) |
 | `position` | Optional canvas coordinates |
 
 ### Edge shape
@@ -145,7 +145,7 @@ Graph rules: exactly one `start` (no incoming edges, ≤1 outgoing); no cycles; 
 
 ## Related
 
-- [Environments & secrets](/workspace-secrets/)
-- [Collections & requests](/collections/)
-- [Template syntax](/templates/)
-- [Nodes](/nodes/)
+- [Environments & secrets](../workspace-secrets/)
+- [Collections & requests](../collections/)
+- [Template syntax](../templates/)
+- [Nodes](../nodes/)

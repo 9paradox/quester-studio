@@ -61,7 +61,11 @@ bun run --filter @quester-studio/desktop dev
 
 Renderer smoke tests (`AppShell.smoke.test.tsx`) mount the shell with mocked Electrobun RPC (Happy DOM + Testing Library). They run as part of `bun run --filter @quester-studio/desktop test` and therefore CI.
 
-Release packaging: `build:app` writes distributables under `apps/desktop/artifacts/` (Windows `*-Quester-Setup*.zip`). The Release workflow uploads those files to the GitHub Release.
+Release packaging: `build:app` writes distributables under `apps/desktop/artifacts/`. On Windows it also runs `package-windows.mjs` to produce:
+- `Quester-<version>-win-x64-portable.zip` — extract and run `bin/launcher.exe`
+- `Quester-<version>-win-x64-setup.exe` — NSIS installer (choose folder + Apps uninstall; needs [NSIS](https://nsis.sourceforge.io/) locally, or CI installs it)
+
+The Release workflow uploads those files to the GitHub Release.
 
 Compare run output to CLI:
 

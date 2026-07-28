@@ -3,7 +3,7 @@ title: input
 description: Puts the flow run payload on the wire (not the graph entry)
 ---
 
-Places the Run panel / `--input` JSON on the wire for the next node. The graph entry is [`start`](/nodes/start/), not `input`.
+Places the Run panel / `--input` JSON on the wire for the next node. The graph entry is [`start`](../start/), not `input`.
 
 Typical chain: `start → input → http → …`
 
@@ -62,4 +62,4 @@ Output:
 }
 ```
 
-[`extract`](/nodes/extract/) always reads the **previous** node (e.g. HTTP `body.id`), not the run payload.
+[`extract`](../extract/) always reads the **previous** node (e.g. HTTP `body.id`), not the run payload.

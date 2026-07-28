@@ -23,9 +23,9 @@ Missing paths resolve to an empty string (`""`).
 | Need | Use |
 | --- | --- |
 | Field from Run panel / `--input` | `{{input.email}}` (or merge `sources: ["input"]`) |
-| Field from the last step (e.g. HTTP `body.id`) | [`extract`](/nodes/extract/) JMESPath, or `{{nodes.httpId.body.id}}` |
+| Field from the last step (e.g. HTTP `body.id`) | [`extract`](../nodes/extract/) JMESPath, or `{{nodes.httpId.body.id}}` |
 
-[`extract`](/nodes/extract/) and [`json`](/nodes/json/) always search the **previous** node output. They do not accept `source: "input"`.
+[`extract`](../nodes/extract/) and [`json`](../nodes/json/) always search the **previous** node output. They do not accept `source: "input"`.
 
 ## Dot paths
 
@@ -114,7 +114,7 @@ Later nodes can use `{{vars.greeting}}`.
 ## Template node vs `{{…}}`
 
 - **`{{…}}` tokens** — simple string substitution in any templated field.
-- **`template` node** — also supports [Eta](https://eta.js.org/) (`<%= it.input.name %>`) after `{{…}}` resolution. See [template node](/nodes/template/).
+- **`template` node** — also supports [Eta](https://eta.js.org/) (`<%= it.input.name %>`) after `{{…}}` resolution. See [template node](../nodes/template/).
 
 ## JMESPath (separate)
 

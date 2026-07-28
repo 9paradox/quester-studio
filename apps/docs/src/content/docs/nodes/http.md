@@ -3,7 +3,7 @@ title: http
 description: Perform an HTTP request and capture status, body, headers, and timing
 ---
 
-Sends an HTTP request. URL, headers, and body support [templates](/templates/).
+Sends an HTTP request. URL, headers, and body support [templates](../../templates/).
 
 ## Data
 
@@ -120,4 +120,4 @@ Common template paths:
 - Non-`http`/`https` URLs throw at execute time.
 - Network failures throw with a request snapshot attached.
 
-Standalone request files use a similar shape — see [Collections & requests](/collections/).
+Standalone request files use a similar shape — see [Collections & requests](../../collections/).

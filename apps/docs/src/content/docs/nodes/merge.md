@@ -21,7 +21,7 @@ Deep-merges one or more sources left-to-right. Later sources overwrite conflicti
 | `vars` | Current vars object |
 | `<nodeId>` | That node’s stored output |
 
-This `input` name is only for **merge `sources`**. [`extract`](/nodes/extract/) / [`json`](/nodes/json/) always read the previous node — they have no `source: "input"` option. Prefer `{{input.*}}` when you only need a field in a string.
+This `input` name is only for **merge `sources`**. [`extract`](../extract/) / [`json`](../json/) always read the previous node — they have no `source: "input"` option. Prefer `{{input.*}}` when you only need a field in a string.
 
 Non-object values are wrapped as `{ [sourceName]: value }` before merging.
 

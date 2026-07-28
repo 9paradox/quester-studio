@@ -18,7 +18,7 @@ Graph entry point. Every flow must have **exactly one** `start` node. It has **n
 | **Execute input** | Ignored |
 | **Output** | `{}` (empty object so the single child can run) |
 
-Run payload is **not** produced by `start`. Use [`input`](/nodes/input/) after start if you want it on the wire, or `{{input.*}}` in templates.
+Run payload is **not** produced by `start`. Use [`input`](../input/) after start if you want it on the wire, or `{{input.*}}` in templates.
 
 ## Rules
 

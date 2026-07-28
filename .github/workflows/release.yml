@@ -49,9 +49,16 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Build packages
         run: bun run build:pkgs
+      - name: Install NSIS (Windows installer)
+        if: runner.os == 'Windows'
+        run: choco install nsis -y --no-progress
       - name: Build desktop app
-        # vite renderer + Electrobun package → apps/desktop/artifacts/
-        # Windows: Quester-Setup.zip; Linux: AppImage / setup artifacts
+        # vite + Electrobun → artifacts/; Windows also builds portable zip + NSIS setup
+        # Windows: Quester-*-portable.zip, Quester-*-setup.exe (+ Electrobun update tarball/Setup zip)
+        # Linux: setup / AppImage artifacts
+        env:
+          REQUIRE_NSIS: ${{ runner.os == 'Windows' && '1' || '0' }}
+          MAKENSIS: ${{ runner.os == 'Windows' && 'C:\Program Files (x86)\NSIS\makensis.exe' || '' }}
         run: bun run --filter @quester-studio/desktop build:app
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -80,7 +87,8 @@ jobs:
 
             ## Desktop (unsigned)
 
-            - **Windows:** download `*-Quester-Setup*.zip`, extract, run `Quester-Setup.exe` (self-extractor).
+            - **Windows installer:** download `Quester-*-win-x64-setup.exe` — choose install folder; uninstall from Settings → Apps.
+            - **Windows portable:** download `Quester-*-win-x64-portable.zip` — extract anywhere, run `Quester\bin\launcher.exe`; delete the folder to remove.
             - **Linux:** download the Linux setup / AppImage artifact for your arch.
             - macOS is not published yet.
 

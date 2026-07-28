@@ -11,7 +11,7 @@ Evaluates a condition and/or checks, then continues along the matching edge.
 | --- | --- | --- |
 | `label` | string | Optional UI label |
 | `condition` | string | Optional templated expression |
-| `checks` | array | Optional JMESPath checks (same shape/ops as [`assert`](/nodes/assert/)) |
+| `checks` | array | Optional JMESPath checks (same shape/ops as [`assert`](../assert/)) |
 
 Provide **`condition` and/or `checks`** (at least one). When both are set, they are combined with **AND**.
 
