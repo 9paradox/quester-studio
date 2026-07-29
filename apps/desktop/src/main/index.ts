@@ -1,5 +1,10 @@
 import { BrowserView, BrowserWindow } from "electrobun/bun";
 import type { DesktopRPC, NodeRunStatusEvent } from "../shared/rpc.js";
+import { resolvePreferredDark, setThemePreference } from "./appPreferences.js";
+import {
+	applyWindowChrome,
+	setAttachedTitleBarDarkMode,
+} from "./windowChrome.js";
 
 const VITE_DEV_URL = "http://127.0.0.1:5173/";
 
@@ -160,10 +165,17 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				const { getAppTlsVerify } = await import("./handlers.js");
 				return { verifyTls: getAppTlsVerify() };
 			},
+			setNativeChromeTheme: async ({ theme }) => {
+				const dark = setThemePreference(theme);
+				setAttachedTitleBarDarkMode(dark);
+				return { ok: true as const, dark, theme };
+			},
 		},
 		messages: {},
 	},
 });
+
+const bootDark = resolvePreferredDark();
 
 const mainWindow = new BrowserWindow({
 	title: "Quester",
@@ -178,12 +190,18 @@ const mainWindow = new BrowserWindow({
 	activate: true,
 });
 
+// Dev + packaged: Electrobun's win.icon only embeds on `build`, so set HWND
+// icon/titlebar theme at runtime (fixes Bun icon + white caption on Windows).
+applyWindowChrome(mainWindow.ptr, { dark: bootDark });
+
 mainWindow.on("close", () => {
 	process.exit(0);
 });
 
 mainWindow.webview.on("dom-ready", () => {
 	console.log("Quester webview ready");
+	// Re-apply icon after first paint — some Windows builds keep the host icon until then.
+	applyWindowChrome(mainWindow.ptr, { dark: resolvePreferredDark() });
 	if (process.env.DEV === "1") {
 		// Defer DevTools so WebView2 finishes the first paint (avoids blank window on Windows).
 		setTimeout(() => mainWindow.webview.openDevTools(), 500);

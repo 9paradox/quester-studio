@@ -83,6 +83,9 @@ export function EditorArea() {
 	const canSaveFlow = Boolean(activeTab?.kind === "flow" && activeTab.dirty);
 
 	if (!workspacePath) {
+		if (activeTab?.kind === "appSettings") {
+			return <AppPreferencesEditor />;
+		}
 		return <WorkspaceWelcome />;
 	}
 

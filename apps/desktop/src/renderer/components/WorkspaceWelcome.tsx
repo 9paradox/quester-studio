@@ -5,6 +5,7 @@ import {
 	IconFolderPlus,
 	IconPackage,
 } from "@tabler/icons-react";
+import logoUrl from "../../../assets/quester-logo.png";
 
 export function WorkspaceWelcome() {
 	const isLoading = useQuesterStore((s) => s.isLoading);
@@ -27,7 +28,15 @@ export function WorkspaceWelcome() {
 	return (
 		<div className="flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-6 bg-background px-6">
 			<div className="max-w-md text-center">
-				<h1 className="text-xl font-semibold tracking-tight">Quester</h1>
+				<img
+					src={logoUrl}
+					alt=""
+					width={72}
+					height={72}
+					className="mx-auto size-[72px] rounded-2xl"
+					draggable={false}
+				/>
+				<h1 className="mt-4 text-xl font-semibold tracking-tight">Quester</h1>
 				<p className="mt-2 text-sm text-muted-foreground">
 					Open a workspace folder, create a new one, or try the sample to get
 					started.

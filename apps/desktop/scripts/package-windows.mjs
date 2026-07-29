@@ -190,17 +190,18 @@ function createNsisInstaller(appDir, version) {
 	const outPath = join(artifactDir, outName);
 	if (existsSync(outPath)) rmSync(outPath);
 	const nsi = join(__dirname, "windows", "installer.nsi");
+	const appIcon = join(desktopRoot, "assets", "icon.ico");
+	const makensisArgs = [
+		`/DSOURCE_DIR=${appDir}`,
+		`/DAPP_VERSION=${version}`,
+		`/DOUTFILE=${outPath}`,
+	];
+	if (existsSync(appIcon)) {
+		makensisArgs.push(`/DAPP_ICON=${appIcon}`);
+	}
+	makensisArgs.push(nsi);
 	console.log(`[package-windows] Compiling NSIS installer → ${outName}`);
-	execFileSync(
-		makensis,
-		[
-			`/DSOURCE_DIR=${appDir}`,
-			`/DAPP_VERSION=${version}`,
-			`/DOUTFILE=${outPath}`,
-			nsi,
-		],
-		{ stdio: "inherit" },
-	);
+	execFileSync(makensis, makensisArgs, { stdio: "inherit" });
 	if (!existsSync(outPath)) {
 		throw new Error(`[package-windows] NSIS did not produce ${outPath}`);
 	}

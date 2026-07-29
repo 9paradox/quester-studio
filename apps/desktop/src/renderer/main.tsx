@@ -1,10 +1,20 @@
 ﻿import { Component, type ErrorInfo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppShell } from "./components/AppShell.js";
-import { applyTheme, readThemePreference } from "./lib/theme.js";
+import { syncNativeChromeTheme } from "./lib/nativeChrome.js";
+import { readThemePreference } from "./lib/theme.js";
 import "./styles.css";
 
-applyTheme(readThemePreference());
+syncNativeChromeTheme(readThemePreference());
+
+if (typeof window !== "undefined" && window.matchMedia) {
+	const mq = window.matchMedia("(prefers-color-scheme: dark)");
+	mq.addEventListener("change", () => {
+		if (readThemePreference() === "system") {
+			syncNativeChromeTheme("system");
+		}
+	});
+}
 
 class RootErrorBoundary extends Component<
 	{ children: ReactNode },

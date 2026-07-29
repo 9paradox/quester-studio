@@ -1,11 +1,16 @@
-export type ThemePreference = "light" | "dark" | "system";
+import {
+	type ThemePreference,
+	isThemePreference,
+} from "../../shared/appPreferences.js";
+
+export type { ThemePreference };
 
 const STORAGE_KEY = "quester.theme";
 
 export function readThemePreference(): ThemePreference {
 	try {
 		const raw = localStorage.getItem(STORAGE_KEY);
-		if (raw === "light" || raw === "dark" || raw === "system") return raw;
+		if (isThemePreference(raw)) return raw;
 	} catch {
 		/* ignore */
 	}
