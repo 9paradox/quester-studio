@@ -84,6 +84,11 @@ export function mockDesktopRpc() {
 			writePathShapes: async () => ({ ok: true }),
 			setAppTlsVerify: async () => ({ ok: true }),
 			getAppTlsVerify: async () => ({ verifyTls: true }),
+			setNativeChromeTheme: async () => ({
+				ok: true as const,
+				dark: true,
+				theme: "system" as const,
+			}),
 			executeFlowRpc: async () => ({
 				output: {},
 				nodeOutputs: {},

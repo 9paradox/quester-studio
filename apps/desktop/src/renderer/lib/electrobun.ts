@@ -6,6 +6,7 @@ import type {
 	WorkspaceV1,
 } from "@quester-studio/schema";
 import { Electroview } from "electrobun/view";
+import type { ThemePreference } from "../../shared/appPreferences.js";
 import type { DesktopRPC, NodeRunStatusEvent } from "../../shared/rpc.js";
 
 type NodeRunStatusListener = (event: NodeRunStatusEvent) => void;
@@ -118,4 +119,6 @@ export const desktopRpc = {
 	setAppTlsVerify: (verifyTls: boolean) =>
 		getRpc().request.setAppTlsVerify({ verifyTls }),
 	getAppTlsVerify: () => getRpc().request.getAppTlsVerify({}),
+	setNativeChromeTheme: (theme: ThemePreference) =>
+		getRpc().request.setNativeChromeTheme({ theme }),
 };

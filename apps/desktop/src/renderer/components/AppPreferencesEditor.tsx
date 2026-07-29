@@ -6,12 +6,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select.js";
 import { desktopRpc } from "@/lib/electrobun.js";
-import {
-	type ThemePreference,
-	applyTheme,
-	readThemePreference,
-	writeThemePreference,
-} from "@/lib/theme.js";
+import { persistAndSyncTheme } from "@/lib/nativeChrome.js";
+import { type ThemePreference, readThemePreference } from "@/lib/theme.js";
 import {
 	readTlsVerifyPreference,
 	writeTlsVerifyPreference,
@@ -53,11 +49,10 @@ export function AppPreferencesEditor() {
 	const [verifyTls, setVerifyTls] = useState(() => readTlsVerifyPreference());
 
 	useEffect(() => {
-		applyTheme(theme);
-		writeThemePreference(theme);
+		persistAndSyncTheme(theme);
 		if (theme !== "system") return;
 		const mq = window.matchMedia("(prefers-color-scheme: dark)");
-		const onChange = () => applyTheme("system");
+		const onChange = () => persistAndSyncTheme("system");
 		mq.addEventListener("change", onChange);
 		return () => mq.removeEventListener("change", onChange);
 	}, [theme]);
@@ -78,7 +73,7 @@ export function AppPreferencesEditor() {
 					<SettingsField
 						label="Theme"
 						htmlFor="theme-select"
-						description="Stored locally on this machine. System follows your OS preference."
+						description="Stored locally on this machine (app user data). System follows your OS preference."
 					>
 						<Select
 							value={theme}

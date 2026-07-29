@@ -29,6 +29,10 @@ ShowUninstDetails show
 !include "MUI2.nsh"
 
 !define MUI_ABORTWARNING
+!ifdef APP_ICON
+  !define MUI_ICON "${APP_ICON}"
+  !define MUI_UNICON "${APP_ICON}"
+!endif
 !define MUI_WELCOMEPAGE_TITLE "${APP_NAME} Setup"
 !define MUI_WELCOMEPAGE_TEXT "This will install ${APP_NAME} ${APP_VERSION} on your computer.$\r$\n$\r$\nYou can choose the install folder on the next pages.$\r$\n$\r$\nClick Next to continue."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\bin\launcher.exe"

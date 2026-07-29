@@ -7,6 +7,7 @@ import type {
 	WorkspaceV1,
 } from "@quester-studio/schema";
 import type { RPCSchema } from "electrobun";
+import type { ThemePreference } from "./appPreferences.js";
 
 export type WorkspaceSummary = {
 	name: string;
@@ -236,6 +237,10 @@ export type DesktopRPC = {
 			getAppTlsVerify: {
 				params: Record<string, never>;
 				response: { verifyTls: boolean };
+			};
+			setNativeChromeTheme: {
+				params: { theme: ThemePreference };
+				response: { ok: true; dark: boolean; theme: ThemePreference };
 			};
 		};
 		messages: Record<string, never>;

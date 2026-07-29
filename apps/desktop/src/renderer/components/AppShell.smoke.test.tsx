@@ -112,6 +112,27 @@ describe("renderer smoke", () => {
 		expect(screen.getByText("Theme")).toBeInTheDocument();
 	});
 
+	test("opens Preferences with no workspace selected", async () => {
+		const user = userEvent.setup();
+		render(<AppShell />);
+		await waitFor(() => {
+			expect(useQuesterStore.getState().isLoading).toBe(false);
+			expect(useQuesterStore.getState().workspacePath).toBe("");
+		});
+		expect(
+			await screen.findByRole("heading", { name: "Quester" }),
+		).toBeInTheDocument();
+
+		await user.click(screen.getByLabelText("Preferences"));
+
+		await waitFor(() => {
+			expect(
+				screen.getByRole("heading", { name: "Preferences" }),
+			).toBeInTheDocument();
+		});
+		expect(screen.getByText("Theme")).toBeInTheDocument();
+	});
+
 	test("opens Workspace settings HTTP fields", async () => {
 		const user = userEvent.setup();
 		await mountReadyShell();

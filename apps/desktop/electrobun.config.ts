@@ -16,6 +16,7 @@ export default {
 		copy: {
 			"dist/renderer/index.html": "views/mainview/index.html",
 			"dist/renderer/assets/": "views/mainview/assets/",
+			"assets/quester-logo.png": "views/mainview/quester-logo.png",
 		},
 		watchIgnore: ["dist/**"],
 		mac: {
@@ -26,9 +27,11 @@ export default {
 		},
 		linux: {
 			bundleCEF: false,
+			icon: "assets/quester-logo.png",
 		},
 		win: {
 			bundleCEF: false,
+			icon: "assets/icon.ico",
 		},
 	},
 	release: {
