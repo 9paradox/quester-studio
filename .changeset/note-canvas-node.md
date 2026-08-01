@@ -1,9 +1,9 @@
 ---
-"@quester-studio/schema": minor
-"@quester-studio/nodes": minor
-"@quester-studio/engine": minor
-"@quester-studio/cli": minor
-"@quester-studio/desktop": minor
+"@quester-studio/schema": patch
+"@quester-studio/nodes": patch
+"@quester-studio/engine": patch
+"@quester-studio/cli": patch
+"@quester-studio/desktop": patch
 ---
 
 Add a `note` canvas sticky node — disconnected plain-text annotations that are not executed and do not break CLI runs.

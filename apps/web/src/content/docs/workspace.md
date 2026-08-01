@@ -11,6 +11,7 @@ A **workspace** is a folder with a `quester.json` manifest. Everything Quester l
 my-workspace/
   quester.json
   flows/
+    demo-main-nodes.flow.json
     login-and-profile.flow.json
     kitchen-sink.flow.json
   environments/
