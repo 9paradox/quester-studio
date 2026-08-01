@@ -1,5 +1,17 @@
 # @quester-studio/desktop
 
+## 0.4.5
+
+### Patch Changes
+
+- 6505d36: Docs and README: note node coverage, demo-main-nodes samples, and an app shell screenshot.
+- bf913ef: Add a `note` canvas sticky node — disconnected plain-text annotations that are not executed and do not break CLI runs.
+- 2a20359: Rename the desktop product surface to Quester Studio (window title and welcome screen).
+- Updated dependencies [bf913ef]
+- Updated dependencies [f33404d]
+  - @quester-studio/schema@0.4.5
+  - @quester-studio/engine@0.4.5
+
 ## 0.4.0
 
 ### Minor Changes

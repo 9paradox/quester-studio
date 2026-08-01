@@ -1,5 +1,18 @@
 # @quester-studio/cli
 
+## 0.4.5
+
+### Patch Changes
+
+- 52b15b6: Desktop ships a Quester app icon/logo, matches the Windows title bar to the app theme (persisted under local app data), and lets Preferences open without a workspace.
+- 6505d36: Docs and README: note node coverage, demo-main-nodes samples, and an app shell screenshot.
+- bf913ef: Add a `note` canvas sticky node — disconnected plain-text annotations that are not executed and do not break CLI runs.
+- f33404d: Windows desktop releases now ship a portable zip and an NSIS installer (choose install folder; uninstall from Settings → Apps).
+- Updated dependencies [bf913ef]
+- Updated dependencies [f33404d]
+  - @quester-studio/schema@0.4.5
+  - @quester-studio/engine@0.4.5
+
 ## 0.4.0
 
 ### Minor Changes
