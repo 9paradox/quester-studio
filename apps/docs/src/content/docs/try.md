@@ -7,14 +7,15 @@ description: Download the desktop app or CLI and smoke-test a workspace
 
 Product site (download, guide, UI docs): [https://9paradox.com/quester-studio/](https://9paradox.com/quester-studio/) · [Download](https://9paradox.com/quester-studio/download/)
 
-> **Status:** Public preview **[v0.4.5](https://github.com/9paradox/quester-studio/releases/tag/v0.4.5)** — unsigned Windows/Linux desktop on GitHub Releases, and `@quester-studio/*` on npm. Prefer verifying published checksums when available.
+> **Status:** Public preview **[v0.5.0](https://github.com/9paradox/quester-studio/releases/tag/v0.5.0)** — unsigned Windows/Linux/macOS desktop on GitHub Releases, and `@quester-studio/*` on npm. Prefer verifying published checksums when available.
 
 ## Desktop (preview)
 
-1. Prefer the product [Download](https://9paradox.com/quester-studio/download/) page, or open the latest [GitHub Release](https://github.com/9paradox/quester-studio/releases) (current: [v0.4.5](https://github.com/9paradox/quester-studio/releases/tag/v0.4.5)).
-2. Download a **Windows** or **Linux** desktop artifact (macOS is not published yet).
+1. Prefer the product [Download](https://9paradox.com/quester-studio/download/) page, or open the latest [GitHub Release](https://github.com/9paradox/quester-studio/releases) (current: [v0.5.0](https://github.com/9paradox/quester-studio/releases/tag/v0.5.0)).
+2. Download a desktop artifact for your OS:
    - **Windows:** `Quester-*-win-x64-setup.exe` (NSIS installer) or `Quester-*-win-x64-portable.zip` (extract, run `Quester\bin\launcher.exe`). Older builds used `stable-win-x64-Quester-Setup.zip`.
    - **Linux:** `stable-linux-x64-Quester-Setup.tar.gz` (or the matching `.tar.zst` / update JSON for your arch).
+   - **macOS:** unsigned `.app` / setup artifact from the release (Electrobun build).
 3. Builds are **unsigned development builds**. See [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md) for the trust model and how to run unsigned apps safely on your OS.
 4. Launch Quester Studio. On first open you see a welcome screen: **Open workspace**, **Create workspace**, or **Open sample**. Closing a workspace returns here.
 5. Select a flow (e.g. `demo-main-nodes` from the sample, or `hello` from create) → pick env `local` → run.
@@ -27,9 +28,8 @@ Product site (download, guide, UI docs): [https://9paradox.com/quester-studio/](
 
 ### Known limits (preview)
 
-- Unsigned desktop artifacts only (Windows + Linux)
+- Unsigned desktop artifacts only (Windows + Linux + macOS)
 - Secrets are not encrypted at rest (`*.secrets.json` is gitignored)
-- No macOS release artifact yet
 
 ## CLI
 
