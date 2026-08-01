@@ -1,5 +1,16 @@
 # @quester-studio/engine
 
+## 0.4.5
+
+### Patch Changes
+
+- bf913ef: Add a `note` canvas sticky node — disconnected plain-text annotations that are not executed and do not break CLI runs.
+- f33404d: Windows desktop releases now ship a portable zip and an NSIS installer (choose install folder; uninstall from Settings → Apps).
+- Updated dependencies [bf913ef]
+- Updated dependencies [f33404d]
+  - @quester-studio/schema@0.4.5
+  - @quester-studio/nodes@0.4.5
+
 ## 0.4.0
 
 ### Minor Changes

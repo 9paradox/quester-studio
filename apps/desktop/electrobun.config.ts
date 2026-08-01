@@ -4,7 +4,7 @@ export default {
 	app: {
 		name: "Quester",
 		identifier: "com.9paradox.quester",
-		version: "0.4.0",
+		version: "0.4.5",
 	},
 	build: {
 		useAsar: true,
