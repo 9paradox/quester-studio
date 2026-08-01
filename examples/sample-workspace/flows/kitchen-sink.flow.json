@@ -2,7 +2,7 @@
 	"id": "kitchen-sink",
 	"version": "v1",
 	"name": "Kitchen sink (DummyJSON)",
-	"description": "Exercises every builtin node (including a disconnected note sticky), template scopes (env/input/vars/secrets/nodes), JMESPath, Eta templates, if branches, and HTTP methods GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS against https://dummyjson.com",
+	"description": "Exercises every builtin node (including delay, switch, try, foreach, subflow, log, inspect, and a disconnected note sticky), template scopes (env/input/vars/secrets/nodes), JMESPath, Eta templates, if/switch/try branches, and HTTP methods GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS against https://dummyjson.com",
 	"nodes": [
 		{
 			"id": "start",
@@ -474,8 +474,8 @@
 				"label": "If runDemo"
 			},
 			"position": {
-				"x": 4764,
-				"y": 2043.9999999999998
+				"x": 6880,
+				"y": 1880
 			},
 			"width": 210,
 			"height": 87
@@ -488,8 +488,8 @@
 				"label": "Summary merge"
 			},
 			"position": {
-				"x": 5024,
-				"y": 2007.9999999999998
+				"x": 7160,
+				"y": 1800
 			},
 			"width": 257,
 			"height": 53
@@ -507,13 +507,17 @@
 					"deleted": "{{nodes.deleteProduct.body.isDeleted}}",
 					"refreshed": "{{nodes.refresh.body.accessToken}}",
 					"headStatus": "{{nodes.headTest.status}}",
-					"optionsStatus": "{{nodes.optionsTest.status}}"
+					"optionsStatus": "{{nodes.optionsTest.status}}",
+					"foreachCount": "{{nodes.mapIds.count}}",
+					"subflowEcho": "{{nodes.callEcho.echo}}",
+					"logged": "{{nodes.logProgress.logged}}",
+					"inspectedStatus": "{{nodes.inspectStatus}}"
 				},
 				"label": "Result"
 			},
 			"position": {
-				"x": 5360,
-				"y": 1983.9999999999998
+				"x": 7480,
+				"y": 1800
 			},
 			"width": 150,
 			"height": 53
@@ -526,8 +530,8 @@
 				"label": "False branch"
 			},
 			"position": {
-				"x": 5032,
-				"y": 2208
+				"x": 7160,
+				"y": 2080
 			},
 			"width": 300,
 			"height": 91
@@ -545,6 +549,150 @@
 			},
 			"width": 240,
 			"height": 160
+		},
+		{
+			"id": "delayBrief",
+			"type": "delay",
+			"data": {
+				"ms": 0,
+				"label": "Delay (0ms)"
+			},
+			"position": {
+				"x": 5024,
+				"y": 1880
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "logProgress",
+			"type": "log",
+			"data": {
+				"message": "Kitchen-sink demo path for {{input.username}} (head={{nodes.headTest.status}})",
+				"label": "Log progress"
+			},
+			"position": {
+				"x": 5280,
+				"y": 1880
+			},
+			"width": 240,
+			"height": 87
+		},
+		{
+			"id": "inspectStatus",
+			"type": "inspect",
+			"data": {
+				"label": "Inspect status",
+				"expression": "status"
+			},
+			"position": {
+				"x": 5560,
+				"y": 1880
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "statusSwitch",
+			"type": "switch",
+			"data": {
+				"expression": "{{nodes.headTest.status}}",
+				"cases": [
+					{
+						"value": "200",
+						"handle": "ok"
+					}
+				],
+				"defaultHandle": "other",
+				"label": "Switch head status"
+			},
+			"position": {
+				"x": 5820,
+				"y": 1880
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "softTry",
+			"type": "try",
+			"data": {
+				"checks": [
+					{
+						"path": "matched",
+						"op": "eq",
+						"value": "ok"
+					}
+				],
+				"label": "Try matched ok"
+			},
+			"position": {
+				"x": 6080,
+				"y": 1800
+			},
+			"width": 210,
+			"height": 87
+		},
+		{
+			"id": "switchOther",
+			"type": "log",
+			"data": {
+				"message": "Unexpected status on switch default branch",
+				"label": "Switch other"
+			},
+			"position": {
+				"x": 6080,
+				"y": 2040
+			},
+			"width": 240,
+			"height": 87
+		},
+		{
+			"id": "mapIds",
+			"type": "foreach",
+			"data": {
+				"items": "[{{vars.limit}},{{vars.skip}},3]",
+				"map": "item",
+				"maxItems": 10,
+				"label": "Foreach demo ids"
+			},
+			"position": {
+				"x": 6340,
+				"y": 1720
+			},
+			"width": 220,
+			"height": 87
+		},
+		{
+			"id": "catchLog",
+			"type": "log",
+			"data": {
+				"message": "Try catch branch (matched check failed)",
+				"label": "Catch log"
+			},
+			"position": {
+				"x": 6340,
+				"y": 1920
+			},
+			"width": 240,
+			"height": 87
+		},
+		{
+			"id": "callEcho",
+			"type": "subflow",
+			"data": {
+				"flowId": "echo-subflow",
+				"input": {
+					"message": "foreach count={{nodes.mapIds.count}}"
+				},
+				"label": "Call echo-subflow"
+			},
+			"position": {
+				"x": 6620,
+				"y": 1720
+			},
+			"width": 230,
+			"height": 87
 		}
 	],
 	"edges": [
@@ -693,9 +841,9 @@
 			"sourceHandle": null
 		},
 		{
-			"id": "e-options-if",
+			"id": "e-options-delay",
 			"source": "optionsTest",
-			"target": "branch",
+			"target": "delayBrief",
 			"sourceHandle": null
 		},
 		{
@@ -714,6 +862,72 @@
 			"id": "e-summary-out",
 			"source": "summary",
 			"target": "output",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-delay-log",
+			"source": "delayBrief",
+			"target": "logProgress",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-log-inspect",
+			"source": "logProgress",
+			"target": "inspectStatus",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-inspect-switch",
+			"source": "inspectStatus",
+			"target": "statusSwitch",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-switch-ok",
+			"source": "statusSwitch",
+			"target": "softTry",
+			"sourceHandle": "ok"
+		},
+		{
+			"id": "e-switch-other",
+			"source": "statusSwitch",
+			"target": "switchOther",
+			"sourceHandle": "other"
+		},
+		{
+			"id": "e-try-ok",
+			"source": "softTry",
+			"target": "mapIds",
+			"sourceHandle": "ok"
+		},
+		{
+			"id": "e-try-catch",
+			"source": "softTry",
+			"target": "catchLog",
+			"sourceHandle": "catch"
+		},
+		{
+			"id": "e-foreach-subflow",
+			"source": "mapIds",
+			"target": "callEcho",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-subflow-if",
+			"source": "callEcho",
+			"target": "branch",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-catch-summary",
+			"source": "catchLog",
+			"target": "branch",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-other-summary",
+			"source": "switchOther",
+			"target": "branch",
 			"sourceHandle": null
 		}
 	]

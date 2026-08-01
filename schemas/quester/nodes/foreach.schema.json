@@ -15,11 +15,13 @@
     "maxItems": {
       "type": "integer",
       "exclusiveMinimum": 0,
+      "maximum": 10000,
       "default": 100
     },
     "concurrency": {
       "type": "integer",
-      "exclusiveMinimum": 0
+      "exclusiveMinimum": 0,
+      "maximum": 32
     },
     "map": {
       "type": "string",

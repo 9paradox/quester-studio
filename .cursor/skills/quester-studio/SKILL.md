@@ -63,7 +63,7 @@ Flow nodes use `{{env.VAR}}`, `{{input.field}}`, `{{nodes.nodeId}}`, `{{vars.key
 
 ## Builtin node types
 
-`input`, `http`, `extract`, `template`, `set`, `if`, `output`
+`start`, `input`, `http`, `extract`, `template`, `set`, `if`, `switch`, `delay`/`wait`, `foreach`, `try`, `subflow`, `output`, `assert`, `transform`, `merge`, `json`, `log`, `inspect`/`preview`, `note`
 
 ## Change checklist
 

@@ -8,7 +8,7 @@ Local-first, privacy-first visual API flows. **Quester Studio** is the desktop a
 - **CLI** — `quester init`, `quester validate`, `quester run`
 - **Schema** — git-friendly `*.flow.json` workspace format
 
-Builtin nodes include `start`, `input`, `http`, `extract`, `template`, `set`, `if`, `output`, `assert`, `transform`, `merge`, `json`, and canvas-only `note` (not executed). See the [node reference](https://9paradox.com/quester-studio/docs/nodes/).
+Builtin nodes include `start`, `input`, `http`, `extract`, `template`, `set`, `if`, `switch`, `delay`/`wait`, `foreach`, `try`, `subflow`, `output`, `assert`, `transform`, `merge`, `json`, `log`, `inspect`/`preview`, and canvas-only `note` (not executed). See the [node reference](https://9paradox.com/quester-studio/docs/nodes/).
 
 Legacy [apitester](https://github.com/9paradox/apitester) remains separate.
 
@@ -58,7 +58,7 @@ bunx --bun quester run examples/sample-workspace/flows/login-and-profile.flow.js
   --input "{\"username\":\"emilys\",\"password\":\"emilyspass\"}"
 ```
 
-Sample flows: `demo-main-nodes` (short walkthrough), `login-and-profile`, `kitchen-sink` (every builtin, including a disconnected `note`).
+Sample flows: `demo-main-nodes` (short walkthrough), `login-and-profile`, `echo-subflow` (minimal `subflow` target), `kitchen-sink` (every builtin, including delay/switch/try/foreach/subflow/log/inspect and a disconnected `note`).
 
 ## Monorepo tooling
 

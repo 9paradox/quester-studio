@@ -53,7 +53,7 @@ bunx quester run examples/sample-workspace/flows/login-and-profile.flow.json \
   --input '{"username":"emilys","password":"emilyspass"}'
 ```
 
-Longer walkthrough that hits every builtin (including a disconnected [`note`](../nodes/note/)) and most HTTP methods:
+Longer walkthrough that hits every builtin (including delay, switch, try, foreach, subflow, log, inspect, and a disconnected [`note`](../nodes/note/)) and most HTTP methods:
 
 ```bash
 bunx quester run examples/sample-workspace/flows/kitchen-sink.flow.json \

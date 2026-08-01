@@ -13,6 +13,7 @@ my-workspace/
   flows/
     demo-main-nodes.flow.json
     login-and-profile.flow.json
+    echo-subflow.flow.json
     kitchen-sink.flow.json
   environments/
     local.json

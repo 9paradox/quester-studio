@@ -5,27 +5,16 @@ description: Planned features and milestones
 
 High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox/quester-studio/issues) and [ROADMAP.md](https://github.com/9paradox/quester-studio/blob/main/ROADMAP.md).
 
-## Now — v0.5.0 Flow nodes
+## Shipped — v0.5–v1 thin slice
 
-- `note` (done), `delay` / `wait`, `switch`
+- Flow nodes: `note`, `delay` / `wait`, `switch`, `foreach`, `try` / `catch`, `subflow`, `log`, `inspect` / `preview`
+- Desktop polish: per-flow runs, Stop, command palette, tab reorder, run summary, JMESPath assist
+- Observability: local run history / replay, disk cookie jar
+- Stable path: flow format `v1` freeze note, unsigned macOS desktop artifact, thin Postman Collection import
 
 ## Next
 
-### v0.6.0 — Control & composition
-
-- `foreach` (with max-item limits), `try` / `catch`, `subflow` / `call`
-
-### v0.7.0 — Runs & observability
-
-- Flow run history and replay
-- `log` / `inspect` nodes
-- Disk-persisted cookie jar
-
-## Later — v1.0.0 Stable
-
-- Flow format v1 freeze
-- Polished desktop
-- Thin collection import (Postman / OpenAPI)
+See repo [ROADMAP.md](https://github.com/9paradox/quester-studio/blob/main/ROADMAP.md) for remaining polish and post-v1 work.
 
 ## Platform / SaaS (post-v1)
 

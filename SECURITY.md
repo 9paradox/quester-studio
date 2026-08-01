@@ -22,6 +22,15 @@ Quester does not encrypt secrets at rest. Protect workspace directories with OS-
 - Quester does **not** sandbox network egress. Users are responsible for URLs their flows call.
 - Flows run with the privileges of the user running the CLI or desktop app.
 
+## Loops, composition, and resource caps
+
+These limits reduce accidental or malicious resource exhaustion from flow graphs. They are not a sandbox.
+
+- **`foreach`**: `maxItems` defaults to `100` and must be ≤ `10000`. `concurrency` (when set) must be ≤ `32`. Abort/Stop cancels in-flight item work when an `AbortSignal` is provided.
+- **`subflow`**: maximum call depth is `5`. Cycles in the call stack (A → B → A) are rejected.
+- There is **no** separate per-foreach wall-clock timeout; cancel a run with Stop / `AbortSignal` instead.
+- Cookie jars persist under `.quester/` in the workspace; treat that directory as workspace-local state (may hold session cookies).
+
 ## TLS certificate verification
 
 - By default, HTTPS requests **verify** TLS certificates.

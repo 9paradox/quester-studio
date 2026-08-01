@@ -16,11 +16,18 @@ Flows are graphs of **nodes**. Each builtin type has a `data` schema, an execute
 | [template](./template/) | String / Eta render | Rendered string |
 | [set](./set/) | Write `vars` | Passes previous input through |
 | [if](./if/) | Branch | `{ condition }` + `true`/`false` handle |
+| [switch](./switch/) | Multi-branch | `{ matched }` + case handles |
+| [delay](./delay/) | Sleep (`wait` alias) | Passthrough |
+| [foreach](./foreach/) | Map over array (capped) | `{ results, count, truncated }` |
+| [try](./try/) | Soft-fail branch | `{ ok, input }` + `ok`/`catch` |
+| [subflow](./subflow/) | Call another flow | Subflow output |
 | [output](./output/) | Flow result | Mapped object or previous input |
 | [assert](./assert/) | Fail on checks | `{ ok: true }` or throws |
 | [transform](./transform/) | Build object via JMESPath map | New object |
 | [merge](./merge/) | Deep-merge sources | Merged object |
 | [json](./json/) | Passthrough / JMESPath on previous | Selected JSON |
+| [log](./log/) | Run log message | Input + `{ logged }` |
+| [inspect](./inspect/) | Debug passthrough (`preview` alias) | Selected JSON |
 | [note](./note/) | Canvas sticky annotation | Not executed |
 
 ## Execution model
@@ -31,13 +38,15 @@ Flows are graphs of **nodes**. Each builtin type has a `data` schema, an execute
 4. The run’s `--input` / Run panel JSON is always available as `{{input.*}}`. An [`input`](./input/) node puts that object on the wire.
 5. `set` updates `vars` for later nodes.
 6. `if` follows the edge whose `sourceHandle` is `"true"` or `"false"`.
+7. `switch` / `try` follow the edge whose `sourceHandle` matches the chosen branch (`cases` / `ok`|`catch`).
 
 ## Shared conventions
 
 - Optional `label` on every node for the UI.
 - String fields that support templates use [template syntax](../templates/).
-- JMESPath nodes (`extract`, `transform`, `assert`, `json`) always query the **previous node’s output**, not the run payload.
+- JMESPath nodes (`extract`, `transform`, `assert`, `json`, `inspect`, `foreach` items path, `switch` path) always query the **previous node’s output**, not the run payload (unless you use templates / `{{nodes.*}}`).
 - For run-panel fields, use `{{input.path}}` (or `set` / `template`).
+- Loop and composition caps (`foreach` max items, `subflow` depth) are documented in [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md).
 
 ## Example chain
 
@@ -49,4 +58,5 @@ See the sample workspace:
 
 - `examples/sample-workspace/flows/demo-main-nodes.flow.json` — short pedagogical walkthrough (screenshots / guide)
 - `examples/sample-workspace/flows/login-and-profile.flow.json` — auth + profile walkthrough
-- `examples/sample-workspace/flows/kitchen-sink.flow.json` — every builtin (including a disconnected [`note`](./note/)), template scopes, JMESPath, and HTTP methods against [DummyJSON](https://dummyjson.com/docs)
+- `examples/sample-workspace/flows/echo-subflow.flow.json` — minimal [`subflow`](./subflow/) target
+- `examples/sample-workspace/flows/kitchen-sink.flow.json` — every builtin (including delay, switch, try, foreach, subflow, log, inspect, and a disconnected [`note`](./note/)), template scopes, JMESPath, and HTTP methods against [DummyJSON](https://dummyjson.com/docs)
