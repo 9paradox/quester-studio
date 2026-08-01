@@ -235,7 +235,7 @@ function FlowCanvasInner({
 	useEffect(() => {
 		if (flow.id !== flowIdRef.current) {
 			flowIdRef.current = flow.id;
-			lastEmittedJsonRef.current = null;
+			lastEmittedJsonRef.current = JSON.stringify(flow);
 			const mapped = flowToReactFlow(flow);
 			setNodes(mapped.nodes);
 			setEdges(mapped.edges);
@@ -244,6 +244,7 @@ function FlowCanvasInner({
 
 		const flowJson = JSON.stringify(flow);
 		if (flowJson === lastEmittedJsonRef.current) return;
+		lastEmittedJsonRef.current = flowJson;
 
 		const mapped = flowToReactFlow(flow);
 		setNodes((current) =>
@@ -396,14 +397,22 @@ function FlowCanvasInner({
 	useEffect(() => {
 		(
 			window as unknown as {
-				__questerZoom?: { in: () => void; out: () => void; get: () => number };
+				__questerZoom?: {
+					in: () => void;
+					out: () => void;
+					fit: () => void;
+					get: () => number;
+				};
 			}
 		).__questerZoom = {
 			in: () => zoomIn(),
 			out: () => zoomOut(),
+			fit: () => {
+				void fitView({ padding: 0.15, duration: 200 });
+			},
 			get: () => getZoom(),
 		};
-	}, [zoomIn, zoomOut, getZoom]);
+	}, [zoomIn, zoomOut, fitView, getZoom]);
 
 	const onDragOver = useCallback((event: React.DragEvent) => {
 		event.preventDefault();
@@ -615,14 +624,5 @@ export function FlowCanvas({
 	);
 }
 
-export function callQuesterZoom(action: "in" | "out"): number {
-	const api = (
-		window as unknown as {
-			__questerZoom?: { in: () => void; out: () => void; get: () => number };
-		}
-	).__questerZoom;
-	if (!api) return 1;
-	if (action === "in") api.in();
-	else api.out();
-	return api.get();
-}
+/** @deprecated Prefer `@/lib/canvasZoom.js` — kept for any direct imports. */
+export { callQuesterZoom } from "@/lib/canvasZoom.js";

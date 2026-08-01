@@ -66,7 +66,9 @@ Release packaging: `build:app` writes distributables under `apps/desktop/artifac
 - `Quester-<version>-win-x64-portable.zip` — extract and run `bin/launcher.exe`
 - `Quester-<version>-win-x64-setup.exe` — NSIS installer (choose folder + Apps uninstall; needs [NSIS](https://nsis.sourceforge.io/) locally, or CI installs it)
 
-The Release workflow uploads those files to the GitHub Release.
+On **macOS**, run `bun run --filter @quester-studio/desktop build:app:mac` (or `build:app` on macOS — Windows packaging is skipped automatically). Electrobun emits unsigned macOS artifacts under `artifacts/`; codesign/notarize stay off per project policy.
+
+The Release workflow uploads those files to the GitHub Release (Linux, Windows, and macOS matrix jobs).
 
 Compare run output to CLI:
 

@@ -10,7 +10,7 @@ const NOTE_NODE_DEFAULT_HEIGHT = 160;
 function defaultSizeForType(
 	type: string,
 ): { width: number; height: number } | undefined {
-	if (type === "json") {
+	if (type === "json" || type === "inspect" || type === "preview") {
 		return { width: JSON_NODE_DEFAULT_WIDTH, height: JSON_NODE_DEFAULT_HEIGHT };
 	}
 	if (type === "note") {

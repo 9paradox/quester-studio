@@ -32,6 +32,11 @@ import {
 import { getQuesterClient } from "@/lib/quester-client.js";
 import { DEFAULT_INPUT, withInputNodeValue } from "@/lib/runDefaults.js";
 import {
+	appendRunHistory,
+	findRunHistoryEntry,
+	truncateResultForHistory,
+} from "@/lib/runHistory.js";
+import {
 	clearLastWorkspacePath,
 	readRecentWorkspacePaths,
 	rememberWorkspacePath,
@@ -69,9 +74,51 @@ import {
 } from "../lib/nodeRunStatus.js";
 import { slugifyName } from "./slugify.js";
 
+function confirmDialog(message: string): boolean {
+	const confirmFn =
+		typeof globalThis.confirm === "function"
+			? globalThis.confirm.bind(globalThis)
+			: typeof window !== "undefined" && typeof confirmDialog === "function"
+				? confirmDialog.bind(window)
+				: null;
+	if (!confirmFn) return true;
+	return confirmFn(message);
+}
+
 export type RightPanelTab = "inspector" | "response";
-export type PanelTab = "console" | "logs";
+export type PanelTab = "console" | "logs" | "history";
 export type PathIndexStatus = "idle" | "updating";
+
+/** Per-flow run slot (Response / Logs / canvas status). */
+export type FlowRunState = {
+	runResult: ExecuteFlowRpcResult | null;
+	runError: string | null;
+	isRunning: boolean;
+	activeRunId: string | null;
+	nodeStatuses: Record<string, NodeRunStatus>;
+};
+
+export function emptyFlowRunState(): FlowRunState {
+	return {
+		runResult: null,
+		runError: null,
+		isRunning: false,
+		activeRunId: null,
+		nodeStatuses: {},
+	};
+}
+
+/** Stable reference for selectors when no run slot exists (avoids zustand rerender loops). */
+export const STABLE_EMPTY_FLOW_RUN = emptyFlowRunState();
+
+export function patchFlowRun(
+	runByFlowId: Record<string, FlowRunState>,
+	flowId: string,
+	patch: Partial<FlowRunState>,
+): Record<string, FlowRunState> {
+	const prev = runByFlowId[flowId] ?? emptyFlowRunState();
+	return { ...runByFlowId, [flowId]: { ...prev, ...patch } };
+}
 
 const DEFAULT_PANEL_HEIGHT = 180;
 const DEFAULT_SIDEBAR_WIDTH = 240;
@@ -228,14 +275,8 @@ export type QuesterState = {
 	inputJson: string;
 	inputError: string | null;
 	playgroundOpen: boolean;
-	runResult: ExecuteFlowRpcResult | null;
-	runError: string | null;
-	isRunning: boolean;
-	/** UUID for the in-flight / latest flow run (stale-event guard). */
-	activeRunId: string | null;
-	/** Flow id associated with `nodeStatuses` / `activeRunId`. */
-	runFlowId: string | null;
-	nodeStatuses: Record<string, NodeRunStatus>;
+	/** Run state keyed by flow id (active flow drives Response/Logs UI). */
+	runByFlowId: Record<string, FlowRunState>;
 	requestResult: ExecuteRequestRpcResult | null;
 	requestError: string | null;
 	isSendingRequest: boolean;
@@ -314,17 +355,23 @@ export type QuesterState = {
 	deleteEdges: (edgeIds: string[]) => void;
 	duplicateNode: (nodeId: string) => void;
 	closeTab: (tabId: string) => void;
+	reorderTabs: (fromIndex: number, toIndex: number) => void;
+	closeTabsToLeft: (tabId: string) => void;
+	closeTabsToRight: (tabId: string) => void;
 	saveActiveTab: (tabId?: string | null) => Promise<void>;
 	createFlow: () => Promise<void>;
 	createEnv: () => Promise<void>;
 	createSecretsFile: () => Promise<void>;
 	createCollection: () => Promise<void>;
+	importCollection: () => Promise<void>;
 	createRequest: (collection?: string) => Promise<void>;
 	deleteRequest: (requestPath: string) => Promise<void>;
 	addRequestToCanvas: (requestPath: string) => Promise<void>;
 	renameFlow: (flowId: string) => Promise<void>;
 	deleteFlow: (flowId: string) => Promise<void>;
 	runFlow: () => Promise<void>;
+	stopFlow: () => void;
+	replayRunFromHistory: (runId: string) => void;
 	sendRequest: () => Promise<void>;
 };
 
@@ -366,12 +413,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	inputJson: DEFAULT_INPUT,
 	inputError: null,
 	playgroundOpen: false,
-	runResult: null,
-	runError: null,
-	isRunning: false,
-	activeRunId: null,
-	runFlowId: null,
-	nodeStatuses: {},
+	runByFlowId: {},
 	requestResult: null,
 	requestError: null,
 	isSendingRequest: false,
@@ -498,13 +540,34 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		set((s) => ({ consoleLines: [...s.consoleLines, `> ${line}`] })),
 	clearConsole: () => set({ consoleLines: ["> Console cleared"] }),
 	clearLogs: () =>
-		set((s) => ({
-			runError: null,
-			runResult: s.runResult ? { ...s.runResult, logs: [] } : null,
-		})),
+		set((s) => {
+			const flowTab = s.openTabs.find((t) => t.id === s.activeTabId);
+			if (flowTab?.kind !== "flow") return s;
+			const flowId = flowTab.flowId;
+			const prev = s.runByFlowId[flowId] ?? emptyFlowRunState();
+			return {
+				runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
+					runError: null,
+					runResult: prev.runResult ? { ...prev.runResult, logs: [] } : null,
+				}),
+			};
+		}),
 	showError: (message) => {
 		toast.error(message);
-		set({ runError: message, panelTab: "logs", panelOpen: true });
+		set((s) => {
+			const flowTab = s.openTabs.find((t) => t.id === s.activeTabId);
+			const base = {
+				panelTab: "logs" as const,
+				panelOpen: true,
+			};
+			if (flowTab?.kind !== "flow") return base;
+			return {
+				...base,
+				runByFlowId: patchFlowRun(s.runByFlowId, flowTab.flowId, {
+					runError: message,
+				}),
+			};
+		});
 	},
 
 	handleActivityView: (view) => {
@@ -589,11 +652,15 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	applyNodeRunStatusEvent: (event) => {
-		const { activeRunId, runFlowId, nodeStatuses } = get();
-		if (event.runId !== activeRunId || event.flowId !== runFlowId) return;
-		const next = applyNodeStatusEvent(nodeStatuses, event);
-		if (next === nodeStatuses) return;
-		set({ nodeStatuses: next });
+		const slot = get().runByFlowId[event.flowId] ?? emptyFlowRunState();
+		if (event.runId !== slot.activeRunId) return;
+		const next = applyNodeStatusEvent(slot.nodeStatuses, event);
+		if (next === slot.nodeStatuses) return;
+		set((s) => ({
+			runByFlowId: patchFlowRun(s.runByFlowId, event.flowId, {
+				nodeStatuses: next,
+			}),
+		}));
 	},
 
 	refreshWorkspaceLists: async (path) => {
@@ -683,8 +750,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		set({
 			isLoading: true,
 			loadError: null,
-			runResult: null,
-			runError: null,
+			runByFlowId: {},
 			openTabs: [],
 			activeTabId: null,
 			canvasDirty: false,
@@ -747,12 +813,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			canvasDirty: false,
 			pathShapeIndex: emptyPathShapeIndex(),
 			pathIndexStatus: "idle",
-			runResult: null,
-			runError: null,
-			isRunning: false,
-			activeRunId: null,
-			runFlowId: null,
-			nodeStatuses: {},
+			runByFlowId: {},
 			loadError: null,
 			isLoading: false,
 			requestResult: null,
@@ -1006,7 +1067,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const { openTabs, activeTabId } = get();
 		const tab = openTabs.find((t) => t.id === tabId);
 		if (tab?.dirty) {
-			const ok = window.confirm(
+			const ok = confirmDialog(
 				`Close ${editorTabLabel(tab)} with unsaved changes?`,
 			);
 			if (!ok) return;
@@ -1022,6 +1083,46 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				? { inputJson: nextActive.inputJson }
 				: {}),
 		});
+	},
+
+	reorderTabs: (fromIndex, toIndex) => {
+		if (fromIndex === toIndex) return;
+		const { openTabs } = get();
+		if (
+			fromIndex < 0 ||
+			toIndex < 0 ||
+			fromIndex >= openTabs.length ||
+			toIndex >= openTabs.length
+		) {
+			return;
+		}
+		const next = [...openTabs];
+		const [moved] = next.splice(fromIndex, 1);
+		if (!moved) return;
+		next.splice(toIndex, 0, moved);
+		set({ openTabs: next });
+	},
+
+	closeTabsToLeft: (tabId) => {
+		const { openTabs, closeTab } = get();
+		const idx = openTabs.findIndex((t) => t.id === tabId);
+		if (idx <= 0) return;
+		for (const tab of openTabs.slice(0, idx)) {
+			const before = get().openTabs.length;
+			closeTab(tab.id);
+			if (get().openTabs.length === before) return;
+		}
+	},
+
+	closeTabsToRight: (tabId) => {
+		const { openTabs, closeTab } = get();
+		const idx = openTabs.findIndex((t) => t.id === tabId);
+		if (idx < 0 || idx >= openTabs.length - 1) return;
+		for (const tab of openTabs.slice(idx + 1)) {
+			const before = get().openTabs.length;
+			closeTab(tab.id);
+			if (get().openTabs.length === before) return;
+		}
 	},
 
 	saveActiveTab: async (tabId = get().activeTabId) => {
@@ -1307,12 +1408,12 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const tabId = flowTabId(flowId);
 		const tab = openTabs.find((t) => t.id === tabId);
 		if (tab?.dirty) {
-			const saveFirst = window.confirm(
+			const saveFirst = confirmDialog(
 				`${meta?.name ?? flowId} has unsaved changes. Save before deleting?`,
 			);
 			if (saveFirst) await saveActiveTab(tabId);
 		}
-		const ok = window.confirm(`Delete ${meta?.name ?? flowId}?`);
+		const ok = confirmDialog(`Delete ${meta?.name ?? flowId}?`);
 		if (!ok) return;
 		try {
 			await getQuesterClient().deleteFlow(workspacePath, flowId);
@@ -1358,41 +1459,56 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		}
 
 		const runId = crypto.randomUUID();
+		const flowId = activeFlowTab.flowId;
 		const nodeIds = activeFlowTab.flow.nodes.map((n) => n.id);
-		set({
-			isRunning: true,
-			runError: null,
-			runResult: null,
-			activeRunId: runId,
-			runFlowId: activeFlowTab.flowId,
-			nodeStatuses: initNodeStatuses(nodeIds),
+		set((s) => ({
+			runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
+				isRunning: true,
+				runError: null,
+				runResult: null,
+				activeRunId: runId,
+				nodeStatuses: initNodeStatuses(nodeIds),
+			}),
 			panelOpen: true,
 			panelTab: "logs",
 			rightPanelOpen: true,
 			rightPanelTab: "response",
-		});
-		appendConsole(`Run started: ${activeFlowTab.flowId}`);
+		}));
+		appendConsole(`Run started: ${flowId}`);
 
 		try {
 			const result = await getQuesterClient().executeFlowRpc({
-				flowId: activeFlowTab.flowId,
+				flowId,
 				workspace: workspacePath,
 				runId,
 				env: selectedEnv,
 				input,
 			});
-			const { activeRunId, nodeStatuses } = get();
+			const slot = get().runByFlowId[flowId] ?? emptyFlowRunState();
 			const reconciled =
-				activeRunId === runId
-					? reconcileNodeStatuses(nodeIds, result.steps, nodeStatuses)
-					: get().nodeStatuses;
-			set({
-				runResult: result,
-				runError: result.error ?? null,
-				...(activeRunId === runId ? { nodeStatuses: reconciled } : {}),
+				slot.activeRunId === runId
+					? reconcileNodeStatuses(nodeIds, result.steps, slot.nodeStatuses)
+					: slot.nodeStatuses;
+			set((s) => ({
+				runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
+					runResult: result,
+					runError: result.error ?? null,
+					...(slot.activeRunId === runId ? { nodeStatuses: reconciled } : {}),
+				}),
+			}));
+			appendRunHistory({
+				flowId,
+				runId,
+				ts: Date.now(),
+				ok: !result.error && !result.cancelled,
+				error: result.error,
+				result: truncateResultForHistory(result),
 			});
 			scheduleIndexNodeOutputs(result.nodeOutputs);
-			if (result.error) {
+			if (result.cancelled) {
+				toast.warning("Run cancelled");
+				appendConsole("Run cancelled");
+			} else if (result.error) {
 				toast.error(result.error);
 				appendConsole(`Run failed: ${result.error}`);
 				const failedStep = result.steps.find((s) => s.error);
@@ -1415,6 +1531,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					}
 				}
 			} else {
+				toast.success(`Run finished: ${flowId}`);
 				appendConsole("Run finished");
 			}
 		} catch (err) {
@@ -1425,20 +1542,65 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			const short =
 				err instanceof Error ? err.message : "Flow execution failed";
 			toast.error(short);
-			const { activeRunId, nodeStatuses } = get();
-			if (activeRunId === runId) {
-				const reconciled = reconcileNodeStatuses(nodeIds, [], nodeStatuses);
-				set({
-					runError: err instanceof Error ? err.message : message,
-					nodeStatuses: reconciled,
-				});
+			const slot = get().runByFlowId[flowId] ?? emptyFlowRunState();
+			if (slot.activeRunId === runId) {
+				const reconciled = reconcileNodeStatuses(
+					nodeIds,
+					[],
+					slot.nodeStatuses,
+				);
+				set((s) => ({
+					runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
+						runError: err instanceof Error ? err.message : message,
+						nodeStatuses: reconciled,
+					}),
+				}));
 			} else {
-				set({ runError: err instanceof Error ? err.message : message });
+				set((s) => ({
+					runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
+						runError: err instanceof Error ? err.message : message,
+					}),
+				}));
 			}
 			appendConsole(message);
 		} finally {
-			set({ isRunning: false });
+			set((s) => ({
+				runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
+					isRunning: false,
+				}),
+			}));
 		}
+	},
+
+	stopFlow: () => {
+		const { openTabs, activeTabId, runByFlowId } = get();
+		const activeTab = openTabs.find((t) => t.id === activeTabId);
+		if (activeTab?.kind !== "flow") return;
+		const flowId = activeTab.flowId;
+		const slot = runByFlowId[flowId];
+		if (!slot?.isRunning || !slot.activeRunId) return;
+		void getQuesterClient().cancelFlowRun({ runId: slot.activeRunId });
+	},
+
+	replayRunFromHistory: (runId) => {
+		const { openTabs, activeTabId } = get();
+		const activeTab = openTabs.find((t) => t.id === activeTabId);
+		if (activeTab?.kind !== "flow") return;
+		const flowId = activeTab.flowId;
+		const entry = findRunHistoryEntry(flowId, runId);
+		if (!entry) return;
+		set((s) => ({
+			runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
+				runResult: entry.result,
+				runError: entry.error ?? entry.result.error ?? null,
+				isRunning: false,
+			}),
+			rightPanelOpen: true,
+			rightPanelTab: "response",
+			panelOpen: true,
+			panelTab: "logs",
+		}));
+		scheduleIndexNodeOutputs(entry.result.nodeOutputs ?? {});
 	},
 
 	createCollection: async () => {
@@ -1464,6 +1626,36 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		} catch (err) {
 			showError(
 				err instanceof Error ? err.message : "Create collection failed",
+			);
+		}
+	},
+
+	importCollection: async () => {
+		const { workspacePath, refreshWorkspaceLists, appendConsole, showError } =
+			get();
+		if (!workspacePath) return;
+		try {
+			const filePath = await getQuesterClient().pickCollectionFile();
+			if (!filePath) return;
+			const result = await getQuesterClient().importCollection(
+				workspacePath,
+				filePath,
+			);
+			await refreshWorkspaceLists(workspacePath);
+			for (const path of result.imported) {
+				appendConsole(`Imported request ${path}`);
+			}
+			if (result.imported.length > 0) {
+				toast.success(
+					`Imported ${result.imported.length} request${result.imported.length === 1 ? "" : "s"}`,
+				);
+			} else {
+				toast.info("No requests found in collection");
+			}
+			set({ activityView: "collections", sidebarOpen: true });
+		} catch (err) {
+			showError(
+				err instanceof Error ? err.message : "Import collection failed",
 			);
 		}
 	},
@@ -1509,7 +1701,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			showError,
 		} = get();
 		if (!workspacePath) return;
-		const ok = window.confirm(`Delete request ${requestPath}?`);
+		const ok = confirmDialog(`Delete request ${requestPath}?`);
 		if (!ok) return;
 		try {
 			await getQuesterClient().deleteRequest(workspacePath, requestPath);

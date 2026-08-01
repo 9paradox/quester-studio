@@ -12,9 +12,11 @@ export {
 	deleteFlow,
 	deleteRequest,
 	executeFlowRpc,
+	cancelFlowRun,
 	executeRequestRpc,
 	getAppTlsVerify,
 	getDefaultWorkspace,
+	importCollection,
 	listCollectionRequests,
 	listCollections,
 	listEnvs,
@@ -49,6 +51,17 @@ export async function pickWorkspaceFolder(): Promise<string | null> {
 		canChooseFiles: false,
 		allowsMultipleSelection: false,
 		allowedFileTypes: "*",
+	});
+	return paths[0] ?? null;
+}
+
+export async function pickCollectionFile(): Promise<string | null> {
+	const { Utils } = await import("electrobun/bun");
+	const paths = await Utils.openFileDialog({
+		canChooseDirectory: false,
+		canChooseFiles: true,
+		allowsMultipleSelection: false,
+		allowedFileTypes: "json",
 	});
 	return paths[0] ?? null;
 }

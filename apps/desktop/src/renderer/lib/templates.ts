@@ -352,19 +352,56 @@ export function templateSuggestions(
 	}
 }
 
+/** Common JMESPath constructs for autocomplete (not path lint). */
+export const JMESPATH_SNIPPETS: readonly TemplateSuggestion[] = [
+	{ label: "[0]", detail: "First array element" },
+	{ label: "[*]", detail: "All elements (projection)" },
+	{ label: "[*].id", detail: "Map id from each array item" },
+	{ label: "length(@)", detail: "Array or string length" },
+	{ label: "contains(@, 'text')", detail: "True when string contains text" },
+	{
+		label: "starts_with(@, 'prefix')",
+		detail: "True when string starts with prefix",
+	},
+	{ label: "type(@)", detail: "JSON type name" },
+	{ label: "| [0]", detail: "Pipe result, take first element" },
+	{ label: "| length(@)", detail: "Pipe result, get length" },
+];
+
+/** Snippet suggestions filtered by the typed prefix. */
+export function jmesPathSnippetSuggestions(word: string): TemplateSuggestion[] {
+	const trimmed = word.replace(/^\s+/, "");
+	if (!trimmed) return [...JMESPATH_SNIPPETS];
+	const lower = trimmed.toLowerCase();
+	return JMESPATH_SNIPPETS.filter(
+		(s) =>
+			s.label.toLowerCase().startsWith(lower) ||
+			s.label.toLowerCase().includes(lower),
+	);
+}
+
 /** Suggestions for bare JMESPath fields (extract / assert / json). */
 export function jmesPathSuggestions(
 	word: string,
 	paths: readonly string[],
 ): TemplateSuggestion[] {
 	const trimmed = word.replace(/^\s+/, "");
-	if (!trimmed) {
-		return paths.slice(0, 80).map((label) => ({
-			label,
-			detail: "path",
-		}));
+	const pathHits = !trimmed
+		? paths.slice(0, 80).map((label) => ({
+				label,
+				detail: "path",
+			}))
+		: filterByPrefix(paths, trimmed, "path");
+	const snippetHits = jmesPathSnippetSuggestions(trimmed);
+
+	const seen = new Set<string>();
+	const merged: TemplateSuggestion[] = [];
+	for (const hit of [...pathHits, ...snippetHits]) {
+		if (seen.has(hit.label)) continue;
+		seen.add(hit.label);
+		merged.push(hit);
 	}
-	return filterByPrefix(paths, trimmed, "path");
+	return merged;
 }
 
 /**

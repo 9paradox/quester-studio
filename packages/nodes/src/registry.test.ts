@@ -10,4 +10,12 @@ describe("node registry", () => {
 		}
 		expect(listNodePlugins()).toHaveLength(builtinNodeTypes.length);
 	});
+
+	test("resolves wait alias to delay plugin", () => {
+		expect(getNodePlugin("wait")).toBe(getNodePlugin("delay"));
+	});
+
+	test("resolves preview alias to inspect plugin", () => {
+		expect(getNodePlugin("preview")).toBe(getNodePlugin("inspect"));
+	});
 });

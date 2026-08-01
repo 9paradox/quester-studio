@@ -7,6 +7,13 @@ import {
 	ContextMenuTrigger,
 } from "@/components/ui/context-menu.js";
 import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu.js";
+import {
 	type EditorTab,
 	editorTabIcon,
 	editorTabLabel,
@@ -14,14 +21,16 @@ import {
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
+	IconChevronDown,
 	IconFile,
+	IconFolderOpen,
 	IconKey,
 	IconSettings,
 	IconTopologyRing2,
 	IconWorld,
 	IconX,
 } from "@tabler/icons-react";
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 function TabIcon({ tab }: { tab: EditorTab }) {
 	const kind = editorTabIcon(tab);
@@ -40,13 +49,67 @@ function saveShortcutLabel(): string {
 	return /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘S" : "Ctrl+S";
 }
 
+function WorkspaceChip() {
+	const workspaceName = useQuesterStore((s) => s.workspaceName);
+	const workspacePath = useQuesterStore((s) => s.workspacePath);
+	const openWorkspaceSettings = useQuesterStore((s) => s.openWorkspaceSettings);
+	const openWorkspacePicker = useQuesterStore((s) => s.openWorkspacePicker);
+	const closeWorkspace = useQuesterStore((s) => s.closeWorkspace);
+
+	const label = workspaceName || "No workspace";
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger
+				render={
+					<button
+						type="button"
+						className="flex h-9 max-w-[200px] shrink-0 items-center gap-1 border-r border-border/50 px-2.5 text-xs text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+						aria-label="Workspace actions"
+					/>
+				}
+			>
+				<span className="truncate">{label}</span>
+				<IconChevronDown className="size-3 shrink-0 opacity-70" />
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start" className="min-w-44">
+				<DropdownMenuItem onClick={() => void openWorkspaceSettings()}>
+					<IconSettings />
+					Workspace settings
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => void openWorkspacePicker()}>
+					<IconFolderOpen />
+					Open workspace
+				</DropdownMenuItem>
+				{workspacePath ? (
+					<>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem
+							variant="destructive"
+							onClick={() => closeWorkspace()}
+						>
+							<IconX />
+							Close workspace
+						</DropdownMenuItem>
+					</>
+				) : null}
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+}
+
 export function TopBar() {
 	const openTabs = useQuesterStore((s) => s.openTabs);
 	const activeTabId = useQuesterStore((s) => s.activeTabId);
 	const setActiveTabId = useQuesterStore((s) => s.setActiveTabId);
 	const closeTab = useQuesterStore((s) => s.closeTab);
+	const closeTabsToLeft = useQuesterStore((s) => s.closeTabsToLeft);
+	const closeTabsToRight = useQuesterStore((s) => s.closeTabsToRight);
+	const reorderTabs = useQuesterStore((s) => s.reorderTabs);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const [dragIndex, setDragIndex] = useState<number | null>(null);
+	const [dropIndex, setDropIndex] = useState<number | null>(null);
 
 	const scrollTabIntoView = (tabId: string) => {
 		const container = scrollRef.current;
@@ -85,30 +148,73 @@ export function TopBar() {
 		});
 	}, [activeTabId]);
 
+	const handleDragStart = (index: number) => {
+		setDragIndex(index);
+	};
+
+	const handleDragOver = (e: React.DragEvent, index: number) => {
+		e.preventDefault();
+		e.dataTransfer.dropEffect = "move";
+		setDropIndex(index);
+	};
+
+	const handleDrop = (e: React.DragEvent, toIndex: number) => {
+		e.preventDefault();
+		const raw = e.dataTransfer.getData("text/plain");
+		const fromIndex = Number(raw);
+		if (!Number.isNaN(fromIndex)) {
+			reorderTabs(fromIndex, toIndex);
+		}
+		setDragIndex(null);
+		setDropIndex(null);
+	};
+
+	const handleDragEnd = () => {
+		setDragIndex(null);
+		setDropIndex(null);
+	};
+
 	return (
-		<header className="h-9 shrink-0 overflow-hidden border-b bg-muted/20">
+		<header className="flex h-9 shrink-0 overflow-hidden border-b bg-muted/20">
+			<WorkspaceChip />
+			<div className="flex h-9 w-px shrink-0 bg-border/50" aria-hidden />
 			<div
 				ref={scrollRef}
 				onWheel={onWheel}
-				className="flex h-9 max-h-9 items-stretch overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+				className="flex h-9 min-w-0 flex-1 items-stretch overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
 			>
 				{openTabs.length === 0 ? (
 					<span className="flex h-9 items-center px-3 text-xs text-muted-foreground">
 						No editor open
 					</span>
 				) : (
-					openTabs.map((tab) => {
+					openTabs.map((tab, index) => {
 						const active = tab.id === activeTabId;
 						const label = editorTabLabel(tab);
+						const isDragging = dragIndex === index;
+						const showDropBefore =
+							dropIndex === index && dragIndex !== null && dragIndex !== index;
 						return (
 							<ContextMenu key={tab.id}>
 								<ContextMenuTrigger
 									data-tab-id={tab.id}
+									draggable
+									onDragStart={(e) => {
+										e.dataTransfer.effectAllowed = "move";
+										e.dataTransfer.setData("text/plain", String(index));
+										handleDragStart(index);
+									}}
+									onDragOver={(e) => handleDragOver(e, index)}
+									onDrop={(e) => handleDrop(e, index)}
+									onDragEnd={handleDragEnd}
 									className={cn(
 										"group relative flex h-9 max-h-9 shrink-0 items-center border-r border-border/50",
 										active
 											? "bg-background text-foreground"
 											: "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+										isDragging && "opacity-50",
+										showDropBefore &&
+											"before:pointer-events-none before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-primary",
 									)}
 								>
 									<button
@@ -154,6 +260,19 @@ export function TopBar() {
 										<ContextMenuShortcut>
 											{saveShortcutLabel()}
 										</ContextMenuShortcut>
+									</ContextMenuItem>
+									<ContextMenuSeparator />
+									<ContextMenuItem
+										disabled={index === 0}
+										onClick={() => closeTabsToLeft(tab.id)}
+									>
+										Close to the Left
+									</ContextMenuItem>
+									<ContextMenuItem
+										disabled={index === openTabs.length - 1}
+										onClick={() => closeTabsToRight(tab.id)}
+									>
+										Close to the Right
 									</ContextMenuItem>
 									<ContextMenuSeparator />
 									<ContextMenuItem onClick={() => closeTab(tab.id)}>

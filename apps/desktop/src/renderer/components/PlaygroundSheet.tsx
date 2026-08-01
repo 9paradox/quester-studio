@@ -9,12 +9,13 @@ import {
 } from "@/components/ui/sheet.js";
 import { Textarea } from "@/components/ui/textarea.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
+import { selectActiveFlowRun } from "@/stores/selectors.js";
 
 export function PlaygroundSheet() {
 	const open = useQuesterStore((s) => s.playgroundOpen);
 	const inputJson = useQuesterStore((s) => s.inputJson);
 	const inputError = useQuesterStore((s) => s.inputError);
-	const isRunning = useQuesterStore((s) => s.isRunning);
+	const { isRunning } = useQuesterStore(selectActiveFlowRun);
 
 	const setPlaygroundOpen = useQuesterStore((s) => s.setPlaygroundOpen);
 	const setInputJson = useQuesterStore((s) => s.setInputJson);

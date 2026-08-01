@@ -9,6 +9,10 @@ export type NodeExecutionContext = {
 	nodeOutputs: Record<string, unknown>;
 	resolveTemplate: (template: string) => string;
 	fetch: typeof fetch;
+	/** When aborted, long-running nodes should stop between iterations. */
+	signal?: AbortSignal;
+	/** Run another workspace flow by id (workspace execution only). */
+	executeSubflow?: (flowId: string, input: unknown) => Promise<unknown>;
 	/** Resolved workspace→flow HTTP defaults (headers merged; timeout inherited). */
 	httpDefaults?: HttpSettingsV1;
 	/** In-run cookie jar shared across HTTP hops (when enabled). */
@@ -17,7 +21,7 @@ export type NodeExecutionContext = {
 
 export type NodeExecutionResult = {
 	output: unknown;
-	branch?: "true" | "false";
+	branch?: string;
 	vars?: Record<string, unknown>;
 };
 

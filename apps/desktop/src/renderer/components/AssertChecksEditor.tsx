@@ -1,4 +1,4 @@
-import { TemplateField } from "@/components/TemplateField.js";
+import { JmesPathField, JmesPathHelpText } from "@/components/JmesPathField.js";
 import { Button } from "@/components/ui/button.js";
 import { Label } from "@/components/ui/label.js";
 import {
@@ -80,6 +80,7 @@ export function AssertChecksEditor({
 				<IconPlus data-icon="inline-start" />
 				Add check
 			</Button>
+			<JmesPathHelpText />
 		</div>
 	);
 }
@@ -125,11 +126,11 @@ function AssertCheckRow({
 					<Label className="text-xs text-muted-foreground">
 						Path (JMESPath)
 					</Label>
-					<TemplateField
+					<JmesPathField
 						value={check.path}
 						onChange={(path) => onChange({ ...check, path })}
 						placeholder="status"
-						completionMode="jmespath"
+						showHelp={false}
 					/>
 				</div>
 				{canRemove ? (

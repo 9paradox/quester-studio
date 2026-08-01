@@ -13,18 +13,22 @@ Living list of known bugs and correctness issues. Prefer a GitHub Issue with `ty
 
 ## Open
 
+_None._
+
+---
+
+## Fixed
+
 ### B1 — Windows installer shortcuts / DisplayIcon have no Quester icon
 
 | | |
 | --- | --- |
 | **Severity** | medium |
 | **Area** | desktop (NSIS) |
-| **Status** | open |
+| **Status** | fixed |
 | **Issue** | #87 |
 
-NSIS creates Desktop and Start Menu shortcuts pointing at `launcher.exe` with no icon file argument, and Apps & Features `DisplayIcon` also uses `launcher.exe`. `assets/icon.ico` is only wired for the setup wizard (`MUI_ICON`), so Explorer shows a blank/generic icon after install.
-
-**Fix direction:** install `icon.ico` into `$INSTDIR`; pass it to `CreateShortcut` and `DisplayIcon`. Optional: embed into `launcher.exe` via `rcedit` for portable zips.
+NSIS installs `app.ico` and passes it to Desktop/Start Menu shortcuts and Apps & Features `DisplayIcon`. Electrobun also copies `assets/icon.ico` to `Resources/app.ico`.
 
 ### B2 — “Open sample” ENOENT on fresh install
 
@@ -32,12 +36,10 @@ NSIS creates Desktop and Start Menu shortcuts pointing at `launcher.exe` with no
 | --- | --- |
 | **Severity** | high |
 | **Area** | desktop, workspace-service |
-| **Status** | open |
+| **Status** | fixed |
 | **Issue** | #88 |
 
-Welcome → Open sample uses `resolveDefaultWorkspaceRoot()`, which walks for `examples/sample-workspace` from `cwd` / `import.meta.url`. That only works in the monorepo. Release builds do not copy the sample into the app bundle, so packaged installs fail (e.g. nonsense paths like `C:\Users\examples\sample-workspace\quester.json`).
-
-**Fix direction:** ship sample under app Resources; resolve packaged path; on Open sample copy to a writable user dir (`%APPDATA%/Quester/sample-workspace` on Windows).
+Sample is synced into the desktop bundle (`Resources/sample-workspace`). Open sample copies to a writable user dir (`%APPDATA%/Quester/sample-workspace` on Windows).
 
 ### B3 — Run Response/Logs leak across flow tabs; no success toast
 
@@ -45,16 +47,10 @@ Welcome → Open sample uses `resolveDefaultWorkspaceRoot()`, which walks for `e
 | --- | --- |
 | **Severity** | high |
 | **Area** | desktop |
-| **Status** | open |
+| **Status** | fixed |
 | **Issue** | #89 |
 
-`runResult`, `runError`, `isRunning`, `nodeStatuses`, and related fields are a single global set on the store. Switching flow tabs does not swap run state, so flow B shows flow A’s Response/Logs. Errors toast; success only logs “Run finished” with no `toast.success`.
-
-**Fix direction:** key run state by `flowId`; Response/Logs/selectors use the active flow; toast on pass and fail.
-
----
-
-## Fixed
+Run state is keyed by `flowId` (`runByFlowId`). Response/Logs use the active flow’s slot. Success uses `toast.success`; errors keep `toast.error`.
 
 ### BUG-001 — Dedicated `start` node; multi-root flows rejected
 
@@ -67,7 +63,7 @@ Welcome → Open sample uses `resolveDefaultWorkspaceRoot()`, which walks for `e
 - Builtin `start` node (output only, emits `{}`)
 - Exactly one `start`; ≤1 outgoing edge; no incoming edges
 - Reachability and execution begin at `start`
-- Desktop: scaffold `start → input`, block second start child / delete start / duplicate start
+- Desktop: scaffold `start → input`, block second start child / delete start / delete start / duplicate start
 - Docs updated
 
 ---

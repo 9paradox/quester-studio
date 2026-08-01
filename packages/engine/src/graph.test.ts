@@ -44,4 +44,73 @@ describe("selectNextEdges", () => {
 			"no",
 		]);
 	});
+
+	test("filters switch branches by arbitrary sourceHandle", () => {
+		const switchFlow: FlowV1 = {
+			id: "switch-test",
+			version: "v1",
+			nodes: [
+				{ id: "in", type: "input", data: {} },
+				{
+					id: "sw",
+					type: "switch",
+					data: {
+						expression: "x",
+						cases: [
+							{ value: "a", handle: "alpha" },
+							{ value: "b", handle: "beta" },
+						],
+					},
+				},
+				{ id: "alpha", type: "set", data: {} },
+				{ id: "beta", type: "set", data: {} },
+				{ id: "fallback", type: "set", data: {} },
+			],
+			edges: [
+				{ id: "e1", source: "in", target: "sw" },
+				{ id: "e2", source: "sw", target: "alpha", sourceHandle: "alpha" },
+				{ id: "e3", source: "sw", target: "beta", sourceHandle: "beta" },
+				{
+					id: "e4",
+					source: "sw",
+					target: "fallback",
+					sourceHandle: "default",
+				},
+			],
+		};
+		const node = switchFlow.nodes.find((n) => n.id === "sw");
+		if (!node) throw new Error("missing node");
+		expect(
+			selectNextEdges(switchFlow, node, "alpha").map((e) => e.target),
+		).toEqual(["alpha"]);
+		expect(
+			selectNextEdges(switchFlow, node, "default").map((e) => e.target),
+		).toEqual(["fallback"]);
+	});
+
+	test("filters try branches by sourceHandle", () => {
+		const tryFlow: FlowV1 = {
+			id: "try-test",
+			version: "v1",
+			nodes: [
+				{ id: "in", type: "input", data: {} },
+				{ id: "guard", type: "try", data: { condition: "true" } },
+				{ id: "ok", type: "set", data: {} },
+				{ id: "catch", type: "set", data: {} },
+			],
+			edges: [
+				{ id: "e1", source: "in", target: "guard" },
+				{ id: "e2", source: "guard", target: "ok", sourceHandle: "ok" },
+				{ id: "e3", source: "guard", target: "catch", sourceHandle: "catch" },
+			],
+		};
+		const node = tryFlow.nodes.find((n) => n.id === "guard");
+		if (!node) throw new Error("missing node");
+		expect(selectNextEdges(tryFlow, node, "ok").map((e) => e.target)).toEqual([
+			"ok",
+		]);
+		expect(
+			selectNextEdges(tryFlow, node, "catch").map((e) => e.target),
+		).toEqual(["catch"]);
+	});
 });

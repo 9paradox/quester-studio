@@ -4,6 +4,7 @@ import {
 } from "@/components/AssertChecksEditor.js";
 import { CodeEditor } from "@/components/CodeEditor.js";
 import { HeadersEditor } from "@/components/HeadersEditor.js";
+import { JmesPathField } from "@/components/JmesPathField.js";
 import { JsonDraftField } from "@/components/JsonDraftField.js";
 import { NodeHelpDialog } from "@/components/NodeHelpDialog.js";
 import { TemplateField } from "@/components/TemplateField.js";
@@ -310,16 +311,248 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				</>
 			) : null}
 
+			{node.type === "delay" ? (
+				<>
+					<InspectorField
+						label="Milliseconds"
+						hint="Base sleep duration before the next node runs."
+					>
+						<Input
+							type="number"
+							min={0}
+							value={String(data.ms ?? 0)}
+							onChange={(e) =>
+								setField("ms", Math.max(0, Number(e.target.value) || 0))
+							}
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Jitter (ms)"
+						hint="Optional random extra delay from 0 up to this value."
+					>
+						<Input
+							type="number"
+							min={0}
+							value={String(data.jitterMs ?? 0)}
+							onChange={(e) =>
+								setField("jitterMs", Math.max(0, Number(e.target.value) || 0))
+							}
+						/>
+					</InspectorField>
+				</>
+			) : null}
+
+			{node.type === "foreach" ? (
+				<>
+					<InspectorField
+						label="Items"
+						hint="JMESPath on previous output or templated JSON array string."
+					>
+						<JmesPathField
+							value={String(data.items ?? "items")}
+							onChange={(items) => setField("items", items)}
+							placeholder="body.users"
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Map"
+						hint="Optional JMESPath on { [itemVar]: item, index } per element."
+					>
+						<JmesPathField
+							value={String(data.map ?? "")}
+							onChange={(map) => {
+								if (map === "") {
+									const { map: _omit, ...rest } = data;
+									onUpdate(rest);
+									return;
+								}
+								setField("map", map);
+							}}
+							placeholder="item.id"
+						/>
+					</InspectorField>
+					<InspectorField label="Item variable" hint='Default "item".'>
+						<Input
+							value={String(data.itemVar ?? "item")}
+							onChange={(e) => setField("itemVar", e.target.value)}
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Max items"
+						hint="Cap iteration count (default 100)."
+					>
+						<Input
+							type="number"
+							min={1}
+							value={String(data.maxItems ?? 100)}
+							onChange={(e) =>
+								setField("maxItems", Math.max(1, Number(e.target.value) || 100))
+							}
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Concurrency"
+						hint="Optional parallel item processing limit."
+					>
+						<Input
+							type="number"
+							min={1}
+							value={
+								data.concurrency === undefined ? "" : String(data.concurrency)
+							}
+							onChange={(e) => {
+								const raw = e.target.value.trim();
+								if (raw === "") {
+									const { concurrency: _omit, ...rest } = data;
+									onUpdate(rest);
+									return;
+								}
+								setField("concurrency", Math.max(1, Number(raw) || 1));
+							}}
+							placeholder="1"
+						/>
+					</InspectorField>
+				</>
+			) : null}
+
+			{node.type === "try" ? (
+				<>
+					<InspectorField
+						label="Condition"
+						hint="Optional templated truthy string. Combined with checks using AND when both are set."
+					>
+						<TemplateField
+							value={String(data.condition ?? "")}
+							onChange={(condition) => {
+								const hasChecks =
+									Array.isArray(data.checks) && data.checks.length > 0;
+								if (condition === "") {
+									onUpdate({
+										...data,
+										condition: hasChecks ? undefined : "true",
+									});
+									return;
+								}
+								setField("condition", condition);
+							}}
+							placeholder="{{input.active}}"
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Checks"
+						hint='On fail, branch "catch" instead of stopping the flow.'
+					>
+						<AssertChecksEditor
+							checks={data.checks}
+							minChecks={0}
+							onChange={(checks) => {
+								onUpdate({
+									...data,
+									checks: checks.length > 0 ? checks : undefined,
+									condition:
+										checks.length === 0 &&
+										(data.condition === undefined || data.condition === "")
+											? "true"
+											: data.condition,
+								});
+							}}
+						/>
+					</InspectorField>
+				</>
+			) : null}
+
+			{node.type === "subflow" ? (
+				<>
+					<InspectorField
+						label="Flow id"
+						hint="Target flow in the workspace (without .flow.json)."
+					>
+						<Input
+							value={String(data.flowId ?? "")}
+							onChange={(e) => setField("flowId", e.target.value)}
+							placeholder="login-and-profile"
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Input"
+						hint="JSON object of templates passed as subflow run input."
+					>
+						<JsonDraftField
+							value={data.input ?? {}}
+							onCommit={(input) => setField("input", input)}
+							minHeight="7rem"
+						/>
+					</InspectorField>
+				</>
+			) : null}
+
+			{node.type === "switch" ? (
+				<>
+					<InspectorField
+						label="Expression"
+						hint="Optional templated value to match against cases. Used when set; otherwise path is used."
+					>
+						<TemplateField
+							value={String(data.expression ?? "")}
+							onChange={(expression) => {
+								if (expression === "") {
+									const { expression: _omit, ...rest } = data;
+									onUpdate(rest);
+									return;
+								}
+								setField("expression", expression);
+							}}
+							placeholder="{{input.status}}"
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Path"
+						hint="Optional JMESPath on previous output. Used when expression is empty."
+					>
+						<JmesPathField
+							value={String(data.path ?? "")}
+							onChange={(path) => {
+								if (path === "") {
+									const { path: _omit, ...rest } = data;
+									onUpdate(rest);
+									return;
+								}
+								setField("path", path);
+							}}
+							placeholder="status"
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Cases"
+						hint='JSON array of { "value": "...", "handle": "..." }. Connect outgoing edges using sourceHandle = handle.'
+					>
+						<JsonDraftField
+							value={data.cases ?? [{ value: "ok", handle: "success" }]}
+							onCommit={(cases) => setField("cases", cases)}
+							minHeight="7rem"
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Default handle"
+						hint='Handle when no case matches. Defaults to "default".'
+					>
+						<Input
+							value={String(data.defaultHandle ?? "default")}
+							onChange={(e) => setField("defaultHandle", e.target.value)}
+						/>
+					</InspectorField>
+				</>
+			) : null}
+
 			{node.type === "extract" ? (
 				<InspectorField
 					label="Expression"
 					hint="JMESPath against the previous node output."
 				>
-					<TemplateField
+					<JmesPathField
 						value={String(data.expression ?? "")}
 						onChange={(expression) => setField("expression", expression)}
 						placeholder="body.id"
-						completionMode="jmespath"
 					/>
 				</InspectorField>
 			) : null}
@@ -379,11 +612,36 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					label="Expression"
 					hint="Optional JMESPath on previous output. Leave empty to pass through."
 				>
-					<TemplateField
+					<JmesPathField
 						value={String(data.expression ?? "")}
 						onChange={(expression) => setField("expression", expression)}
 						placeholder="body"
-						completionMode="jmespath"
+					/>
+				</InspectorField>
+			) : null}
+
+			{node.type === "inspect" || node.type === "preview" ? (
+				<InspectorField
+					label="Expression"
+					hint="Optional JMESPath on previous output. Leave empty to preview full input."
+				>
+					<JmesPathField
+						value={String(data.expression ?? "")}
+						onChange={(expression) => setField("expression", expression)}
+						placeholder="body"
+					/>
+				</InspectorField>
+			) : null}
+
+			{node.type === "log" ? (
+				<InspectorField
+					label="Message"
+					hint="Templated string written to the run log."
+				>
+					<TemplateField
+						value={String(data.message ?? "")}
+						onChange={(message) => setField("message", message)}
+						placeholder="status={{input.status}}"
 					/>
 				</InspectorField>
 			) : null}

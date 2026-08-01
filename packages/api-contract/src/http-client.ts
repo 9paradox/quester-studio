@@ -120,6 +120,7 @@ export function createHttpQuesterClient(
 		getDefaultWorkspace: () =>
 			get<{ path: string }>("/v1/workspace/default").then((r) => r.path),
 		pickWorkspaceFolder: async () => null,
+		pickCollectionFile: async () => null,
 		scaffoldWorkspace: (path, name) =>
 			post("/v1/workspace/scaffold", { path, name }),
 		openWorkspaceSummary: (path) => post("/v1/workspace/summary", { path }),
@@ -143,6 +144,8 @@ export function createHttpQuesterClient(
 				}
 			}
 		},
+		cancelFlowRun: (params) =>
+			post<{ ok: boolean }>("/v1/flows/cancel", params),
 		saveFlow: (flow: FlowV1, workspace: string) =>
 			post("/v1/flows/save", { flow, workspace }),
 		listSecretNames: (workspace, env) =>
@@ -187,6 +190,11 @@ export function createHttpQuesterClient(
 			post("/v1/collections/requests/delete", { workspace, requestPath }),
 		createCollection: (workspace, collectionName) =>
 			post("/v1/collections/create", { workspace, collectionName }),
+		importCollection: async () => {
+			throw new Error(
+				"Collection import is not available in web/API mode — use `quester import-collection` or the desktop app",
+			);
+		},
 		executeRequestRpc: (params) =>
 			post("/v1/collections/requests/execute", params),
 		readPathShapes: (workspace) => post("/v1/path-shapes/read", { workspace }),

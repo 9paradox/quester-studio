@@ -21,8 +21,10 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
+import { listRunHistory } from "@/lib/runHistory.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
+import { selectActiveFlowRun } from "@/stores/selectors.js";
 import {
 	IconChevronDown,
 	IconChevronUp,
@@ -123,14 +125,23 @@ export function Panel() {
 	const height = useQuesterStore((s) => s.panelHeight);
 	const activeTab = useQuesterStore((s) => s.panelTab);
 	const consoleLines = useQuesterStore((s) => s.consoleLines);
-	const runResult = useQuesterStore((s) => s.runResult);
-	const runError = useQuesterStore((s) => s.runError);
+	const { runResult, runError } = useQuesterStore(selectActiveFlowRun);
 
 	const setPanelTab = useQuesterStore((s) => s.setPanelTab);
 	const togglePanel = useQuesterStore((s) => s.togglePanel);
 	const setPanelHeight = useQuesterStore((s) => s.setPanelHeight);
 	const clearConsole = useQuesterStore((s) => s.clearConsole);
 	const clearLogs = useQuesterStore((s) => s.clearLogs);
+	const replayRunFromHistory = useQuesterStore((s) => s.replayRunFromHistory);
+	const openTabs = useQuesterStore((s) => s.openTabs);
+	const activeTabId = useQuesterStore((s) => s.activeTabId);
+
+	const activeFlowTab = openTabs.find(
+		(t) => t.id === activeTabId && t.kind === "flow",
+	);
+	const historyEntries = activeFlowTab
+		? listRunHistory(activeFlowTab.flowId)
+		: [];
 
 	const logs = runResult?.logs ?? [];
 	const dragging = useRef(false);
@@ -233,7 +244,7 @@ export function Panel() {
 			</button>
 			<Tabs
 				value={activeTab}
-				onValueChange={(v) => setPanelTab(v as "console" | "logs")}
+				onValueChange={(v) => setPanelTab(v as "console" | "logs" | "history")}
 				className="flex min-h-0 flex-1 flex-col"
 			>
 				<div className="flex shrink-0 items-center gap-2 border-b px-2">
@@ -243,6 +254,9 @@ export function Panel() {
 						</TabsTrigger>
 						<TabsTrigger value="logs" className="text-xs">
 							Logs
+						</TabsTrigger>
+						<TabsTrigger value="history" className="text-xs">
+							History
 						</TabsTrigger>
 					</TabsList>
 					<div className="flex min-w-0 flex-1 items-center gap-1">
@@ -273,7 +287,7 @@ export function Panel() {
 									<IconTrash />
 								</Button>
 							</>
-						) : (
+						) : activeTab === "logs" ? (
 							<>
 								<Input
 									value={logsFilter}
@@ -317,7 +331,7 @@ export function Panel() {
 									<IconTrash />
 								</Button>
 							</>
-						)}
+						) : null}
 					</div>
 					<button
 						type="button"
@@ -367,6 +381,49 @@ export function Panel() {
 									</div>
 								) : null}
 							</div>
+						)}
+					</TabsContent>
+					<TabsContent
+						value="history"
+						className="m-0 min-h-0 flex-1 overflow-auto p-2"
+					>
+						{!activeFlowTab ? (
+							<p className="px-1 py-2 text-xs text-muted-foreground">
+								Open a flow to browse run history.
+							</p>
+						) : historyEntries.length === 0 ? (
+							<p className="px-1 py-2 text-xs text-muted-foreground">
+								No completed runs yet for {activeFlowTab.flowId}.
+							</p>
+						) : (
+							<ul className="flex flex-col gap-1">
+								{historyEntries.map((entry) => (
+									<li key={entry.runId}>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											className="h-auto w-full justify-start px-2 py-1.5 font-mono text-xs font-normal"
+											onClick={() => replayRunFromHistory(entry.runId)}
+										>
+											<span className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left">
+												<span className="flex w-full items-center gap-2">
+													<Badge variant={entry.ok ? "outline" : "destructive"}>
+														{entry.ok ? "ok" : "fail"}
+													</Badge>
+													<span className="truncate text-muted-foreground tabular-nums">
+														{new Date(entry.ts).toLocaleString()}
+													</span>
+												</span>
+												<span className="truncate text-foreground">
+													{entry.runId.slice(0, 8)}
+													{entry.error ? ` · ${entry.error}` : ""}
+												</span>
+											</span>
+										</Button>
+									</li>
+								))}
+							</ul>
 						)}
 					</TabsContent>
 				</div>

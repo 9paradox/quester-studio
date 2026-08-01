@@ -48,6 +48,8 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				(await import("./handlers.js")).getDefaultWorkspace(),
 			pickWorkspaceFolder: async () =>
 				(await import("./handlers.js")).pickWorkspaceFolder(),
+			pickCollectionFile: async () =>
+				(await import("./handlers.js")).pickCollectionFile(),
 			scaffoldWorkspace: async ({ path, name }) =>
 				(await import("./handlers.js")).scaffoldWorkspaceRpc(path, name),
 			openWorkspaceSummary: async ({ path }) =>
@@ -82,6 +84,10 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 						});
 					},
 				}),
+			cancelFlowRun: async ({ runId }) => {
+				const { cancelFlowRun } = await import("./handlers.js");
+				return { ok: cancelFlowRun(runId) };
+			},
 			saveFlow: async ({ flow, workspace }) =>
 				(await import("./handlers.js")).saveFlow(flow, workspace),
 			listSecretNames: async ({ workspace, env }) =>
@@ -147,6 +153,8 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 					workspace,
 					collectionName,
 				),
+			importCollection: async ({ workspace, filePath }) =>
+				(await import("./handlers.js")).importCollection(workspace, filePath),
 			executeRequestRpc: async ({ requestPath, workspace, env }) =>
 				(await import("./handlers.js")).executeRequestRpc(requestPath, {
 					workspace,

@@ -96,6 +96,7 @@ export function createMockQuesterClient(): QuesterClient {
 	const collections = new Set<string>(["Demo"]);
 	let pathShapes: unknown = null;
 	let verifyTls = true;
+	const runAbortControllers = new Map<string, AbortController>();
 
 	const emitStatus = async (
 		runId: string,
@@ -103,7 +104,11 @@ export function createMockQuesterClient(): QuesterClient {
 		nodeId: string,
 		nodeType: string,
 		status: NodeRunStatusEvent["status"],
+		signal?: AbortSignal,
 	) => {
+		if (signal?.aborted) {
+			throw new DOMException("Aborted", "AbortError");
+		}
 		const event: NodeRunStatusEvent = {
 			runId,
 			flowId,
@@ -115,7 +120,17 @@ export function createMockQuesterClient(): QuesterClient {
 		for (const listener of listeners) {
 			listener(event);
 		}
-		await new Promise((r) => setTimeout(r, 40));
+		await new Promise((resolve, reject) => {
+			const timer = setTimeout(resolve, 40);
+			signal?.addEventListener(
+				"abort",
+				() => {
+					clearTimeout(timer);
+					reject(new DOMException("Aborted", "AbortError"));
+				},
+				{ once: true },
+			);
+		});
 	};
 
 	return {
@@ -127,6 +142,7 @@ export function createMockQuesterClient(): QuesterClient {
 		},
 		getDefaultWorkspace: async () => MOCK_WORKSPACE,
 		pickWorkspaceFolder: async () => MOCK_WORKSPACE,
+		pickCollectionFile: async () => null,
 		scaffoldWorkspace: async (path, name) => {
 			manifest = {
 				...manifest,
@@ -162,33 +178,111 @@ export function createMockQuesterClient(): QuesterClient {
 		executeFlowRpc: async ({ flowId, runId }) => {
 			const flow = flows.get(flowId);
 			if (!flow) throw new Error(`Flow not found: ${flowId}`);
-			for (const node of flow.nodes) {
-				await emitStatus(runId, flowId, node.id, node.type, "running");
-				await emitStatus(runId, flowId, node.id, node.type, "success");
+			const controller = new AbortController();
+			runAbortControllers.set(runId, controller);
+			const { signal } = controller;
+			const completedSteps: ExecuteFlowRpcResult["steps"] = [];
+			try {
+				for (const node of flow.nodes) {
+					await emitStatus(
+						runId,
+						flowId,
+						node.id,
+						node.type,
+						"running",
+						signal,
+					);
+					if (signal.aborted) {
+						return {
+							output: undefined,
+							nodeOutputs: Object.fromEntries(
+								completedSteps.map((s) => [s.nodeId, s.output]),
+							),
+							nodeInputs: {},
+							steps: completedSteps,
+							vars: {},
+							logs: [
+								{
+									ts: Date.now(),
+									level: "info",
+									message: "Flow run cancelled",
+									phase: "complete",
+								},
+							],
+							cancelled: true,
+							error: "Flow run cancelled",
+						};
+					}
+					await emitStatus(
+						runId,
+						flowId,
+						node.id,
+						node.type,
+						"success",
+						signal,
+					);
+					completedSteps.push({
+						nodeId: node.id,
+						type: node.type,
+						input: {},
+						output: { ok: true },
+					});
+				}
+				const result: ExecuteFlowRpcResult = {
+					output: { mock: true, flowId },
+					nodeOutputs: Object.fromEntries(
+						flow.nodes.map((n) => [n.id, { ok: true }]),
+					),
+					nodeInputs: {},
+					steps: flow.nodes.map((n) => ({
+						nodeId: n.id,
+						type: n.type,
+						input: {},
+						output: { ok: true },
+					})),
+					vars: {},
+					logs: [
+						{
+							ts: Date.now(),
+							level: "info",
+							message: "Mock run complete (no real HTTP)",
+							phase: "complete",
+						},
+					],
+				};
+				return result;
+			} catch (error) {
+				if (signal.aborted) {
+					return {
+						output: undefined,
+						nodeOutputs: Object.fromEntries(
+							completedSteps.map((s) => [s.nodeId, s.output]),
+						),
+						nodeInputs: {},
+						steps: completedSteps,
+						vars: {},
+						logs: [
+							{
+								ts: Date.now(),
+								level: "info",
+								message: "Flow run cancelled",
+								phase: "complete",
+							},
+						],
+						cancelled: true,
+						error: "Flow run cancelled",
+					};
+				}
+				throw error;
+			} finally {
+				runAbortControllers.delete(runId);
 			}
-			const result: ExecuteFlowRpcResult = {
-				output: { mock: true, flowId },
-				nodeOutputs: Object.fromEntries(
-					flow.nodes.map((n) => [n.id, { ok: true }]),
-				),
-				nodeInputs: {},
-				steps: flow.nodes.map((n) => ({
-					nodeId: n.id,
-					type: n.type,
-					input: {},
-					output: { ok: true },
-				})),
-				vars: {},
-				logs: [
-					{
-						ts: Date.now(),
-						level: "info",
-						message: "Mock run complete (no real HTTP)",
-						phase: "complete",
-					},
-				],
-			};
-			return result;
+		},
+		cancelFlowRun: async ({ runId }) => {
+			const controller = runAbortControllers.get(runId);
+			if (!controller) return { ok: false };
+			controller.abort();
+			return { ok: true };
 		},
 		saveFlow: async (flow) => {
 			flows.set(flow.id, structuredClone(flow));
@@ -308,6 +402,7 @@ export function createMockQuesterClient(): QuesterClient {
 			collections.add(collectionName);
 			return { ok: true as const };
 		},
+		importCollection: async () => ({ imported: [], skipped: [] }),
 		executeRequestRpc: async ({ requestPath }) => {
 			const req = requests.get(requestPath);
 			const result: ExecuteRequestRpcResult = {

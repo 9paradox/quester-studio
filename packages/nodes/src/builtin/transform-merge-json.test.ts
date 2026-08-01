@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { NodeExecutionContext } from "../types.js";
+import { inspectPlugin } from "./inspect.js";
 import { jsonPlugin } from "./json.js";
 import { mergePlugin } from "./merge.js";
 import { notePlugin } from "./note.js";
@@ -65,6 +66,22 @@ describe("jsonPlugin", () => {
 	test("expression subset", async () => {
 		const result = await jsonPlugin.execute(
 			base("json", { expression: "items[0]" }, { items: [{ id: 9 }] }),
+		);
+		expect(result.output).toEqual({ id: 9 });
+	});
+});
+
+describe("inspectPlugin", () => {
+	test("passthrough previous", async () => {
+		const result = await inspectPlugin.execute(
+			base("inspect", {}, { hello: "world" }),
+		);
+		expect(result.output).toEqual({ hello: "world" });
+	});
+
+	test("expression subset", async () => {
+		const result = await inspectPlugin.execute(
+			base("inspect", { expression: "items[0]" }, { items: [{ id: 9 }] }),
 		);
 		expect(result.output).toEqual({ id: 9 });
 	});

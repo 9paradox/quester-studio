@@ -3,6 +3,7 @@
 dist/
 apps/desktop/build/
 apps/desktop/artifacts/
+apps/desktop/bundled/
 *.log
 .DS_Store
 .env

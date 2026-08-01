@@ -7,6 +7,7 @@ import {
 } from "@/lib/editorTabs.js";
 import type { EnvironmentV1, FlowV1, SecretsV1 } from "@quester-studio/schema";
 import type { useQuesterStore as UseQuesterStore } from "./quester-store.js";
+import { emptyFlowRunState } from "./quester-store.js";
 import {
 	selectActiveFlowTab,
 	selectActiveTab,
@@ -17,49 +18,83 @@ import {
 } from "./selectors.js";
 import { slugifyName } from "./slugify.js";
 
-mock.module("@/lib/quester-client.js", () => ({
-	getQuesterClient: () => ({
-		executeFlowRpc: async () => ({
-			output: { ok: true },
-			nodeOutputs: { start: {}, in: { name: "demo" }, out: { ok: true } },
-			nodeInputs: { start: {}, in: { name: "demo" }, out: { name: "demo" } },
-			steps: [
-				{ nodeId: "start", type: "start", input: {}, output: {} },
-				{
-					nodeId: "in",
-					type: "input",
-					input: { name: "demo" },
-					output: { name: "demo" },
-				},
-				{
-					nodeId: "taken",
-					type: "set",
-					input: { name: "demo" },
-					output: { name: "demo" },
-				},
-				{
-					nodeId: "out",
-					type: "output",
-					input: { ok: true },
+mock.module("@/lib/quester-client.js", () => {
+	let cancelRunId: string | null = null;
+	return {
+		getQuesterClient: () => ({
+			executeFlowRpc: async ({ runId }: { runId: string }) => {
+				await new Promise((resolve) => setTimeout(resolve, 50));
+				if (cancelRunId === runId) {
+					return {
+						output: undefined,
+						nodeOutputs: { start: {}, in: { name: "demo" } },
+						nodeInputs: {},
+						steps: [
+							{ nodeId: "start", type: "start", input: {}, output: {} },
+							{
+								nodeId: "in",
+								type: "input",
+								input: { name: "demo" },
+								output: { name: "demo" },
+							},
+						],
+						vars: {},
+						logs: [],
+						cancelled: true,
+						error: "Flow run cancelled",
+					};
+				}
+				return {
 					output: { ok: true },
-				},
-			],
-			vars: {},
-			logs: [],
+					nodeOutputs: { start: {}, in: { name: "demo" }, out: { ok: true } },
+					nodeInputs: {
+						start: {},
+						in: { name: "demo" },
+						out: { name: "demo" },
+					},
+					steps: [
+						{ nodeId: "start", type: "start", input: {}, output: {} },
+						{
+							nodeId: "in",
+							type: "input",
+							input: { name: "demo" },
+							output: { name: "demo" },
+						},
+						{
+							nodeId: "taken",
+							type: "set",
+							input: { name: "demo" },
+							output: { name: "demo" },
+						},
+						{
+							nodeId: "out",
+							type: "output",
+							input: { ok: true },
+							output: { ok: true },
+						},
+					],
+					vars: {},
+					logs: [],
+				};
+			},
+			cancelFlowRun: async ({ runId }: { runId: string }) => {
+				cancelRunId = runId;
+				return { ok: true };
+			},
+			loadEnvironment: async () => ({
+				name: "local",
+				version: "v1",
+				variables: { API_BASE: "https://example.com" },
+			}),
+			listSecretNames: async () => ["username", "password"],
+			readPathShapes: async () => null,
+			writePathShapes: async () => ({ ok: true }),
+			onNodeRunStatus: () => () => {},
 		}),
-		loadEnvironment: async () => ({
-			name: "local",
-			version: "v1",
-			variables: { API_BASE: "https://example.com" },
-		}),
-		listSecretNames: async () => ["username", "password"],
-		readPathShapes: async () => null,
-		writePathShapes: async () => ({ ok: true }),
-		onNodeRunStatus: () => () => {},
-	}),
-	setQuesterClient: () => {},
-	resetQuesterClientForTests: () => {},
-}));
+		setQuesterClient: () => {},
+		resetQuesterClientForTests: () => {},
+	};
+});
 
 mock.module("@/lib/electrobun.js", () => ({
 	desktopRpc: {},
@@ -99,12 +134,7 @@ function resetStore() {
 		activeTabId: null,
 		selectedNodeId: null,
 		canvasDirty: false,
-		runResult: null,
-		runError: null,
-		isRunning: false,
-		activeRunId: null,
-		runFlowId: null,
-		nodeStatuses: {},
+		runByFlowId: {},
 	});
 }
 
@@ -159,6 +189,120 @@ describe("useQuesterStore", () => {
 		const state = useQuesterStore.getState();
 		expect(state.openTabs).toHaveLength(1);
 		expect(state.activeTabId).toBe(flowTabId("a"));
+	});
+
+	test("reorderTabs moves tab from one index to another", () => {
+		resetStore();
+		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
+		const tabB = createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" });
+		const tabC = createFlowEditorTab({ ...sampleFlow, id: "c", name: "C" });
+		useQuesterStore.getState().openTab(tabA);
+		useQuesterStore.getState().openTab(tabB);
+		useQuesterStore.getState().openTab(tabC);
+
+		useQuesterStore.getState().reorderTabs(0, 2);
+
+		const ids = useQuesterStore.getState().openTabs.map((t) => t.id);
+		expect(ids).toEqual([flowTabId("b"), flowTabId("c"), flowTabId("a")]);
+	});
+
+	test("reorderTabs ignores invalid indices", () => {
+		resetStore();
+		const tab = createFlowEditorTab(sampleFlow);
+		useQuesterStore.setState({ openTabs: [tab], activeTabId: tab.id });
+
+		useQuesterStore.getState().reorderTabs(-1, 0);
+		useQuesterStore.getState().reorderTabs(0, 5);
+
+		expect(useQuesterStore.getState().openTabs).toHaveLength(1);
+		expect(useQuesterStore.getState().openTabs[0]?.id).toBe(tab.id);
+	});
+
+	test("closeTabsToLeft closes tabs before target", () => {
+		resetStore();
+		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
+		const tabB = createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" });
+		const tabC = createFlowEditorTab({ ...sampleFlow, id: "c", name: "C" });
+		useQuesterStore.getState().openTab(tabA);
+		useQuesterStore.getState().openTab(tabB);
+		useQuesterStore.getState().openTab(tabC);
+
+		useQuesterStore.getState().closeTabsToLeft(flowTabId("c"));
+
+		const state = useQuesterStore.getState();
+		expect(state.openTabs).toHaveLength(1);
+		expect(state.activeTabId).toBe(flowTabId("c"));
+	});
+
+	test("closeTabsToRight closes tabs after target", () => {
+		resetStore();
+		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
+		const tabB = createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" });
+		const tabC = createFlowEditorTab({ ...sampleFlow, id: "c", name: "C" });
+		useQuesterStore.getState().openTab(tabA);
+		useQuesterStore.getState().openTab(tabB);
+		useQuesterStore.getState().openTab(tabC);
+
+		useQuesterStore.getState().closeTabsToRight(flowTabId("a"));
+
+		const state = useQuesterStore.getState();
+		expect(state.openTabs).toHaveLength(1);
+		expect(state.activeTabId).toBe(flowTabId("a"));
+	});
+
+	test("closeTabsToLeft stops when dirty tab close is cancelled", () => {
+		resetStore();
+		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
+		const dirtyB = {
+			...createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" }),
+			dirty: true,
+		};
+		const tabC = createFlowEditorTab({ ...sampleFlow, id: "c", name: "C" });
+		useQuesterStore.setState({
+			openTabs: [tabA, dirtyB, tabC],
+			activeTabId: flowTabId("c"),
+		});
+
+		const confirm = globalThis.confirm;
+		globalThis.confirm = () => false;
+
+		try {
+			useQuesterStore.getState().closeTabsToLeft(flowTabId("c"));
+			const state = useQuesterStore.getState();
+			expect(state.openTabs).toHaveLength(2);
+			expect(state.openTabs.map((t) => t.id)).toEqual([
+				flowTabId("b"),
+				flowTabId("c"),
+			]);
+		} finally {
+			globalThis.confirm = confirm;
+		}
+	});
+
+	test("closeTabsToRight respects dirty tab confirm", () => {
+		resetStore();
+		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
+		const dirtyB = {
+			...createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" }),
+			dirty: true,
+		};
+		const tabC = createFlowEditorTab({ ...sampleFlow, id: "c", name: "C" });
+		useQuesterStore.setState({
+			openTabs: [tabA, dirtyB, tabC],
+			activeTabId: flowTabId("a"),
+		});
+
+		const confirm = globalThis.confirm;
+		globalThis.confirm = () => true;
+
+		try {
+			useQuesterStore.getState().closeTabsToRight(flowTabId("a"));
+			const state = useQuesterStore.getState();
+			expect(state.openTabs).toHaveLength(1);
+			expect(state.activeTabId).toBe(flowTabId("a"));
+		} finally {
+			globalThis.confirm = confirm;
+		}
 	});
 
 	test("setZoom skips update when value unchanged", () => {
@@ -418,29 +562,39 @@ describe("useQuesterStore", () => {
 
 	test("clearLogs clears run logs and runError", () => {
 		resetStore();
+		const tab = createFlowEditorTab(sampleFlow);
 		useQuesterStore.setState({
-			runError: "Flow validation failed",
-			runResult: {
-				output: undefined,
-				nodeInputs: {},
-				nodeOutputs: {},
-				steps: [],
-				vars: {},
-				error: "Flow validation failed",
-				logs: [
-					{
-						ts: Date.now(),
-						level: "error",
-						phase: "error",
-						message: "Flow validation failed",
+			openTabs: [tab],
+			activeTabId: tab.id,
+			runByFlowId: {
+				"demo-flow": {
+					runError: "Flow validation failed",
+					runResult: {
+						output: undefined,
+						nodeInputs: {},
+						nodeOutputs: {},
+						steps: [],
+						vars: {},
+						error: "Flow validation failed",
+						logs: [
+							{
+								ts: Date.now(),
+								level: "error",
+								phase: "error",
+								message: "Flow validation failed",
+							},
+						],
 					},
-				],
+					isRunning: false,
+					activeRunId: null,
+					nodeStatuses: {},
+				},
 			},
 		});
 		useQuesterStore.getState().clearLogs();
-		const state = useQuesterStore.getState();
-		expect(state.runError).toBeNull();
-		expect(state.runResult?.logs).toEqual([]);
+		const slot = useQuesterStore.getState().runByFlowId["demo-flow"];
+		expect(slot?.runError).toBeNull();
+		expect(slot?.runResult?.logs).toEqual([]);
 	});
 
 	test("handleEnvRowsChange keeps empty draft rows", () => {
@@ -492,9 +646,13 @@ describe("useQuesterStore", () => {
 	test("applyNodeRunStatusEvent applies live transitions for active run", () => {
 		resetStore();
 		useQuesterStore.setState({
-			activeRunId: "run-1",
-			runFlowId: "demo-flow",
-			nodeStatuses: { a: "idle", b: "idle" },
+			runByFlowId: {
+				"demo-flow": {
+					...emptyFlowRunState(),
+					activeRunId: "run-1",
+					nodeStatuses: { a: "idle", b: "idle" },
+				},
+			},
 		});
 		useQuesterStore.getState().applyNodeRunStatusEvent({
 			runId: "run-1",
@@ -512,7 +670,9 @@ describe("useQuesterStore", () => {
 			status: "success",
 			ts: 2,
 		});
-		expect(useQuesterStore.getState().nodeStatuses).toEqual({
+		expect(
+			useQuesterStore.getState().runByFlowId["demo-flow"]?.nodeStatuses,
+		).toEqual({
 			a: "success",
 			b: "idle",
 		});
@@ -521,9 +681,13 @@ describe("useQuesterStore", () => {
 	test("applyNodeRunStatusEvent ignores stale run and flow ids", () => {
 		resetStore();
 		useQuesterStore.setState({
-			activeRunId: "run-1",
-			runFlowId: "demo-flow",
-			nodeStatuses: { a: "idle" },
+			runByFlowId: {
+				"demo-flow": {
+					...emptyFlowRunState(),
+					activeRunId: "run-1",
+					nodeStatuses: { a: "idle" },
+				},
+			},
 		});
 		useQuesterStore.getState().applyNodeRunStatusEvent({
 			runId: "run-old",
@@ -541,23 +705,37 @@ describe("useQuesterStore", () => {
 			status: "error",
 			ts: 2,
 		});
-		expect(useQuesterStore.getState().nodeStatuses).toEqual({ a: "idle" });
+		expect(
+			useQuesterStore.getState().runByFlowId["demo-flow"]?.nodeStatuses,
+		).toEqual({ a: "idle" });
 	});
 
-	test("selectNodeRunStatus is scoped to runFlowId", () => {
+	test("selectNodeRunStatus is scoped to active flow run slot", () => {
 		resetStore();
 		const tab = createFlowEditorTab(sampleFlow);
 		useQuesterStore.setState({
 			openTabs: [tab],
 			activeTabId: tab.id,
-			runFlowId: "demo-flow",
-			nodeStatuses: { n1: "success" },
+			runByFlowId: {
+				"demo-flow": {
+					...emptyFlowRunState(),
+					nodeStatuses: { n1: "success" },
+				},
+			},
 		});
 		expect(selectNodeRunStatus(useQuesterStore.getState(), "n1")).toBe(
 			"success",
 		);
 
-		useQuesterStore.setState({ runFlowId: "other" });
+		useQuesterStore.setState({
+			runByFlowId: {
+				"demo-flow": emptyFlowRunState(),
+				other: {
+					...emptyFlowRunState(),
+					nodeStatuses: { n1: "success" },
+				},
+			},
+		});
 		expect(
 			selectNodeRunStatus(useQuesterStore.getState(), "n1"),
 		).toBeUndefined();
@@ -596,10 +774,10 @@ describe("useQuesterStore", () => {
 		});
 
 		const runPromise = useQuesterStore.getState().runFlow();
-		expect(useQuesterStore.getState().isRunning).toBe(true);
-		expect(useQuesterStore.getState().activeRunId).toBeTruthy();
-		expect(useQuesterStore.getState().runFlowId).toBe("demo-flow");
-		expect(useQuesterStore.getState().nodeStatuses).toEqual({
+		const mid = useQuesterStore.getState().runByFlowId["demo-flow"];
+		expect(mid?.isRunning).toBe(true);
+		expect(mid?.activeRunId).toBeTruthy();
+		expect(mid?.nodeStatuses).toEqual({
 			start: "idle",
 			in: "idle",
 			taken: "idle",
@@ -609,14 +787,38 @@ describe("useQuesterStore", () => {
 
 		await runPromise;
 
-		expect(useQuesterStore.getState().isRunning).toBe(false);
-		expect(useQuesterStore.getState().nodeStatuses).toEqual({
+		const done = useQuesterStore.getState().runByFlowId["demo-flow"];
+		expect(done?.isRunning).toBe(false);
+		expect(done?.nodeStatuses).toEqual({
 			start: "success",
 			in: "success",
 			taken: "success",
 			skipped: "skipped",
 			out: "success",
 		});
+	});
+
+	test("stopFlow calls cancelFlowRun for active run", async () => {
+		resetStore();
+		const tab = createFlowEditorTab(sampleFlow);
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			workspacePath: "/tmp/ws",
+			selectedEnv: "local",
+			inputJson: '{"name":"demo"}',
+		});
+
+		const runPromise = useQuesterStore.getState().runFlow();
+		const mid = useQuesterStore.getState().runByFlowId["demo-flow"];
+		expect(mid?.isRunning).toBe(true);
+		useQuesterStore.getState().stopFlow();
+		await runPromise;
+
+		const done = useQuesterStore.getState().runByFlowId["demo-flow"];
+		expect(done?.isRunning).toBe(false);
+		expect(done?.runResult?.cancelled).toBe(true);
+		expect(done?.runResult?.steps?.length).toBe(2);
 	});
 });
 

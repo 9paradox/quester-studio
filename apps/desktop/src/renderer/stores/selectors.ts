@@ -17,7 +17,11 @@ import {
 	varValuesFromNodes,
 } from "@/lib/templates.js";
 import type { NodeRunStatus } from "../../shared/rpc.js";
-import type { QuesterState } from "./quester-store.js";
+import {
+	type FlowRunState,
+	type QuesterState,
+	STABLE_EMPTY_FLOW_RUN,
+} from "./quester-store.js";
 
 function keysFromRows(rows: KeyValueRow[]): string[] {
 	return rows.map((r) => r.key.trim()).filter(Boolean);
@@ -30,6 +34,18 @@ export function selectActiveTab(state: QuesterState): EditorTab | null {
 export function selectActiveFlowTab(state: QuesterState) {
 	const tab = selectActiveTab(state);
 	return tab?.kind === "flow" ? tab : null;
+}
+
+export function selectFlowRun(
+	state: QuesterState,
+	flowId: string | null | undefined,
+): FlowRunState {
+	if (!flowId) return STABLE_EMPTY_FLOW_RUN;
+	return state.runByFlowId[flowId] ?? STABLE_EMPTY_FLOW_RUN;
+}
+
+export function selectActiveFlowRun(state: QuesterState): FlowRunState {
+	return selectFlowRun(state, selectActiveFlowTab(state)?.flowId);
 }
 
 export function selectDirtyTabIds(state: QuesterState): string[] {
@@ -71,7 +87,7 @@ function pathsForNode(
 ): string[] {
 	const learned = pathsForSource(state.pathShapeIndex, nodeSourceKey(nodeId));
 	const contract = nodeType ? contractPathsForType(nodeType) : [];
-	const fromRun = state.runResult?.nodeOutputs?.[nodeId];
+	const fromRun = selectActiveFlowRun(state).runResult?.nodeOutputs?.[nodeId];
 	const fromRunPaths = fromRun !== undefined ? collectJsonPaths(fromRun) : [];
 	return mergeContractAndLearned(contract, [...learned, ...fromRunPaths]);
 }
@@ -145,7 +161,7 @@ export function selectTemplateContext(
 		previousPaths,
 		inputValue,
 		varValues: varValuesFromNodes(nodes),
-		nodeOutputs: state.runResult?.nodeOutputs ?? {},
+		nodeOutputs: selectActiveFlowRun(state).runResult?.nodeOutputs ?? {},
 	};
 }
 
@@ -156,6 +172,6 @@ export function selectNodeRunStatus(
 ): NodeRunStatus | undefined {
 	const activeFlow = selectActiveFlowTab(state);
 	const resolvedFlowId = flowId ?? activeFlow?.flowId ?? null;
-	if (!resolvedFlowId || state.runFlowId !== resolvedFlowId) return undefined;
-	return state.nodeStatuses[nodeId];
+	if (!resolvedFlowId) return undefined;
+	return selectFlowRun(state, resolvedFlowId).nodeStatuses[nodeId];
 }

@@ -6,13 +6,6 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "@/components/ui/context-menu.js";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu.js";
 import { Input } from "@/components/ui/input.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { Separator } from "@/components/ui/separator.js";
@@ -33,19 +26,16 @@ import {
 	selectDirtyTabIds,
 } from "@/stores/selectors.js";
 import {
-	IconChevronDown,
 	IconDeviceFloppy,
 	IconFile,
 	IconFolder,
-	IconFolderOpen,
 	IconKey,
 	IconPencil,
 	IconPlus,
-	IconSettings,
 	IconTopologyRing2,
 	IconTrash,
+	IconUpload,
 	IconWorld,
-	IconX,
 } from "@tabler/icons-react";
 import type { ComponentType, ReactNode, SVGProps } from "react";
 import { useMemo, useState } from "react";
@@ -59,7 +49,6 @@ type ListIcon = ComponentType<SVGProps<SVGSVGElement> & { className?: string }>;
 export function PrimarySidebar() {
 	const width = useQuesterStore((s) => s.sidebarWidth);
 	const view = useQuesterStore((s) => s.activityView);
-	const workspaceName = useQuesterStore((s) => s.workspaceName);
 	const workspacePath = useQuesterStore((s) => s.workspacePath);
 	const flows = useQuesterStore((s) => s.flows);
 	const requests = useQuesterStore((s) => s.requests);
@@ -74,8 +63,6 @@ export function PrimarySidebar() {
 	const canSave = Boolean(activeTab?.dirty);
 
 	const setSidebarSearch = useQuesterStore((s) => s.setSidebarSearch);
-	const openWorkspacePicker = useQuesterStore((s) => s.openWorkspacePicker);
-	const closeWorkspace = useQuesterStore((s) => s.closeWorkspace);
 	const loadFlow = useQuesterStore((s) => s.loadFlow);
 	const loadEnvironment = useQuesterStore((s) => s.loadEnvironment);
 	const loadSecretsFile = useQuesterStore((s) => s.loadSecretsFile);
@@ -84,6 +71,7 @@ export function PrimarySidebar() {
 	const createEnv = useQuesterStore((s) => s.createEnv);
 	const createSecretsFile = useQuesterStore((s) => s.createSecretsFile);
 	const createCollection = useQuesterStore((s) => s.createCollection);
+	const importCollection = useQuesterStore((s) => s.importCollection);
 	const createRequest = useQuesterStore((s) => s.createRequest);
 	const deleteRequest = useQuesterStore((s) => s.deleteRequest);
 	const addRequestToCanvas = useQuesterStore((s) => s.addRequestToCanvas);
@@ -91,7 +79,6 @@ export function PrimarySidebar() {
 	const deleteFlow = useQuesterStore((s) => s.deleteFlow);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const handleAddNode = useQuesterStore((s) => s.handleAddNode);
-	const openWorkspaceSettings = useQuesterStore((s) => s.openWorkspaceSettings);
 	const updateActiveFlowMeta = useQuesterStore((s) => s.updateActiveFlowMeta);
 
 	const [flowDetailsId, setFlowDetailsId] = useState<string | null>(null);
@@ -147,10 +134,6 @@ export function PrimarySidebar() {
 				<SidebarFileList
 					search={search}
 					onSearchChange={setSidebarSearch}
-					workspaceName={workspaceName}
-					onOpenWorkspace={() => void openWorkspacePicker()}
-					onCloseWorkspace={workspacePath ? () => closeWorkspace() : undefined}
-					onWorkspaceSettings={() => void openWorkspaceSettings()}
 					onCreate={() => void createFlow()}
 					onSave={() => void saveActiveTab()}
 					canSave={canSave}
@@ -311,6 +294,18 @@ export function PrimarySidebar() {
 								variant="outline"
 								size="xs"
 								className="flex-1"
+								onClick={() => void importCollection()}
+							>
+								<IconUpload />
+								Import
+							</Button>
+						</div>
+						<div className="flex gap-1 px-1">
+							<Button
+								type="button"
+								variant="outline"
+								size="xs"
+								className="flex-1"
 								onClick={() => void saveActiveTab()}
 								disabled={!canSave}
 							>
@@ -415,10 +410,6 @@ export function PrimarySidebar() {
 function SidebarFileList({
 	search,
 	onSearchChange,
-	workspaceName,
-	onOpenWorkspace,
-	onCloseWorkspace,
-	onWorkspaceSettings,
 	onCreate,
 	onSave,
 	canSave,
@@ -428,10 +419,6 @@ function SidebarFileList({
 }: {
 	search: string;
 	onSearchChange: (value: string) => void;
-	workspaceName?: string;
-	onOpenWorkspace?: () => void;
-	onCloseWorkspace?: () => void;
-	onWorkspaceSettings?: () => void;
 	onCreate: () => void;
 	onSave: () => void;
 	canSave: boolean;
@@ -442,61 +429,6 @@ function SidebarFileList({
 	return (
 		<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
 			<div className="flex shrink-0 flex-col gap-2 p-2">
-				{workspaceName ? (
-					<div className="flex items-center gap-1 px-1">
-						<span
-							className="min-w-0 flex-1 truncate text-xs font-medium"
-							title={workspaceName}
-						>
-							{workspaceName}
-						</span>
-						{onWorkspaceSettings || onOpenWorkspace || onCloseWorkspace ? (
-							<DropdownMenu>
-								<DropdownMenuTrigger
-									render={
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon-xs"
-											className="shrink-0"
-											aria-label="Workspace actions"
-										/>
-									}
-								>
-									<IconChevronDown className="size-3.5 opacity-70" />
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end" className="min-w-44">
-									{onWorkspaceSettings ? (
-										<DropdownMenuItem onClick={onWorkspaceSettings}>
-											<IconSettings />
-											Settings
-										</DropdownMenuItem>
-									) : null}
-									{onOpenWorkspace ? (
-										<DropdownMenuItem onClick={onOpenWorkspace}>
-											<IconFolderOpen />
-											Open workspace
-										</DropdownMenuItem>
-									) : null}
-									{onCloseWorkspace ? (
-										<>
-											{(onWorkspaceSettings || onOpenWorkspace) && (
-												<DropdownMenuSeparator />
-											)}
-											<DropdownMenuItem
-												variant="destructive"
-												onClick={onCloseWorkspace}
-											>
-												<IconX />
-												Close workspace
-											</DropdownMenuItem>
-										</>
-									) : null}
-								</DropdownMenuContent>
-							</DropdownMenu>
-						) : null}
-					</div>
-				) : null}
 				<div className="flex gap-1 px-1">
 					<Button
 						type="button"

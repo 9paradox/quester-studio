@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "properties": {
+    "label": {
+      "type": "string"
+    },
+    "items": {
+      "type": "string",
+      "minLength": 1
+    },
+    "itemVar": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maxItems": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "default": 100
+    },
+    "concurrency": {
+      "type": "integer",
+      "exclusiveMinimum": 0
+    },
+    "map": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "items"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

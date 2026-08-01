@@ -1,10 +1,12 @@
+import { Button } from "@/components/ui/button.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
+	selectActiveFlowRun,
 	selectActiveFlowTab,
 	selectAnyDirty,
 	selectStatusLabel,
 } from "@/stores/selectors.js";
-import { IconLoader2 } from "@tabler/icons-react";
+import { IconLoader2, IconPlayerStop } from "@tabler/icons-react";
 
 export function StatusBar() {
 	const workspaceName = useQuesterStore((s) => s.workspaceName);
@@ -12,7 +14,8 @@ export function StatusBar() {
 	const env = useQuesterStore((s) => s.selectedEnv);
 	const activeFlowTab = useQuesterStore(selectActiveFlowTab);
 	const openTabCount = useQuesterStore((s) => s.openTabs.length);
-	const isRunning = useQuesterStore((s) => s.isRunning);
+	const isRunning = useQuesterStore((s) => selectActiveFlowRun(s).isRunning);
+	const stopFlow = useQuesterStore((s) => s.stopFlow);
 	const pathIndexStatus = useQuesterStore((s) => s.pathIndexStatus);
 	const zoom = useQuesterStore((s) => s.zoom);
 	const dirty = useQuesterStore(selectAnyDirty);
@@ -36,6 +39,16 @@ export function StatusBar() {
 					<>
 						<span className="text-border">|</span>
 						<span className="text-primary">Running…</span>
+						<Button
+							type="button"
+							variant="ghost"
+							size="sm"
+							className="h-5 px-1.5 text-[11px] text-destructive hover:text-destructive"
+							onClick={stopFlow}
+						>
+							<IconPlayerStop className="size-3" data-icon="inline-start" />
+							Stop
+						</Button>
 					</>
 				) : null}
 				{pathIndexStatus === "updating" ? (

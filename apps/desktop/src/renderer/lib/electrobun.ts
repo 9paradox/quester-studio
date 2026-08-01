@@ -46,6 +46,7 @@ export function onNodeRunStatus(listener: NodeRunStatusListener): () => void {
 export const desktopRpc = {
 	getDefaultWorkspace: () => getRpc().request.getDefaultWorkspace({}),
 	pickWorkspaceFolder: () => getRpc().request.pickWorkspaceFolder({}),
+	pickCollectionFile: () => getRpc().request.pickCollectionFile({}),
 	scaffoldWorkspace: (path: string, name?: string) =>
 		getRpc().request.scaffoldWorkspace({ path, name }),
 	openWorkspaceSummary: (path: string) =>
@@ -65,6 +66,8 @@ export const desktopRpc = {
 		env?: string;
 		input?: unknown;
 	}) => getRpc().request.executeFlowRpc(params),
+	cancelFlowRun: (params: { runId: string }) =>
+		getRpc().request.cancelFlowRun(params),
 	saveFlow: (flow: FlowV1, workspace: string) =>
 		getRpc().request.saveFlow({ flow, workspace }),
 	listSecretNames: (workspace: string, env: string) =>
@@ -107,6 +110,8 @@ export const desktopRpc = {
 		getRpc().request.deleteRequest({ workspace, requestPath }),
 	createCollection: (workspace: string, collectionName: string) =>
 		getRpc().request.createCollection({ workspace, collectionName }),
+	importCollection: (workspace: string, filePath: string) =>
+		getRpc().request.importCollection({ workspace, filePath }),
 	executeRequestRpc: (params: {
 		requestPath: string;
 		workspace: string;

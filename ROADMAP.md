@@ -9,8 +9,8 @@
 Canvas-only nodes must not break CLI runs.
 
 - [x] `note` — markdown/text sticky on canvas; no execute (or passthrough) — #66
-- [ ] `delay` / `wait` — sleep N ms (optional jitter)
-- [ ] `switch` — multi-branch on expression / status / JMESPath (extends `if` + `sourceHandle`)
+- [x] `delay` / `wait` — sleep N ms (optional jitter)
+- [x] `switch` — multi-branch on expression / status / JMESPath (extends `if` + `sourceHandle`)
 
 ### v0.5.x — Desktop polish
 
@@ -18,18 +18,24 @@ Parallel to v0.5 nodes (separate PRs). Release hotfixes first, then IDE-feel pol
 
 **Release hotfixes**
 
-- [ ] B2 — Sample workspace in release + Open sample writable copy — #88
-- [ ] B1 — NSIS Desktop/Start Menu shortcut + DisplayIcon use installed `icon.ico` — #87
-- [ ] B3 — Per-flow run state + success/error toasts — #89
+- [x] B2 — Sample workspace in release + Open sample writable copy — #88
+- [x] B1 — NSIS Desktop/Start Menu shortcut + DisplayIcon use installed `icon.ico` — #87
+- [x] B3 — Per-flow run state + success/error toasts — #89
 
 **Builder / IDE polish** (after B3 where noted)
 
-- [ ] Stop run — `AbortSignal` in engine + HTTP fetch; desktop Stop UI (needs B3)
-- [ ] Workspace chip in TopBar (name ▾ | tabs…)
-- [ ] Command registry + Ctrl/Cmd+Shift+P palette
-- [ ] More fixed shortcuts + Preferences Shortcuts table
-- [ ] Run summary in Response when no node selected (needs B3)
-- [ ] JMESPath assist v1 — snippets + path picker + inspector help
+- [x] Stop run — `AbortSignal` in engine + HTTP fetch; desktop Stop UI (needs B3)
+- [x] Workspace chip in TopBar (name ▾ | tabs…)
+- [x] Command registry + Ctrl/Cmd+Shift+P palette
+- [x] More fixed shortcuts + Preferences Shortcuts table
+- [x] Run summary in Response when no node selected (needs B3)
+- [x] JMESPath assist v1 — snippets + path picker + inspector help
+
+## v1.0.0 — Stable thin slice
+
+- [x] Flow format freeze — `version: "v1"` in `*.flow.json` is frozen for the 1.0 line; only additive optional fields
+- [x] macOS desktop release artifact (unsigned; CI `macos-latest` + Electrobun build)
+- [x] Thin API collection import — `quester import-collection` (Postman v2.1) + desktop Collections **Import**
 
 ## Next
 
@@ -37,16 +43,16 @@ Parallel to v0.5 nodes (separate PRs). Release hotfixes first, then IDE-feel pol
 
 Loops need max-iteration / timeout limits (see [SECURITY.md](SECURITY.md)).
 
-- [ ] `foreach` — iterate array; max items (+ optional concurrency)
-- [ ] `try` / `catch` (or `onError`) — soft-fail / fallback branch
-- [ ] `subflow` / `call` — run another `*.flow.json` with inputs; return output
+- [x] `foreach` — iterate array; max items (+ optional concurrency)
+- [x] `try` / `catch` (or `onError`) — soft-fail / fallback branch
+- [x] `subflow` / `call` — run another `*.flow.json` with inputs; return output
 
 ### v0.7.0 — Runs & observability
 
-- [ ] Flow run history and replay
-- [ ] `log` — message + resolved template to run log (passthrough)
-- [ ] `inspect` / `preview` — pinned pretty JSON on canvas
-- [ ] Disk-persisted cookie jar
+- [x] Flow run history and replay
+- [x] `log` — message + resolved template to run log (passthrough)
+- [x] `inspect` / `preview` — pinned pretty JSON on canvas
+- [x] Disk-persisted cookie jar
 
 ## Later / backlog
 
@@ -56,8 +62,6 @@ Unscheduled. Do not expand the current milestone without updating this file and 
 
 - Workspace secret encryption at rest
 - VS Code extension for flow editing
-- API collection import (also targeted for v1.0 thin slice)
-- macOS desktop release artifact
 - Client certificates (mTLS)
 - Remappable shortcuts
 
@@ -125,4 +129,4 @@ See [DEBUGGING.md](DEBUGGING.md) for setup / develop / debug per mode (desktop, 
 | v0.5.x | Desktop polish — install/sample hotfixes, runs/commands/workspace UX |
 | v0.6.0 | Control & composition — `foreach`, `try`/`catch`, `subflow` |
 | v0.7.0 | Runs & observability — history/replay, `log`/`inspect`, disk cookies |
-| v1.0.0 | Stable — flow format v1 freeze, polished desktop, thin collection import |
+| v1.0.0 | Stable — flow format v1 freeze, polished desktop, collection import, macOS artifact |
