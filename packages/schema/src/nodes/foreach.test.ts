@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { foreachNodeDataSchema } from "./foreach.js";
+import {
+	FOREACH_MAX_CONCURRENCY,
+	FOREACH_MAX_ITEMS_CEILING,
+	foreachNodeDataSchema,
+} from "./foreach.js";
 
 describe("foreachNodeDataSchema", () => {
 	test("accepts items with defaults", () => {
@@ -18,6 +22,30 @@ describe("foreachNodeDataSchema", () => {
 				itemVar: "row",
 			}).success,
 		).toBe(true);
+	});
+
+	test("rejects maxItems above security ceiling", () => {
+		expect(
+			foreachNodeDataSchema.safeParse({
+				items: "items",
+				maxItems: FOREACH_MAX_ITEMS_CEILING + 1,
+			}).success,
+		).toBe(false);
+		expect(
+			foreachNodeDataSchema.safeParse({
+				items: "items",
+				maxItems: FOREACH_MAX_ITEMS_CEILING,
+			}).success,
+		).toBe(true);
+	});
+
+	test("rejects concurrency above security ceiling", () => {
+		expect(
+			foreachNodeDataSchema.safeParse({
+				items: "items",
+				concurrency: FOREACH_MAX_CONCURRENCY + 1,
+			}).success,
+		).toBe(false);
 	});
 
 	test("requires items", () => {

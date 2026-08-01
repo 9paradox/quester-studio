@@ -1,0 +1,55 @@
+{
+	"id": "echo-subflow",
+	"version": "v1",
+	"name": "Echo subflow",
+	"description": "Minimal subflow target for kitchen-sink: start → input → output (echoes run input).",
+	"nodes": [
+		{
+			"id": "start",
+			"type": "start",
+			"data": { "label": "Start" },
+			"position": { "x": 0, "y": 80 },
+			"width": 180,
+			"height": 72
+		},
+		{
+			"id": "input",
+			"type": "input",
+			"data": {
+				"value": { "message": "hello" },
+				"label": "Echo input"
+			},
+			"position": { "x": 240, "y": 80 },
+			"width": 180,
+			"height": 72
+		},
+		{
+			"id": "output",
+			"type": "output",
+			"data": {
+				"map": {
+					"echo": "{{input.message}}",
+					"from": "echo-subflow"
+				},
+				"label": "Echo result"
+			},
+			"position": { "x": 480, "y": 80 },
+			"width": 180,
+			"height": 72
+		}
+	],
+	"edges": [
+		{
+			"id": "e-start-input",
+			"source": "start",
+			"target": "input",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-input-out",
+			"source": "input",
+			"target": "output",
+			"sourceHandle": null
+		}
+	]
+}

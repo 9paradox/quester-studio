@@ -30,6 +30,8 @@ import { getNodePresentation } from "@/lib/nodeCatalog.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	type BuiltinNodeType,
+	FOREACH_MAX_CONCURRENCY,
+	FOREACH_MAX_ITEMS_CEILING,
 	type FlowNodeV1,
 	builtinNodeTypes,
 } from "@quester-studio/schema";
@@ -379,24 +381,32 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Max items"
-						hint="Cap iteration count (default 100)."
+						hint={`Cap iteration count (default 100, max ${FOREACH_MAX_ITEMS_CEILING}).`}
 					>
 						<Input
 							type="number"
 							min={1}
+							max={FOREACH_MAX_ITEMS_CEILING}
 							value={String(data.maxItems ?? 100)}
 							onChange={(e) =>
-								setField("maxItems", Math.max(1, Number(e.target.value) || 100))
+								setField(
+									"maxItems",
+									Math.min(
+										FOREACH_MAX_ITEMS_CEILING,
+										Math.max(1, Number(e.target.value) || 100),
+									),
+								)
 							}
 						/>
 					</InspectorField>
 					<InspectorField
 						label="Concurrency"
-						hint="Optional parallel item processing limit."
+						hint={`Optional parallel item processing limit (max ${FOREACH_MAX_CONCURRENCY}).`}
 					>
 						<Input
 							type="number"
 							min={1}
+							max={FOREACH_MAX_CONCURRENCY}
 							value={
 								data.concurrency === undefined ? "" : String(data.concurrency)
 							}
@@ -407,7 +417,13 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 									onUpdate(rest);
 									return;
 								}
-								setField("concurrency", Math.max(1, Number(raw) || 1));
+								setField(
+									"concurrency",
+									Math.min(
+										FOREACH_MAX_CONCURRENCY,
+										Math.max(1, Number(raw) || 1),
+									),
+								);
 							}}
 							placeholder="1"
 						/>
