@@ -12,6 +12,25 @@ Canvas-only nodes must not break CLI runs.
 - [ ] `delay` / `wait` — sleep N ms (optional jitter)
 - [ ] `switch` — multi-branch on expression / status / JMESPath (extends `if` + `sourceHandle`)
 
+### v0.5.x — Desktop polish
+
+Parallel to v0.5 nodes (separate PRs). Release hotfixes first, then IDE-feel polish. Epic: #86. Bugs: [BUGS.md](BUGS.md) B1–B3. TLS verify stays On by default (not a code change).
+
+**Release hotfixes**
+
+- [ ] B2 — Sample workspace in release + Open sample writable copy — #88
+- [ ] B1 — NSIS Desktop/Start Menu shortcut + DisplayIcon use installed `icon.ico` — #87
+- [ ] B3 — Per-flow run state + success/error toasts — #89
+
+**Builder / IDE polish** (after B3 where noted)
+
+- [ ] Stop run — `AbortSignal` in engine + HTTP fetch; desktop Stop UI (needs B3)
+- [ ] Workspace chip in TopBar (name ▾ | tabs…)
+- [ ] Command registry + Ctrl/Cmd+Shift+P palette
+- [ ] More fixed shortcuts + Preferences Shortcuts table
+- [ ] Run summary in Response when no node selected (needs B3)
+- [ ] JMESPath assist v1 — snippets + path picker + inspector help
+
 ## Next
 
 ### v0.6.0 — Control & composition
@@ -103,6 +122,7 @@ See [DEBUGGING.md](DEBUGGING.md) for setup / develop / debug per mode (desktop, 
 | v0.3.0 | Builder UX — custom nodes, inspector, save |
 | v0.4.0 | Platform closeout + **public preview** — `quester init`, smoke tests, first GitHub/npm release |
 | v0.5.0 | Flow nodes — `note`, `delay`, `switch` |
+| v0.5.x | Desktop polish — install/sample hotfixes, runs/commands/workspace UX |
 | v0.6.0 | Control & composition — `foreach`, `try`/`catch`, `subflow` |
 | v0.7.0 | Runs & observability — history/replay, `log`/`inspect`, disk cookies |
 | v1.0.0 | Stable — flow format v1 freeze, polished desktop, thin collection import |
