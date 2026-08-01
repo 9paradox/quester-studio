@@ -3,7 +3,7 @@ title: Getting started
 description: Run and validate flows with the Quester CLI
 ---
 
-Prefer a downloadable desktop build? See [Try Quester Studio](../try/) or the [product Download page](https://9paradox.com/quester-studio/download/).
+Prefer a downloadable desktop build? See [Try Quester Studio](../try/), [Download](../../download/), or the [Guide](../../guide/).
 
 ## Install (from source)
 
@@ -12,10 +12,11 @@ bun install
 bun run build
 ```
 
-Or install from npm (v0.4.0+):
+Or install from npm (v0.4.0+) with Bun or npm:
 
 ```bash
 bunx @quester-studio/cli --help
+npx @quester-studio/cli --help
 ```
 
 ## Scaffold a workspace

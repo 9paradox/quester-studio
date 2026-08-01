@@ -1,0 +1,1002 @@
+---
+const steps = [
+	{
+		title: "Open workspace",
+		body: "Open a folder with quester.json — or jump in with the sample workspace.",
+	},
+	{
+		title: "Build the flow",
+		body: "Drop nodes on the canvas and connect them: start → input → http → extract → output.",
+	},
+	{
+		title: "Run locally",
+		body: "Choose an environment and press Run. Everything executes on your machine.",
+	},
+	{
+		title: "Inspect results",
+		body: "Check status, response body, and extracts in the inspector — data stays local.",
+	},
+];
+---
+
+<section class="demo" data-how-it-works aria-label="Quester Studio interactive preview">
+	<div class="demo__shell" aria-hidden="true">
+		<header class="demo__topbar">
+			<div class="demo__tabs">
+				<div class="demo__tab is-active">
+					<svg
+						class="demo__ico"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						aria-hidden="true"
+						><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path
+							d="M8 6h8a2 2 0 0 1 2 2v8"></path
+						><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
+					>
+					<span>demo-main-nodes</span>
+				</div>
+				<div class="demo__tab">login-and-profile</div>
+			</div>
+			<div class="demo__win">
+				<span class="demo__win-btn" title="Minimize">
+					<svg viewBox="0 0 12 12" aria-hidden="true"
+						><path fill="currentColor" d="M2 6.25h8v1.1H2z"></path></svg
+					>
+				</span>
+				<span class="demo__win-btn" title="Maximize">
+					<svg viewBox="0 0 12 12" aria-hidden="true"
+						><rect
+							x="2.4"
+							y="2.4"
+							width="7.2"
+							height="7.2"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.15"></rect
+					></svg>
+				</span>
+				<span class="demo__win-btn demo__win-btn--close" title="Close">
+					<svg viewBox="0 0 12 12" aria-hidden="true"
+						><path
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.15"
+							d="M3 3l6 6M9 3l-6 6"></path
+					></svg>
+				</span>
+			</div>
+		</header>
+
+		<div class="demo__main">
+			<nav class="demo__activity">
+				<span class="demo__act is-active" title="Flows">
+					<svg
+						class="demo__ico"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path
+							d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"
+						></path><path d="M9 13h6"></path><path d="M9 17h6"></path></svg
+					>
+				</span>
+				<span class="demo__act" title="Collections">
+					<svg
+						class="demo__ico"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"
+						></path></svg
+					>
+				</span>
+				<span class="demo__act" title="Environments">
+					<svg
+						class="demo__ico"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						><path d="M12 4 4 8l8 4 8-4-8-4"></path><path d="m4 12 8 4 8-4"></path><path
+							d="m4 16 8 4 8-4"></path
+						></svg>
+				</span>
+				<span class="demo__act demo__act--bottom" title="Preferences">
+					<svg
+						class="demo__ico"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6"></path><path
+							d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 0 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 0 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 0 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
+						></path></svg
+					>
+				</span>
+			</nav>
+
+			<aside class="demo__sidebar" data-panel="sidebar">
+				<p class="demo__side-title">Flows</p>
+				<ul class="demo__flow-list">
+					<li class="is-active" data-flow>
+						<svg
+							class="demo__ico"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+							><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path
+								d="M8 6h8a2 2 0 0 1 2 2v8"></path
+							><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
+						>
+						demo-main-nodes
+					</li>
+					<li>
+						<svg
+							class="demo__ico"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+							><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path
+								d="M8 6h8a2 2 0 0 1 2 2v8"></path
+							><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
+						>
+						login-and-profile
+					</li>
+					<li>
+						<svg
+							class="demo__ico"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+							><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path
+								d="M8 6h8a2 2 0 0 1 2 2v8"></path
+							><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
+						>
+						kitchen-sink
+					</li>
+				</ul>
+			</aside>
+
+			<div class="demo__editor" data-panel="canvas">
+				<div class="demo__toolbar">
+					<div class="demo__env">
+						<span class="demo__env-label">Env</span>
+						<span class="demo__env-value">local</span>
+					</div>
+					<button type="button" class="demo__run" data-demo-run tabindex="-1">
+						<svg
+							class="demo__ico"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+							><path d="M7 4v16l13-8z"></path></svg
+						>
+						Run
+					</button>
+				</div>
+				<div class="demo__canvas">
+					<div class="demo__graph">
+						<article class="fn fn--start" data-node="start">
+							<div class="fn__head">
+								<span class="fn__badge fn__badge--start">Start</span>
+								<div class="fn__meta">
+									<div class="fn__title">Start</div>
+									<div class="fn__id">start</div>
+									<span class="fn__status" aria-hidden="true"></span>
+								</div>
+							</div>
+						</article>
+						<span class="demo__edge" data-edge aria-hidden="true"></span>
+						<article class="fn fn--input" data-node="input">
+							<div class="fn__head">
+								<span class="fn__badge fn__badge--input">Input</span>
+								<div class="fn__meta">
+									<div class="fn__title">Product id</div>
+									<div class="fn__id">input</div>
+									<span class="fn__status" aria-hidden="true"></span>
+								</div>
+							</div>
+						</article>
+						<span class="demo__edge" data-edge aria-hidden="true"></span>
+						<article class="fn fn--http" data-node="http">
+							<div class="fn__head">
+								<span class="fn__badge fn__badge--http">HTTP</span>
+								<div class="fn__meta">
+									<div class="fn__title">GET product</div>
+									<div class="fn__id">fetchProduct</div>
+									<div class="fn__sub">GET</div>
+									<span class="fn__status" aria-hidden="true"></span>
+								</div>
+							</div>
+						</article>
+						<span class="demo__edge" data-edge aria-hidden="true"></span>
+						<article class="fn fn--extract" data-node="extract">
+							<div class="fn__head">
+								<span class="fn__badge fn__badge--extract">Extract</span>
+								<div class="fn__meta">
+									<div class="fn__title">Title</div>
+									<div class="fn__id">title</div>
+									<div class="fn__sub">body.title</div>
+									<span class="fn__status" aria-hidden="true"></span>
+								</div>
+							</div>
+						</article>
+						<span class="demo__edge" data-edge aria-hidden="true"></span>
+						<article class="fn fn--output" data-node="output">
+							<div class="fn__head">
+								<span class="fn__badge fn__badge--output">Output</span>
+								<div class="fn__meta">
+									<div class="fn__title">Result</div>
+									<div class="fn__id">output</div>
+									<span class="fn__status" aria-hidden="true"></span>
+								</div>
+							</div>
+						</article>
+					</div>
+				</div>
+			</div>
+
+			<aside class="demo__aux" data-panel="inspector">
+				<p class="demo__side-title">Inspector</p>
+				<div class="demo__inspect-block">
+					<p class="demo__kv"><span>Type</span> http</p>
+					<p class="demo__kv"><span>Method</span> GET</p>
+					<p class="demo__kv demo__kv--stack">
+						<span>URL</span>
+						<code class="demo__url">{"{{env.API_BASE}}/products/{{input.productId}}"}</code>
+					</p>
+				</div>
+				<div class="demo__response" data-panel="response">
+					<p class="demo__side-title">Response</p>
+					<pre><code>{`{
+  "status": 200,
+  "body": {
+    "id": 1,
+    "title": "Essence Mascara…"
+  }
+}`}</code></pre>
+				</div>
+			</aside>
+		</div>
+
+		<footer class="demo__status">
+			<span data-status-label>sample-workspace</span>
+			<span>local</span>
+			<span class="demo__status-right">Ready</span>
+		</footer>
+	</div>
+
+	<div class="demo__controls">
+		<p class="demo__caption" data-how-caption>{steps[0].body}</p>
+		<div class="demo__steps" role="tablist" aria-label="Demo steps">
+			{
+				steps.map((step, i) => (
+					<button
+						type="button"
+						role="tab"
+						class="demo__step"
+						data-step={i}
+						aria-selected={i === 0 ? "true" : "false"}
+					>
+						<span class="demo__step-index">{i + 1}</span>
+						<span class="demo__step-title">{step.title}</span>
+					</button>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<script>
+	const root = document.querySelector("[data-how-it-works]");
+	if (root instanceof HTMLElement) {
+		const captions = [
+			"Open a folder with quester.json — or jump in with the sample workspace.",
+			"Drop nodes on the canvas and connect them: start → input → http → extract → output.",
+			"Choose an environment and press Run. Everything executes on your machine.",
+			"Check status, response body, and extracts in the inspector — data stays local.",
+		];
+		const captionEl = root.querySelector("[data-how-caption]");
+		const statusLabel = root.querySelector("[data-status-label]");
+		const buttons = [...root.querySelectorAll("[data-step]")];
+		let index = 0;
+		let timer = 0;
+		let visible = true;
+
+		function setStep(next) {
+			index = ((next % 4) + 4) % 4;
+			root.dataset.step = String(index);
+			if (captionEl) captionEl.textContent = captions[index] ?? "";
+			if (statusLabel) {
+				statusLabel.textContent =
+					index >= 2 ? "Running demo-main-nodes…" : "sample-workspace";
+			}
+			for (const btn of buttons) {
+				const i = Number(btn.getAttribute("data-step"));
+				btn.setAttribute("aria-selected", i === index ? "true" : "false");
+			}
+		}
+
+		function schedule() {
+			window.clearInterval(timer);
+			if (!visible) return;
+			timer = window.setInterval(() => setStep(index + 1), 4200);
+		}
+
+		for (const btn of buttons) {
+			btn.addEventListener("click", () => {
+				setStep(Number(btn.getAttribute("data-step")));
+				schedule();
+			});
+		}
+
+		if ("IntersectionObserver" in window) {
+			const io = new IntersectionObserver(
+				([entry]) => {
+					visible = Boolean(entry?.isIntersecting);
+					if (visible) schedule();
+					else window.clearInterval(timer);
+				},
+				{ threshold: 0.15 },
+			);
+			io.observe(root);
+		}
+
+		setStep(0);
+		schedule();
+	}
+</script>
+
+<style>
+	.demo {
+		display: grid;
+		gap: 1.25rem;
+		width: 100%;
+	}
+
+	.demo__shell {
+		overflow: hidden;
+		border: 1px solid var(--border);
+		border-radius: calc(var(--radius) * 1.4);
+		background: var(--background);
+		box-shadow:
+			0 1px 0 color-mix(in oklch, var(--foreground) 6%, transparent),
+			0 28px 56px -32px color-mix(in oklch, var(--foreground) 35%, transparent);
+		font-size: 12px;
+	}
+
+	.demo__topbar {
+		display: flex;
+		align-items: stretch;
+		justify-content: space-between;
+		min-height: 2.15rem;
+		border-bottom: 1px solid var(--border);
+		background: var(--background);
+		overflow: hidden;
+	}
+
+	.demo__tabs {
+		display: flex;
+		min-width: 0;
+		overflow: hidden;
+	}
+
+	.demo__tab {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		border-right: 1px solid var(--border);
+		padding: 0.4rem 0.75rem;
+		color: var(--muted-foreground);
+		white-space: nowrap;
+	}
+
+	.demo__tab.is-active {
+		background: var(--muted);
+		color: var(--foreground);
+		font-weight: 600;
+	}
+
+	.demo__win {
+		display: flex;
+		flex-shrink: 0;
+		align-items: stretch;
+		margin-left: auto;
+	}
+
+	.demo__win-btn {
+		display: inline-flex;
+		width: 2.4rem;
+		align-items: center;
+		justify-content: center;
+		color: var(--muted-foreground);
+	}
+
+	.demo__win-btn svg {
+		width: 0.7rem;
+		height: 0.7rem;
+	}
+
+	.demo__win-btn--close {
+		color: var(--muted-foreground);
+	}
+
+	.demo__main {
+		display: grid;
+		grid-template-columns: 2.5rem minmax(0, 1fr);
+		min-height: 17.5rem;
+	}
+
+	@media (min-width: 800px) {
+		.demo__main {
+			grid-template-columns: 2.5rem 9.5rem minmax(0, 1fr) 11.5rem;
+			min-height: 19rem;
+		}
+	}
+
+	.demo__activity {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+		border-right: 1px solid var(--sidebar-border);
+		background: var(--sidebar);
+		padding: 0.45rem 0;
+	}
+
+	.demo__act {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: var(--radius);
+		color: var(--sidebar-foreground);
+		opacity: 0.75;
+	}
+
+	.demo__act.is-active {
+		background: var(--sidebar-accent);
+		opacity: 1;
+	}
+
+	.demo__act--bottom {
+		margin-top: auto;
+	}
+
+	.demo__ico {
+		width: 0.95rem;
+		height: 0.95rem;
+		flex-shrink: 0;
+	}
+
+	.demo__sidebar,
+	.demo__aux {
+		display: none;
+		background: var(--sidebar);
+		color: var(--sidebar-foreground);
+		padding: 0.55rem 0.45rem;
+		overflow: hidden;
+	}
+
+	@media (min-width: 800px) {
+		.demo__sidebar,
+		.demo__aux {
+			display: block;
+		}
+	}
+
+	.demo__sidebar {
+		border-right: 1px solid var(--sidebar-border);
+	}
+
+	.demo__aux {
+		border-left: 1px solid var(--sidebar-border);
+	}
+
+	.demo__side-title {
+		margin: 0 0 0.45rem;
+		padding: 0 0.35rem;
+		font-size: 0.65rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--muted-foreground);
+	}
+
+	.demo__flow-list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.demo__flow-list li {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		border-radius: var(--radius);
+		padding: 0.35rem 0.4rem;
+		font-size: 0.7rem;
+		opacity: 0.55;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		transition:
+			background 0.3s ease,
+			opacity 0.3s ease;
+	}
+
+	.demo__flow-list li.is-active {
+		background: var(--sidebar-accent);
+		opacity: 1;
+		font-weight: 600;
+	}
+
+	.demo__editor {
+		display: flex;
+		min-width: 0;
+		flex-direction: column;
+		background: var(--background);
+		overflow: hidden;
+	}
+
+	.demo__toolbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		border-bottom: 1px solid var(--border);
+		padding: 0.45rem 0.65rem;
+	}
+
+	.demo__env {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		padding: 0.2rem 0.45rem;
+		font-size: 0.65rem;
+	}
+
+	.demo__env-label {
+		color: var(--muted-foreground);
+	}
+
+	.demo__env-value {
+		font-weight: 600;
+	}
+
+	.demo__run {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		border: none;
+		border-radius: var(--radius);
+		background: var(--secondary);
+		color: var(--secondary-foreground);
+		padding: 0.25rem 0.55rem;
+		font-size: 0.7rem;
+		font-weight: 700;
+		pointer-events: none;
+		transition:
+			background 0.3s ease,
+			color 0.3s ease,
+			box-shadow 0.3s ease;
+	}
+
+	.demo__canvas {
+		position: relative;
+		flex: 1;
+		display: flex;
+		align-items: center;
+		overflow: hidden;
+		background:
+			radial-gradient(
+					circle at 1px 1px,
+					color-mix(in oklch, var(--foreground) 8%, transparent) 1px,
+					transparent 0
+				)
+				0 0 / 16px 16px,
+			var(--muted);
+		padding: 1.35rem 0.75rem;
+		min-height: 11rem;
+	}
+
+	.demo__graph {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr) 14px minmax(0, 1fr) 14px minmax(
+				0,
+				1fr
+			) 14px minmax(0, 1fr);
+		align-items: center;
+		width: 100%;
+		overflow: hidden;
+	}
+
+	.demo__edge {
+		display: block;
+		height: 2px;
+		width: 100%;
+		border-radius: 9999px;
+		background: var(--border);
+		opacity: 0.2;
+		transform: scaleX(0.35);
+		transform-origin: center;
+		transition:
+			opacity 0.35s ease,
+			transform 0.45s ease,
+			background 0.35s ease;
+	}
+
+	.fn {
+		position: relative;
+		min-width: 0;
+		height: fit-content;
+		overflow: hidden;
+		border: 1px solid var(--border);
+		border-left-width: 3px;
+		border-radius: var(--radius-lg);
+		background: var(--card);
+		color: var(--card-foreground);
+		opacity: 0.4;
+		transform: translateY(6px);
+		transition:
+			opacity 0.4s ease,
+			transform 0.4s ease,
+			box-shadow 0.35s ease,
+			border-color 0.35s ease;
+	}
+
+	.fn--start {
+		border-left-color: var(--foreground);
+	}
+	.fn--input {
+		border-left-color: var(--chart-2);
+	}
+	.fn--http {
+		border-left-color: var(--primary);
+	}
+	.fn--extract {
+		border-left-color: var(--chart-1);
+	}
+	.fn--output {
+		border-left-color: var(--muted-foreground);
+	}
+
+	.fn__head {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.3rem;
+		background: color-mix(in oklch, var(--muted) 35%, transparent);
+		padding: 0.45rem;
+	}
+
+	.fn__badge {
+		display: inline-flex;
+		align-items: center;
+		height: 1.1rem;
+		border-radius: 0.2rem;
+		padding: 0 0.3rem;
+		font-size: 0.55rem;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	.fn__badge--start {
+		background: color-mix(in oklch, var(--foreground) 10%, transparent);
+		color: var(--foreground);
+	}
+	.fn__badge--input {
+		background: color-mix(in oklch, var(--chart-2) 15%, transparent);
+		color: var(--chart-2);
+	}
+	.fn__badge--http {
+		background: color-mix(in oklch, var(--primary) 15%, transparent);
+		color: var(--primary);
+	}
+	.fn__badge--extract {
+		background: color-mix(in oklch, var(--chart-1) 15%, transparent);
+		color: var(--chart-1);
+	}
+	.fn__badge--output {
+		background: var(--muted);
+		color: var(--muted-foreground);
+	}
+
+	.fn__meta {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		column-gap: 0.25rem;
+		row-gap: 0.05rem;
+		width: 100%;
+		min-width: 0;
+	}
+
+	.fn__title {
+		grid-column: 1;
+		font-size: 0.68rem;
+		font-weight: 600;
+		line-height: 1.2;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.fn__id,
+	.fn__sub {
+		grid-column: 1;
+		font-size: 0.55rem;
+		color: var(--muted-foreground);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.fn__id {
+		font-family: ui-monospace, monospace;
+	}
+
+	.fn__status {
+		grid-column: 2;
+		grid-row: 1 / span 3;
+		align-self: start;
+		width: 0.4rem;
+		height: 0.4rem;
+		margin-top: 0.15rem;
+		border-radius: 9999px;
+		background: color-mix(in oklch, var(--muted-foreground) 40%, transparent);
+	}
+
+	.demo__inspect-block {
+		padding: 0 0.35rem;
+	}
+
+	.demo__kv {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.4rem;
+		margin: 0 0 0.35rem;
+		font-size: 0.65rem;
+	}
+
+	.demo__kv span {
+		flex-shrink: 0;
+		color: var(--muted-foreground);
+	}
+
+	.demo__kv--stack {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0.2rem;
+	}
+
+	.demo__url {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		border: 1px solid var(--sidebar-border);
+		border-radius: calc(var(--radius) * 0.6);
+		background: var(--background);
+		padding: 0.25rem 0.35rem;
+		font-family: ui-monospace, monospace;
+		font-size: 0.58rem;
+		color: var(--foreground);
+	}
+
+	.demo__response {
+		margin-top: 0.75rem;
+		opacity: 0;
+		transform: translateY(6px);
+		transition:
+			opacity 0.4s ease,
+			transform 0.4s ease;
+	}
+
+	.demo__response pre {
+		margin: 0 0.2rem;
+		border: 1px solid var(--sidebar-border);
+		border-radius: var(--radius);
+		background: var(--background);
+		padding: 0.4rem 0.45rem;
+		font-size: 0.58rem;
+		line-height: 1.35;
+		overflow: hidden;
+	}
+
+	.demo__status {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		border-top: 1px solid var(--border);
+		background: var(--sidebar);
+		padding: 0.3rem 0.65rem;
+		font-size: 0.6rem;
+		color: var(--muted-foreground);
+	}
+
+	.demo__status-right {
+		margin-left: auto;
+	}
+
+	.demo[data-step="0"] [data-panel="sidebar"] {
+		box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 40%, transparent);
+	}
+
+	.demo[data-step="0"] [data-flow] {
+		animation: demo-pulse 1.5s ease-in-out infinite;
+	}
+
+	.demo[data-step="1"] .fn,
+	.demo[data-step="2"] .fn,
+	.demo[data-step="3"] .fn {
+		opacity: 1;
+		transform: none;
+	}
+
+	.demo[data-step="1"] .demo__edge,
+	.demo[data-step="2"] .demo__edge,
+	.demo[data-step="3"] .demo__edge {
+		opacity: 1;
+		transform: scaleX(1);
+		background: color-mix(in oklch, var(--primary) 60%, var(--border));
+	}
+
+	.demo[data-step="1"] [data-panel="canvas"] {
+		box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 28%, transparent);
+	}
+
+	.demo[data-step="2"] .demo__run {
+		background: var(--primary);
+		color: var(--primary-foreground);
+		box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent);
+	}
+
+	.demo[data-step="2"] .fn[data-node="http"],
+	.demo[data-step="2"] .fn[data-node="extract"] {
+		box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 45%, transparent);
+	}
+
+	.demo[data-step="2"] .fn[data-node="http"] .fn__status,
+	.demo[data-step="2"] .fn[data-node="extract"] .fn__status {
+		background: var(--primary);
+		box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 30%, transparent);
+		animation: demo-spin-dot 0.9s linear infinite;
+	}
+
+	.demo[data-step="3"] .demo__response {
+		opacity: 1;
+		transform: none;
+	}
+
+	.demo[data-step="3"] [data-panel="inspector"] {
+		box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 35%, transparent);
+	}
+
+	.demo[data-step="3"] .fn .fn__status {
+		background: var(--chart-2);
+	}
+
+	.demo[data-step="3"] .fn[data-node="output"] {
+		border-color: color-mix(in oklch, var(--primary) 50%, var(--border));
+		box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 30%, transparent);
+	}
+
+	@keyframes demo-pulse {
+		0%,
+		100% {
+			background: var(--sidebar-accent);
+		}
+		50% {
+			background: color-mix(in oklch, var(--primary) 20%, var(--sidebar-accent));
+		}
+	}
+
+	@keyframes demo-spin-dot {
+		50% {
+			opacity: 0.45;
+		}
+	}
+
+	.demo__controls {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.demo__caption {
+		margin: 0;
+		min-height: 2.5rem;
+		color: var(--muted-foreground);
+		font-size: 0.95rem;
+		line-height: 1.45;
+	}
+
+	.demo__steps {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.demo__steps {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+
+	.demo__step {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.5rem;
+		text-align: left;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--background);
+		padding: 0.65rem 0.75rem;
+		cursor: pointer;
+		transition:
+			border-color 0.2s ease,
+			background 0.2s ease;
+	}
+
+	.demo__step:hover {
+		background: var(--muted);
+	}
+
+	.demo__step[aria-selected="true"] {
+		border-color: color-mix(in oklch, var(--primary) 55%, var(--border));
+		background: color-mix(in oklch, var(--primary) 12%, var(--background));
+	}
+
+	.demo__step-index {
+		display: inline-flex;
+		height: 1.25rem;
+		width: 1.25rem;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		border-radius: 9999px;
+		background: var(--primary);
+		color: var(--primary-foreground);
+		font-size: 0.7rem;
+		font-weight: 700;
+	}
+
+	.demo__step-title {
+		font-size: 0.8rem;
+		font-weight: 600;
+		line-height: 1.3;
+		color: var(--foreground);
+	}
+</style>

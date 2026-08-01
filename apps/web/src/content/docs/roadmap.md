@@ -33,7 +33,7 @@ High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox
 - `quester init`, welcome empty state, renderer smoke tests
 - npm `@quester-studio/*` + unsigned Windows/Linux desktop
 - [Try Quester Studio](../try/) for external testers
-- [Product site](https://9paradox.com/quester-studio/) for download, guide, and UI docs
+- [Product site](https://9paradox.com/quester-studio/) for download, guide, and docs
 
 ## Releases
 

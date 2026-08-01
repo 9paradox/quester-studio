@@ -34,7 +34,9 @@ class RootErrorBoundary extends Component<
 		if (this.state.error) {
 			return (
 				<div className="flex h-screen flex-col gap-2 bg-background p-4 text-sm text-foreground">
-					<h1 className="font-semibold text-destructive">Quester UI error</h1>
+					<h1 className="font-semibold text-destructive">
+						Quester Studio UI error
+					</h1>
 					<pre className="overflow-auto rounded-md border bg-muted/30 p-3 font-mono text-xs">
 						{this.state.error.stack ?? this.state.error.message}
 					</pre>

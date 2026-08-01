@@ -36,7 +36,9 @@ export function WorkspaceWelcome() {
 					className="mx-auto size-[72px] rounded-2xl"
 					draggable={false}
 				/>
-				<h1 className="mt-4 text-xl font-semibold tracking-tight">Quester</h1>
+				<h1 className="mt-4 text-xl font-semibold tracking-tight">
+					Quester Studio
+				</h1>
 				<p className="mt-2 text-sm text-muted-foreground">
 					Open a workspace folder, create a new one, or try the sample to get
 					started.

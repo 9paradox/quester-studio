@@ -1,0 +1,41 @@
+---
+import "../styles/global.css";
+import DocsSidebar from "../components/DocsSidebar.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteNav from "../components/SiteNav.astro";
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description = "Quester Studio documentation" } = Astro.props;
+const pageTitle = `${title} · Quester Studio`;
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content={description} />
+		<title>{pageTitle}</title>
+		<link rel="icon" type="image/png" href={`${import.meta.env.BASE_URL}favicon.png`} />
+		<script is:inline>
+			try {
+				const t = localStorage.getItem("qs-theme");
+				document.documentElement.classList.toggle("dark", t !== "light");
+			} catch (_) {}
+		</script>
+	</head>
+	<body class="min-h-dvh flex flex-col">
+		<SiteNav />
+		<div class="mx-auto flex w-full max-w-6xl flex-1 flex-col md:flex-row">
+			<DocsSidebar />
+			<main class="min-w-0 flex-1 px-4 py-10 sm:px-8">
+				<slot />
+			</main>
+		</div>
+		<SiteFooter />
+	</body>
+</html>

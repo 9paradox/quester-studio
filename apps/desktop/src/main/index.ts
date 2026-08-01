@@ -178,7 +178,7 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 const bootDark = resolvePreferredDark();
 
 const mainWindow = new BrowserWindow({
-	title: "Quester",
+	title: "Quester Studio",
 	url: await getMainViewUrl(),
 	frame: {
 		width: 1200,

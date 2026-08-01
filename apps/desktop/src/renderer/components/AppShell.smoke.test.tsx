@@ -70,7 +70,7 @@ describe("renderer smoke", () => {
 			expect(useQuesterStore.getState().workspacePath).toBe("");
 		});
 		expect(
-			await screen.findByRole("heading", { name: "Quester" }),
+			await screen.findByRole("heading", { name: "Quester Studio" }),
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", { name: /open workspace/i }),
@@ -120,7 +120,7 @@ describe("renderer smoke", () => {
 			expect(useQuesterStore.getState().workspacePath).toBe("");
 		});
 		expect(
-			await screen.findByRole("heading", { name: "Quester" }),
+			await screen.findByRole("heading", { name: "Quester Studio" }),
 		).toBeInTheDocument();
 
 		await user.click(screen.getByLabelText("Preferences"));

@@ -1,16 +1,108 @@
 ﻿---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import HowItWorks from "../components/HowItWorks.astro";
+import CliRunnerTabs from "../components/CliRunnerTabs.astro";
+
+const base = import.meta.env.BASE_URL;
 ---
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quester</title>
-  </head>
-  <body>
-    <main>
-      <h1>Quester</h1>
-      <p>Local-first, privacy-first visual API flows. Your data stays on your machine.</p>
-    </main>
-  </body>
-</html>
+
+<BaseLayout
+	description="Quester Studio — local-first visual API flows. Desktop app or CLI — your data stays on your machine."
+>
+	<section
+		class="relative overflow-hidden border-b border-border"
+		style="background:
+			radial-gradient(90% 60% at 50% 0%, color-mix(in oklch, var(--primary) 22%, transparent), transparent 55%),
+			radial-gradient(70% 50% at 80% 100%, color-mix(in oklch, var(--muted-foreground) 6%, transparent), transparent 45%),
+			var(--background);"
+	>
+		<div class="mx-auto max-w-5xl px-4 pb-14 pt-14 sm:px-6 sm:pb-16 sm:pt-16">
+			<div class="mx-auto max-w-2xl text-center">
+				<h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+					Quester Studio
+				</h1>
+				<p class="mt-4 text-base text-muted-foreground sm:text-lg">
+					Local-first visual API flows. Design graphs, run HTTP steps, keep secrets on your machine.
+				</p>
+				<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+					<a
+						href={`${base}download/`}
+						class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+					>
+						Download
+					</a>
+					<a
+						href={`${base}guide/`}
+						class="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+					>
+						Guide
+					</a>
+				</div>
+			</div>
+			<div class="mx-auto mt-12 max-w-4xl">
+				<HowItWorks />
+			</div>
+		</div>
+	</section>
+
+	<section class="border-b border-border bg-sidebar/60">
+		<div class="mx-auto max-w-5xl px-4 py-14 sm:px-6">
+			<p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">CLI</p>
+			<h2 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+				Prefer the terminal?
+			</h2>
+			<p class="mt-3 max-w-xl text-muted-foreground">
+				Skip the UI. Validate workspaces and run flows with
+				<code class="rounded bg-muted px-1.5 py-0.5 text-sm">@quester-studio/cli</code>
+				— same
+				<code class="rounded bg-muted px-1.5 py-0.5 text-sm">*.flow.json</code>
+				files, ready for CI.
+			</p>
+			<CliRunnerTabs />
+			<div class="mt-6 flex flex-wrap gap-3">
+				<a
+					href={`${base}docs/getting-started/`}
+					class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+				>
+					CLI getting started
+				</a>
+				<a
+					href={`${base}docs/nodes/`}
+					class="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-semibold hover:bg-muted"
+				>
+					Node reference
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<section class="mx-auto max-w-5xl px-4 py-14 sm:px-6">
+		<h2 class="text-xl font-semibold tracking-tight">Built for local workspaces</h2>
+		<p class="mt-2 max-w-2xl text-muted-foreground">
+			Flows live as git-friendly files. Use the desktop app day to day, or the CLI in scripts and CI.
+		</p>
+		<ul class="mt-8 grid gap-6 sm:grid-cols-3">
+			<li>
+				<h3 class="text-sm font-semibold">Visual builder</h3>
+				<p class="mt-1 text-sm text-muted-foreground">
+					Canvas, inspector, and run panel — same theme as this site.
+				</p>
+			</li>
+			<li>
+				<h3 class="text-sm font-semibold">Sample demo flow</h3>
+				<p class="mt-1 text-sm text-muted-foreground">
+					Open the sample workspace and run <strong class="font-medium text-foreground">demo-main-nodes</strong>.
+				</p>
+			</li>
+			<li>
+				<h3 class="text-sm font-semibold">One docs site</h3>
+				<p class="mt-1 text-sm text-muted-foreground">
+					<a class="underline underline-offset-2 hover:text-foreground" href={`${base}docs/`}
+						>Docs</a
+					>
+					covers UI screenshots and CLI / node reference together.
+				</p>
+			</li>
+		</ul>
+	</section>
+</BaseLayout>

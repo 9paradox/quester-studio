@@ -5,13 +5,13 @@ description: Download the desktop app or CLI and smoke-test a workspace
 
 **Quester Studio** is a local-first visual API flow tool. This page is for **external testers** — download a build, open a workspace, run a flow, and file feedback.
 
-Product site (download, guide, UI docs): [https://9paradox.com/quester-studio/](https://9paradox.com/quester-studio/) · [Download](https://9paradox.com/quester-studio/download/)
+Also see [Download](../../download/), [Guide](../../guide/), and [UI reference](../ui/).
 
 > **Status:** Public preview **[v0.4.0](https://github.com/9paradox/quester-studio/releases/tag/v0.4.0)** is live — unsigned Windows/Linux desktop on GitHub Releases, and `@quester-studio/*` on npm. Prefer verifying published checksums when available.
 
 ## Desktop (preview)
 
-1. Prefer the product [Download](https://9paradox.com/quester-studio/download/) page, or open the latest [GitHub Release](https://github.com/9paradox/quester-studio/releases) (start with [v0.4.0](https://github.com/9paradox/quester-studio/releases/tag/v0.4.0)).
+1. Prefer the [Download](../../download/) page, or open the latest [GitHub Release](https://github.com/9paradox/quester-studio/releases) (start with [v0.4.0](https://github.com/9paradox/quester-studio/releases/tag/v0.4.0)).
 2. Download a **Windows** or **Linux** desktop artifact (macOS is not published yet).
    - **v0.4.0 Windows:** `stable-win-x64-Quester-Setup.zip` — extract, run `Quester-Setup.exe` (self-extractor).
    - **v0.4.0 Linux:** `stable-linux-x64-Quester-Setup.tar.gz` (or the matching `.tar.zst` / update JSON for your arch).
@@ -35,14 +35,19 @@ Product site (download, guide, UI docs): [https://9paradox.com/quester-studio/](
 ## CLI
 
 ```bash
+# bun
 bunx @quester-studio/cli validate ./my-workspace
-bunx @quester-studio/cli run ./my-workspace/flows/example.flow.json \
+
+# npm
+npx @quester-studio/cli validate ./my-workspace
+
+npx @quester-studio/cli run ./my-workspace/flows/example.flow.json \
   --workspace ./my-workspace \
   --env local \
   --input '{}'
 ```
 
-Or clone the repo and follow [Getting started](../getting-started/).
+Or follow [Getting started](../getting-started/).
 
 ## Feedback
 

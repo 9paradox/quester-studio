@@ -1,0 +1,110 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+
+const base = import.meta.env.BASE_URL;
+---
+
+<DocsLayout
+	title="Docs"
+	description="Quester Studio documentation — desktop UI and CLI reference."
+>
+	<h1 class="text-3xl font-semibold tracking-tight">Docs</h1>
+	<p class="mt-3 max-w-2xl text-muted-foreground">
+		Everything in one place: desktop UI reference and CLI / workspace docs, styled like the app.
+	</p>
+
+	<section class="mt-10">
+		<h2 class="text-lg font-semibold tracking-tight">Desktop</h2>
+		<p class="mt-1 text-sm text-muted-foreground">
+			Visual builder, sample flows, and screenshots.
+		</p>
+		<ul class="mt-4 grid gap-3 sm:grid-cols-2">
+			<li>
+				<a
+					href={`${base}docs/ui/`}
+					class="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted"
+				>
+					<span class="font-medium">UI reference</span>
+					<span class="mt-1 block text-sm text-muted-foreground"
+						>Shell, canvas, inspector, run panel</span
+					>
+				</a>
+			</li>
+			<li>
+				<a
+					href={`${base}guide/`}
+					class="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted"
+				>
+					<span class="font-medium">Guide</span>
+					<span class="mt-1 block text-sm text-muted-foreground"
+						>Open sample → run demo-main-nodes</span
+					>
+				</a>
+			</li>
+			<li>
+				<a
+					href={`${base}download/`}
+					class="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted"
+				>
+					<span class="font-medium">Download</span>
+					<span class="mt-1 block text-sm text-muted-foreground"
+						>Windows / Linux preview builds</span
+					>
+				</a>
+			</li>
+		</ul>
+	</section>
+
+	<section class="mt-12">
+		<h2 class="text-lg font-semibold tracking-tight">CLI</h2>
+		<p class="mt-1 text-sm text-muted-foreground">
+			Validate and run flows from the terminal — no UI required.
+		</p>
+		<ul class="mt-4 grid gap-3 sm:grid-cols-2">
+			<li>
+				<a
+					href={`${base}docs/getting-started/`}
+					class="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted"
+				>
+					<span class="font-medium">Getting started</span>
+					<span class="mt-1 block text-sm text-muted-foreground"
+						>install, init, validate, run</span
+					>
+				</a>
+			</li>
+			<li>
+				<a
+					href={`${base}docs/try/`}
+					class="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted"
+				>
+					<span class="font-medium">Try / preview</span>
+					<span class="mt-1 block text-sm text-muted-foreground"
+						>Tester checklist for desktop + CLI</span
+					>
+				</a>
+			</li>
+			<li>
+				<a
+					href={`${base}docs/workspace/`}
+					class="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted"
+				>
+					<span class="font-medium">Workspace</span>
+					<span class="mt-1 block text-sm text-muted-foreground"
+						>quester.json, flows, environments</span
+					>
+				</a>
+			</li>
+			<li>
+				<a
+					href={`${base}docs/nodes/`}
+					class="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted"
+				>
+					<span class="font-medium">Nodes</span>
+					<span class="mt-1 block text-sm text-muted-foreground"
+						>Builtin types and I/O examples</span
+					>
+				</a>
+			</li>
+		</ul>
+	</section>
+</DocsLayout>

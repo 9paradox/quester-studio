@@ -1,6 +1,6 @@
 # Quester Studio
 
-Local-first, privacy-first visual API flows. **Quester** is the desktop product; **Quester Studio** is the platform monorepo.
+Local-first, privacy-first visual API flows. **Quester Studio** is the desktop app and platform monorepo.
 
 - **Desktop app** — visual flow builder (React Flow + Electrobun)
 - **CLI** — `quester validate`, `quester run`
@@ -14,14 +14,14 @@ Legacy [apitester](https://github.com/9paradox/apitester) remains separate.
 - [Security](./SECURITY.md)
 - [Roadmap](./ROADMAP.md)
 - [Changelog](./CHANGELOG.md)
-- [Documentation site](https://9paradox.github.io/quester-studio/) (GitHub Pages)
+- [Product site & docs](https://9paradox.com/quester-studio/) — download, guide, UI + CLI docs
 
 ## Structure
 
 ```
-apps/desktop   Quester desktop app
-apps/web       Marketing site (quester.9paradox.com)
-apps/docs      Documentation (docs.quester.9paradox.com)
+apps/desktop   Quester Studio desktop app
+apps/web       Product site + docs (https://9paradox.com/quester-studio/)
+apps/docs      Legacy Starlight package (content mirrored in apps/web)
 packages/schema   @quester-studio/schema
 packages/engine   @quester-studio/engine
 packages/nodes    @quester-studio/nodes
