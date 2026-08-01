@@ -1,0 +1,141 @@
+{
+	"id": "demo-main-nodes",
+	"version": "v1",
+	"name": "Demo — main nodes",
+	"description": "Pedagogical flow for screenshots and the product guide: start → input → http → extract → output, with assert on the HTTP response (DummyJSON)",
+	"nodes": [
+		{
+			"id": "start",
+			"type": "start",
+			"data": {
+				"label": "Start"
+			},
+			"position": {
+				"x": 0,
+				"y": 80
+			},
+			"width": 180,
+			"height": 72
+		},
+		{
+			"id": "input",
+			"type": "input",
+			"data": {
+				"label": "Product id",
+				"value": {
+					"productId": "1"
+				}
+			},
+			"position": {
+				"x": 240,
+				"y": 80
+			},
+			"width": 180,
+			"height": 72
+		},
+		{
+			"id": "fetchProduct",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/products/{{input.productId}}",
+				"headers": {
+					"Accept": "application/json"
+				},
+				"label": "GET product"
+			},
+			"position": {
+				"x": 480,
+				"y": 80
+			},
+			"width": 200,
+			"height": 87
+		},
+		{
+			"id": "title",
+			"type": "extract",
+			"data": {
+				"expression": "body.title",
+				"label": "Extract title"
+			},
+			"position": {
+				"x": 760,
+				"y": 80
+			},
+			"width": 200,
+			"height": 72
+		},
+		{
+			"id": "assertOk",
+			"type": "assert",
+			"data": {
+				"checks": [
+					{
+						"path": "status",
+						"op": "eq",
+						"value": 200
+					},
+					{
+						"path": "body.id"
+					}
+				],
+				"label": "Assert 200"
+			},
+			"position": {
+				"x": 760,
+				"y": 240
+			},
+			"width": 200,
+			"height": 87
+		},
+		{
+			"id": "output",
+			"type": "output",
+			"data": {
+				"map": {
+					"productTitle": "{{nodes.title}}",
+					"status": "{{nodes.fetchProduct.status}}"
+				},
+				"label": "Result"
+			},
+			"position": {
+				"x": 1040,
+				"y": 80
+			},
+			"width": 180,
+			"height": 72
+		}
+	],
+	"edges": [
+		{
+			"id": "e-start-input",
+			"source": "start",
+			"target": "input",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-input-http",
+			"source": "input",
+			"target": "fetchProduct",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-http-extract",
+			"source": "fetchProduct",
+			"target": "title",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-http-assert",
+			"source": "fetchProduct",
+			"target": "assertOk",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-extract-output",
+			"source": "title",
+			"target": "output",
+			"sourceHandle": null
+		}
+	]
+}

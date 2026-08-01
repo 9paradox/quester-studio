@@ -1,0 +1,99 @@
+---
+const bunSnippet = `bunx @quester-studio/cli validate ./my-workspace
+bunx @quester-studio/cli run ./my-workspace/flows/demo.flow.json \\
+  --workspace ./my-workspace --env local --input '{}'`;
+
+const npmSnippet = `npx @quester-studio/cli validate ./my-workspace
+npx @quester-studio/cli run ./my-workspace/flows/demo.flow.json \\
+  --workspace ./my-workspace --env local --input '{}'`;
+---
+
+<div class="cli-tabs mt-6 max-w-xl" data-cli-tabs>
+	<div
+		class="flex gap-1 rounded-t-lg border border-b-0 border-border bg-muted/40 p-1"
+		role="tablist"
+		aria-label="Package runner"
+	>
+		<button
+			type="button"
+			role="tab"
+			class="cli-tabs__tab"
+			data-cli-tab="bun"
+			aria-selected="true"
+		>
+			bunx
+		</button>
+		<button
+			type="button"
+			role="tab"
+			class="cli-tabs__tab"
+			data-cli-tab="npm"
+			aria-selected="false"
+		>
+			npx
+		</button>
+	</div>
+	<pre
+		class="cli-tabs__panel overflow-x-auto rounded-b-lg border border-border bg-background p-4 text-sm leading-relaxed text-foreground"
+		data-cli-panel
+		data-runner="bun"><code>{bunSnippet}</code></pre>
+	<pre
+		class="cli-tabs__panel hidden overflow-x-auto rounded-b-lg border border-border bg-background p-4 text-sm leading-relaxed text-foreground"
+		data-cli-panel
+		data-runner="npm"
+		hidden><code>{npmSnippet}</code></pre>
+</div>
+
+<script>
+	const root = document.querySelector("[data-cli-tabs]");
+	if (root instanceof HTMLElement) {
+		const tabs = [...root.querySelectorAll("[data-cli-tab]")];
+		const panels = [...root.querySelectorAll("[data-cli-panel]")];
+
+		function select(runner) {
+			for (const tab of tabs) {
+				const on = tab.getAttribute("data-cli-tab") === runner;
+				tab.setAttribute("aria-selected", on ? "true" : "false");
+			}
+			for (const panel of panels) {
+				const on = panel.getAttribute("data-runner") === runner;
+				panel.classList.toggle("hidden", !on);
+				if (on) panel.removeAttribute("hidden");
+				else panel.setAttribute("hidden", "");
+			}
+		}
+
+		for (const tab of tabs) {
+			tab.addEventListener("click", () => {
+				select(tab.getAttribute("data-cli-tab") ?? "bun");
+			});
+		}
+	}
+</script>
+
+<style>
+	.cli-tabs__tab {
+		flex: 1;
+		border-radius: calc(var(--radius) * 0.9);
+		border: none;
+		background: transparent;
+		padding: 0.4rem 0.75rem;
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: var(--muted-foreground);
+		cursor: pointer;
+		transition:
+			background 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.cli-tabs__tab:hover {
+		color: var(--foreground);
+	}
+
+	.cli-tabs__tab[aria-selected="true"] {
+		background: var(--background);
+		color: var(--foreground);
+		box-shadow: 0 0 0 1px var(--border);
+	}
+</style>

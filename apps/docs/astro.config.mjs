@@ -4,10 +4,11 @@ import { defineConfig } from "astro/config";
 const base = process.env.BASE_PATH ?? "/";
 
 export default defineConfig({
+	site: "https://9paradox.com",
 	base,
 	integrations: [
 		starlight({
-			title: "Quester Docs",
+			title: "Quester Studio CLI",
 			social: [
 				{
 					icon: "github",

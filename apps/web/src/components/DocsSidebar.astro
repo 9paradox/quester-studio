@@ -1,0 +1,209 @@
+---
+/**
+ * Shared sidebar for /docs — UI + CLI, same theme as the product site.
+ */
+const base = import.meta.env.BASE_URL;
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+function href(segment: string) {
+	return `${base}${segment}`.replace(/\/{2,}/g, "/");
+}
+
+function active(suffix: string, exact = false) {
+	if (exact) return path.endsWith(suffix) || path === suffix;
+	return path.endsWith(suffix) || path.includes(`${suffix}/`);
+}
+
+const groups = [
+	{
+		label: "Desktop",
+		items: [
+			{ href: href("docs/"), label: "Overview", on: active("/docs", true) },
+			{ href: href("docs/ui/"), label: "UI reference", on: active("/docs/ui") },
+			{ href: href("guide/"), label: "Guide", on: active("/guide") },
+			{ href: href("download/"), label: "Download", on: active("/download") },
+		],
+	},
+	{
+		label: "CLI",
+		items: [
+			{
+				href: href("docs/getting-started/"),
+				label: "Getting started",
+				on: active("/docs/getting-started"),
+			},
+			{
+				href: href("docs/try/"),
+				label: "Try / preview",
+				on: active("/docs/try"),
+			},
+			{
+				href: href("docs/workspace/"),
+				label: "Workspace",
+				on: active("/docs/workspace"),
+			},
+			{
+				href: href("docs/workspace-secrets/"),
+				label: "Environments & secrets",
+				on: active("/docs/workspace-secrets"),
+			},
+			{
+				href: href("docs/collections/"),
+				label: "Collections",
+				on: active("/docs/collections"),
+			},
+			{
+				href: href("docs/templates/"),
+				label: "Templates",
+				on: active("/docs/templates"),
+			},
+		],
+	},
+	{
+		label: "Nodes",
+		items: [
+			{
+				href: href("docs/nodes/"),
+				label: "Overview",
+				on: active("/docs/nodes", true),
+			},
+			{
+				href: href("docs/nodes/start/"),
+				label: "start",
+				on: active("/docs/nodes/start"),
+			},
+			{
+				href: href("docs/nodes/input/"),
+				label: "input",
+				on: active("/docs/nodes/input"),
+			},
+			{
+				href: href("docs/nodes/http/"),
+				label: "http",
+				on: active("/docs/nodes/http"),
+			},
+			{
+				href: href("docs/nodes/extract/"),
+				label: "extract",
+				on: active("/docs/nodes/extract"),
+			},
+			{
+				href: href("docs/nodes/template/"),
+				label: "template",
+				on: active("/docs/nodes/template"),
+			},
+			{
+				href: href("docs/nodes/set/"),
+				label: "set",
+				on: active("/docs/nodes/set"),
+			},
+			{
+				href: href("docs/nodes/if/"),
+				label: "if",
+				on: active("/docs/nodes/if"),
+			},
+			{
+				href: href("docs/nodes/output/"),
+				label: "output",
+				on: active("/docs/nodes/output"),
+			},
+			{
+				href: href("docs/nodes/assert/"),
+				label: "assert",
+				on: active("/docs/nodes/assert"),
+			},
+			{
+				href: href("docs/nodes/transform/"),
+				label: "transform",
+				on: active("/docs/nodes/transform"),
+			},
+			{
+				href: href("docs/nodes/merge/"),
+				label: "merge",
+				on: active("/docs/nodes/merge"),
+			},
+			{
+				href: href("docs/nodes/json/"),
+				label: "json",
+				on: active("/docs/nodes/json"),
+			},
+		],
+	},
+	{
+		label: "Project",
+		items: [
+			{
+				href: href("docs/contributing/"),
+				label: "Contributing",
+				on: active("/docs/contributing"),
+			},
+			{
+				href: href("docs/roadmap/"),
+				label: "Roadmap",
+				on: active("/docs/roadmap"),
+			},
+		],
+	},
+];
+---
+
+<aside class="docs-sidebar w-full shrink-0 border-b border-border bg-sidebar md:w-56 md:border-b-0 md:border-r md:border-sidebar-border">
+	<nav
+		class="docs-sidebar__nav sticky top-14 max-h-[calc(100dvh-3.5rem)] overflow-y-auto overscroll-contain px-3 py-6 sm:px-4"
+		aria-label="Docs"
+	>		{
+			groups.map((group) => (
+				<div class="mb-6">
+					<p class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+						{group.label}
+					</p>
+					<ul class="space-y-0.5">
+						{group.items.map((item) => (
+							<li>
+								<a
+									href={item.href}
+									class:list={[
+										"block rounded-md px-2 py-1.5 text-sm transition-colors",
+										item.on
+											? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+											: "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+									]}
+								>
+									{item.label}
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
+			))
+		}
+	</nav>
+</aside>
+
+<style>
+	.docs-sidebar__nav {
+		scrollbar-gutter: stable;
+		scrollbar-width: thin;
+		scrollbar-color: color-mix(in oklch, var(--sidebar-foreground) 22%, transparent)
+			transparent;
+	}
+
+	.docs-sidebar__nav::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	.docs-sidebar__nav::-webkit-scrollbar-thumb {
+		background-color: color-mix(in oklch, var(--sidebar-foreground) 22%, transparent);
+		border-radius: 9999px;
+		border: 1px solid transparent;
+		background-clip: content-box;
+	}
+
+	.docs-sidebar__nav::-webkit-scrollbar-thumb:hover {
+		background-color: color-mix(in oklch, var(--sidebar-foreground) 38%, transparent);
+	}
+
+	.docs-sidebar__nav::-webkit-scrollbar-track {
+		background: transparent;
+	}
+</style>

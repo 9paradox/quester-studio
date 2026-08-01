@@ -1,0 +1,110 @@
+---
+const base = import.meta.env.BASE_URL;
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+const logoSrc = `${base}favicon.png`;
+
+function href(segment: string) {
+	return `${base}${segment}`.replace(/\/{2,}/g, "/");
+}
+
+function pathEndsWith(suffix: string) {
+	return path === suffix || path.endsWith(suffix);
+}
+
+const links = [
+	{ href: href("guide/"), label: "Guide", active: pathEndsWith("/guide") },
+	{
+		href: href("docs/"),
+		label: "Docs",
+		active: path.includes("/docs"),
+	},
+	{
+		href: href("download/"),
+		label: "Download",
+		active: pathEndsWith("/download"),
+	},
+];
+---
+
+<header class="border-b border-border bg-background/90 backdrop-blur-sm sticky top-0 z-50">
+	<div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+		<a
+			href={base}
+			class="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground hover:text-foreground/80"
+		>
+			<img
+				src={logoSrc}
+				alt=""
+				width="22"
+				height="22"
+				class="size-[22px] rounded-md"
+				decoding="async"
+			/>
+			Quester Studio
+		</a>
+		<nav class="flex flex-wrap items-center justify-end gap-1 sm:gap-2" aria-label="Primary">
+			{
+				links.map((link) => (
+					<a
+						href={link.href}
+						class:list={[
+							"rounded-lg px-2.5 py-1.5 text-sm transition-colors",
+							link.active
+								? "bg-muted text-foreground"
+								: "text-muted-foreground hover:bg-muted hover:text-foreground",
+						]}
+					>
+						{link.label}
+					</a>
+				))
+			}
+			<a
+				href="https://github.com/9paradox/quester-studio"
+				class="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+				aria-label="GitHub"
+				title="GitHub"
+			>
+				<svg class="size-4" viewBox="0 0 24 24" aria-hidden="true"
+					><path
+						fill="currentColor"
+						d="M12 2C6.48 2 2 6.58 2 12.26c0 4.52 2.87 8.35 6.84 9.71.5.1.68-.22.68-.48 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.27 2.75 1.05A9.3 9.3 0 0 1 12 6.84c.85 0 1.71.12 2.51.35 1.9-1.32 2.74-1.05 2.74-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .26.18.58.69.48A10.05 10.05 0 0 0 22 12.26C22 6.58 17.52 2 12 2Z"
+					></path></svg
+				>
+			</a>
+			<button
+				type="button"
+				id="theme-toggle"
+				class="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+				aria-label="Toggle color theme"
+				title="Toggle theme"
+			>
+				<svg class="size-4 dark:hidden" viewBox="0 0 24 24" aria-hidden="true"
+					><path
+						fill="currentColor"
+						d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0 4a1 1 0 0 1-1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Zm0-18a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V5a1 1 0 0 1 1-1Zm10 9a1 1 0 0 1-1 1h-1a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1ZM5 12a1 1 0 0 1-1 1H3a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1Zm12.95 6.36a1 1 0 0 1-1.41 0l-.71-.71a1 1 0 0 1 1.41-1.41l.71.7a1 1 0 0 1 0 1.42ZM7.76 7.76a1 1 0 0 1-1.41 0l-.71-.7A1 1 0 0 1 7.05 5.64l.71.71a1 1 0 0 1 0 1.41Zm9.9-2.12a1 1 0 0 1 0 1.41l-.7.71A1 1 0 1 1 15.54 6l.71-.71a1 1 0 0 1 1.41 0ZM6.34 17.66a1 1 0 0 1 0-1.41l.71-.71a1 1 0 0 1 1.41 1.41l-.7.71a1 1 0 0 1-1.42 0Z"
+					></path></svg
+				>
+				<svg class="size-4 hidden dark:block" viewBox="0 0 24 24" aria-hidden="true"
+					><path
+						fill="currentColor"
+						d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.5 5.5 0 0 1-7.54-7.54c-.44-.06-.9-.1-1.36-.1Z"
+					></path></svg
+				>
+			</button>
+		</nav>
+	</div>
+</header>
+
+<script>
+	const btn = document.getElementById("theme-toggle");
+	btn?.addEventListener("click", () => {
+		const root = document.documentElement;
+		const next = root.classList.contains("dark") ? "light" : "dark";
+		root.classList.toggle("dark", next === "dark");
+		try {
+			localStorage.setItem("qs-theme", next);
+		} catch {
+			/* ignore */
+		}
+	});
+</script>
