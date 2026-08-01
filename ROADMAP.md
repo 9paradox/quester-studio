@@ -42,6 +42,20 @@ Unscheduled. Do not expand the current milestone without updating this file and 
 - Client certificates (mTLS)
 - Remappable shortcuts
 
+### Platform / SaaS (post-v1 track)
+
+Separate from the local desktop product. Browser SPA + HTTP API; **no** live desktop bridge.
+
+- [x] Shared `@quester-studio/api-contract` + `HttpQuesterClient` (HTTP JSON + SSE)
+- [x] `@quester-studio/workspace-service` (FS workspace + execute; used by desktop + API)
+- [x] `apps/api` Bun server (`QUESTER_WORKSPACE_ROOT`) + desktop `dev:web` against API
+- [ ] Extract `apps/studio-web` / `packages/studio-ui` as the browser product shell
+- [ ] Self-host packaging (single-node Linux VPS; static SPA + API)
+- [ ] Hosted multi-tenant: auth/login, tenant isolation, cloud storage backend
+- [ ] SECURITY.md updates for server-side execution and secrets
+
+See [DEBUGGING.md](DEBUGGING.md) for setup / develop / debug per mode (desktop, API-only, UI+API).
+
 ### New node types
 
 **Control flow:** `loop` / `while`, `parallel`, `group` / `frame`, `gate` / `breakpoint`  

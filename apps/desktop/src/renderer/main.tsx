@@ -1,10 +1,13 @@
 ﻿import { Component, type ErrorInfo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppShell } from "./components/AppShell.js";
+import { createElectrobunQuesterClient } from "./lib/electrobun-client.js";
 import { syncNativeChromeTheme } from "./lib/nativeChrome.js";
+import { setQuesterClient } from "./lib/quester-client.js";
 import { readThemePreference } from "./lib/theme.js";
 import "./styles.css";
 
+setQuesterClient(createElectrobunQuesterClient());
 syncNativeChromeTheme(readThemePreference());
 
 if (typeof window !== "undefined" && window.matchMedia) {

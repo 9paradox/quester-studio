@@ -95,6 +95,26 @@
 			"url": "http://127.0.0.1:5173",
 			"webRoot": "${workspaceFolder}/apps/desktop/src/renderer",
 			"preLaunchTask": "desktop: dev:hmr:debug"
+		},
+		{
+			"type": "bun",
+			"request": "launch",
+			"name": "Debug API server",
+			"program": "${workspaceFolder}/apps/api/src/index.ts",
+			"cwd": "${workspaceFolder}",
+			"preLaunchTask": "build:pkgs",
+			"env": {
+				"QUESTER_WORKSPACE_ROOT": "${workspaceFolder}/examples/sample-workspace"
+			},
+			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"type": "chrome",
+			"request": "launch",
+			"name": "Debug Web UI (API client)",
+			"url": "http://127.0.0.1:5173",
+			"webRoot": "${workspaceFolder}/apps/desktop/src/renderer",
+			"preLaunchTask": "desktop: dev:web"
 		}
 	]
 }

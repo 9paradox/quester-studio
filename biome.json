@@ -12,7 +12,8 @@
 			"**/*.css",
 			"apps/desktop/build",
 			"schemas",
-			".agents"
+			".agents",
+			"**/.quester"
 		]
 	},
 	"overrides": [

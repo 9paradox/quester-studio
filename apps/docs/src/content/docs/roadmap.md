@@ -27,6 +27,10 @@ High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox
 - Polished desktop
 - Thin collection import (Postman / OpenAPI)
 
+## Platform / SaaS (post-v1)
+
+Browser SPA + HTTP API (no desktop bridge). Shared `api-contract` / `workspace-service` / `apps/api` and desktop `dev:web` are in place — see [Developing the studio](../developing-studio/) and repo [ROADMAP.md](https://github.com/9paradox/quester-studio/blob/main/ROADMAP.md).
+
 ## Done — v0.4.0
 
 - Platform closeout + public preview ([v0.4.0](https://github.com/9paradox/quester-studio/releases/tag/v0.4.0))

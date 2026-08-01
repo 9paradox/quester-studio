@@ -17,8 +17,8 @@ import {
 } from "./selectors.js";
 import { slugifyName } from "./slugify.js";
 
-mock.module("@/lib/electrobun.js", () => ({
-	desktopRpc: {
+mock.module("@/lib/quester-client.js", () => ({
+	getQuesterClient: () => ({
 		executeFlowRpc: async () => ({
 			output: { ok: true },
 			nodeOutputs: { start: {}, in: { name: "demo" }, out: { ok: true } },
@@ -55,7 +55,14 @@ mock.module("@/lib/electrobun.js", () => ({
 		listSecretNames: async () => ["username", "password"],
 		readPathShapes: async () => null,
 		writePathShapes: async () => ({ ok: true }),
-	},
+		onNodeRunStatus: () => () => {},
+	}),
+	setQuesterClient: () => {},
+	resetQuesterClientForTests: () => {},
+}));
+
+mock.module("@/lib/electrobun.js", () => ({
+	desktopRpc: {},
 	onNodeRunStatus: () => () => {},
 }));
 

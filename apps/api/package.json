@@ -1,0 +1,23 @@
+{
+	"name": "@quester-studio/api",
+	"version": "0.4.5",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun run src/index.ts",
+		"start": "bun run src/index.ts",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test src",
+		"lint": "biome check src"
+	},
+	"dependencies": {
+		"@quester-studio/api-contract": "workspace:*",
+		"@quester-studio/workspace-service": "workspace:*"
+	},
+	"devDependencies": {
+		"@quester-studio/tsconfig": "workspace:*",
+		"@types/bun": "^1.3.8",
+		"typescript": "^5.8.3",
+		"@types/node": "^22.15.3"
+	}
+}

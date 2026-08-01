@@ -5,8 +5,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select.js";
-import { desktopRpc } from "@/lib/electrobun.js";
 import { persistAndSyncTheme } from "@/lib/nativeChrome.js";
+import { getQuesterClient } from "@/lib/quester-client.js";
 import { type ThemePreference, readThemePreference } from "@/lib/theme.js";
 import {
 	readTlsVerifyPreference,
@@ -22,9 +22,9 @@ import {
 async function syncTlsVerifyToMain(verifyTls: boolean): Promise<void> {
 	writeTlsVerifyPreference(verifyTls);
 	try {
-		await desktopRpc.setAppTlsVerify(verifyTls);
+		await getQuesterClient().setAppTlsVerify(verifyTls);
 	} catch {
-		/* RPC unavailable in some test / preview hosts */
+		/* RPC/API unavailable in some test / preview hosts */
 	}
 }
 

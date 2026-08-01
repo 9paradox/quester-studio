@@ -8,6 +8,7 @@ apps/desktop/artifacts/
 .env
 .env.*
 !.env.example
+!.env.mock
 *.secrets.json
 .quester/
 coverage/
