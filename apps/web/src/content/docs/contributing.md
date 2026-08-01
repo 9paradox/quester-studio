@@ -33,7 +33,7 @@ See [DEBUGGING.md](https://github.com/9paradox/quester-studio/blob/main/DEBUGGIN
 | `@quester-studio/schema` | Zod validation only |
 | `@quester-studio/nodes` | Node `execute()` plugins |
 | `@quester-studio/engine` | Workspace load + flow execution |
-| `@quester-studio/cli` | `quester validate` / `quester run` |
+| `@quester-studio/cli` | `quester init` / `quester validate` / `quester run` |
 
 ## Pre-commit hooks
 

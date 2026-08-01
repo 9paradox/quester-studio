@@ -2,19 +2,24 @@
 
 Local-first, privacy-first visual API flows. **Quester Studio** is the desktop app and platform monorepo.
 
+![Quester Studio — demo-main-nodes on the canvas](docs/images/quester-studio.png)
+
 - **Desktop app** — visual flow builder (React Flow + Electrobun)
-- **CLI** — `quester validate`, `quester run`
+- **CLI** — `quester init`, `quester validate`, `quester run`
 - **Schema** — git-friendly `*.flow.json` workspace format
+
+Builtin nodes include `start`, `input`, `http`, `extract`, `template`, `set`, `if`, `output`, `assert`, `transform`, `merge`, `json`, and canvas-only `note` (not executed). See the [node reference](https://9paradox.com/quester-studio/docs/nodes/).
 
 Legacy [apitester](https://github.com/9paradox/apitester) remains separate.
 
 ## Docs
 
+- [Product site](https://9paradox.com/quester-studio/) — download, guide, UI + CLI docs
+- [Try Quester Studio](https://9paradox.com/quester-studio/docs/try/) — unsigned desktop preview
 - [Contributing](./CONTRIBUTING.md)
 - [Security](./SECURITY.md)
 - [Roadmap](./ROADMAP.md)
 - [Changelog](./CHANGELOG.md)
-- [Product site & docs](https://9paradox.com/quester-studio/) — download, guide, UI + CLI docs
 
 ## Structure
 
@@ -39,9 +44,21 @@ schemas/       JSON Schema emitted from @quester-studio/schema
 bun install
 bun run build
 bun run test
+
+# Scaffold a workspace
+bunx --bun quester init ./my-workspace
+bunx --bun quester validate ./my-workspace
+
+# Sample workspace (DummyJSON)
 bunx --bun quester validate examples/sample-workspace
-bunx --bun quester run examples/sample-workspace/flows/login-and-profile.flow.json --workspace examples/sample-workspace --env local --input "{\"username\":\"emilys\",\"password\":\"emilyspass\"}"
+bunx --bun quester run examples/sample-workspace/flows/demo-main-nodes.flow.json \
+  --workspace examples/sample-workspace --env local
+bunx --bun quester run examples/sample-workspace/flows/login-and-profile.flow.json \
+  --workspace examples/sample-workspace --env local \
+  --input "{\"username\":\"emilys\",\"password\":\"emilyspass\"}"
 ```
+
+Sample flows: `demo-main-nodes` (short walkthrough), `login-and-profile`, `kitchen-sink` (every builtin, including a disconnected `note`).
 
 ## Monorepo tooling
 

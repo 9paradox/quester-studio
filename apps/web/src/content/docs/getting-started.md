@@ -36,6 +36,16 @@ bunx quester validate examples/sample-workspace
 
 ## Run a flow
 
+Start with the short pedagogical sample:
+
+```bash
+bunx quester run examples/sample-workspace/flows/demo-main-nodes.flow.json \
+  --workspace examples/sample-workspace \
+  --env local
+```
+
+Auth + profile against [DummyJSON](https://dummyjson.com/docs):
+
 ```bash
 bunx quester run examples/sample-workspace/flows/login-and-profile.flow.json \
   --workspace examples/sample-workspace \
@@ -43,7 +53,7 @@ bunx quester run examples/sample-workspace/flows/login-and-profile.flow.json \
   --input '{"username":"emilys","password":"emilyspass"}'
 ```
 
-For a longer walkthrough that hits every builtin node and most HTTP methods against [DummyJSON](https://dummyjson.com/docs):
+Longer walkthrough that hits every builtin (including a disconnected [`note`](../nodes/note/)) and most HTTP methods:
 
 ```bash
 bunx quester run examples/sample-workspace/flows/kitchen-sink.flow.json \
@@ -60,4 +70,5 @@ bunx quester run examples/sample-workspace/flows/kitchen-sink.flow.json \
 - [Collections & requests](../collections/) — standalone `*.request.json`
 - [Template syntax](../templates/) — `{{input.*}}` vs previous / `{{nodes.*}}`
 - [Nodes](../nodes/) — every builtin type with input/output examples
+- [note](../nodes/note/) — canvas sticky (not executed)
 - [extract](../nodes/extract/) — JMESPath on the previous node only

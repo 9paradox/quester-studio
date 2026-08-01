@@ -25,7 +25,7 @@ Run payload is **not** produced by `start`. Use [`input`](../input/) after start
 - Exactly one `start` per flow
 - No incoming edges
 - At most one child (`start → next` only)
-- All other nodes must be reachable from `start`
+- All **executable** nodes must be reachable from `start` ([`note`](../note/) stickies are exempt and cannot be connected)
 - Validation / run fails if these rules are broken
 
 ## Examples

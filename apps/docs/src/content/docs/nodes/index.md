@@ -47,5 +47,6 @@ start → input → http (login) → extract (body.id) → http (profile) → ou
 
 See the sample workspace:
 
-- `examples/sample-workspace/flows/login-and-profile.flow.json` — short auth + profile walkthrough
-- `examples/sample-workspace/flows/kitchen-sink.flow.json` — every builtin node, template scopes, JMESPath, and HTTP methods against [DummyJSON](https://dummyjson.com/docs)
+- `examples/sample-workspace/flows/demo-main-nodes.flow.json` — short pedagogical walkthrough (screenshots / guide)
+- `examples/sample-workspace/flows/login-and-profile.flow.json` — auth + profile walkthrough
+- `examples/sample-workspace/flows/kitchen-sink.flow.json` — every builtin (including a disconnected [`note`](./note/)), template scopes, JMESPath, and HTTP methods against [DummyJSON](https://dummyjson.com/docs)

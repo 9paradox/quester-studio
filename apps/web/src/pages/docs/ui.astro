@@ -1,4 +1,7 @@
 ---
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import DocsLayout from "../../layouts/DocsLayout.astro";
 
 const shots = [
@@ -32,6 +35,10 @@ const shots = [
 	},
 ];
 
+const shotsDir = join(
+	dirname(fileURLToPath(import.meta.url)),
+	"../../public/screenshots",
+);
 const base = import.meta.env.BASE_URL;
 ---
 
@@ -42,29 +49,48 @@ const base = import.meta.env.BASE_URL;
 	<article>
 		<h1 class="text-3xl font-semibold tracking-tight">UI reference</h1>
 		<p class="mt-3 text-muted-foreground">
-			Desktop layout reference. Screenshots will show the
+			Desktop layout reference. Screenshots show the
 			<code class="rounded bg-muted px-1">demo-main-nodes</code> flow from the sample workspace.
 		</p>
 
 		<div class="mt-10 space-y-12">
 			{
-				shots.map((shot) => (
-					<section>
-						<h2 class="text-lg font-semibold tracking-tight">{shot.title}</h2>
-						<figure class="mt-3">
-							<div
-								class="flex aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-muted/60 px-6 text-center"
-								data-shot={shot.id}
-							>
-								<div>
-									<p class="text-sm font-medium text-foreground">Screenshot placeholder</p>
-									<p class="mt-1 font-mono text-xs text-muted-foreground">{shot.file}</p>
-								</div>
-							</div>
-							<figcaption class="mt-2 text-sm text-muted-foreground">{shot.caption}</figcaption>
-						</figure>
-					</section>
-				))
+				shots.map((shot) => {
+					const hasFile = existsSync(join(shotsDir, shot.file));
+					return (
+						<section>
+							<h2 class="text-lg font-semibold tracking-tight">{shot.title}</h2>
+							<figure class="mt-3">
+								{hasFile ? (
+									<img
+										src={`${base}screenshots/${shot.file}`}
+										alt={shot.caption}
+										class="w-full rounded-xl border border-border"
+										loading="lazy"
+										decoding="async"
+									/>
+								) : (
+									<div
+										class="flex aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-muted/60 px-6 text-center"
+										data-shot={shot.id}
+									>
+										<div>
+											<p class="text-sm font-medium text-foreground">
+												Screenshot placeholder
+											</p>
+											<p class="mt-1 font-mono text-xs text-muted-foreground">
+												{shot.file}
+											</p>
+										</div>
+									</div>
+								)}
+								<figcaption class="mt-2 text-sm text-muted-foreground">
+									{shot.caption}
+								</figcaption>
+							</figure>
+						</section>
+					);
+				})
 			}
 		</div>
 
