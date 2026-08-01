@@ -145,4 +145,60 @@ describe("validateFlowGraph", () => {
 			),
 		).toBe(true);
 	});
+
+	test("accepts disconnected note nodes", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "in", type: "input", data: {} },
+					{ id: "sticky", type: "note", data: { text: "Remember TLS" } },
+				],
+				edges: [{ id: "e0", source: "start", target: "in" }],
+			}),
+		);
+		expect(result.valid).toBe(true);
+	});
+
+	test("rejects edges involving note nodes", () => {
+		const fromNote = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "sticky", type: "note", data: { text: "" } },
+					{ id: "in", type: "input", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "sticky" },
+					{ id: "e1", source: "sticky", target: "in" },
+				],
+			}),
+		);
+		expect(fromNote.valid).toBe(false);
+		expect(
+			fromNote.issues.filter((i) =>
+				i.message.includes("note nodes cannot be connected"),
+			).length,
+		).toBeGreaterThanOrEqual(1);
+
+		const toNote = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "in", type: "input", data: {} },
+					{ id: "sticky", type: "note", data: { text: "" } },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "in" },
+					{ id: "e1", source: "in", target: "sticky" },
+				],
+			}),
+		);
+		expect(toNote.valid).toBe(false);
+		expect(
+			toNote.issues.some((i) =>
+				i.message.includes("note nodes cannot be connected"),
+			),
+		).toBe(true);
+	});
 });

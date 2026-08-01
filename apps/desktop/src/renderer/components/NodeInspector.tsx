@@ -17,6 +17,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select.js";
 import { Separator } from "@/components/ui/separator.js";
+import { Textarea } from "@/components/ui/textarea.js";
 import {
 	HTTP_BODY_TYPE_OPTIONS,
 	type HttpBodyType,
@@ -383,6 +384,21 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						onChange={(expression) => setField("expression", expression)}
 						placeholder="body"
 						completionMode="jmespath"
+					/>
+				</InspectorField>
+			) : null}
+
+			{node.type === "note" ? (
+				<InspectorField
+					label="Text"
+					hint="Plain text shown on the canvas sticky. Notes are not executed."
+				>
+					<Textarea
+						value={String(data.text ?? "")}
+						onChange={(e) => setField("text", e.target.value)}
+						placeholder="Add a note…"
+						rows={8}
+						className="min-h-[120px] font-sans text-sm"
 					/>
 				</InspectorField>
 			) : null}

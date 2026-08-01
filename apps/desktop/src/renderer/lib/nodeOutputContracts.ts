@@ -34,6 +34,7 @@ export const NODE_OUTPUT_CONTRACTS: Record<BuiltinNodeType, readonly string[]> =
 		transform: [],
 		merge: [],
 		json: [],
+		note: [],
 	};
 
 export function contractPathsForType(type: string): string[] {

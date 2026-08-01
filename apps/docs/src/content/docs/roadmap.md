@@ -7,7 +7,7 @@ High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox
 
 ## Now — v0.5.0 Flow nodes
 
-- `note`, `delay` / `wait`, `switch`
+- `note` (done), `delay` / `wait`, `switch`
 
 ## Next
 

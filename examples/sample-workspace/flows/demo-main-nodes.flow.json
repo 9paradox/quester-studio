@@ -2,7 +2,7 @@
 	"id": "demo-main-nodes",
 	"version": "v1",
 	"name": "Demo — main nodes",
-	"description": "Pedagogical flow for screenshots and the product guide: start → input → http → extract → output, with assert on the HTTP response (DummyJSON)",
+	"description": "Pedagogical flow for screenshots and the product guide: start → input → http → extract → output, with assert on the HTTP response (DummyJSON). Includes a disconnected note sticky.",
 	"nodes": [
 		{
 			"id": "start",
@@ -21,10 +21,10 @@
 			"id": "input",
 			"type": "input",
 			"data": {
-				"label": "Product id",
 				"value": {
 					"productId": "1"
-				}
+				},
+				"label": "Product id"
 			},
 			"position": {
 				"x": 240,
@@ -104,6 +104,20 @@
 			},
 			"width": 180,
 			"height": 72
+		},
+		{
+			"id": "note-tip",
+			"type": "note",
+			"data": {
+				"text": "Pick Env local, then Run.\nproductId comes from Input (or the Run panel).",
+				"label": "Note"
+			},
+			"position": {
+				"x": -3.5192307692307736,
+				"y": -87.34615384615402
+			},
+			"width": 240,
+			"height": 140
 		}
 	],
 	"edges": [

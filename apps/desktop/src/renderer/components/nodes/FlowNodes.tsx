@@ -17,6 +17,8 @@ import { JsonViewer } from "../JsonViewer.js";
 
 const JSON_NODE_MIN_WIDTH = 210;
 const JSON_NODE_MIN_HEIGHT = 140;
+const NOTE_NODE_MIN_WIDTH = 180;
+const NOTE_NODE_MIN_HEIGHT = 120;
 
 function useNodeRunStatus(nodeId: string) {
 	return useQuesterStore((s) => selectNodeRunStatus(s, nodeId));
@@ -311,6 +313,40 @@ export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	);
 }
 
+export function NoteFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
+	const text = typeof data.text === "string" ? data.text : "";
+	return (
+		<>
+			<NodeResizer
+				isVisible={Boolean(selected)}
+				minWidth={NOTE_NODE_MIN_WIDTH}
+				minHeight={NOTE_NODE_MIN_HEIGHT}
+				lineClassName="!border-primary"
+				handleClassName="!size-2 !rounded-sm !border-primary !bg-background"
+			/>
+			<BaseFlowNode
+				type="note"
+				nodeId={id}
+				title={data.label ?? "Note"}
+				subtitle="Canvas only"
+				selected={selected}
+				fill
+				targetPorts={[]}
+				sourcePorts={[]}
+				className="bg-muted/40"
+			>
+				{text.trim() ? (
+					<div className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap text-left text-xs leading-relaxed">
+						{text}
+					</div>
+				) : (
+					<span className="text-muted-foreground">Add note text…</span>
+				)}
+			</BaseFlowNode>
+		</>
+	);
+}
+
 export const flowNodeTypes = {
 	start: StartFlowNode,
 	input: InputFlowNode,
@@ -324,4 +360,5 @@ export const flowNodeTypes = {
 	transform: TransformFlowNode,
 	merge: MergeFlowNode,
 	json: JsonFlowNode,
+	note: NoteFlowNode,
 };

@@ -5,7 +5,7 @@ import {
 	IconFolderPlus,
 	IconPackage,
 } from "@tabler/icons-react";
-import logoUrl from "../../../assets/quester-logo.png";
+import logoUrl from "../../../assets/quester-logo-128.png";
 
 export function WorkspaceWelcome() {
 	const isLoading = useQuesterStore((s) => s.isLoading);
@@ -35,6 +35,7 @@ export function WorkspaceWelcome() {
 					height={72}
 					className="mx-auto size-[72px] rounded-2xl"
 					draggable={false}
+					decoding="async"
 				/>
 				<h1 className="mt-4 text-xl font-semibold tracking-tight">
 					Quester Studio

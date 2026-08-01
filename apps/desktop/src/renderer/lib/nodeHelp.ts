@@ -386,6 +386,30 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 			output: '{ "ok": true, "failures": [] } on success; throws on failure',
 		},
 	},
+	note: {
+		summary:
+			"Canvas sticky for plain-text annotations. Not connected to the graph and not executed by CLI or desktop runs.",
+		fields: [
+			{
+				name: "label",
+				type: "string",
+				description: "Optional UI label shown in the node header",
+			},
+			{
+				name: "text",
+				type: "string",
+				description: "Sticky body shown on the canvas",
+			},
+		],
+		example: {
+			label: "Note",
+			text: "Use local env for DummyJSON credentials",
+		},
+		io: {
+			input: "None (canvas-only)",
+			output: "Not executed",
+		},
+	},
 };
 
 export function getNodeHelp(type: BuiltinNodeType): NodeHelp {

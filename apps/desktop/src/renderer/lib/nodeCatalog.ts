@@ -10,6 +10,7 @@ import {
 	IconGitBranch,
 	IconGitMerge,
 	IconJson,
+	IconNote,
 	IconTransform,
 	IconVariable,
 	IconWorld,
@@ -90,6 +91,14 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 		accentTone: "border-l-chart-3",
 		badgeTone: "bg-chart-3/15 text-chart-3",
 	}),
+	note: withHelp({
+		type: "note",
+		label: "Note",
+		description: "Canvas sticky (not executed)",
+		icon: IconNote,
+		accentTone: "border-l-chart-2",
+		badgeTone: "bg-chart-2/15 text-chart-2",
+	}),
 	http: withHelp({
 		type: "http",
 		label: "HTTP",
@@ -159,6 +168,7 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 
 const catalogGroupOrder: { title: string; types: BuiltinNodeType[] }[] = [
 	{ title: "Input & Output", types: ["start", "input", "output", "json"] },
+	{ title: "Canvas", types: ["note"] },
 	{ title: "HTTP", types: ["http"] },
 	{
 		title: "Transform",
@@ -230,6 +240,8 @@ export function defaultNodeData(
 			return { label: "Merge", sources: ["previous"] };
 		case "json":
 			return { label: "JSON" };
+		case "note":
+			return { label: "Note", text: "" };
 		default: {
 			const _exhaustive: never = type;
 			return { label: _exhaustive };

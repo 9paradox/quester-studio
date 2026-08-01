@@ -16,7 +16,7 @@ export default {
 		copy: {
 			"dist/renderer/index.html": "views/mainview/index.html",
 			"dist/renderer/assets/": "views/mainview/assets/",
-			"assets/quester-logo.png": "views/mainview/quester-logo.png",
+			"assets/quester-logo-32.png": "views/mainview/quester-logo-32.png",
 		},
 		watchIgnore: ["dist/**"],
 		mac: {

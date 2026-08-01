@@ -4,6 +4,20 @@ import { defaultNodeData, newNodeId } from "./nodeCatalog.js";
 
 const JSON_NODE_DEFAULT_WIDTH = 280;
 const JSON_NODE_DEFAULT_HEIGHT = 220;
+const NOTE_NODE_DEFAULT_WIDTH = 240;
+const NOTE_NODE_DEFAULT_HEIGHT = 160;
+
+function defaultSizeForType(
+	type: string,
+): { width: number; height: number } | undefined {
+	if (type === "json") {
+		return { width: JSON_NODE_DEFAULT_WIDTH, height: JSON_NODE_DEFAULT_HEIGHT };
+	}
+	if (type === "note") {
+		return { width: NOTE_NODE_DEFAULT_WIDTH, height: NOTE_NODE_DEFAULT_HEIGHT };
+	}
+	return undefined;
+}
 
 /** Wider hit target so edges are easier to select, delete, and reconnect. */
 export const EDGE_INTERACTION_WIDTH = 24;
@@ -29,10 +43,9 @@ export function flowToReactFlow(flow: FlowV1): {
 	edges: Edge[];
 } {
 	const nodes = flow.nodes.map((n) => {
-		const width =
-			n.width ?? (n.type === "json" ? JSON_NODE_DEFAULT_WIDTH : undefined);
-		const height =
-			n.height ?? (n.type === "json" ? JSON_NODE_DEFAULT_HEIGHT : undefined);
+		const defaults = defaultSizeForType(n.type);
+		const width = n.width ?? defaults?.width;
+		const height = n.height ?? defaults?.height;
 		return {
 			id: n.id,
 			type: n.type,
@@ -68,7 +81,8 @@ type ConnectionEdges = ReadonlyArray<{ id: string; source: string }>;
 
 /**
  * Canvas connection rules: no incoming edges to `start`; `start` has at most
- * one outgoing edge (ignoreEdgeId lets reconnect move the existing edge).
+ * one outgoing edge (ignoreEdgeId lets reconnect move the existing edge);
+ * `note` stickies cannot be connected.
  */
 export function isValidFlowConnection(options: {
 	source: string | null | undefined;
@@ -81,6 +95,7 @@ export function isValidFlowConnection(options: {
 	if (!source || !target) return false;
 	const sourceNode = nodes.find((n) => n.id === source);
 	const targetNode = nodes.find((n) => n.id === target);
+	if (sourceNode?.type === "note" || targetNode?.type === "note") return false;
 	if (targetNode?.type === "start") return false;
 	if (sourceNode?.type === "start") {
 		return !edges.some((e) => e.source === source && e.id !== ignoreEdgeId);
@@ -168,9 +183,7 @@ export function addNodeToFlow(
 				type,
 				data: defaultNodeData(type),
 				position,
-				...(type === "json"
-					? { width: JSON_NODE_DEFAULT_WIDTH, height: JSON_NODE_DEFAULT_HEIGHT }
-					: {}),
+				...(defaultSizeForType(type) ?? {}),
 			},
 		],
 	};

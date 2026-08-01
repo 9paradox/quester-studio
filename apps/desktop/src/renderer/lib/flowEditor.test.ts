@@ -128,6 +128,26 @@ describe("isValidFlowConnection", () => {
 			}),
 		).toBe(true);
 	});
+
+	test("rejects edges involving note nodes", () => {
+		const withNote = [...nodes, { id: "sticky", type: "note" }];
+		expect(
+			isValidFlowConnection({
+				source: "a",
+				target: "sticky",
+				nodes: withNote,
+				edges: [],
+			}),
+		).toBe(false);
+		expect(
+			isValidFlowConnection({
+				source: "sticky",
+				target: "a",
+				nodes: withNote,
+				edges: [],
+			}),
+		).toBe(false);
+	});
 });
 
 describe("flowToReactFlow edges", () => {
@@ -190,6 +210,14 @@ describe("json node size mapping", () => {
 		const json = next.nodes.find((n) => n.type === "json");
 		expect(json?.width).toBe(280);
 		expect(json?.height).toBe(220);
+	});
+
+	test("addNodeToFlow sets default size for note nodes", () => {
+		const next = addNodeToFlow(sampleFlow, "note", { x: 10, y: 20 });
+		const note = next.nodes.find((n) => n.type === "note");
+		expect(note?.width).toBe(240);
+		expect(note?.height).toBe(160);
+		expect(note?.data).toEqual({ label: "Note", text: "" });
 	});
 
 	test("flowToReactFlow applies default size for json nodes", () => {

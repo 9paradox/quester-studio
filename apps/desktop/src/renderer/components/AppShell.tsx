@@ -2,6 +2,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert.js";
 import { Toaster } from "@/components/ui/sonner.js";
 import { TooltipProvider } from "@/components/ui/tooltip.js";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts.js";
+import { useSuppressBrowserContextMenu } from "@/hooks/use-suppress-browser-context-menu.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectRightPanelVisible } from "@/stores/selectors.js";
 import { useAppInit } from "@/stores/use-app-init.js";
@@ -20,6 +21,7 @@ import { TopBar } from "./TopBar.js";
 export function AppShell() {
 	useAppInit();
 	useKeyboardShortcuts();
+	useSuppressBrowserContextMenu();
 
 	const loadError = useQuesterStore((s) => s.loadError);
 	const sidebarOpen = useQuesterStore((s) => s.sidebarOpen);

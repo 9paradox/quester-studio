@@ -48,6 +48,16 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 				suggestion: `Delete edge ${edge.id}, or reconnect it to an existing node`,
 			});
 		}
+		const sourceNode = nodeById.get(edge.source);
+		const targetNode = nodeById.get(edge.target);
+		if (sourceNode?.type === "note" || targetNode?.type === "note") {
+			issues.push({
+				path: `edges/${edge.id}`,
+				message: "note nodes cannot be connected",
+				suggestion:
+					"Delete the edge — notes are canvas stickies and stay off the execution graph",
+			});
+		}
 	}
 
 	const startNodes = flow.nodes.filter((n) => n.type === "start");
@@ -150,6 +160,7 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 	}
 
 	for (const node of flow.nodes) {
+		if (node.type === "note") continue;
 		if (start && !reachable.has(node.id)) {
 			issues.push({
 				path: `nodes/${node.id}`,

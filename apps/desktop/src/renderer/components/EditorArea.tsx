@@ -1,15 +1,7 @@
-import {
-	ContextMenu,
-	ContextMenuContent,
-	ContextMenuItem,
-	ContextMenuShortcut,
-	ContextMenuTrigger,
-} from "@/components/ui/context-menu.js";
 import type { EditorTab } from "@/lib/editorTabs.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectActiveTab, selectCanRun } from "@/stores/selectors.js";
 import type { FlowV1 } from "@quester-studio/schema";
-import type { ReactNode } from "react";
 import { AppPreferencesEditor } from "./AppPreferencesEditor.js";
 import { CanvasControls } from "./CanvasControls.js";
 import { FlowCanvas } from "./FlowCanvas.js";
@@ -17,35 +9,6 @@ import { KeyValueEditor } from "./KeyValueEditor.js";
 import { RequestEditor } from "./RequestEditor.js";
 import { WorkspaceSettingsEditor } from "./WorkspaceSettingsEditor.js";
 import { WorkspaceWelcome } from "./WorkspaceWelcome.js";
-
-function saveShortcutLabel(): string {
-	if (typeof navigator === "undefined") return "Ctrl+S";
-	return /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘S" : "Ctrl+S";
-}
-
-function EditorContextMenu({
-	canSave,
-	onSave,
-	children,
-}: {
-	canSave: boolean;
-	onSave: () => void;
-	children: ReactNode;
-}) {
-	return (
-		<ContextMenu>
-			<ContextMenuTrigger className="block h-full min-h-0 min-w-0 w-full flex-1">
-				{children}
-			</ContextMenuTrigger>
-			<ContextMenuContent>
-				<ContextMenuItem disabled={!canSave} onClick={onSave}>
-					Save
-					<ContextMenuShortcut>{saveShortcutLabel()}</ContextMenuShortcut>
-				</ContextMenuItem>
-			</ContextMenuContent>
-		</ContextMenu>
-	);
-}
 
 export function EditorArea() {
 	const activeTab = useQuesterStore(selectActiveTab);
@@ -100,98 +63,94 @@ export function EditorArea() {
 	if (activeTab.kind === "env") {
 		const envName = activeTab.envName;
 		return (
-			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
-				<div className="relative h-full min-h-0 min-w-0 flex-1 bg-background">
-					<KeyValueEditor
-						title={`${envName}.json`}
-						description={
-							<>
-								<p>
-									Use in flows as{" "}
-									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-										{"{{env.KEY}}"}
-									</code>
-									{" — "}
-									e.g.{" "}
-									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-										{"{{env.API_BASE}}"}
-									</code>
-									.
-								</p>
-								<p>
-									Linked to env{" "}
-									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-										{envName}
-									</code>
-									. Pair with{" "}
-									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-										{envName}.secrets.json
-									</code>{" "}
-									(
-									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-										{"{{secrets.KEY}}"}
-									</code>
-									). Select this env when running.
-								</p>
-							</>
-						}
-						rows={activeTab.rows}
-						onChange={handleEnvRowsChange}
-						onSave={onSave}
-						canSave={canSaveTab}
-					/>
-				</div>
-			</EditorContextMenu>
+			<div className="relative h-full min-h-0 min-w-0 flex-1 bg-background">
+				<KeyValueEditor
+					title={`${envName}.json`}
+					description={
+						<>
+							<p>
+								Use in flows as{" "}
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+									{"{{env.KEY}}"}
+								</code>
+								{" — "}
+								e.g.{" "}
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+									{"{{env.API_BASE}}"}
+								</code>
+								.
+							</p>
+							<p>
+								Linked to env{" "}
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+									{envName}
+								</code>
+								. Pair with{" "}
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+									{envName}.secrets.json
+								</code>{" "}
+								(
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+									{"{{secrets.KEY}}"}
+								</code>
+								). Select this env when running.
+							</p>
+						</>
+					}
+					rows={activeTab.rows}
+					onChange={handleEnvRowsChange}
+					onSave={onSave}
+					canSave={canSaveTab}
+				/>
+			</div>
 		);
 	}
 
 	if (activeTab.kind === "secrets") {
 		const envName = activeTab.envName;
 		return (
-			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
-				<div className="relative h-full min-h-0 min-w-0 flex-1 bg-background">
-					<KeyValueEditor
-						title={`${envName}.secrets.json`}
-						description={
-							<>
-								<p>
-									Use in flows as{" "}
-									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-										{"{{secrets.KEY}}"}
-									</code>
-									{" — "}
-									e.g.{" "}
-									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-										{"{{secrets.password}}"}
-									</code>
-									. Loaded at runtime; never committed to git.
-								</p>
-								<p>
-									Linked to env{" "}
-									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-										{envName}
-									</code>
-									. Pair with{" "}
-									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-										{envName}.json
-									</code>{" "}
-									(
-									<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-										{"{{env.KEY}}"}
-									</code>
-									). Select this env when running.
-								</p>
-							</>
-						}
-						rows={activeTab.rows}
-						onChange={handleSecretRowsChange}
-						valuePlaceholder="Secret value"
-						maskValues
-						onSave={onSave}
-						canSave={canSaveTab}
-					/>
-				</div>
-			</EditorContextMenu>
+			<div className="relative h-full min-h-0 min-w-0 flex-1 bg-background">
+				<KeyValueEditor
+					title={`${envName}.secrets.json`}
+					description={
+						<>
+							<p>
+								Use in flows as{" "}
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+									{"{{secrets.KEY}}"}
+								</code>
+								{" — "}
+								e.g.{" "}
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+									{"{{secrets.password}}"}
+								</code>
+								. Loaded at runtime; never committed to git.
+							</p>
+							<p>
+								Linked to env{" "}
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+									{envName}
+								</code>
+								. Pair with{" "}
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+									{envName}.json
+								</code>{" "}
+								(
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+									{"{{env.KEY}}"}
+								</code>
+								). Select this env when running.
+							</p>
+						</>
+					}
+					rows={activeTab.rows}
+					onChange={handleSecretRowsChange}
+					valuePlaceholder="Secret value"
+					maskValues
+					onSave={onSave}
+					canSave={canSaveTab}
+				/>
+			</div>
 		);
 	}
 
@@ -201,36 +160,32 @@ export function EditorArea() {
 
 	if (activeTab.kind === "workspaceSettings") {
 		return (
-			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
-				<div className="relative h-full min-h-0 min-w-0 flex-1">
-					<WorkspaceSettingsEditor
-						tab={activeTab}
-						onChange={updateWorkspaceSettingsManifest}
-						onSave={onSave}
-						canSave={canSaveTab}
-					/>
-				</div>
-			</EditorContextMenu>
+			<div className="relative h-full min-h-0 min-w-0 flex-1">
+				<WorkspaceSettingsEditor
+					tab={activeTab}
+					onChange={updateWorkspaceSettingsManifest}
+					onSave={onSave}
+					canSave={canSaveTab}
+				/>
+			</div>
 		);
 	}
 
 	if (activeTab.kind === "request") {
 		return (
-			<EditorContextMenu canSave={canSaveTab} onSave={onSave}>
-				<div className="relative h-full min-h-0 min-w-0 flex-1">
-					<RequestEditor
-						request={activeTab.request}
-						envs={envs}
-						selectedEnv={selectedEnv}
-						onEnvChange={setSelectedEnv}
-						onChange={handleRequestChange}
-						onSend={() => void sendRequest()}
-						isSending={isSendingRequest}
-						result={requestResult}
-						error={requestError}
-					/>
-				</div>
-			</EditorContextMenu>
+			<div className="relative h-full min-h-0 min-w-0 flex-1">
+				<RequestEditor
+					request={activeTab.request}
+					envs={envs}
+					selectedEnv={selectedEnv}
+					onEnvChange={setSelectedEnv}
+					onChange={handleRequestChange}
+					onSend={() => void sendRequest()}
+					isSending={isSendingRequest}
+					result={requestResult}
+					error={requestError}
+				/>
+			</div>
 		);
 	}
 

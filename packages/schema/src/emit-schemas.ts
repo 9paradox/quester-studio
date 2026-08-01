@@ -12,6 +12,7 @@ import {
 	inputNodeDataSchema,
 	jsonNodeDataSchema,
 	mergeNodeDataSchema,
+	noteNodeDataSchema,
 	outputNodeDataSchema,
 	setNodeDataSchema,
 	startNodeDataSchema,
@@ -47,6 +48,7 @@ const specs: [string, unknown][] = [
 	["quester/nodes/transform.schema.json", transformNodeDataSchema],
 	["quester/nodes/merge.schema.json", mergeNodeDataSchema],
 	["quester/nodes/json.schema.json", jsonNodeDataSchema],
+	["quester/nodes/note.schema.json", noteNodeDataSchema],
 ];
 
 for (const [rel, schema] of specs) {
