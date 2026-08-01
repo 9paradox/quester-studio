@@ -5,16 +5,16 @@ description: Download the desktop app or CLI and smoke-test a workspace
 
 Quester is a local-first visual API flow tool. This page is for **external testers** — download a build, open a workspace, run a flow, and file feedback.
 
-> **Status:** The first public preview is planned as **v0.4.0**. Until that GitHub Release exists, build from source (see [Getting started](../getting-started/)) or watch [Releases](https://github.com/9paradox/quester-studio/releases). `quester init` is available from this repo’s CLI.
+> **Status:** Public preview **[v0.4.0](https://github.com/9paradox/quester-studio/releases/tag/v0.4.0)** is live — unsigned Windows/Linux desktop on GitHub Releases, and `@quester-studio/*` on npm. Prefer verifying published checksums when available.
 
 ## Desktop (preview)
 
-1. Open the latest [GitHub Release](https://github.com/9paradox/quester-studio/releases).
-2. Download the **Windows** or **Linux** desktop artifact (macOS is not published yet).
-   - **Windows installer:** `Quester-*-win-x64-setup.exe` — run it, choose a folder, finish. To remove later: **Settings → Apps → Quester → Uninstall**.
-   - **Windows portable:** `Quester-*-win-x64-portable.zip` — extract anywhere, open `Quester\bin\launcher.exe`. To remove: delete that folder.
-   - **Linux:** use the published setup / AppImage artifact for your architecture.
-3. Builds are **unsigned development builds**. Prefer verifying published checksums when available. See [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md) for the trust model and how to run unsigned apps safely on your OS.
+1. Open the latest [GitHub Release](https://github.com/9paradox/quester-studio/releases) (start with [v0.4.0](https://github.com/9paradox/quester-studio/releases/tag/v0.4.0)).
+2. Download a **Windows** or **Linux** desktop artifact (macOS is not published yet).
+   - **v0.4.0 Windows:** `stable-win-x64-Quester-Setup.zip` — extract, run `Quester-Setup.exe` (self-extractor).
+   - **v0.4.0 Linux:** `stable-linux-x64-Quester-Setup.tar.gz` (or the matching `.tar.zst` / update JSON for your arch).
+   - **Newer releases** may also ship `Quester-*-win-x64-setup.exe` (NSIS installer; uninstall from **Settings → Apps**) and `Quester-*-win-x64-portable.zip` (extract, run `Quester\bin\launcher.exe`).
+3. Builds are **unsigned development builds**. See [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md) for the trust model and how to run unsigned apps safely on your OS.
 4. Launch the app. On first open you see a welcome screen: **Open workspace**, **Create workspace**, or **Open sample**. Closing a workspace returns here.
 5. Select a flow (e.g. `hello` from create, or `login-and-profile` from the sample) → pick env `local` → run.
 
@@ -32,8 +32,6 @@ Quester is a local-first visual API flow tool. This page is for **external teste
 
 ## CLI
 
-After packages are published to npm (v0.4.0+):
-
 ```bash
 bunx @quester-studio/cli validate ./my-workspace
 bunx @quester-studio/cli run ./my-workspace/flows/example.flow.json \
@@ -42,7 +40,7 @@ bunx @quester-studio/cli run ./my-workspace/flows/example.flow.json \
   --input '{}'
 ```
 
-Until then, clone the repo and follow [Getting started](../getting-started/).
+Or clone the repo and follow [Getting started](../getting-started/).
 
 ## Feedback
 

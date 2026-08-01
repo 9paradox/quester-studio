@@ -5,21 +5,11 @@ description: Planned features and milestones
 
 High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox/quester-studio/issues) and [ROADMAP.md](https://github.com/9paradox/quester-studio/blob/main/ROADMAP.md).
 
-## Now — v0.4.0 Platform closeout + public preview
-
-- CLI `quester init` — scaffold a workspace (done)
-- Desktop workspace welcome / empty state (open, create, sample, close)
-- Renderer smoke tests (done)
-- First public test release — npm packages + unsigned Windows/Linux desktop on GitHub Releases
-- [Try Quester](../try/) — download and smoke-test path for external testers
-
-Settings / HTTP MVP and collections already shipped.
-
-## Next
-
-### v0.5.0 — Flow nodes
+## Now — v0.5.0 Flow nodes
 
 - `note`, `delay` / `wait`, `switch`
+
+## Next
 
 ### v0.6.0 — Control & composition
 
@@ -36,6 +26,13 @@ Settings / HTTP MVP and collections already shipped.
 - Flow format v1 freeze
 - Polished desktop
 - Thin collection import (Postman / OpenAPI)
+
+## Done — v0.4.0
+
+- Platform closeout + public preview ([v0.4.0](https://github.com/9paradox/quester-studio/releases/tag/v0.4.0))
+- `quester init`, welcome empty state, renderer smoke tests
+- npm `@quester-studio/*` + unsigned Windows/Linux desktop
+- [Try Quester](../try/) for external testers
 
 ## Releases
 

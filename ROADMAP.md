@@ -2,40 +2,17 @@
 
 > Living document. Trackable work lives in [GitHub Issues](https://github.com/9paradox/quester-studio/issues).  
 > Known bugs: [BUGS.md](BUGS.md).  
-> Last updated: 2026-07-26
+> Last updated: 2026-08-01
 
-## Now (v0.4.0 — Platform closeout + public test release)
-
-Settings / HTTP MVP and related platform work already shipped (#49–#62). Remaining:
-
-- [x] CLI `quester init` — scaffold workspace — #63
-- [x] Desktop workspace welcome / empty state (first launch + close) — #69
-- [x] Renderer smoke tests — #64
-- [ ] First public test release — npm `@quester-studio/*` + unsigned Windows/Linux desktop on GitHub Releases + [Try Quester](apps/docs/src/content/docs/try.md) docs — #65
-
-### Release gate (before cutting v0.4.0)
-
-Mechanical steps: [.cursor/skills/release-workflow/SKILL.md](.cursor/skills/release-workflow/SKILL.md). Workflow: `.github/workflows/release.yml` (`workflow_dispatch`).
-
-- [ ] `main` CI green; `bun run lint && bun run test` locally
-- [ ] Changesets version PR merged → package versions `0.4.0`
-- [ ] Repo secret `NPM_TOKEN` present
-- [ ] Run **Release** workflow with `version: 0.4.0`
-- [ ] Verify GitHub Release assets downloadable; smoke-open desktop on Windows
-- [ ] Docs “Try Quester” live on GitHub Pages
-- [ ] Release notes include: development/unsigned build disclaimer; known limits (no macOS artifact, no code signing, secrets not encrypted at rest)
-
-Desktop artifacts are **unsigned**. Testers should verify checksums when published (see [SECURITY.md](SECURITY.md)).
-
-## Next
-
-### v0.5.0 — Flow nodes
+## Now (v0.5.0 — Flow nodes)
 
 Canvas-only nodes must not break CLI runs.
 
 - [ ] `note` — markdown/text sticky on canvas; no execute (or passthrough) — #66
 - [ ] `delay` / `wait` — sleep N ms (optional jitter)
 - [ ] `switch` — multi-branch on expression / status / JMESPath (extends `if` + `sourceHandle`)
+
+## Next
 
 ### v0.6.0 — Control & composition
 
@@ -75,7 +52,7 @@ Unscheduled. Do not expand the current milestone without updating this file and 
 
 ## Done
 
-### v0.4.0 (in progress — shipped so far)
+### v0.4.0 — Platform closeout + public preview
 
 - Collections — standalone `*.request.json` + Request editor tab
 - New node types (`assert`, `transform`, `merge`, `json`)
@@ -83,6 +60,10 @@ Unscheduled. Do not expand the current milestone without updating this file and 
 - Per-node reference pages in docs
 - Details / Settings / Preferences layers; HTTP inheritance workspace → flow → node (#49–#53, #60)
 - Flow HTTP settings UI, max response size, in-run cookie jar, proxy, `caFile`, scoped TLS, shortcuts prefs
+- CLI `quester init` — scaffold workspace — #63
+- Desktop workspace welcome / empty state — #69
+- Renderer smoke tests — #64
+- First public test release — npm `@quester-studio/*` + unsigned Windows/Linux desktop + [Try Quester](apps/docs/src/content/docs/try.md) — #65
 
 ### v0.3.0 — Builder UX
 

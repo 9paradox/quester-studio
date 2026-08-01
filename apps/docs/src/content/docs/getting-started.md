@@ -12,7 +12,7 @@ bun install
 bun run build
 ```
 
-After **v0.4.0** npm publish, you can also run the CLI without cloning:
+Or install from npm (v0.4.0+):
 
 ```bash
 bunx @quester-studio/cli --help
