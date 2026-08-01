@@ -73,6 +73,26 @@
 					"endsPattern": "(Waiting for debugger|Quester desktop started|Local:)"
 				}
 			}
+		},
+		{
+			"label": "desktop: dev:web",
+			"type": "shell",
+			"command": "bun run build:pkgs; bun run --filter @quester-studio/desktop dev:web",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"isBackground": true,
+			"problemMatcher": {
+				"owner": "vite",
+				"pattern": {
+					"regexp": "^$"
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": ".",
+					"endsPattern": "(Local:|ready in)"
+				}
+			}
 		}
 	]
 }

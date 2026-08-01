@@ -12,7 +12,6 @@ import {
 	requestTabId,
 	secretsTabId,
 } from "@/lib/editorTabs.js";
-import { desktopRpc } from "@/lib/electrobun.js";
 import {
 	addNodeToFlow,
 	deleteEdgesFromFlow,
@@ -30,6 +29,7 @@ import {
 	scheduleIdle,
 	serializePathShapes,
 } from "@/lib/pathShapes.js";
+import { getQuesterClient } from "@/lib/quester-client.js";
 import { DEFAULT_INPUT, withInputNodeValue } from "@/lib/runDefaults.js";
 import {
 	clearLastWorkspacePath,
@@ -108,7 +108,7 @@ async function persistPathShapes() {
 	const { workspacePath, pathShapeIndex } = useQuesterStore.getState();
 	if (!workspacePath) return;
 	try {
-		await desktopRpc.writePathShapes(
+		await getQuesterClient().writePathShapes(
 			workspacePath,
 			serializePathShapes(pathShapeIndex),
 		);
@@ -120,7 +120,7 @@ async function persistPathShapes() {
 function hydratePathShapes(workspace: string) {
 	void (async () => {
 		try {
-			const raw = await desktopRpc.readPathShapes(workspace);
+			const raw = await getQuesterClient().readPathShapes(workspace);
 			if (useQuesterStore.getState().workspacePath !== workspace) return;
 			useQuesterStore.setState({
 				pathShapeIndex: parsePathShapes(raw),
@@ -404,8 +404,12 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			return;
 		}
 		const [envResult, secretKeys] = await Promise.all([
-			desktopRpc.loadEnvironment(workspacePath, selectedEnv).catch(() => null),
-			desktopRpc.listSecretNames(workspacePath, selectedEnv).catch(() => []),
+			getQuesterClient()
+				.loadEnvironment(workspacePath, selectedEnv)
+				.catch(() => null),
+			getQuesterClient()
+				.listSecretNames(workspacePath, selectedEnv)
+				.catch(() => []),
 		]);
 		set({
 			templateEnvKeys: envResult ? Object.keys(envResult.variables) : [],
@@ -527,7 +531,8 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			return;
 		}
 		try {
-			const manifest = await desktopRpc.loadWorkspaceManifest(workspacePath);
+			const manifest =
+				await getQuesterClient().loadWorkspaceManifest(workspacePath);
 			openTab(createWorkspaceSettingsEditorTab(manifest));
 		} catch (err) {
 			showError(
@@ -594,11 +599,11 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	refreshWorkspaceLists: async (path) => {
 		const [flowList, envList, secretsList, requestList, collectionList] =
 			await Promise.all([
-				desktopRpc.listFlows(path),
-				desktopRpc.listEnvs(path),
-				desktopRpc.listSecretFiles(path),
-				desktopRpc.listCollectionRequests(path),
-				desktopRpc.listCollections(path),
+				getQuesterClient().listFlows(path),
+				getQuesterClient().listEnvs(path),
+				getQuesterClient().listSecretFiles(path),
+				getQuesterClient().listCollectionRequests(path),
+				getQuesterClient().listCollections(path),
 			]);
 		set({
 			flows: flowList,
@@ -622,7 +627,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			});
 			return;
 		}
-		const flow = await desktopRpc.loadFlow(flowId, workspace);
+		const flow = await getQuesterClient().loadFlow(flowId, workspace);
 		get().openTab(createFlowEditorTab(flow));
 	},
 
@@ -633,7 +638,10 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			set({ activeTabId: tabId });
 			return;
 		}
-		const environment = await desktopRpc.loadEnvironment(workspace, envName);
+		const environment = await getQuesterClient().loadEnvironment(
+			workspace,
+			envName,
+		);
 		get().openTab(createEnvEditorTab(environment));
 	},
 
@@ -644,7 +652,10 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			set({ activeTabId: tabId });
 			return;
 		}
-		const secrets = await desktopRpc.loadSecretsFile(workspace, envName);
+		const secrets = await getQuesterClient().loadSecretsFile(
+			workspace,
+			envName,
+		);
 		get().openTab(createSecretsEditorTab(envName, secrets));
 	},
 
@@ -659,7 +670,10 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			});
 			return;
 		}
-		const request = await desktopRpc.loadRequest(workspace, requestPath);
+		const request = await getQuesterClient().loadRequest(
+			workspace,
+			requestPath,
+		);
 		get().openTab(createRequestEditorTab(requestPath, request));
 		set({ requestResult: null, requestError: null });
 	},
@@ -678,7 +692,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			pathIndexStatus: "idle",
 		});
 		try {
-			const summary = await desktopRpc.openWorkspaceSummary(path);
+			const summary = await getQuesterClient().openWorkspaceSummary(path);
 			const { flowList, envList } = await refreshWorkspaceLists(path);
 			const env = envList[0] ?? "local";
 			set({
@@ -707,7 +721,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 
 	openWorkspacePicker: async () => {
 		try {
-			const path = await desktopRpc.pickWorkspaceFolder();
+			const path = await getQuesterClient().pickWorkspaceFolder();
 			if (path) await get().loadWorkspace(path);
 		} catch (err) {
 			set({
@@ -748,9 +762,9 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 
 	createWorkspaceViaPicker: async () => {
 		try {
-			const path = await desktopRpc.pickWorkspaceFolder();
+			const path = await getQuesterClient().pickWorkspaceFolder();
 			if (!path) return;
-			await desktopRpc.scaffoldWorkspace(path);
+			await getQuesterClient().scaffoldWorkspace(path);
 			await get().loadWorkspace(path);
 		} catch (err) {
 			const message =
@@ -762,7 +776,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 
 	openSampleWorkspace: async () => {
 		try {
-			const path = await desktopRpc.getDefaultWorkspace();
+			const path = await getQuesterClient().getDefaultWorkspace();
 			await get().loadWorkspace(path);
 		} catch (err) {
 			const message =
@@ -891,7 +905,10 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const { workspacePath, showError } = get();
 		if (!workspacePath) return;
 		try {
-			const request = await desktopRpc.loadRequest(workspacePath, requestPath);
+			const request = await getQuesterClient().loadRequest(
+				workspacePath,
+				requestPath,
+			);
 			get().updateActiveFlow((flow) => {
 				const next = addNodeToFlow(flow, "http", position);
 				const last = next.nodes[next.nodes.length - 1];
@@ -1022,7 +1039,10 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (!tab?.dirty) return;
 		try {
 			if (tab.kind === "flow") {
-				const saved = await desktopRpc.saveFlow(tab.flow, workspacePath);
+				const saved = await getQuesterClient().saveFlow(
+					tab.flow,
+					workspacePath,
+				);
 				set((s) => {
 					const nextId = flowTabId(saved.id);
 					return {
@@ -1045,7 +1065,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				});
 				appendConsole(`Saved flow ${saved.id}`);
 			} else if (tab.kind === "env") {
-				const saved = await desktopRpc.saveEnvironment(
+				const saved = await getQuesterClient().saveEnvironment(
 					workspacePath,
 					tab.environment,
 				);
@@ -1070,7 +1090,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					await get().refreshTemplateKeys();
 				}
 			} else if (tab.kind === "secrets") {
-				const saved = await desktopRpc.saveSecretsFile(
+				const saved = await getQuesterClient().saveSecretsFile(
 					workspacePath,
 					tab.envName,
 					tab.secrets,
@@ -1087,7 +1107,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					await get().refreshTemplateKeys();
 				}
 			} else if (tab.kind === "request") {
-				const saved = await desktopRpc.saveRequest(
+				const saved = await getQuesterClient().saveRequest(
 					workspacePath,
 					tab.requestPath,
 					tab.request,
@@ -1101,7 +1121,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				}));
 				appendConsole(`Saved request ${tab.requestPath}`);
 			} else if (tab.kind === "workspaceSettings") {
-				const saved = await desktopRpc.saveWorkspaceManifest(
+				const saved = await getQuesterClient().saveWorkspaceManifest(
 					workspacePath,
 					tab.manifest,
 				);
@@ -1140,7 +1160,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (!name) return;
 		const flowId = slugifyName(name);
 		try {
-			const flow = await desktopRpc.createFlow(
+			const flow = await getQuesterClient().createFlow(
 				workspacePath,
 				flowId,
 				name.trim(),
@@ -1170,7 +1190,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (!name) return;
 		const envName = slugifyName(name);
 		try {
-			const environment = await desktopRpc.createEnvironment(
+			const environment = await getQuesterClient().createEnvironment(
 				workspacePath,
 				envName,
 			);
@@ -1203,7 +1223,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (!name) return;
 		const envName = slugifyName(name);
 		try {
-			const secrets = await desktopRpc.createSecretsFile(
+			const secrets = await getQuesterClient().createSecretsFile(
 				workspacePath,
 				envName,
 			);
@@ -1242,7 +1262,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 
 		const newId = slugifyName(name);
 		try {
-			const saved = await desktopRpc.renameFlow(
+			const saved = await getQuesterClient().renameFlow(
 				workspacePath,
 				flowId,
 				newId,
@@ -1295,7 +1315,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const ok = window.confirm(`Delete ${meta?.name ?? flowId}?`);
 		if (!ok) return;
 		try {
-			await desktopRpc.deleteFlow(workspacePath, flowId);
+			await getQuesterClient().deleteFlow(workspacePath, flowId);
 			await refreshWorkspaceLists(workspacePath);
 			const remaining = openTabs.filter((t) => t.id !== tabId);
 			set({
@@ -1354,7 +1374,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		appendConsole(`Run started: ${activeFlowTab.flowId}`);
 
 		try {
-			const result = await desktopRpc.executeFlowRpc({
+			const result = await getQuesterClient().executeFlowRpc({
 				flowId: activeFlowTab.flowId,
 				workspace: workspacePath,
 				runId,
@@ -1437,7 +1457,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			return;
 		}
 		try {
-			await desktopRpc.createCollection(workspacePath, folder);
+			await getQuesterClient().createCollection(workspacePath, folder);
 			await refreshWorkspaceLists(workspacePath);
 			appendConsole(`Created collection ${folder}`);
 			set({ activityView: "collections", sidebarOpen: true });
@@ -1466,7 +1486,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const slug = slugifyName(name);
 		const requestPath = collection ? `${collection}/${slug}` : slug;
 		try {
-			const request = await desktopRpc.createRequest(
+			const request = await getQuesterClient().createRequest(
 				workspacePath,
 				requestPath,
 				name.trim(),
@@ -1492,7 +1512,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const ok = window.confirm(`Delete request ${requestPath}?`);
 		if (!ok) return;
 		try {
-			await desktopRpc.deleteRequest(workspacePath, requestPath);
+			await getQuesterClient().deleteRequest(workspacePath, requestPath);
 			await refreshWorkspaceLists(workspacePath);
 			const tabId = requestTabId(requestPath);
 			const remaining = openTabs.filter((t) => t.id !== tabId);
@@ -1531,7 +1551,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		appendConsole(`Send request: ${tab.requestPath}`);
 
 		try {
-			const result = await desktopRpc.executeRequestRpc({
+			const result = await getQuesterClient().executeRequestRpc({
 				requestPath: tab.requestPath,
 				workspace: workspacePath,
 				env: selectedEnv,

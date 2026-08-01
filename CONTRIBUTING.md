@@ -159,8 +159,18 @@ Create a **Quester Studio** project board with columns: Backlog → Planned → 
 - `@quester-studio/nodes` — node `execute()` plugins
 - `@quester-studio/engine` — workspace load + flow execution
 - `@quester-studio/cli` — `quester validate` / `quester run`
+- `@quester-studio/api-contract` — shared DTOs + `QuesterClient` / `HttpQuesterClient`
+- `@quester-studio/workspace-service` — FS workspace CRUD + execute (no UI)
+- `apps/api` — HTTP JSON + SSE server over workspace-service
+- `apps/desktop` — Electrobun shell + React editor (RPC or `dev:web` → API)
 
-Do not put execution logic in schema or UI in engine.
+Do not put execution logic in schema or UI in engine. Flow `http` nodes run only on the server/main process — never in the browser.
+
+### Studio modes (setup / develop / debug)
+
+| Mode | Docs |
+|------|------|
+| Desktop, API-only, UI+HTTP API, CLI/engine | [DEBUGGING.md](./DEBUGGING.md) |
 
 ## Releases
 

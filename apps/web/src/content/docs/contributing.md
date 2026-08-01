@@ -15,9 +15,9 @@ bun run build
 bun run test
 ```
 
-## Debugging
+## Debugging and studio modes
 
-See [DEBUGGING.md](https://github.com/9paradox/quester-studio/blob/main/DEBUGGING.md) for VS Code / Cursor launch configs (engine, CLI, desktop main process, React renderer).
+See [DEBUGGING.md](https://github.com/9paradox/quester-studio/blob/main/DEBUGGING.md) and [Developing the studio](../developing-studio/) for desktop, API-only, and UI+HTTP setup / develop / debug.
 
 ## Pull requests
 
@@ -34,6 +34,9 @@ See [DEBUGGING.md](https://github.com/9paradox/quester-studio/blob/main/DEBUGGIN
 | `@quester-studio/nodes` | Node `execute()` plugins |
 | `@quester-studio/engine` | Workspace load + flow execution |
 | `@quester-studio/cli` | `quester init` / `quester validate` / `quester run` |
+| `@quester-studio/api-contract` | Shared DTOs + `QuesterClient` |
+| `@quester-studio/workspace-service` | FS workspace + execute |
+| `apps/api` | HTTP JSON + SSE API |
 
 ## Pre-commit hooks
 

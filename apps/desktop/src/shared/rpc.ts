@@ -1,4 +1,14 @@
-import type { ExecuteFlowResult } from "@quester-studio/engine";
+import type {
+	ExecuteFlowRpcResult,
+	ExecuteRequestRpcResult,
+	ExecutionLogEntry,
+	FlowMeta,
+	NodeRunStatus,
+	NodeRunStatusEvent,
+	RequestMeta,
+	SecretFileMeta,
+	WorkspaceSummary,
+} from "@quester-studio/api-contract";
 import type {
 	EnvironmentV1,
 	FlowV1,
@@ -9,64 +19,16 @@ import type {
 import type { RPCSchema } from "electrobun";
 import type { ThemePreference } from "./appPreferences.js";
 
-export type WorkspaceSummary = {
-	name: string;
-	root: string;
-	envNames: string[];
-	flowCount: number;
-	manifest?: WorkspaceV1;
-};
-
-export type FlowMeta = { id: string; name: string };
-
-export type RequestMeta = {
-	path: string;
-	id: string;
-	name: string;
-	collection: string;
-};
-
-export type SecretFileMeta = { envName: string; fileName: string };
-
-export type ExecutionLogEntry = {
-	ts: number;
-	level: "info" | "error";
-	message: string;
-	nodeId?: string;
-	nodeType?: string;
-	phase?: "before" | "after" | "error" | "complete" | "start";
-	data?: unknown;
-};
-
-/** Runtime status shown on canvas nodes for the latest / active run. */
-export type NodeRunStatus =
-	| "idle"
-	| "running"
-	| "success"
-	| "error"
-	| "skipped";
-
-/** Live lifecycle update streamed from main → renderer during executeFlowRpc. */
-export type NodeRunStatusEvent = {
-	runId: string;
-	flowId: string;
-	nodeId: string;
-	nodeType: string;
-	status: Extract<NodeRunStatus, "running" | "success" | "error">;
-	ts: number;
-};
-
-export type ExecuteFlowRpcResult = ExecuteFlowResult & {
-	logs: ExecutionLogEntry[];
-	error?: string;
-	failedNodeId?: string;
-};
-
-export type ExecuteRequestRpcResult = ExecuteFlowResult & {
-	httpOutput: unknown;
-	logs: ExecutionLogEntry[];
-	error?: string;
-	failedNodeId?: string;
+export type {
+	ExecuteFlowRpcResult,
+	ExecuteRequestRpcResult,
+	ExecutionLogEntry,
+	FlowMeta,
+	NodeRunStatus,
+	NodeRunStatusEvent,
+	RequestMeta,
+	SecretFileMeta,
+	WorkspaceSummary,
 };
 
 export type DesktopRPC = {
