@@ -1,6 +1,11 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { FlowV1 } from "@quester-studio/schema";
-import { FlowExecutionError, executeFlow } from "./execute.js";
+import { EngineEventEmitter } from "./events.js";
+import {
+	FlowCancelledError,
+	FlowExecutionError,
+	executeFlow,
+} from "./execute.js";
 
 const httpFlow: FlowV1 = {
 	id: "test",
@@ -130,5 +135,77 @@ describe("executeFlow", () => {
 			fetch: mock(async () => new Response("{}")) as unknown as typeof fetch,
 		});
 		expect(inactive.vars.path).toBe("no");
+	});
+
+	test("aborts between nodes when signal is cancelled", async () => {
+		const flow: FlowV1 = {
+			id: "abort",
+			version: "v1",
+			nodes: [
+				{ id: "start", type: "start", data: {} },
+				{ id: "a", type: "set", data: { variables: { step: "a" } } },
+				{ id: "b", type: "set", data: { variables: { step: "b" } } },
+				{ id: "out", type: "output", data: {} },
+			],
+			edges: [
+				{ id: "e0", source: "start", target: "a" },
+				{ id: "e1", source: "a", target: "b" },
+				{ id: "e2", source: "b", target: "out" },
+			],
+		};
+		const controller = new AbortController();
+		const events = new EngineEventEmitter();
+		events.on("node:after", ({ nodeId }) => {
+			if (nodeId === "a") controller.abort();
+		});
+		try {
+			await executeFlow(flow, {
+				events,
+				signal: controller.signal,
+				fetch: mock(async () => new Response("{}")) as unknown as typeof fetch,
+			});
+			expect.unreachable("should throw");
+		} catch (err) {
+			expect(err).toBeInstanceOf(FlowCancelledError);
+			const cancelled = err as FlowCancelledError;
+			expect(cancelled.partial.steps.map((s) => s.nodeId)).toEqual([
+				"start",
+				"a",
+			]);
+			expect(cancelled.partial.vars.step).toBe("a");
+		}
+	});
+
+	test("aborts in-flight HTTP when signal is cancelled", async () => {
+		const controller = new AbortController();
+		const fetchMock = mock(async (_url, init?) => {
+			await new Promise<void>((_resolve, reject) => {
+				init?.signal?.addEventListener(
+					"abort",
+					() => {
+						reject(
+							new DOMException("The operation was aborted.", "AbortError"),
+						);
+					},
+					{ once: true },
+				);
+				setTimeout(() => controller.abort(), 10);
+			});
+			return new Response("{}");
+		});
+		try {
+			await executeFlow(httpFlow, {
+				signal: controller.signal,
+				fetch: fetchMock as unknown as typeof fetch,
+			});
+			expect.unreachable("should throw");
+		} catch (err) {
+			expect(err).toBeInstanceOf(FlowCancelledError);
+			const cancelled = err as FlowCancelledError;
+			expect(cancelled.partial.steps.map((s) => s.nodeId)).toEqual([
+				"start",
+				"in",
+			]);
+		}
 	});
 });

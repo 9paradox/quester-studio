@@ -1,5 +1,7 @@
 /** Minimal in-run cookie store keyed by request hostname. */
 
+export type CookieJarSnapshot = Record<string, Record<string, string>>;
+
 export class CookieJar {
 	/** host → cookie name → value */
 	private readonly byHost = new Map<string, Map<string, string>>();
@@ -58,6 +60,23 @@ export class CookieJar {
 				? getSetCookie.call(headers)
 				: headerValues(headers, "set-cookie");
 		this.storeFromSetCookie(url, list);
+	}
+
+	/** Plain host → name → value map for disk persistence. */
+	toSnapshot(): CookieJarSnapshot {
+		const out: CookieJarSnapshot = {};
+		for (const [host, jar] of this.byHost) {
+			if (jar.size > 0) out[host] = Object.fromEntries(jar);
+		}
+		return out;
+	}
+
+	static fromSnapshot(snapshot: CookieJarSnapshot): CookieJar {
+		const jar = new CookieJar();
+		for (const [host, cookies] of Object.entries(snapshot)) {
+			jar.byHost.set(host, new Map(Object.entries(cookies)));
+		}
+		return jar;
 	}
 }
 

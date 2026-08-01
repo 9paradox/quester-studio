@@ -162,7 +162,7 @@ export function HttpSettingsFields({
 			<SettingsField
 				label="Cookie jar"
 				htmlFor={`${idPrefix}-cookies`}
-				description="Persist cookies across hops within a single run (not to disk). Default on when unset."
+				description="Persist cookies across hops and runs in workspace .quester/cookies.json when enabled. Default on when unset."
 			>
 				<Select
 					value={

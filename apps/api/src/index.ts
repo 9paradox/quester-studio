@@ -1,5 +1,6 @@
 import type { NodeRunStatusEvent } from "@quester-studio/api-contract";
 import {
+	cancelFlowRun,
 	createCollection,
 	createEnvironment,
 	createFlow,
@@ -130,6 +131,10 @@ const postRoutes: Record<string, RouteHandler> = {
 			},
 		});
 		return json(req, result);
+	},
+	"/v1/flows/cancel": async (req) => {
+		const body = await readBody<{ runId: string }>(req);
+		return json(req, { ok: cancelFlowRun(body.runId) });
 	},
 	"/v1/flows/save": async (req) => {
 		const body = await readBody<{

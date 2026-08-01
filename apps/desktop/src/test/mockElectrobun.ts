@@ -52,6 +52,7 @@ export const smokeEnvironment: EnvironmentV1 = {
 const rpc = {
 	getDefaultWorkspace: async () => SMOKE_WORKSPACE,
 	pickWorkspaceFolder: async () => null,
+	pickCollectionFile: async () => null,
 	scaffoldWorkspace: async (path: string, name?: string) => ({
 		root: path,
 		name: name ?? "scaffolded",
@@ -92,6 +93,7 @@ const rpc = {
 		vars: {},
 		logs: [],
 	}),
+	cancelFlowRun: async () => ({ ok: false }),
 	saveFlow: async (flow: FlowV1) => flow,
 	createFlow: async () => smokeFlow,
 	deleteFlow: async () => ({ ok: true }),
@@ -125,6 +127,7 @@ const rpc = {
 	}),
 	deleteRequest: async () => ({ ok: true }),
 	createCollection: async () => ({ ok: true }),
+	importCollection: async () => ({ imported: [], skipped: [] }),
 	executeRequestRpc: async () => ({
 		output: {},
 		nodeOutputs: {},

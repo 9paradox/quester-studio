@@ -12,6 +12,8 @@ export type CreateHttpFetchOptions = {
 	 */
 	appVerifyTls?: boolean;
 	env?: NodeJS.ProcessEnv;
+	/** Run-level abort signal merged into every fetch RequestInit. */
+	signal?: AbortSignal;
 };
 
 /**
@@ -64,12 +66,19 @@ export function createHttpFetch(
 	const caFile = http?.caFile?.trim() || undefined;
 	const verify = resolveTlsVerifyActive(options);
 	const ca = caFile ? resolveCaPem(caFile, options.workspaceRoot) : undefined;
+	const runSignal = options.signal;
 
-	const needsWrap = Boolean(proxyUrl) || Boolean(ca) || !verify;
+	const needsWrap =
+		Boolean(proxyUrl) || Boolean(ca) || !verify || Boolean(runSignal);
 	if (!needsWrap) return fetch;
 
 	return ((input: RequestInfo | URL, init?: RequestInit) => {
 		const next: BunFetchInit = { ...(init as BunFetchInit) };
+		if (runSignal) {
+			next.signal = init?.signal
+				? AbortSignal.any([runSignal, init.signal])
+				: runSignal;
+		}
 		if (proxyUrl) next.proxy = proxyUrl;
 		if (!verify || ca) {
 			next.tls = {

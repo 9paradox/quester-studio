@@ -7,6 +7,7 @@ import {
 	formatHoverDisplay,
 	getValueAtPath,
 	inputKeysFromJson,
+	jmesPathSnippetSuggestions,
 	jmesPathSuggestions,
 	resolveTemplateHover,
 	templateSuggestions,
@@ -118,6 +119,33 @@ describe("jmesPathSuggestions", () => {
 		expect(
 			jmesPathSuggestions("body", ctx.jmesPaths).map((s) => s.label),
 		).toEqual(["body.id"]);
+	});
+
+	test("includes path and snippet suggestions when empty", () => {
+		const labels = jmesPathSuggestions("", ctx.jmesPaths).map((s) => s.label);
+		expect(labels).toContain("status");
+		expect(labels).toContain("[0]");
+		expect(labels).toContain("length(@)");
+	});
+
+	test("filters snippets by typed prefix", () => {
+		expect(
+			jmesPathSuggestions("length", ctx.jmesPaths).some(
+				(s) => s.label === "length(@)",
+			),
+		).toBe(true);
+	});
+});
+
+describe("jmesPathSnippetSuggestions", () => {
+	test("returns all snippets for empty word", () => {
+		expect(jmesPathSnippetSuggestions("").length).toBeGreaterThan(5);
+	});
+
+	test("matches pipe snippets", () => {
+		expect(
+			jmesPathSnippetSuggestions("|").some((s) => s.label === "| [0]"),
+		).toBe(true);
 	});
 });
 

@@ -1,0 +1,41 @@
+{
+	"info": {
+		"name": "Demo API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "X-Debug", "value": "1", "disabled": true }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"username\":\"demo\",\"password\":\"secret\"}"
+						},
+						"url": {
+							"raw": "https://api.example.com/auth/login",
+							"protocol": "https",
+							"host": ["api", "example", "com"],
+							"path": ["auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Get User",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://api.example.com/users/1"
+			}
+		}
+	]
+}

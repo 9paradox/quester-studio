@@ -35,6 +35,13 @@ export const NODE_OUTPUT_CONTRACTS: Record<BuiltinNodeType, readonly string[]> =
 		merge: [],
 		json: [],
 		note: [],
+		delay: [],
+		switch: ["matched"],
+		foreach: ["results", "count", "truncated"],
+		try: ["ok", "input"],
+		subflow: [],
+		log: ["logged"],
+		inspect: [],
 	};
 
 export function contractPathsForType(type: string): string[] {

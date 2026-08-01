@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { Separator } from "@/components/ui/separator.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
+	selectActiveFlowRun,
 	selectActiveFlowTab,
 	selectRightPanelVisible,
 } from "@/stores/selectors.js";
@@ -18,9 +19,9 @@ export function AuxiliarySidebar() {
 	const activeTab = useQuesterStore((s) => s.rightPanelTab);
 	const flowTab = useQuesterStore(selectActiveFlowTab);
 	const selectedNodeId = useQuesterStore((s) => s.selectedNodeId);
-	const runResult = useQuesterStore((s) => s.runResult);
-	const runError = useQuesterStore((s) => s.runError);
+	const { runResult, runError } = useQuesterStore(selectActiveFlowRun);
 	const handleUpdateNode = useQuesterStore((s) => s.handleUpdateNode);
+	const handleSelectNode = useQuesterStore((s) => s.handleSelectNode);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const dirty = Boolean(flowTab?.dirty);
 
@@ -76,6 +77,7 @@ export function AuxiliarySidebar() {
 						runError={runError}
 						selectedNodeId={selectedNodeId}
 						selectedNode={selectedNode}
+						onSelectNode={handleSelectNode}
 					/>
 				</div>
 			)}

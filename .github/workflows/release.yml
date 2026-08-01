@@ -38,7 +38,7 @@ jobs:
     needs: publish-npm
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -90,7 +90,7 @@ jobs:
             - **Windows installer:** download `Quester-*-win-x64-setup.exe` — choose install folder; uninstall from Settings → Apps.
             - **Windows portable:** download `Quester-*-win-x64-portable.zip` — extract anywhere, run `Quester\bin\launcher.exe`; delete the folder to remove.
             - **Linux:** download the Linux setup / AppImage artifact for your arch.
-            - macOS is not published yet.
+            - **macOS:** download the macOS artifact (unsigned `.app` / setup from Electrobun build).
 
             ## npm packages
 

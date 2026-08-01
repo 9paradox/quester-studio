@@ -38,11 +38,30 @@ export function outgoingEdges(flow: FlowV1, nodeId: string): FlowEdgeV1[] {
 export function selectNextEdges(
 	flow: FlowV1,
 	node: FlowNodeV1,
-	branch?: "true" | "false",
+	branch?: string,
 ): FlowEdgeV1[] {
 	const edges = outgoingEdges(flow, node.id);
-	if (node.type !== "if") return edges;
-	const handle = branch ?? "false";
-	const filtered = edges.filter((e) => (e.sourceHandle ?? "true") === handle);
+	if (node.type === "switch") {
+		const handle = branch ?? "default";
+		const filtered = edges.filter(
+			(e) => (e.sourceHandle ?? "default") === handle,
+		);
+		return filtered.length > 0
+			? filtered
+			: edges.filter((e) => !e.sourceHandle);
+	}
+	const branchConfig: Record<
+		string,
+		{ defaultHandle: string; fallbackHandle: string }
+	> = {
+		if: { defaultHandle: "false", fallbackHandle: "true" },
+		try: { defaultHandle: "catch", fallbackHandle: "ok" },
+	};
+	const config = branchConfig[node.type];
+	if (!config) return edges;
+	const handle = branch ?? config.defaultHandle;
+	const filtered = edges.filter(
+		(e) => (e.sourceHandle ?? config.fallbackHandle) === handle,
+	);
 	return filtered.length > 0 ? filtered : edges.filter((e) => !e.sourceHandle);
 }

@@ -58,6 +58,7 @@ export type ExecuteFlowRpcResult = ExecuteFlowResult & {
 	logs: ExecutionLogEntry[];
 	error?: string;
 	failedNodeId?: string;
+	cancelled?: boolean;
 };
 
 export type ExecuteRequestRpcResult = ExecuteFlowResult & {
@@ -72,6 +73,8 @@ export type QuesterApiMethods = {
 	getDefaultWorkspace: () => Promise<string>;
 	/** Desktop: native folder picker. HTTP/API: typically returns null. */
 	pickWorkspaceFolder: () => Promise<string | null>;
+	/** Desktop: JSON file picker for Postman collections. HTTP/API: typically returns null. */
+	pickCollectionFile: () => Promise<string | null>;
 	scaffoldWorkspace: (
 		path: string,
 		name?: string,
@@ -92,6 +95,7 @@ export type QuesterApiMethods = {
 		env?: string;
 		input?: unknown;
 	}) => Promise<ExecuteFlowRpcResult>;
+	cancelFlowRun: (params: { runId: string }) => Promise<{ ok: boolean }>;
 	saveFlow: (flow: FlowV1, workspace: string) => Promise<FlowV1>;
 	listSecretNames: (workspace: string, env: string) => Promise<string[]>;
 	createFlow: (
@@ -147,6 +151,10 @@ export type QuesterApiMethods = {
 		workspace: string,
 		collectionName: string,
 	) => Promise<{ ok: true }>;
+	importCollection: (
+		workspace: string,
+		filePath: string,
+	) => Promise<{ imported: string[]; skipped: string[] }>;
 	executeRequestRpc: (params: {
 		requestPath: string;
 		workspace: string;

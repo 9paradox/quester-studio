@@ -353,6 +353,185 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 			output: '{ "condition": true | false }; branch "true" or "false"',
 		},
 	},
+	switch: {
+		summary:
+			"Multi-branch routing on a templated expression or JMESPath value. Connect edges with sourceHandle matching each case handle or the default handle.",
+		fields: [
+			{
+				name: "label",
+				type: "string",
+				description: "Optional UI label",
+			},
+			{
+				name: "expression",
+				type: "string",
+				description: "Optional templated value stringified for case matching",
+			},
+			{
+				name: "path",
+				type: "string",
+				description:
+					"Optional JMESPath on previous output when expression is omitted",
+			},
+			{
+				name: "cases",
+				type: "array",
+				description:
+					"List of { value, handle } — first matching value selects branch handle",
+			},
+			{
+				name: "defaultHandle",
+				type: "string",
+				description: 'Branch handle when no case matches (default "default")',
+			},
+		],
+		syntax: [
+			'cases: [{ "value": "200", "handle": "ok" }]',
+			"Edge sourceHandle must match case handle or defaultHandle",
+		],
+		example: {
+			label: "Status",
+			path: "status",
+			cases: [
+				{ value: "200", handle: "ok" },
+				{ value: "404", handle: "notFound" },
+			],
+			defaultHandle: "other",
+		},
+		io: {
+			input: "Previous node output",
+			output: '{ "matched": "<handle>" }; branch is the selected handle',
+		},
+	},
+	delay: {
+		summary:
+			"Sleeps for ms (+ optional random jitter) then passes the previous output through unchanged. Flow JSON may use type wait as an alias.",
+		fields: [
+			{
+				name: "label",
+				type: "string",
+				description: "Optional UI label",
+			},
+			{
+				name: "ms",
+				type: "number",
+				description: "Base sleep duration in milliseconds (non-negative)",
+			},
+			{
+				name: "jitterMs",
+				type: "number",
+				description: "Optional random extra delay from 0 to this value",
+			},
+		],
+		example: {
+			label: "Pause",
+			ms: 1000,
+			jitterMs: 250,
+		},
+		io: {
+			input: "Previous node output",
+			output: "Same as input (passthrough)",
+		},
+	},
+	foreach: {
+		summary:
+			"Map-style iteration over an array from JMESPath or template. Returns mapped results[] (full loop-with-body subgraph is future work).",
+		fields: [
+			{ name: "label", type: "string", description: "Optional UI label" },
+			{
+				name: "items",
+				type: "string",
+				description:
+					"JMESPath on previous output or templated JSON array string",
+			},
+			{
+				name: "itemVar",
+				type: "string",
+				description: 'Scope key for each item when using map (default "item")',
+			},
+			{
+				name: "maxItems",
+				type: "number",
+				description: "Maximum items to process (default 100)",
+			},
+			{
+				name: "concurrency",
+				type: "number",
+				description: "Optional parallel processing limit",
+			},
+			{
+				name: "map",
+				type: "string",
+				description:
+					"Optional JMESPath on { [itemVar]: item, index } per element",
+			},
+		],
+		example: {
+			label: "Map ids",
+			items: "body.users",
+			map: "item.id",
+			maxItems: 50,
+		},
+		io: {
+			input: "Previous node output",
+			output: '{ "results": unknown[], "count", "truncated" }',
+		},
+	},
+	try: {
+		summary:
+			"Soft-fail guard like assert but branches instead of throwing. Connect edges with sourceHandle ok or catch.",
+		fields: [
+			{ name: "label", type: "string", description: "Optional UI label" },
+			{
+				name: "condition",
+				type: "string",
+				description: "Optional templated truthy/falsey string",
+			},
+			{
+				name: "checks",
+				type: "array",
+				description: "Optional JMESPath checks (same ops as assert)",
+			},
+		],
+		syntax: [
+			'Edge sourceHandle must be "ok" or "catch"',
+			"Does not catch upstream node failures yet — checks/condition only",
+		],
+		example: {
+			label: "2xx?",
+			checks: [{ path: "status", op: "gte", value: 200 }],
+		},
+		io: {
+			input: "Previous node output",
+			output: '{ "ok": boolean, "input": previous }; branch "ok" or "catch"',
+		},
+	},
+	subflow: {
+		summary:
+			"Runs another workspace flow by id with optional templated input. Max depth 5; cycles are rejected.",
+		fields: [
+			{ name: "label", type: "string", description: "Optional UI label" },
+			{
+				name: "flowId",
+				type: "string",
+				description: "Target flow id (without .flow.json)",
+			},
+			{
+				name: "input",
+				type: "object",
+				description: "Optional string map of templates → subflow run input",
+			},
+		],
+		example: {
+			label: "Call login",
+			flowId: "login-and-profile",
+			input: { user: "{{input.email}}" },
+		},
+		io: {
+			input: "Previous node output (passthrough context for templates)",
+			output: "Subflow output node result",
+		},
+	},
 	assert: {
 		summary:
 			"Fails the flow when JMESPath checks on the previous output do not pass.",
@@ -408,6 +587,48 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 		io: {
 			input: "None (canvas-only)",
 			output: "Not executed",
+		},
+	},
+	log: {
+		summary:
+			"Writes a templated message to the run log and passes the previous output through (with a logged field).",
+		fields: [
+			{
+				name: "label",
+				type: "string",
+				description: "Optional UI label",
+			},
+			{
+				name: "message",
+				type: "string",
+				description: "Template string shown in Logs",
+			},
+		],
+		example: { label: "Trace", message: "status={{input.status}}" },
+		io: {
+			input: "Previous node output",
+			output: "Input plus { logged: resolved message }",
+		},
+	},
+	inspect: {
+		summary:
+			"Evaluates optional JMESPath on the previous output and shows pretty JSON on the canvas after a run.",
+		fields: [
+			{
+				name: "label",
+				type: "string",
+				description: "Optional UI label",
+			},
+			{
+				name: "expression",
+				type: "string",
+				description: "Optional JMESPath; omit to preview full input",
+			},
+		],
+		example: { label: "Preview body", expression: "body" },
+		io: {
+			input: "Previous node output",
+			output: "Evaluated value (passthrough when expression omitted)",
 		},
 	},
 };

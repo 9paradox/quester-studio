@@ -3,8 +3,10 @@ import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join, resolve } from "node:path";
 import {
+	createExecuteSubflow,
 	createHttpFetch,
 	executeFlow,
+	importPostmanCollectionFile,
 	loadSecrets,
 	loadWorkspace,
 } from "@quester-studio/engine";
@@ -116,16 +118,31 @@ program
 				ws?.manifest.settings?.http,
 				validated.data.settings?.http,
 			);
+			const fetchImpl = createHttpFetch({
+				httpDefaults,
+				workspaceRoot: wsPath,
+			});
+			const executeSubflow =
+				ws === null
+					? undefined
+					: createExecuteSubflow(
+							{ getFlow: (id) => ws.flows[id] },
+							{
+								env: envVars,
+								secrets,
+								httpDefaults,
+								fetch: fetchImpl,
+							},
+							validated.data.id,
+						);
 
 			const result = await executeFlow(validated.data, {
 				input,
 				env: envVars,
 				secrets,
 				httpDefaults,
-				fetch: createHttpFetch({
-					httpDefaults,
-					workspaceRoot: wsPath,
-				}),
+				fetch: fetchImpl,
+				executeSubflow,
 			});
 			console.log(JSON.stringify(result.output, null, 2));
 		},
@@ -149,6 +166,27 @@ program
 		for (const env of Object.values(ws.environments)) {
 			console.log(env.name);
 		}
+	});
+
+program
+	.command("import-collection")
+	.argument("<file>", "Postman Collection v2.1 JSON file")
+	.option("--workspace <path>", "workspace root", ".")
+	.description("Import Postman Collection v2.1 into workspace collections/")
+	.action(async (file: string, opts: { workspace: string }) => {
+		const result = await importPostmanCollectionFile(
+			resolve(opts.workspace),
+			resolve(file),
+		);
+		for (const path of result.imported) {
+			console.log(`  imported: ${path}`);
+		}
+		for (const path of result.skipped) {
+			console.warn(`  skipped (duplicate): ${path}`);
+		}
+		console.log(
+			`Imported ${result.imported.length} request(s) into ${resolve(opts.workspace)}`,
+		);
 	});
 
 program.parseAsync(process.argv).catch((err: unknown) => {

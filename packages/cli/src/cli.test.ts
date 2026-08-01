@@ -86,6 +86,35 @@ describe("quester cli", () => {
 		}
 	});
 
+	test("import-collection writes request files", async () => {
+		const dir = await mkdtemp(join(tmpdir(), "quester-import-cli-"));
+		try {
+			await runCli(["init", dir, "--name", "import-cli"]);
+			const fixture = join(
+				repoRoot,
+				"packages/engine/src/fixtures/postman-mini.json",
+			);
+			const { stdout, stderr, exitCode } = await runCli([
+				"import-collection",
+				fixture,
+				"--workspace",
+				dir,
+			]);
+			expect(exitCode).toBe(0);
+			expect(stderr).toBe("");
+			expect(stdout).toContain("imported: demo-api/auth/login");
+			expect(stdout).toContain("Imported 2 request(s)");
+			const login = JSON.parse(
+				await Bun.file(
+					join(dir, "collections/demo-api/auth/login.request.json"),
+				).text(),
+			) as { method: string };
+			expect(login.method).toBe("POST");
+		} finally {
+			await rm(dir, { recursive: true, force: true });
+		}
+	});
+
 	test("run sample flow end-to-end", async () => {
 		const { stdout, stderr, exitCode } = await runCli([
 			"run",

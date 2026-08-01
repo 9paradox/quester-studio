@@ -133,14 +133,45 @@ function IfPanels({ step }: { step: StepView }) {
 					)}
 				</div>
 			</section>
+			<ResultWithInput
+				result={step.output}
+				input={step.input}
+				error={step.error}
+				pathCopyNodeId={step.nodeId}
+			/>
+		</div>
+	);
+}
+
+function TryPanels({ step }: { step: StepView }) {
+	const ok =
+		isRecord(step.output) && typeof step.output.ok === "boolean"
+			? step.output.ok
+			: null;
+	const branch = ok === true ? "ok" : ok === false ? "catch" : null;
+
+	return (
+		<div className="flex flex-col gap-4">
+			{step.error ? <ErrorAlert message={step.error} /> : null}
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">Output</h3>
-				<JsonPane value={step.output} />
+				<h3 className="text-xs font-medium text-muted-foreground">Branch</h3>
+				<div className="flex flex-wrap gap-2">
+					{ok !== null ? <MetaChip label="Passed" value={String(ok)} /> : null}
+					{branch ? (
+						<Badge variant={branch === "ok" ? "secondary" : "outline"}>
+							→ {branch}
+						</Badge>
+					) : (
+						<Badge variant="outline">No branch data</Badge>
+					)}
+				</div>
 			</section>
-			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">Input</h3>
-				<JsonPane value={step.input} />
-			</section>
+			<ResultWithInput
+				result={step.output}
+				input={step.input}
+				error={step.error}
+				pathCopyNodeId={step.nodeId}
+			/>
 		</div>
 	);
 }
@@ -280,12 +311,16 @@ export function NodeResponsePanels({
 			return <AssertPanels step={step} />;
 		case "if":
 			return <IfPanels step={step} />;
+		case "try":
+			return <TryPanels step={step} />;
 		case "set":
 			return <SetPanels step={step} node={node} />;
 		case "start":
 			return <StartPanels step={step} />;
 		case "extract":
 		case "json":
+		case "inspect":
+		case "log":
 		case "template":
 			return (
 				<ResultWithInput

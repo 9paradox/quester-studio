@@ -6,18 +6,25 @@ import { environmentSchemaV1 } from "./environment.js";
 import { flowSchemaV1 } from "./flow.js";
 import {
 	assertNodeDataSchema,
+	delayNodeDataSchema,
 	extractNodeDataSchema,
+	foreachNodeDataSchema,
 	httpNodeDataSchema,
 	ifNodeDataSchema,
 	inputNodeDataSchema,
+	inspectNodeDataSchema,
 	jsonNodeDataSchema,
+	logNodeDataSchema,
 	mergeNodeDataSchema,
 	noteNodeDataSchema,
 	outputNodeDataSchema,
 	setNodeDataSchema,
 	startNodeDataSchema,
+	subflowNodeDataSchema,
+	switchNodeDataSchema,
 	templateNodeDataSchema,
 	transformNodeDataSchema,
+	tryNodeDataSchema,
 } from "./nodes/index.js";
 import { requestSchemaV1 } from "./request.js";
 import { secretsSchemaV1 } from "./secrets.js";
@@ -43,12 +50,19 @@ const specs: [string, unknown][] = [
 	["quester/nodes/template.schema.json", templateNodeDataSchema],
 	["quester/nodes/set.schema.json", setNodeDataSchema],
 	["quester/nodes/if.schema.json", ifNodeDataSchema],
+	["quester/nodes/switch.schema.json", switchNodeDataSchema],
+	["quester/nodes/delay.schema.json", delayNodeDataSchema],
+	["quester/nodes/foreach.schema.json", foreachNodeDataSchema],
+	["quester/nodes/try.schema.json", tryNodeDataSchema],
+	["quester/nodes/subflow.schema.json", subflowNodeDataSchema],
 	["quester/nodes/output.schema.json", outputNodeDataSchema],
 	["quester/nodes/assert.schema.json", assertNodeDataSchema],
 	["quester/nodes/transform.schema.json", transformNodeDataSchema],
 	["quester/nodes/merge.schema.json", mergeNodeDataSchema],
 	["quester/nodes/json.schema.json", jsonNodeDataSchema],
 	["quester/nodes/note.schema.json", noteNodeDataSchema],
+	["quester/nodes/log.schema.json", logNodeDataSchema],
+	["quester/nodes/inspect.schema.json", inspectNodeDataSchema],
 ];
 
 for (const [rel, schema] of specs) {

@@ -1,5 +1,13 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
+import {
+	cp,
+	mkdir,
+	readFile,
+	readdir,
+	unlink,
+	writeFile,
+} from "node:fs/promises";
+import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type {
@@ -11,11 +19,14 @@ import type {
 } from "@quester-studio/api-contract";
 import {
 	EngineEventEmitter,
+	FlowCancelledError,
 	FlowExecutionError,
+	createExecuteSubflow,
 	createHttpFetch,
 	deleteRequest as deleteRequestFile,
 	ensureCollectionsDir,
 	executeFlow,
+	importPostmanCollectionFile,
 	listCollectionFolders,
 	listRequests,
 	loadRequest as loadRequestFile,
@@ -24,6 +35,7 @@ import {
 	resolveTlsVerifyActive,
 	saveRequest as saveRequestFile,
 } from "@quester-studio/engine";
+import { CookieJar } from "@quester-studio/engine";
 import type {
 	EnvironmentV1,
 	FlowV1,
@@ -36,6 +48,7 @@ import {
 	FLOW_VERSION,
 	REQUEST_VERSION,
 	SECRETS_VERSION,
+	isCookieJarEnabled,
 	mergeHttpSettings,
 	secretsSchemaV1,
 	validateEnvironment,
@@ -45,20 +58,39 @@ import {
 } from "@quester-studio/schema";
 import type { WorkspaceV1 } from "@quester-studio/schema";
 import {
+	loadPersistedCookieJar,
+	savePersistedCookieJar,
+} from "./cookie-persistence.js";
+import {
 	formatErrorForConsole,
 	isTlsCertificateError,
 	serializeError,
 	tlsCertificateHint,
 } from "./errors.js";
+import {
+	cancelFlowRun,
+	registerRunAbortController,
+	unregisterRunAbortController,
+} from "./run-cancellation.js";
 import { getAppTlsVerify, setAppTlsVerify } from "./tlsRuntime.js";
+
+export {
+	cancelFlowRun,
+	resetRunAbortControllersForTests,
+} from "./run-cancellation.js";
 
 export { getAppTlsVerify, setAppTlsVerify };
 
-function createRunFetch(workspaceRoot: string, httpDefaults: HttpSettingsV1) {
+function createRunFetch(
+	workspaceRoot: string,
+	httpDefaults: HttpSettingsV1,
+	signal?: AbortSignal,
+) {
 	return createHttpFetch({
 		httpDefaults,
 		workspaceRoot,
 		appVerifyTls: getAppTlsVerify(),
+		signal,
 	});
 }
 
@@ -90,22 +122,99 @@ function pushTlsCertificateHint(
 	});
 }
 
-function resolveDefaultWorkspaceRoot(): string {
+function hasQuesterManifest(dir: string): boolean {
+	return existsSync(join(dir, "quester.json"));
+}
+
+/** Packaged Electrobun Resources/sample-workspace candidates. */
+function packagedSampleCandidates(): string[] {
+	const execDir = dirname(process.execPath);
+	return [
+		join(execDir, "Resources", "sample-workspace"),
+		join(execDir, "..", "Resources", "sample-workspace"),
+		join(process.cwd(), "Resources", "sample-workspace"),
+		join(process.cwd(), "bundled", "sample-workspace"),
+		join(process.cwd(), "apps", "desktop", "bundled", "sample-workspace"),
+	];
+}
+
+/** Monorepo / source-tree sample (dev + tests). */
+function resolveMonorepoSampleWorkspace(): string | null {
 	const relative = join("examples", "sample-workspace");
 	let dir = process.cwd();
 	for (let i = 0; i < 12; i++) {
 		const candidate = join(dir, relative);
-		if (existsSync(join(candidate, "quester.json"))) {
-			return candidate;
-		}
+		if (hasQuesterManifest(candidate)) return candidate;
 		const parent = dirname(dir);
 		if (parent === dir) break;
 		dir = parent;
 	}
-	return resolve(
+	const fromPackage = resolve(
 		dirname(fileURLToPath(import.meta.url)),
 		"../../../examples/sample-workspace",
 	);
+	return hasQuesterManifest(fromPackage) ? fromPackage : null;
+}
+
+/** Read-only sample source: packaged Resources, then monorepo examples. */
+export function resolveSampleWorkspaceSource(
+	env: NodeJS.ProcessEnv = process.env,
+): string | null {
+	const override = env.QUESTER_SAMPLE_SOURCE?.trim();
+	if (override && hasQuesterManifest(override)) return resolve(override);
+	for (const candidate of packagedSampleCandidates()) {
+		if (hasQuesterManifest(candidate)) return candidate;
+	}
+	return resolveMonorepoSampleWorkspace();
+}
+
+function resolveDefaultWorkspaceRoot(): string {
+	return (
+		resolveSampleWorkspaceSource() ??
+		resolve(
+			dirname(fileURLToPath(import.meta.url)),
+			"../../../examples/sample-workspace",
+		)
+	);
+}
+
+/** Writable copy target for Open sample (user may edit). */
+export function resolveUserSampleWorkspaceRoot(
+	env: NodeJS.ProcessEnv = process.env,
+): string {
+	const override = env.QUESTER_USER_SAMPLE_DIR?.trim();
+	if (override) return resolve(override);
+	if (process.platform === "win32") {
+		const appData =
+			env.APPDATA?.trim() || join(homedir(), "AppData", "Roaming");
+		return join(appData, "Quester", "sample-workspace");
+	}
+	const xdg = env.XDG_DATA_HOME?.trim() || join(homedir(), ".local", "share");
+	return join(xdg, "quester", "sample-workspace");
+}
+
+/**
+ * Ensure a writable sample workspace exists (copy from packaged/monorepo source).
+ * Reuses an existing user copy so edits are kept.
+ */
+export async function ensureUserSampleWorkspace(
+	env: NodeJS.ProcessEnv = process.env,
+): Promise<string> {
+	const dest = resolveUserSampleWorkspaceRoot(env);
+	if (hasQuesterManifest(dest)) return dest;
+
+	const source = resolveSampleWorkspaceSource(env);
+	if (!source) {
+		throw new Error(
+			"Sample workspace not found. Reinstall the app or open a workspace folder.",
+		);
+	}
+	await mkdir(dirname(dest), { recursive: true });
+	await cp(source, dest, { recursive: true, force: true });
+	if (!hasQuesterManifest(dest)) {
+		throw new Error(`Failed to copy sample workspace to ${dest}`);
+	}
+	return dest;
 }
 
 /** Override default workspace (e.g. QUESTER_WORKSPACE_ROOT for apps/api). */
@@ -120,7 +229,9 @@ export function resolveConfiguredWorkspaceRoot(
 export const defaultWorkspaceRoot = resolveDefaultWorkspaceRoot();
 
 export async function getDefaultWorkspace(): Promise<string> {
-	return resolveConfiguredWorkspaceRoot();
+	const configured = process.env.QUESTER_WORKSPACE_ROOT?.trim();
+	if (configured) return resolve(configured);
+	return ensureUserSampleWorkspace();
 }
 
 export async function openWorkspace(path?: string) {
@@ -190,6 +301,7 @@ export type ExecuteFlowRpcOptions = {
 	input?: unknown;
 	workspace?: string;
 	runId?: string;
+	signal?: AbortSignal;
 	onNodeStatus?: (
 		event: Omit<NodeRunStatusEvent, "runId" | "flowId"> & {
 			runId?: string;
@@ -255,7 +367,14 @@ export async function executeFlowRpc(
 		emitStatus("running", nodeId, type);
 	});
 	events.on("node:after", ({ nodeId, type, input, output }) => {
-		pushLog("info", `✓ ${type} (${nodeId})`, {
+		const logged =
+			type === "log" &&
+			output &&
+			typeof output === "object" &&
+			"logged" in output
+				? String((output as { logged: unknown }).logged)
+				: undefined;
+		pushLog("info", logged ?? `✓ ${type} (${nodeId})`, {
 			nodeId,
 			nodeType: type,
 			phase: "after",
@@ -313,17 +432,59 @@ export async function executeFlowRpc(
 	}
 
 	try {
-		const result = await executeFlow(validated.data, {
-			input: options?.input ?? {},
-			env: envVars,
-			secrets,
-			events,
-			fetch: createRunFetch(root, httpDefaults),
-			httpDefaults,
-		});
-		return { ...result, logs };
+		const runSignal =
+			options?.signal ??
+			(options?.runId ? registerRunAbortController(options.runId) : undefined);
+		const cookieJarEnabled = isCookieJarEnabled(httpDefaults);
+		const cookieJar = cookieJarEnabled
+			? ((await loadPersistedCookieJar(root)) ?? new CookieJar())
+			: undefined;
+
+		try {
+			const executeSubflow = createExecuteSubflow(
+				{ getFlow: (id) => ws.flows[id] },
+				{
+					env: envVars,
+					secrets,
+					events,
+					signal: runSignal,
+					fetch: createRunFetch(root, httpDefaults, runSignal),
+					httpDefaults,
+					cookieJar,
+				},
+				flowId,
+			);
+			const result = await executeFlow(validated.data, {
+				input: options?.input ?? {},
+				env: envVars,
+				secrets,
+				events,
+				signal: runSignal,
+				fetch: createRunFetch(root, httpDefaults, runSignal),
+				httpDefaults,
+				cookieJar,
+				executeSubflow,
+			});
+			return { ...result, logs };
+		} finally {
+			if (cookieJarEnabled && cookieJar) {
+				await savePersistedCookieJar(root, cookieJar);
+			}
+			if (options?.runId && !options?.signal) {
+				unregisterRunAbortController(options.runId);
+			}
+		}
 	} catch (error) {
 		const msg = formatErrorForConsole(error);
+		if (error instanceof FlowCancelledError) {
+			pushLog("info", "Flow run cancelled", { phase: "complete" });
+			return {
+				...error.partial,
+				logs,
+				cancelled: true,
+				error: error.message,
+			};
+		}
 		pushLog("error", msg);
 		if (error instanceof FlowExecutionError) {
 			return {
@@ -696,6 +857,14 @@ export async function createCollection(
 	return { ok: true };
 }
 
+export async function importCollection(
+	workspace: string,
+	collectionFile: string,
+): Promise<{ imported: string[]; skipped: string[] }> {
+	const root = resolve(workspace);
+	return importPostmanCollectionFile(root, collectionFile);
+}
+
 /** Run a standalone collection request via an ephemeral single-HTTP flow. */
 export async function executeRequestRpc(
 	requestPath: string,
@@ -768,7 +937,14 @@ export async function executeRequestRpc(
 		});
 	});
 	events.on("node:after", ({ nodeId, type, input, output }) => {
-		pushLog("info", `✓ ${type} (${nodeId})`, {
+		const logged =
+			type === "log" &&
+			output &&
+			typeof output === "object" &&
+			"logged" in output
+				? String((output as { logged: unknown }).logged)
+				: undefined;
+		pushLog("info", logged ?? `✓ ${type} (${nodeId})`, {
 			nodeId,
 			nodeType: type,
 			phase: "after",

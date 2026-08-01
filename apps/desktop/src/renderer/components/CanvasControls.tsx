@@ -6,7 +6,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select.js";
-import { IconDeviceFloppy, IconPlayerPlay } from "@tabler/icons-react";
+import {
+	IconDeviceFloppy,
+	IconPlayerPlay,
+	IconPlayerStop,
+} from "@tabler/icons-react";
 
 type CanvasControlsProps = {
 	envs: string[];
@@ -15,6 +19,7 @@ type CanvasControlsProps = {
 	isRunning: boolean;
 	canRun: boolean;
 	onRun: () => void;
+	onStop: () => void;
 	canSave: boolean;
 	onSave: () => void;
 };
@@ -26,6 +31,7 @@ export function CanvasControls({
 	isRunning,
 	canRun,
 	onRun,
+	onStop,
 	canSave,
 	onSave,
 }: CanvasControlsProps) {
@@ -66,16 +72,29 @@ export function CanvasControls({
 						Save
 					</Button>
 				) : null}
-				<Button
-					type="button"
-					size="sm"
-					className="mt-3 h-7"
-					onClick={onRun}
-					disabled={isRunning || !canRun}
-				>
-					<IconPlayerPlay data-icon="inline-start" />
-					{isRunning ? "Running…" : "Run"}
-				</Button>
+				{isRunning ? (
+					<Button
+						type="button"
+						variant="destructive"
+						size="sm"
+						className="mt-3 h-7"
+						onClick={onStop}
+					>
+						<IconPlayerStop data-icon="inline-start" />
+						Stop
+					</Button>
+				) : (
+					<Button
+						type="button"
+						size="sm"
+						className="mt-3 h-7"
+						onClick={onRun}
+						disabled={!canRun}
+					>
+						<IconPlayerPlay data-icon="inline-start" />
+						Run
+					</Button>
+				)}
 			</div>
 		</div>
 	);

@@ -17,6 +17,8 @@ export default {
 			"dist/renderer/index.html": "views/mainview/index.html",
 			"dist/renderer/assets/": "views/mainview/assets/",
 			"assets/quester-logo-32.png": "views/mainview/quester-logo-32.png",
+			"assets/icon.ico": "Resources/app.ico",
+			"bundled/sample-workspace/": "Resources/sample-workspace/",
 		},
 		watchIgnore: ["dist/**"],
 		mac: {

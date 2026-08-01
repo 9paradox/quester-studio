@@ -37,4 +37,13 @@ describe("CookieJar", () => {
 		jar.applyToHeaders("https://api.example.com/", headers);
 		expect(headers.Cookie).toBeUndefined();
 	});
+
+	test("snapshot round-trips host cookies", () => {
+		const jar = new CookieJar();
+		jar.storeFromSetCookie("https://api.example.com/", ["a=1", "b=2"]);
+		const restored = CookieJar.fromSnapshot(jar.toSnapshot());
+		const headers: Record<string, string> = {};
+		restored.applyToHeaders("https://api.example.com/", headers);
+		expect(headers.Cookie).toBe("a=1; b=2");
+	});
 });

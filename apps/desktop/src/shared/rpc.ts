@@ -42,6 +42,10 @@ export type DesktopRPC = {
 				params: Record<string, never>;
 				response: string | null;
 			};
+			pickCollectionFile: {
+				params: Record<string, never>;
+				response: string | null;
+			};
 			scaffoldWorkspace: {
 				params: { path: string; name?: string };
 				response: { root: string; name: string; flowId: string };
@@ -82,6 +86,10 @@ export type DesktopRPC = {
 					input?: unknown;
 				};
 				response: ExecuteFlowRpcResult;
+			};
+			cancelFlowRun: {
+				params: { runId: string };
+				response: { ok: boolean };
 			};
 			saveFlow: {
 				params: { flow: FlowV1; workspace: string };
@@ -175,6 +183,10 @@ export type DesktopRPC = {
 			createCollection: {
 				params: { workspace: string; collectionName: string };
 				response: { ok: true };
+			};
+			importCollection: {
+				params: { workspace: string; filePath: string };
+				response: { imported: string[]; skipped: string[] };
 			};
 			executeRequestRpc: {
 				params: {

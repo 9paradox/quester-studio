@@ -1,18 +1,25 @@
 ﻿import { z } from "zod";
 import { FLOW_VERSION } from "./common.js";
 import { assertNodeDataSchema } from "./nodes/assert.js";
+import { delayNodeDataSchema } from "./nodes/delay.js";
 import { extractNodeDataSchema } from "./nodes/extract.js";
+import { foreachNodeDataSchema } from "./nodes/foreach.js";
 import { httpNodeDataSchema } from "./nodes/http.js";
 import { ifNodeDataSchema } from "./nodes/if.js";
 import { inputNodeDataSchema } from "./nodes/input.js";
+import { inspectNodeDataSchema } from "./nodes/inspect.js";
 import { jsonNodeDataSchema } from "./nodes/json.js";
+import { logNodeDataSchema } from "./nodes/log.js";
 import { mergeNodeDataSchema } from "./nodes/merge.js";
 import { noteNodeDataSchema } from "./nodes/note.js";
 import { outputNodeDataSchema } from "./nodes/output.js";
 import { setNodeDataSchema } from "./nodes/set.js";
 import { startNodeDataSchema } from "./nodes/start.js";
+import { subflowNodeDataSchema } from "./nodes/subflow.js";
+import { switchNodeDataSchema } from "./nodes/switch.js";
 import { templateNodeDataSchema } from "./nodes/template.js";
 import { transformNodeDataSchema } from "./nodes/transform.js";
+import { tryNodeDataSchema } from "./nodes/try.js";
 import { settingsSchemaV1 } from "./settings.js";
 
 export const builtinNodeTypes = [
@@ -23,12 +30,19 @@ export const builtinNodeTypes = [
 	"template",
 	"set",
 	"if",
+	"switch",
+	"delay",
+	"foreach",
+	"try",
+	"subflow",
 	"output",
 	"assert",
 	"transform",
 	"merge",
 	"json",
 	"note",
+	"log",
+	"inspect",
 ] as const;
 
 export type BuiltinNodeType = (typeof builtinNodeTypes)[number];
@@ -41,15 +55,24 @@ const nodeDataByType: Record<BuiltinNodeType, z.ZodTypeAny> = {
 	template: templateNodeDataSchema,
 	set: setNodeDataSchema,
 	if: ifNodeDataSchema,
+	switch: switchNodeDataSchema,
+	delay: delayNodeDataSchema,
+	foreach: foreachNodeDataSchema,
+	try: tryNodeDataSchema,
+	subflow: subflowNodeDataSchema,
 	output: outputNodeDataSchema,
 	assert: assertNodeDataSchema,
 	transform: transformNodeDataSchema,
 	merge: mergeNodeDataSchema,
 	json: jsonNodeDataSchema,
 	note: noteNodeDataSchema,
+	log: logNodeDataSchema,
+	inspect: inspectNodeDataSchema,
 };
 
 export function nodeDataSchemaForType(type: string): z.ZodTypeAny | undefined {
+	if (type === "wait") return delayNodeDataSchema;
+	if (type === "preview") return inspectNodeDataSchema;
 	if ((builtinNodeTypes as readonly string[]).includes(type)) {
 		return nodeDataByType[type as BuiltinNodeType];
 	}

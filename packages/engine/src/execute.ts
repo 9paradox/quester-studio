@@ -13,10 +13,14 @@ export type ExecuteFlowOptions = {
 	vars?: Record<string, unknown>;
 	fetch?: typeof fetch;
 	events?: EngineEventEmitter;
+	/** When aborted, execution stops between nodes and in-flight HTTP requests. */
+	signal?: AbortSignal;
 	/** Resolved HTTP defaults (workspace→flow already merged by caller). */
 	httpDefaults?: HttpSettingsV1;
 	/** Optional shared jar; created automatically when cookie jar is enabled. */
 	cookieJar?: CookieJar;
+	/** Run another workspace flow by id (recursive; depth/cycle guarded by caller). */
+	executeSubflow?: (flowId: string, input: unknown) => Promise<unknown>;
 };
 
 export type NodeStepResult = {
@@ -57,12 +61,57 @@ export class FlowExecutionError extends Error {
 	}
 }
 
+export class FlowCancelledError extends Error {
+	readonly partial: ExecuteFlowResult;
+
+	constructor(message: string, options: { partial: ExecuteFlowResult }) {
+		super(message);
+		this.name = "FlowCancelledError";
+		this.partial = options.partial;
+	}
+}
+
+function mergeFetchSignal(
+	baseFetch: typeof fetch,
+	signal?: AbortSignal,
+): typeof fetch {
+	if (!signal) return baseFetch;
+	return ((input: RequestInfo | URL, init?: RequestInit) => {
+		const mergedSignal = init?.signal
+			? AbortSignal.any([signal, init.signal])
+			: signal;
+		return baseFetch(input, { ...init, signal: mergedSignal });
+	}) as typeof fetch;
+}
+
+function buildPartialResult(
+	flow: FlowV1,
+	nodeOutputs: Record<string, unknown>,
+	nodeInputs: Record<string, unknown>,
+	steps: NodeStepResult[],
+	vars: Record<string, unknown>,
+	lastOutput: unknown,
+): ExecuteFlowResult {
+	const outputNode = flow.nodes.find((n) => n.type === "output");
+	const output = outputNode ? nodeOutputs[outputNode.id] : lastOutput;
+	return { output, nodeOutputs, nodeInputs, steps, vars };
+}
+
+function throwIfAborted(
+	signal: AbortSignal | undefined,
+	partial: ExecuteFlowResult,
+): void {
+	if (signal?.aborted) {
+		throw new FlowCancelledError("Flow run cancelled", { partial });
+	}
+}
+
 export async function executeFlow(
 	flow: FlowV1,
 	options: ExecuteFlowOptions = {},
 ): Promise<ExecuteFlowResult> {
 	const events = options.events ?? new EngineEventEmitter();
-	const fetchFn = options.fetch ?? fetch;
+	const fetchFn = mergeFetchSignal(options.fetch ?? fetch, options.signal);
 	const flowInput = options.input ?? {};
 	let vars = { ...(options.vars ?? {}) };
 	const nodeOutputs: Record<string, unknown> = {};
@@ -82,10 +131,34 @@ export async function executeFlow(
 	let lastOutput: unknown = {};
 
 	while (queue.length > 0) {
+		throwIfAborted(
+			options.signal,
+			buildPartialResult(
+				flow,
+				nodeOutputs,
+				nodeInputs,
+				steps,
+				vars,
+				lastOutput,
+			),
+		);
+
 		const nodeId = queue.shift();
 		if (!nodeId || executed.has(nodeId)) continue;
 		const node = nodeById.get(nodeId);
 		if (!node) continue;
+
+		throwIfAborted(
+			options.signal,
+			buildPartialResult(
+				flow,
+				nodeOutputs,
+				nodeInputs,
+				steps,
+				vars,
+				lastOutput,
+			),
+		);
 
 		const plugin = getNodePlugin(node.type);
 		if (!plugin) {
@@ -125,6 +198,8 @@ export async function executeFlow(
 				fetch: fetchFn,
 				httpDefaults: options.httpDefaults,
 				cookieJar,
+				signal: options.signal,
+				executeSubflow: options.executeSubflow,
 			});
 			if (result.vars) vars = { ...vars, ...result.vars };
 			nodeOutputs[node.id] = result.output;
@@ -149,6 +224,18 @@ export async function executeFlow(
 				}
 			}
 		} catch (error) {
+			if (options.signal?.aborted) {
+				throw new FlowCancelledError("Flow run cancelled", {
+					partial: buildPartialResult(
+						flow,
+						nodeOutputs,
+						nodeInputs,
+						steps,
+						vars,
+						lastOutput,
+					),
+				});
+			}
 			const message = error instanceof Error ? error.message : String(error);
 			events.emit("node:error", {
 				nodeId: node.id,

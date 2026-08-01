@@ -1,6 +1,10 @@
 import type { EditorTab } from "@/lib/editorTabs.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
-import { selectActiveTab, selectCanRun } from "@/stores/selectors.js";
+import {
+	selectActiveFlowRun,
+	selectActiveTab,
+	selectCanRun,
+} from "@/stores/selectors.js";
 import type { FlowV1 } from "@quester-studio/schema";
 import { AppPreferencesEditor } from "./AppPreferencesEditor.js";
 import { CanvasControls } from "./CanvasControls.js";
@@ -15,10 +19,11 @@ export function EditorArea() {
 	const workspacePath = useQuesterStore((s) => s.workspacePath);
 	const envs = useQuesterStore((s) => s.envs);
 	const selectedEnv = useQuesterStore((s) => s.selectedEnv);
-	const isRunning = useQuesterStore((s) => s.isRunning);
+	const { isRunning } = useQuesterStore(selectActiveFlowRun);
 	const canRun = useQuesterStore(selectCanRun);
 	const setSelectedEnv = useQuesterStore((s) => s.setSelectedEnv);
 	const runFlow = useQuesterStore((s) => s.runFlow);
+	const stopFlow = useQuesterStore((s) => s.stopFlow);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const handleEnvRowsChange = useQuesterStore((s) => s.handleEnvRowsChange);
 	const handleSecretRowsChange = useQuesterStore(
@@ -223,6 +228,7 @@ export function EditorArea() {
 				isRunning={isRunning}
 				canRun={canRun}
 				onRun={() => void runFlow()}
+				onStop={stopFlow}
 				canSave={canSaveFlow}
 				onSave={onSave}
 			/>

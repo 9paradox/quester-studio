@@ -3,14 +3,21 @@ import { type BuiltinNodeType, builtinNodeTypes } from "@quester-studio/schema";
 import {
 	IconArrowBarToDown,
 	IconArrowBarToUp,
+	IconArrowsSplit,
 	IconBraces,
 	IconCheck,
+	IconClock,
 	IconCode,
+	IconEye,
 	IconFlag,
 	IconGitBranch,
 	IconGitMerge,
 	IconJson,
+	IconLogs,
 	IconNote,
+	IconRepeat,
+	IconShieldCheck,
+	IconSubtask,
 	IconTransform,
 	IconVariable,
 	IconWorld,
@@ -91,6 +98,22 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 		accentTone: "border-l-chart-3",
 		badgeTone: "bg-chart-3/15 text-chart-3",
 	}),
+	inspect: withHelp({
+		type: "inspect",
+		label: "Inspect",
+		description: "Pinned JSON preview on canvas",
+		icon: IconEye,
+		accentTone: "border-l-chart-3",
+		badgeTone: "bg-chart-3/15 text-chart-3",
+	}),
+	log: withHelp({
+		type: "log",
+		label: "Log",
+		description: "Write message to run log",
+		icon: IconLogs,
+		accentTone: "border-l-muted-foreground",
+		badgeTone: "bg-muted text-muted-foreground",
+	}),
 	note: withHelp({
 		type: "note",
 		label: "Note",
@@ -155,6 +178,46 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 		accentTone: "border-l-chart-4",
 		badgeTone: "bg-chart-4/15 text-foreground",
 	}),
+	switch: withHelp({
+		type: "switch",
+		label: "Switch",
+		description: "Multi-branch on value",
+		icon: IconArrowsSplit,
+		accentTone: "border-l-chart-4",
+		badgeTone: "bg-chart-4/15 text-foreground",
+	}),
+	delay: withHelp({
+		type: "delay",
+		label: "Delay",
+		description: "Sleep (alias: wait)",
+		icon: IconClock,
+		accentTone: "border-l-muted-foreground",
+		badgeTone: "bg-muted text-muted-foreground",
+	}),
+	foreach: withHelp({
+		type: "foreach",
+		label: "Foreach",
+		description: "Map over array items",
+		icon: IconRepeat,
+		accentTone: "border-l-chart-3",
+		badgeTone: "bg-chart-3/15 text-chart-3",
+	}),
+	try: withHelp({
+		type: "try",
+		label: "Try",
+		description: "Soft branch on checks",
+		icon: IconShieldCheck,
+		accentTone: "border-l-chart-4",
+		badgeTone: "bg-chart-4/15 text-foreground",
+	}),
+	subflow: withHelp({
+		type: "subflow",
+		label: "Subflow",
+		description: "Run another flow",
+		icon: IconSubtask,
+		accentTone: "border-l-primary",
+		badgeTone: "bg-primary/15 text-primary",
+	}),
 	assert: withHelp({
 		type: "assert",
 		label: "Assert",
@@ -167,14 +230,21 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 };
 
 const catalogGroupOrder: { title: string; types: BuiltinNodeType[] }[] = [
-	{ title: "Input & Output", types: ["start", "input", "output", "json"] },
+	{
+		title: "Input & Output",
+		types: ["start", "input", "output", "json", "inspect"],
+	},
 	{ title: "Canvas", types: ["note"] },
+	{ title: "Observability", types: ["log"] },
 	{ title: "HTTP", types: ["http"] },
 	{
 		title: "Transform",
 		types: ["extract", "template", "set", "transform", "merge"],
 	},
-	{ title: "Logic", types: ["if", "assert"] },
+	{
+		title: "Logic",
+		types: ["if", "switch", "try", "assert", "delay", "foreach", "subflow"],
+	},
 ];
 
 export const nodeCatalogGroups: NodeCatalogGroup[] = catalogGroupOrder.map(
@@ -227,6 +297,24 @@ export function defaultNodeData(
 			return { label: "Set", variables: {} };
 		case "if":
 			return { label: "Condition", condition: "true" };
+		case "switch":
+			return {
+				label: "Switch",
+				expression: "{{input.status}}",
+				cases: [{ value: "ok", handle: "success" }],
+				defaultHandle: "default",
+			};
+		case "delay":
+			return { label: "Delay", ms: 1000, jitterMs: 0 };
+		case "foreach":
+			return { label: "Foreach", items: "items", maxItems: 100 };
+		case "try":
+			return {
+				label: "Try",
+				checks: [{ path: "status", op: "gte", value: 200 }],
+			};
+		case "subflow":
+			return { label: "Subflow", flowId: "my-flow", input: {} };
 		case "output":
 			return { label: "Output" };
 		case "assert":
@@ -240,6 +328,10 @@ export function defaultNodeData(
 			return { label: "Merge", sources: ["previous"] };
 		case "json":
 			return { label: "JSON" };
+		case "inspect":
+			return { label: "Inspect" };
+		case "log":
+			return { label: "Log", message: "{{input}}" };
 		case "note":
 			return { label: "Note", text: "" };
 		default: {

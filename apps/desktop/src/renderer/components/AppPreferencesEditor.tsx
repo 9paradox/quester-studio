@@ -5,6 +5,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select.js";
+import { getShortcutRows } from "@/lib/commands.js";
 import { persistAndSyncTheme } from "@/lib/nativeChrome.js";
 import { getQuesterClient } from "@/lib/quester-client.js";
 import { type ThemePreference, readThemePreference } from "@/lib/theme.js";
@@ -33,12 +34,6 @@ const CATEGORIES = [
 	{ id: "network", label: "Network" },
 	{ id: "shortcuts", label: "Shortcuts" },
 	{ id: "about", label: "About" },
-] as const;
-
-const SHORTCUTS = [
-	{ action: "Save active tab", keys: "Ctrl/⌘ S" },
-	{ action: "Run flow / Send request", keys: "Ctrl/⌘ Enter" },
-	{ action: "Close active tab", keys: "Ctrl/⌘ W" },
 ] as const;
 
 export function AppPreferencesEditor() {
@@ -144,7 +139,7 @@ export function AppPreferencesEditor() {
 								</tr>
 							</thead>
 							<tbody>
-								{SHORTCUTS.map((row) => (
+								{getShortcutRows().map((row) => (
 									<tr key={row.action} className="border-t border-border">
 										<td className="px-3 py-2 text-foreground">{row.action}</td>
 										<td className="px-3 py-2 font-mono text-muted-foreground">

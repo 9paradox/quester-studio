@@ -1,9 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+	cancelFlowRun,
 	createFlow,
 	deleteFlow,
+	ensureUserSampleWorkspace,
 	executeFlowRpc,
 	listCollectionRequests,
 	listEnvs,
@@ -19,6 +22,8 @@ import {
 	openWorkspaceSummary,
 	readPathShapes,
 	renameFlow,
+	resolveSampleWorkspaceSource,
+	resolveUserSampleWorkspaceRoot,
 	saveEnvironment,
 	saveFlow,
 	writePathShapes,
@@ -30,6 +35,41 @@ const sampleWorkspace = join(
 );
 
 describe("workspace-service", () => {
+	test("resolveSampleWorkspaceSource finds monorepo sample", () => {
+		const source = resolveSampleWorkspaceSource({});
+		expect(source).toBeTruthy();
+		expect(source?.replaceAll("\\", "/")).toMatch(/sample-workspace$/);
+	});
+
+	test("ensureUserSampleWorkspace copies sample into user dir", async () => {
+		const destRoot = await mkdtemp(join(tmpdir(), "quester-user-sample-"));
+		const dest = join(destRoot, "sample-workspace");
+		try {
+			const path = await ensureUserSampleWorkspace({
+				QUESTER_USER_SAMPLE_DIR: dest,
+				QUESTER_SAMPLE_SOURCE: sampleWorkspace,
+			} as NodeJS.ProcessEnv);
+			expect(path).toBe(dest);
+			const ws = await openWorkspace(path);
+			expect(ws.manifest.name).toBe("sample-workspace");
+			// Second call reuses existing copy
+			const again = await ensureUserSampleWorkspace({
+				QUESTER_USER_SAMPLE_DIR: dest,
+				QUESTER_SAMPLE_SOURCE: sampleWorkspace,
+			} as NodeJS.ProcessEnv);
+			expect(again).toBe(dest);
+		} finally {
+			await rm(destRoot, { recursive: true, force: true });
+		}
+	});
+
+	test("resolveUserSampleWorkspaceRoot uses APPDATA on win32 override", () => {
+		const path = resolveUserSampleWorkspaceRoot({
+			QUESTER_USER_SAMPLE_DIR: "/tmp/custom-sample",
+		} as NodeJS.ProcessEnv);
+		expect(path.replaceAll("\\", "/")).toContain("custom-sample");
+	});
+
 	test("openWorkspace loads sample workspace", async () => {
 		const ws = await openWorkspace(sampleWorkspace);
 		expect(ws.manifest.name).toBe("sample-workspace");
@@ -359,6 +399,52 @@ describe("workspace-service", () => {
 				{ nodeId: "http", status: "running" },
 				{ nodeId: "http", status: "error" },
 			]);
+		} finally {
+			await deleteFlow(flowId, sampleWorkspace);
+		}
+	});
+
+	test("executeFlowRpc returns partial result when cancelled via cancelFlowRun", async () => {
+		const flowId = "cancel-test-flow";
+		await createFlow(sampleWorkspace, flowId, "Cancel test");
+		try {
+			const flow = await loadFlow(flowId, sampleWorkspace);
+			await saveFlow(
+				{
+					...flow,
+					nodes: [
+						{ id: "start", type: "start", data: {} },
+						{ id: "a", type: "set", data: { variables: { step: "a" } } },
+						{ id: "b", type: "set", data: { variables: { step: "b" } } },
+						{ id: "out", type: "output", data: {} },
+					],
+					edges: [
+						{ id: "e0", source: "start", target: "a" },
+						{ id: "e1", source: "a", target: "b" },
+						{ id: "e2", source: "b", target: "out" },
+					],
+				},
+				sampleWorkspace,
+			);
+
+			const runId = "run-cancel-test";
+			const runPromise = executeFlowRpc(flowId, {
+				workspace: sampleWorkspace,
+				env: "local",
+				runId,
+				input: {},
+				onNodeStatus: (event) => {
+					if (event.nodeId === "a" && event.status === "success") {
+						cancelFlowRun(runId);
+					}
+				},
+			});
+
+			const result = await runPromise;
+			expect(result.cancelled).toBe(true);
+			expect(result.error).toBe("Flow run cancelled");
+			expect(result.steps.map((s) => s.nodeId)).toEqual(["start", "a"]);
+			expect(result.vars.step).toBe("a");
 		} finally {
 			await deleteFlow(flowId, sampleWorkspace);
 		}
