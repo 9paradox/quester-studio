@@ -7,6 +7,7 @@ import { ifNodeDataSchema } from "./nodes/if.js";
 import { inputNodeDataSchema } from "./nodes/input.js";
 import { jsonNodeDataSchema } from "./nodes/json.js";
 import { mergeNodeDataSchema } from "./nodes/merge.js";
+import { noteNodeDataSchema } from "./nodes/note.js";
 import { outputNodeDataSchema } from "./nodes/output.js";
 import { setNodeDataSchema } from "./nodes/set.js";
 import { startNodeDataSchema } from "./nodes/start.js";
@@ -27,6 +28,7 @@ export const builtinNodeTypes = [
 	"transform",
 	"merge",
 	"json",
+	"note",
 ] as const;
 
 export type BuiltinNodeType = (typeof builtinNodeTypes)[number];
@@ -44,6 +46,7 @@ const nodeDataByType: Record<BuiltinNodeType, z.ZodTypeAny> = {
 	transform: transformNodeDataSchema,
 	merge: mergeNodeDataSchema,
 	json: jsonNodeDataSchema,
+	note: noteNodeDataSchema,
 };
 
 export function nodeDataSchemaForType(type: string): z.ZodTypeAny | undefined {

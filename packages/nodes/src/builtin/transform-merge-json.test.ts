@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { NodeExecutionContext } from "../types.js";
 import { jsonPlugin } from "./json.js";
 import { mergePlugin } from "./merge.js";
+import { notePlugin } from "./note.js";
 import { transformPlugin } from "./transform.js";
 
 function base(
@@ -66,5 +67,14 @@ describe("jsonPlugin", () => {
 			base("json", { expression: "items[0]" }, { items: [{ id: 9 }] }),
 		);
 		expect(result.output).toEqual({ id: 9 });
+	});
+});
+
+describe("notePlugin", () => {
+	test("passthrough previous input", async () => {
+		const result = await notePlugin.execute(
+			base("note", { text: "hello" }, { hello: "world" }),
+		);
+		expect(result.output).toEqual({ hello: "world" });
 	});
 });

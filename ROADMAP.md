@@ -8,7 +8,7 @@
 
 Canvas-only nodes must not break CLI runs.
 
-- [ ] `note` — markdown/text sticky on canvas; no execute (or passthrough) — #66
+- [x] `note` — markdown/text sticky on canvas; no execute (or passthrough) — #66
 - [ ] `delay` / `wait` — sleep N ms (optional jitter)
 - [ ] `switch` — multi-branch on expression / status / JMESPath (extends `if` + `sourceHandle`)
 

@@ -6,6 +6,7 @@
 	inputPlugin,
 	jsonPlugin,
 	mergePlugin,
+	notePlugin,
 	outputPlugin,
 	setPlugin,
 	startPlugin,
@@ -32,6 +33,7 @@ const builtins = [
 	transformPlugin,
 	mergePlugin,
 	jsonPlugin,
+	notePlugin,
 ];
 
 for (const plugin of builtins) {

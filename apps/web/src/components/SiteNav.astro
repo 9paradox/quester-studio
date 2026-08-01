@@ -1,7 +1,7 @@
 ---
 const base = import.meta.env.BASE_URL;
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
-const logoSrc = `${base}favicon.png`;
+const logoSrc = `${base}logo-64.png`;
 
 function href(segment: string) {
 	return `${base}${segment}`.replace(/\/{2,}/g, "/");

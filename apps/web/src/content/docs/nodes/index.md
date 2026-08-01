@@ -21,10 +21,11 @@ Flows are graphs of **nodes**. Each builtin type has a `data` schema, an execute
 | [transform](./transform/) | Build object via JMESPath map | New object |
 | [merge](./merge/) | Deep-merge sources | Merged object |
 | [json](./json/) | Passthrough / JMESPath on previous | Selected JSON |
+| [note](./note/) | Canvas sticky annotation | Not executed |
 
 ## Execution model
 
-1. A flow must have **exactly one** [`start`](./start/) node; all other nodes must be reachable from it. `start` has at most one child.
+1. A flow must have **exactly one** [`start`](./start/) node; all other executable nodes must be reachable from it. `start` has at most one child. [`note`](./note/) nodes are canvas-only: they may be disconnected, cannot have edges, and are not executed.
 2. Nodes run in topological order along edges, beginning at `start`.
 3. Each node receives the **previous** node’s output as execute input.
 4. The run’s `--input` / Run panel JSON is always available as `{{input.*}}`. An [`input`](./input/) node puts that object on the wire.

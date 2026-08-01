@@ -11,3 +11,4 @@ export * from "./assert.js";
 export * from "./transform.js";
 export * from "./merge.js";
 export * from "./json.js";
+export * from "./note.js";
