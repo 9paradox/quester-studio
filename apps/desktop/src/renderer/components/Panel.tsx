@@ -21,6 +21,7 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
+import type { FlowEditorTab } from "@/lib/editorTabs.js";
 import { listRunHistory } from "@/lib/runHistory.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
@@ -137,7 +138,7 @@ export function Panel() {
 	const activeTabId = useQuesterStore((s) => s.activeTabId);
 
 	const activeFlowTab = openTabs.find(
-		(t) => t.id === activeTabId && t.kind === "flow",
+		(t): t is FlowEditorTab => t.id === activeTabId && t.kind === "flow",
 	);
 	const historyEntries = activeFlowTab
 		? listRunHistory(activeFlowTab.flowId)
