@@ -5,6 +5,8 @@ description: Write a templated message to the run log and pass data through
 
 Appends a resolved message to the run log (CLI stderr / desktop Logs). Passes the previous output through, adding a `logged` field when the input is a plain object.
 
+`message` is templated (`{{input.*}}`, `{{nodes.id…}}`, `{{previous.*}}`). [How flows work](../../concepts/).
+
 ## Data
 
 | Field | Type | Description |

@@ -63,11 +63,12 @@ bunx quester run examples/sample-workspace/flows/kitchen-sink.flow.json \
 
 ## Learn more
 
+- [How flows work](../concepts/) — diagrams: wire data, `input` node vs `{{input.*}}` vs `{{previous.*}}`
 - [Try Quester Studio](../try/) — download desktop preview and tester checklist
 - [Workspace files](../workspace/) — `quester.json`, flows, layout
 - [Environments & secrets](../workspace-secrets/) — `{{env.*}}` and `{{secrets.*}}`
 - [Collections & requests](../collections/) — standalone `*.request.json`
-- [Template syntax](../templates/) — `{{input.*}}` vs previous / `{{nodes.*}}`
+- [Template syntax](../templates/) — scopes and anti-patterns
 - [Nodes](../nodes/) — every builtin type with input/output examples
 - [note](../nodes/note/) — canvas sticky (not executed)
-- [extract](../nodes/extract/) — JMESPath on the previous node only
+- [extract](../nodes/extract/) — JMESPath on the previous node only (`body.id`; templates may use `{{previous.body.id}}`)

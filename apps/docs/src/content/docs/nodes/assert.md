@@ -5,6 +5,8 @@ description: Fail the flow when JMESPath checks on the previous output do not pa
 
 Runs one or more checks against the previous node’s output. On failure, execution throws and the flow stops.
 
+Check `path` values are JMESPath from the previous root (`status`, `body.id`) — not `previous.status` and not run-input paths (use templates / an [`input`](../input/) node first). See [How flows work](../../concepts/).
+
 ## Data
 
 | Field | Type | Description |

@@ -59,7 +59,8 @@ my-workspace/
   environments/local.secrets.json  # secrets (gitignored)
 ```
 
-Flow nodes use `{{env.VAR}}`, `{{input.field}}`, `{{nodes.nodeId}}`, `{{vars.key}}` in templates.
+Template strings use `{{env.*}}`, `{{input.*}}`, `{{nodes.id}}`, `{{vars.*}}`, `{{previous.*}}`.
+
 
 ## Builtin node types
 

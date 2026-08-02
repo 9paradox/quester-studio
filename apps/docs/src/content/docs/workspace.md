@@ -5,6 +5,8 @@ description: Layout and formats for quester.json, flows, environments, and colle
 
 A **workspace** is a folder with a `quester.json` manifest. Everything Quester loads — flows, environments, secrets, and collections — lives under that root.
 
+For how nodes connect and how `{{input.*}}` differs from the `input` node, see [How flows work](../concepts/).
+
 ## Layout
 
 ```

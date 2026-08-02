@@ -5,6 +5,8 @@ description: Sole flow entry node — output only, at most one child
 
 Graph entry point. Every flow must have **exactly one** `start` node. It has **no input handle** (output only) and may have **at most one** outgoing edge.
 
+Run payload is **not** produced here. Chain `start → input → …` to put it on the wire, or use `{{input.*}}` in templates. Overview: [How flows work](../../concepts/).
+
 ## Data
 
 | Field | Type | Description |
@@ -17,8 +19,6 @@ Graph entry point. Every flow must have **exactly one** `start` node. It has **n
 | --- | --- |
 | **Execute input** | Ignored |
 | **Output** | `{}` (empty object so the single child can run) |
-
-Run payload is **not** produced by `start`. Use [`input`](../input/) after start if you want it on the wire, or `{{input.*}}` in templates.
 
 ## Rules
 

@@ -5,6 +5,11 @@ description: Branch the flow on a templated condition and/or JMESPath checks (tr
 
 Evaluates a condition and/or checks, then continues along the matching edge.
 
+- `condition` may use templates (`{{input.active}}`, `{{nodes.x…}}`).
+- `checks[].path` is JMESPath on **previous** output (`status`, not `previous.status`).
+
+Concepts: [How flows work](../../concepts/).
+
 ## Data
 
 | Field | Type | Description |

@@ -5,6 +5,8 @@ description: Multi-branch on a templated expression or JMESPath (sourceHandle pe
 
 Picks an outgoing edge by matching a string value against `cases`. Extends the `if` branching model with more than two handles.
 
+Use templated `expression` for run/vars/nodes fields, or `path` as JMESPath on **previous** (`body.type`, not `previous.body.type`). See [How flows work](../../concepts/).
+
 ## Data
 
 | Field | Type | Description |

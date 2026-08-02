@@ -18,13 +18,14 @@ Product site (download, guide, UI docs): [https://9paradox.com/quester-studio/](
    - **macOS:** unsigned `.app` / setup artifact from the release (Electrobun build).
 3. Builds are **unsigned development builds**. See [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md) for the trust model and how to run unsigned apps safely on your OS.
 4. Launch Quester Studio. On first open you see a welcome screen: **Open workspace**, **Create workspace**, or **Open sample**. Closing a workspace returns here.
-5. Select a flow (e.g. `demo-main-nodes` from the sample, or `hello` from create) → pick env `local` → run.
+5. Select a flow (e.g. `demo-main-nodes` from the sample, or `hello` from create) → pick env `local` → run. If `input` vs `{{input.*}}` or `extract` paths feel confusing, read [How flows work](../concepts/).
 
 ### What to try
 
 - Edit a node in the inspector and save the flow back to disk
 - Run with env vars / secrets from the sample workspace
 - Change workspace or flow HTTP settings (timeout, headers) and confirm they apply on run
+- Confirm you can tell apart: Run panel fields (`{{input.productId}}`), the `input` node, JMESPath after HTTP (`body.title`), and templates (`{{previous.body.title}}`)
 
 ### Known limits (preview)
 

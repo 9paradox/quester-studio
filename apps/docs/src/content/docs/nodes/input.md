@@ -7,7 +7,11 @@ Places the Run panel / `--input` JSON on the wire for the next node. The graph e
 
 Typical chain: `start → input → http → …`
 
-You do **not** need an `input` node just to read run data later — `{{input.*}}` works from any templated field. Use this node when the next step should receive the run payload as its previous output.
+<div class="qs-callout-mistakes">
+
+**Name collision:** this **node type** is not the same as `{{input.*}}` (run payload in templates) or “execute input” (previous node JSON). You do **not** need an `input` node just to read run data later — `{{input.username}}` works from any templated field. See [How flows work](../../concepts/).
+
+</div>
 
 ## Data
 
@@ -21,7 +25,7 @@ You do **not** need an `input` node just to read run data later — `{{input.*}}
 
 | | Value |
 | --- | --- |
-| **Execute input** | Previous node output (often `{}` from `start`) |
+| **Execute input** | Previous node output (often `{}` from `start`) — ignored |
 | **Output** | The flow run input object (`--input` / Run panel) |
 
 ## Examples
@@ -62,4 +66,4 @@ Output:
 }
 ```
 
-[`extract`](../extract/) always reads the **previous** node (e.g. HTTP `body.id`), not the run payload.
+[`extract`](../extract/) always reads the **previous** node (e.g. HTTP `body.id`), not the run payload. For JMESPath over the run object without templates, put an `input` node immediately before `extract`.

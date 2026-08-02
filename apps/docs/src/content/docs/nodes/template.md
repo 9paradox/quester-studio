@@ -5,6 +5,8 @@ description: Render a string with {{…}} tokens and optional Eta expressions
 
 Builds a string. First `{{…}}` tokens are resolved, then the result is rendered with [Eta](https://eta.js.org/).
 
+Mustache templates use `{{input.*}}`, `{{nodes.*}}`, and `{{previous.*}}`. Eta can also use `it.previous`. Concepts: [How flows work](../../concepts/).
+
 ## Data
 
 | Field | Type | Description |

@@ -5,6 +5,12 @@ description: Deep-merge objects from previous, run input, vars, or named node ou
 
 Deep-merges one or more sources left-to-right. Later sources overwrite conflicting keys; nested plain objects are merged recursively.
 
+<div class="qs-callout-mistakes">
+
+Here `previous` and `input` are **source keywords** (also available as `{{previous.*}}` / `{{input.*}}` in templates). The keyword `input` means run payload — not “execute input” and not necessarily a node whose id is `input`. See [How flows work](../../concepts/).
+
+</div>
+
 ## Data
 
 | Field | Type | Description |
