@@ -7,7 +7,7 @@ const base = import.meta.env.BASE_URL;
 ---
 
 <BaseLayout
-	description="Quester Studio — local-first visual API flows. Desktop app or CLI — your data stays on your machine."
+	description="Quester Studio — design, chain, and regress API journeys. Same git-friendly flows for the team and continuous integration."
 >
 	<section
 		class="relative overflow-hidden border-b border-border"
@@ -22,7 +22,8 @@ const base = import.meta.env.BASE_URL;
 					Quester Studio
 				</h1>
 				<p class="mt-4 text-base text-muted-foreground sm:text-lg">
-					Local-first visual API flows. Design graphs, run HTTP steps, keep secrets on your machine.
+					Design, chain, and regress API journeys — same git-friendly flows for the team and continuous
+					integration. Secrets stay on your machine.
 				</p>
 				<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
 					<a
@@ -45,6 +46,46 @@ const base = import.meta.env.BASE_URL;
 		</div>
 	</section>
 
+	<section class="border-b border-border">
+		<div class="mx-auto max-w-5xl px-4 py-14 sm:px-6">
+			<p class="text-center text-sm text-muted-foreground">
+				Built for
+				<strong class="font-medium text-foreground">developers</strong>,
+				<strong class="font-medium text-foreground">testers</strong>, and
+				<strong class="font-medium text-foreground">business analysts</strong>
+				who share one workspace.
+			</p>
+			<ul class="mt-10 grid gap-8 sm:grid-cols-3">
+				<li>
+					<h2 class="text-sm font-semibold tracking-tight">API chaining</h2>
+					<p class="mt-2 text-sm text-muted-foreground">
+						Pass tokens and IDs between steps — login, authorize the next call, assert the outcome.
+					</p>
+				</li>
+				<li>
+					<h2 class="text-sm font-semibold tracking-tight">Complex flows</h2>
+					<p class="mt-2 text-sm text-muted-foreground">
+						Branch, loop, try/catch, and subflows on a readable canvas the whole team can follow.
+					</p>
+				</li>
+				<li>
+					<h2 class="text-sm font-semibold tracking-tight">Regression + continuous integration</h2>
+					<p class="mt-2 text-sm text-muted-foreground">
+						Assert steps, run suites from the CLI, and keep the same
+						<code class="rounded bg-muted px-1 text-xs">*.flow.json</code> files in git.
+					</p>
+				</li>
+			</ul>
+			<p class="mt-8 text-center text-sm">
+				<a
+					class="underline underline-offset-2 hover:text-foreground"
+					href={`${base}docs/use-cases/`}
+					>Who it’s for</a
+				>
+			</p>
+		</div>
+	</section>
+
 	<section class="border-b border-border bg-sidebar/60">
 		<div class="mx-auto max-w-5xl px-4 py-14 sm:px-6">
 			<p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">CLI</p>
@@ -52,11 +93,11 @@ const base = import.meta.env.BASE_URL;
 				Prefer the terminal?
 			</h2>
 			<p class="mt-3 max-w-xl text-muted-foreground">
-				Skip the UI. Validate workspaces and run flows with
+				Skip the UI. Validate workspaces and run flows or suites with
 				<code class="rounded bg-muted px-1.5 py-0.5 text-sm">@quester-studio/cli</code>
 				— same
 				<code class="rounded bg-muted px-1.5 py-0.5 text-sm">*.flow.json</code>
-				files, ready for CI.
+				files, ready for continuous integration.
 			</p>
 			<CliRunnerTabs />
 			<div class="mt-6 flex flex-wrap gap-3">
@@ -77,9 +118,10 @@ const base = import.meta.env.BASE_URL;
 	</section>
 
 	<section class="mx-auto max-w-5xl px-4 py-14 sm:px-6">
-		<h2 class="text-xl font-semibold tracking-tight">Built for local workspaces</h2>
+		<h2 class="text-xl font-semibold tracking-tight">One workspace for the team</h2>
 		<p class="mt-2 max-w-2xl text-muted-foreground">
-			Flows live as git-friendly files. Use the desktop app day to day, or the CLI in scripts and CI.
+			Flows live as git-friendly files. Use the desktop app to design and debug; use the CLI in scripts
+			and continuous integration. Your data stays local.
 		</p>
 		<ul class="mt-8 grid gap-6 sm:grid-cols-3">
 			<li>
@@ -89,9 +131,11 @@ const base = import.meta.env.BASE_URL;
 				</p>
 			</li>
 			<li>
-				<h3 class="text-sm font-semibold">Sample demo flow</h3>
+				<h3 class="text-sm font-semibold">Hero scenario</h3>
 				<p class="mt-1 text-sm text-muted-foreground">
-					Open the sample workspace and run <strong class="font-medium text-foreground">demo-main-nodes</strong>.
+					Open the sample workspace and run
+					<strong class="font-medium text-foreground">login-and-profile</strong>
+					— auth, chained call, and asserts.
 				</p>
 			</li>
 			<li>
@@ -100,7 +144,7 @@ const base = import.meta.env.BASE_URL;
 					<a class="underline underline-offset-2 hover:text-foreground" href={`${base}docs/`}
 						>Docs</a
 					>
-					covers UI screenshots and CLI / node reference together.
+					cover UI, CLI, and nodes together.
 				</p>
 			</li>
 		</ul>

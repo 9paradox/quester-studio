@@ -435,6 +435,7 @@ export function createMockQuesterClient(): QuesterClient {
 			return { ok: true as const, verifyTls };
 		},
 		getAppTlsVerify: async () => ({ verifyTls }),
+		openPathInOs: async () => ({ ok: true }),
 	};
 }
 

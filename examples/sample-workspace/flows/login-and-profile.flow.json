@@ -1,8 +1,8 @@
 {
 	"id": "login-and-profile",
 	"version": "v1",
-	"name": "Login and profile (dummyjson)",
-	"description": "POST login then GET /auth/me using the returned access token (DummyJSON). Includes a disconnected note sticky.",
+	"name": "Login and profile",
+	"description": "Hero scenario: POST login → extract access token → GET /auth/me with Bearer auth → assert status (DummyJSON). Readable path for developers, testers, and business analysts. Includes a disconnected note sticky.",
 	"nodes": [
 		{
 			"id": "start",
@@ -109,7 +109,7 @@
 			"type": "extract",
 			"data": {
 				"expression": "body.bank.currency",
-				"label": "Extract age"
+				"label": "Extract currency"
 			},
 			"position": {
 				"x": 311.30874971229,
@@ -191,8 +191,8 @@
 			"id": "note-tip",
 			"type": "note",
 			"data": {
-				"text": "DummyJSON demo: credentials come from the Input node (or Run panel).",
-				"label": "Note"
+				"text": "Scenario: sign in, call an authenticated endpoint, assert success.\n\nCredentials come from the Input node (or Run panel). Secret values stay out of the flow file.",
+				"label": "Scenario"
 			},
 			"position": {
 				"x": -267,

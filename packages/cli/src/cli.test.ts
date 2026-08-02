@@ -115,27 +115,103 @@ describe("quester cli", () => {
 		}
 	});
 
-	test("run sample flow end-to-end", async () => {
-		const { stdout, stderr, exitCode } = await runCli([
-			"run",
-			sampleFlow,
-			"--workspace",
-			sampleWorkspace,
-			"--env",
-			"local",
-			"--input",
-			'{"username":"emilys","password":"emilyspass"}',
-		]);
-		// Live HTTPS may fail TLS, network, or DummyJSON auth on CI runners.
-		if (exitCode !== 0) {
-			expect(stderr.toLowerCase()).toMatch(
-				/certificate|tls|fetch|network|assertion|401|unable to/,
+	test("run writes structured report and step logs on assert failure", async () => {
+		const dir = await mkdtemp(join(tmpdir(), "quester-assert-cli-"));
+		try {
+			await runCli(["init", dir, "--name", "assert-demo"]);
+			const flowPath = join(dir, "flows/fail-assert.flow.json");
+			await Bun.write(
+				flowPath,
+				JSON.stringify(
+					{
+						id: "fail-assert",
+						version: "v1",
+						name: "Fail assert",
+						nodes: [
+							{
+								id: "start",
+								type: "start",
+								data: { label: "Start" },
+								position: { x: 0, y: 0 },
+							},
+							{
+								id: "input",
+								type: "input",
+								data: { label: "In", value: { status: 500 } },
+								position: { x: 100, y: 0 },
+							},
+							{
+								id: "check",
+								type: "assert",
+								data: {
+									label: "Must be 200",
+									checks: [{ path: "status", op: "eq", value: 200 }],
+								},
+								position: { x: 200, y: 0 },
+							},
+						],
+						edges: [
+							{
+								id: "e0",
+								source: "start",
+								target: "input",
+								sourceHandle: null,
+							},
+							{
+								id: "e1",
+								source: "input",
+								target: "check",
+								sourceHandle: null,
+							},
+						],
+					},
+					null,
+					2,
+				),
 			);
-			return;
+			const reportPath = join(dir, "report.json");
+			const { stdout, stderr, exitCode } = await runCli([
+				"run",
+				"fail-assert",
+				"--workspace",
+				dir,
+				"--input",
+				'{"status":500}',
+				"--runs-dir",
+				"runs",
+				"--report",
+				reportPath,
+			]);
+			expect(exitCode).toBe(1);
+			expect(stderr).toContain("Failed: fail-assert");
+			expect(stderr).toContain("assert");
+			expect(stderr).toContain("runDir:");
+			const report = JSON.parse(await Bun.file(reportPath).text()) as {
+				ok: boolean;
+				failedNodeId?: string;
+				steps: unknown[];
+				runDir?: string;
+			};
+			expect(report.ok).toBe(false);
+			expect(report.failedNodeId).toBe("check");
+			expect(report.steps.length).toBeGreaterThan(0);
+			expect(report.runDir).toBeTruthy();
+			void stdout;
+		} finally {
+			await rm(dir, { recursive: true, force: true });
 		}
-		const output = JSON.parse(stdout) as { status?: number; body?: unknown };
-		expect(typeof output.status).toBe("number");
-		expect(output).toHaveProperty("body");
+	});
+
+	test("init gitignore includes runs/", async () => {
+		const dir = await mkdtemp(join(tmpdir(), "quester-init-gitignore-"));
+		try {
+			await initWorkspace(dir);
+			const gitignore = await Bun.file(join(dir, ".gitignore")).text();
+			expect(gitignore).toContain("*.secrets.json");
+			expect(gitignore).toContain("runs/");
+		} finally {
+			await rm(dir, { recursive: true, force: true });
+		}
 	});
 });
 

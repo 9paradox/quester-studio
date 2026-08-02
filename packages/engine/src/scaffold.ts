@@ -131,7 +131,7 @@ export async function scaffoldWorkspace(
 		json(secretsExample),
 		"utf8",
 	);
-	await writeFile(join(root, ".gitignore"), "*.secrets.json\n", "utf8");
+	await writeFile(join(root, ".gitignore"), "*.secrets.json\nruns/\n", "utf8");
 	await writeFile(join(collectionsDir, ".gitkeep"), "", "utf8");
 
 	return { root, name, flowId };

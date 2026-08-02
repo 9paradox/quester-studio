@@ -1,8 +1,12 @@
 {
 	"name": "sample-workspace",
 	"version": "v1",
-	"description": "Sample flows, environments, and collections for local development.",
+	"description": "Scenario samples for developers, testers, and business analysts — auth chains, asserts, and full node coverage against DummyJSON.",
 	"flowsDir": "flows",
 	"environmentsDir": "environments",
-	"collectionsDir": "collections"
+	"collectionsDir": "collections",
+	"runs": {
+		"enabled": true,
+		"dir": "runs"
+	}
 }

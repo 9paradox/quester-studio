@@ -1,23 +1,28 @@
 #!/usr/bin/env node
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join, resolve } from "node:path";
 import {
 	createExecuteSubflow,
 	createHttpFetch,
-	executeFlow,
 	importPostmanCollectionFile,
 	loadSecrets,
 	loadWorkspace,
 } from "@quester-studio/engine";
 import {
 	mergeHttpSettings,
-	validateEnvironment,
 	validateFlow,
+	validateSuite,
 	validateWorkspace,
 } from "@quester-studio/schema";
 import { Command } from "commander";
 import { initWorkspace } from "./init.js";
+import {
+	type RunReport,
+	executeFlowWithLogging,
+	formatHumanFailure,
+	resolveRunLogger,
+} from "./run-helpers.js";
 
 const require = createRequire(import.meta.url);
 const { version } = require("../package.json") as { version: string };
@@ -70,6 +75,19 @@ program
 				} else {
 					console.log(`Flow OK: ${result.data.id}`);
 				}
+			} else if (abs.endsWith(".suite.json")) {
+				const raw = JSON.parse(await readFile(abs, "utf8"));
+				const result = validateSuite(raw);
+				if (!result.success) {
+					failed = true;
+					console.error(result.error);
+					if (result.issues)
+						for (const i of result.issues) {
+							console.error(`  ${i.path}: ${i.message}`);
+						}
+				} else {
+					console.log(`Suite OK: ${result.data.id}`);
+				}
 			} else {
 				const manifestPath = join(abs, "quester.json");
 				const raw = JSON.parse(await readFile(manifestPath, "utf8"));
@@ -85,17 +103,49 @@ program
 		process.exit(failed ? 1 : 0);
 	});
 
+async function loadSuite(workspaceRoot: string, suiteArg: string) {
+	const asPath = resolve(suiteArg);
+	try {
+		const raw = JSON.parse(await readFile(asPath, "utf8"));
+		const validated = validateSuite(raw);
+		if (!validated.success) throw new Error(validated.error);
+		return validated.data;
+	} catch {
+		// try suites/<id>.suite.json
+	}
+	const suitesDir = join(workspaceRoot, "suites");
+	const candidate = join(suitesDir, `${suiteArg}.suite.json`);
+	const raw = JSON.parse(await readFile(candidate, "utf8"));
+	const validated = validateSuite(raw);
+	if (!validated.success) throw new Error(validated.error);
+	return validated.data;
+}
+
 program
 	.command("run")
 	.argument("<flow>", "flow file path or flow id in workspace")
 	.option("--env <name>", "environment name", "local")
 	.option("--input <json>", "flow input JSON", "{}")
 	.option("--workspace <path>", "workspace root", ".")
+	.option(
+		"--runs-dir <path>",
+		"write per-step run logs under this directory (relative to workspace)",
+	)
+	.option(
+		"--report <path>",
+		'write machine-readable report JSON ("-" = stdout)',
+	)
 	.description("Execute a flow")
 	.action(
 		async (
 			flowArg: string,
-			opts: { env: string; input: string; workspace: string },
+			opts: {
+				env: string;
+				input: string;
+				workspace: string;
+				runsDir?: string;
+				report?: string;
+			},
 		) => {
 			const wsPath = resolve(opts.workspace);
 			let flowData: unknown;
@@ -136,15 +186,167 @@ program
 							validated.data.id,
 						);
 
-			const result = await executeFlow(validated.data, {
-				input,
-				env: envVars,
+			const runLogger = await resolveRunLogger({
+				workspaceRoot: wsPath,
+				manifest: ws?.manifest,
+				flow: validated.data,
+				env: opts.env,
 				secrets,
-				httpDefaults,
-				fetch: fetchImpl,
-				executeSubflow,
+				runsDirFlag: opts.runsDir,
 			});
-			console.log(JSON.stringify(result.output, null, 2));
+
+			const { result, report } = await executeFlowWithLogging(
+				validated.data,
+				{
+					input,
+					env: envVars,
+					secrets,
+					httpDefaults,
+					fetch: fetchImpl,
+					executeSubflow,
+				},
+				runLogger,
+			);
+			report.env = opts.env;
+
+			if (opts.report) {
+				await writeReport(opts.report, report);
+			}
+
+			if (!report.ok) {
+				console.error(formatHumanFailure(report));
+				process.exit(1);
+			}
+			if (report.runDir) {
+				console.error(`runDir: ${report.runDir}`);
+			}
+			console.log(JSON.stringify(result?.output, null, 2));
+		},
+	);
+
+program
+	.command("suite")
+	.argument("<suite>", "suite id or path to *.suite.json")
+	.option("--workspace <path>", "workspace root", ".")
+	.option(
+		"--runs-dir <path>",
+		"write per-step run logs under this directory (relative to workspace)",
+	)
+	.option(
+		"--report <path>",
+		'write machine-readable suite report JSON ("-" = stdout)',
+	)
+	.description("Run a suite of flows (continue on error)")
+	.action(
+		async (
+			suiteArg: string,
+			opts: { workspace: string; runsDir?: string; report?: string },
+		) => {
+			const wsPath = resolve(opts.workspace);
+			const ws = await loadWorkspace(wsPath);
+			const suite = await loadSuite(wsPath, suiteArg);
+			const envName = suite.env;
+			const envVars = ws.environments[envName]?.variables ?? {};
+			const secrets = await loadSecrets(wsPath, envName);
+
+			const flowReports: RunReport[] = [];
+			let failed = 0;
+
+			for (const entry of suite.flows) {
+				const flowData = ws.flows[entry.id];
+				if (!flowData) {
+					const missing: RunReport = {
+						ok: false,
+						flowId: entry.id,
+						env: envName,
+						error: `Flow not found: ${entry.id}`,
+						steps: [],
+					};
+					flowReports.push(missing);
+					failed += 1;
+					console.error(formatHumanFailure(missing));
+					continue;
+				}
+				const validated = validateFlow(flowData);
+				if (!validated.success) {
+					const bad: RunReport = {
+						ok: false,
+						flowId: entry.id,
+						env: envName,
+						error: validated.error,
+						steps: [],
+					};
+					flowReports.push(bad);
+					failed += 1;
+					console.error(formatHumanFailure(bad));
+					continue;
+				}
+
+				const httpDefaults = mergeHttpSettings(
+					ws.manifest.settings?.http,
+					validated.data.settings?.http,
+				);
+				const fetchImpl = createHttpFetch({
+					httpDefaults,
+					workspaceRoot: wsPath,
+				});
+				const executeSubflow = createExecuteSubflow(
+					{ getFlow: (id) => ws.flows[id] },
+					{
+						env: envVars,
+						secrets,
+						httpDefaults,
+						fetch: fetchImpl,
+					},
+					validated.data.id,
+				);
+				const runLogger = await resolveRunLogger({
+					workspaceRoot: wsPath,
+					manifest: ws.manifest,
+					flow: validated.data,
+					env: envName,
+					secrets,
+					runsDirFlag: opts.runsDir,
+				});
+				const { report } = await executeFlowWithLogging(
+					validated.data,
+					{
+						input: entry.input ?? {},
+						env: envVars,
+						secrets,
+						httpDefaults,
+						fetch: fetchImpl,
+						executeSubflow,
+					},
+					runLogger,
+				);
+				report.env = envName;
+				flowReports.push(report);
+				if (report.ok) {
+					console.log(`PASS ${report.flowId}`);
+					if (report.runDir) console.log(`  runDir: ${report.runDir}`);
+				} else {
+					failed += 1;
+					console.error(formatHumanFailure(report));
+				}
+			}
+
+			const summary = {
+				ok: failed === 0,
+				suiteId: suite.id,
+				suiteName: suite.name,
+				env: envName,
+				passed: flowReports.length - failed,
+				failed,
+				flows: flowReports,
+			};
+			console.log(
+				`Suite ${suite.id}: ${summary.passed} passed, ${summary.failed} failed`,
+			);
+			if (opts.report) {
+				await writeReport(opts.report, summary);
+			}
+			process.exit(failed === 0 ? 0 : 1);
 		},
 	);
 
@@ -188,6 +390,17 @@ program
 			`Imported ${result.imported.length} request(s) into ${resolve(opts.workspace)}`,
 		);
 	});
+
+async function writeReport(path: string, report: unknown): Promise<void> {
+	const text = `${JSON.stringify(report, null, 2)}\n`;
+	if (path === "-") {
+		console.log(text);
+		return;
+	}
+	const abs = resolve(path);
+	await mkdir(join(abs, ".."), { recursive: true });
+	await writeFile(abs, text, "utf8");
+}
 
 program.parseAsync(process.argv).catch((err: unknown) => {
 	console.error(err instanceof Error ? err.message : err);

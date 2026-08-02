@@ -8,11 +8,14 @@ import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { getNodePresentation } from "@/lib/nodeCatalog.js";
+import { getQuesterClient } from "@/lib/quester-client.js";
 import {
 	type BuiltinNodeType,
 	type FlowNodeV1,
 	builtinNodeTypes,
 } from "@quester-studio/schema";
+import { IconFolderOpen } from "@tabler/icons-react";
+import { useState } from "react";
 import type { ExecuteFlowRpcResult } from "../../shared/rpc.js";
 
 type ResponseViewProps = {
@@ -54,6 +57,24 @@ function RunSummary({
 	const assertPassed = assertSteps.filter((s) => !s.error).length;
 	const assertFailed = assertSteps.filter((s) => s.error).length;
 	const failureMessage = runError ?? runResult.error ?? null;
+	const [openError, setOpenError] = useState<string | null>(null);
+	const [opening, setOpening] = useState(false);
+
+	const openRunFolder = async () => {
+		if (!runResult.runDir) return;
+		setOpening(true);
+		setOpenError(null);
+		try {
+			const result = await getQuesterClient().openPathInOs(runResult.runDir);
+			if (!result.ok) {
+				setOpenError(result.error ?? "Could not open folder");
+			}
+		} catch (error) {
+			setOpenError(error instanceof Error ? error.message : String(error));
+		} finally {
+			setOpening(false);
+		}
+	};
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -69,6 +90,31 @@ function RunSummary({
 					</Badge>
 				) : null}
 			</div>
+
+			{runResult.runDir ? (
+				<div className="flex flex-col gap-1.5 rounded-md border border-border bg-muted/30 px-2.5 py-2">
+					<p className="text-xs text-muted-foreground">On-disk run folder</p>
+					<p className="break-all font-mono text-[11px] text-foreground">
+						{runResult.runDir}
+					</p>
+					<div className="flex flex-wrap items-center gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							className="h-7 gap-1.5 text-xs"
+							disabled={opening}
+							onClick={() => void openRunFolder()}
+						>
+							<IconFolderOpen className="size-3.5" />
+							Open folder
+						</Button>
+					</div>
+					{openError ? (
+						<p className="text-xs text-destructive">{openError}</p>
+					) : null}
+				</div>
+			) : null}
 
 			{!passed && runResult.failedNodeId ? (
 				<div className="rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-xs">

@@ -22,22 +22,11 @@ For how nodes connect and how `{{input.*}}` differs from the `input` node, see [
     <span class="qs-ft-file">local.secrets.json</span> <span class="qs-ft-note"># gitignored</span>
     <span class="qs-ft-file">local.secrets.json.example</span> <span class="qs-ft-note"># committed template</span>
   <span class="qs-ft-dir">collections/</span>
-    <span class="qs-ft-dir">Auth/</span>
-      <span class="qs-ft-file">login.request.json</span>
-      <span class="qs-ft-file">me.request.json</span>
-      <span class="qs-ft-file">refresh.request.json</span>
-    <span class="qs-ft-dir">Products/</span>
-      <span class="qs-ft-file">search-products.request.json</span>
-      <span class="qs-ft-file">add-product.request.json</span>
-      <span class="qs-ft-file">update-product.request.json</span>
-      <span class="qs-ft-file">patch-product.request.json</span>
-      <span class="qs-ft-file">delete-product.request.json</span>
-    <span class="qs-ft-dir">System/</span>
-      <span class="qs-ft-file">ping.request.json</span>
-      <span class="qs-ft-file">head-test.request.json</span>
-      <span class="qs-ft-file">options-test.request.json</span>
-    <span class="qs-ft-dir">Users/</span>
-      <span class="qs-ft-file">get-user.request.json</span></code></pre>
+    …
+  <span class="qs-ft-dir">suites/</span>
+    <span class="qs-ft-file">smoke.suite.json</span>
+  <span class="qs-ft-dir">runs/</span> <span class="qs-ft-note"># gitignored when enabled</span>
+</code></pre>
 </figure>
 
 ## `quester.json`
@@ -52,6 +41,8 @@ Manifest that names the workspace and optional directory overrides.
 | `flowsDir` | string | `"flows"` | Relative path to flow files |
 | `environmentsDir` | string | `"environments"` | Relative path to env / secrets |
 | `collectionsDir` | string | `"collections"` | Relative path to request collections |
+| `runs.enabled` | boolean | `false` | Write per-step run logs under `runs.dir` |
+| `runs.dir` | string | `"runs"` | Relative path for on-disk run folders |
 | `settings.http.defaultHeaders` | object | `{}` | Headers merged into every HTTP node (node keys win) |
 | `settings.http.timeoutMs` | number | omitted | Request timeout in ms; `0` = none |
 | `settings.http.maxResponseBytes` | number | omitted | Max response body size; `0` = unlimited |

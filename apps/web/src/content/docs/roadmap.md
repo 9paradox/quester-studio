@@ -14,7 +14,9 @@ High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox
 
 ## Next
 
-See repo [ROADMAP.md](https://github.com/9paradox/quester-studio/blob/main/ROADMAP.md) for remaining polish and post-v1 work.
+### v0.7.x — Scenario testing
+
+Positioning for developers, testers, and business analysts; on-disk run logs; suite CLI; continuous integration docs. See repo [ROADMAP.md](https://github.com/9paradox/quester-studio/blob/main/ROADMAP.md).
 
 ## Platform / SaaS (post-v1)
 

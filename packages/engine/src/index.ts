@@ -8,4 +8,5 @@ export * from "./execute.js";
 export * from "./http-fetch.js";
 export * from "./scaffold.js";
 export * from "./subflow.js";
+export * from "./run-log.js";
 export { CookieJar, type CookieJarSnapshot } from "@quester-studio/nodes";

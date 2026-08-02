@@ -5,8 +5,8 @@ const steps = [
 		body: "Open a folder with quester.json — or jump in with the sample workspace.",
 	},
 	{
-		title: "Build the flow",
-		body: "Drop nodes on the canvas and connect them: start → input → http → extract → output.",
+		title: "Chain the scenario",
+		body: "Connect the journey: credentials → login → token extract → authorized profile → assert.",
 	},
 	{
 		title: "Run locally",
@@ -14,7 +14,7 @@ const steps = [
 	},
 	{
 		title: "Inspect results",
-		body: "Check status, response body, and extracts in the inspector — data stays local.",
+		body: "Check status, response body, and asserts in the inspector — data stays local.",
 	},
 ];
 ---
@@ -37,9 +37,9 @@ const steps = [
 							d="M8 6h8a2 2 0 0 1 2 2v8"></path
 						><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
 					>
-					<span>demo-main-nodes</span>
+					<span>login-and-profile</span>
 				</div>
-				<div class="demo__tab">login-and-profile</div>
+				<div class="demo__tab">demo-main-nodes</div>
 			</div>
 			<div class="demo__win">
 				<span class="demo__win-btn" title="Minimize">
@@ -146,7 +146,7 @@ const steps = [
 								d="M8 6h8a2 2 0 0 1 2 2v8"></path
 							><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
 						>
-						demo-main-nodes
+						login-and-profile
 					</li>
 					<li>
 						<svg
@@ -162,7 +162,7 @@ const steps = [
 								d="M8 6h8a2 2 0 0 1 2 2v8"></path
 							><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
 						>
-						login-and-profile
+						demo-main-nodes
 					</li>
 					<li>
 						<svg
@@ -221,7 +221,7 @@ const steps = [
 							<div class="fn__head">
 								<span class="fn__badge fn__badge--input">Input</span>
 								<div class="fn__meta">
-									<div class="fn__title">Product id</div>
+									<div class="fn__title">Credentials</div>
 									<div class="fn__id">input</div>
 									<span class="fn__status" aria-hidden="true"></span>
 								</div>
@@ -232,9 +232,9 @@ const steps = [
 							<div class="fn__head">
 								<span class="fn__badge fn__badge--http">HTTP</span>
 								<div class="fn__meta">
-									<div class="fn__title">GET product</div>
-									<div class="fn__id">fetchProduct</div>
-									<div class="fn__sub">GET</div>
+									<div class="fn__title">Login</div>
+									<div class="fn__id">login</div>
+									<div class="fn__sub">POST</div>
 									<span class="fn__status" aria-hidden="true"></span>
 								</div>
 							</div>
@@ -244,9 +244,9 @@ const steps = [
 							<div class="fn__head">
 								<span class="fn__badge fn__badge--extract">Extract</span>
 								<div class="fn__meta">
-									<div class="fn__title">Title</div>
-									<div class="fn__id">title</div>
-									<div class="fn__sub">body.title</div>
+									<div class="fn__title">Access token</div>
+									<div class="fn__id">accessToken</div>
+									<div class="fn__sub">body.accessToken</div>
 									<span class="fn__status" aria-hidden="true"></span>
 								</div>
 							</div>
@@ -254,10 +254,10 @@ const steps = [
 						<span class="demo__edge" data-edge aria-hidden="true"></span>
 						<article class="fn fn--output" data-node="output">
 							<div class="fn__head">
-								<span class="fn__badge fn__badge--output">Output</span>
+								<span class="fn__badge fn__badge--output">Assert</span>
 								<div class="fn__meta">
-									<div class="fn__title">Result</div>
-									<div class="fn__id">output</div>
+									<div class="fn__title">Profile 200</div>
+									<div class="fn__id">assertStatus</div>
 									<span class="fn__status" aria-hidden="true"></span>
 								</div>
 							</div>
@@ -270,10 +270,10 @@ const steps = [
 				<p class="demo__side-title">Inspector</p>
 				<div class="demo__inspect-block">
 					<p class="demo__kv"><span>Type</span> http</p>
-					<p class="demo__kv"><span>Method</span> GET</p>
+					<p class="demo__kv"><span>Method</span> POST</p>
 					<p class="demo__kv demo__kv--stack">
 						<span>URL</span>
-						<code class="demo__url">{"{{env.API_BASE}}/products/{{input.productId}}"}</code>
+						<code class="demo__url">{"{{env.API_BASE}}/auth/login"}</code>
 					</p>
 				</div>
 				<div class="demo__response" data-panel="response">
@@ -281,8 +281,8 @@ const steps = [
 					<pre><code>{`{
   "status": 200,
   "body": {
-    "id": 1,
-    "title": "Essence Mascara…"
+    "accessToken": "…",
+    "username": "emilys"
   }
 }`}</code></pre>
 				</div>
@@ -322,9 +322,9 @@ const steps = [
 	if (root instanceof HTMLElement) {
 		const captions = [
 			"Open a folder with quester.json — or jump in with the sample workspace.",
-			"Drop nodes on the canvas and connect them: start → input → http → extract → output.",
+			"Connect the journey: credentials → login → token extract → authorized profile → assert.",
 			"Choose an environment and press Run. Everything executes on your machine.",
-			"Check status, response body, and extracts in the inspector — data stays local.",
+			"Check status, response body, and asserts in the inspector — data stays local.",
 		];
 		const captionEl = root.querySelector("[data-how-caption]");
 		const statusLabel = root.querySelector("[data-status-label]");
@@ -339,7 +339,7 @@ const steps = [
 			if (captionEl) captionEl.textContent = captions[index] ?? "";
 			if (statusLabel) {
 				statusLabel.textContent =
-					index >= 2 ? "Running demo-main-nodes…" : "sample-workspace";
+					index >= 2 ? "Running login-and-profile…" : "sample-workspace";
 			}
 			for (const btn of buttons) {
 				const i = Number(btn.getAttribute("data-step"));

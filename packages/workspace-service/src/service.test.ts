@@ -88,7 +88,7 @@ describe("workspace-service", () => {
 		const flows = await listFlows(sampleWorkspace);
 		expect(flows).toContainEqual({
 			id: "login-and-profile",
-			name: "Login and profile (dummyjson)",
+			name: "Login and profile",
 		});
 	});
 

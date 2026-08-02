@@ -5,6 +5,13 @@ import {
 } from "@/components/HttpSettingsFields.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select.js";
 import { Textarea } from "@/components/ui/textarea.js";
 import type { WorkspaceSettingsEditorTab } from "@/lib/editorTabs.js";
 import type { WorkspaceV1 } from "@quester-studio/schema";
@@ -18,6 +25,7 @@ import {
 const CATEGORIES = [
 	{ id: "details", label: "Details" },
 	{ id: "http", label: "HTTP" },
+	{ id: "runs", label: "Runs" },
 ] as const;
 
 type WorkspaceSettingsEditorProps = {
@@ -46,6 +54,21 @@ export function WorkspaceSettingsEditor({
 			settings: {
 				...manifest.settings,
 				http: applyHttpSettingsPatch(manifest.settings?.http, partial),
+			},
+		});
+	};
+
+	const runsEnabled = Boolean(manifest.runs?.enabled);
+	const runsDir = manifest.runs?.dir ?? "runs";
+
+	const patchRuns = (partial: { enabled?: boolean; dir?: string }) => {
+		const nextEnabled = partial.enabled ?? runsEnabled;
+		const nextDir = (partial.dir ?? runsDir).trim() || "runs";
+		onChange({
+			...manifest,
+			runs: {
+				enabled: nextEnabled,
+				dir: nextDir,
 			},
 		});
 	};
@@ -105,6 +128,49 @@ export function WorkspaceSettingsEditor({
 						allowInherit
 						inheritHint="Unset TLS inherits App Preferences / env. Cookie jar defaults to on when unset."
 					/>
+				</SettingsSection>
+			) : null}
+
+			{category === "runs" ? (
+				<SettingsSection title="On-disk run logs">
+					<SettingsField
+						label="Write run folders"
+						htmlFor="ws-runs-enabled"
+						description="When on, each flow run creates a timestamped folder under the directory below with per-step JSON (input, processed input, output). Keep this folder gitignored."
+					>
+						<Select
+							value={runsEnabled ? "on" : "off"}
+							onValueChange={(value) => {
+								if (value === "on" || value === "off") {
+									patchRuns({ enabled: value === "on" });
+								}
+							}}
+						>
+							<SelectTrigger
+								id="ws-runs-enabled"
+								className="w-full bg-background"
+							>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="on">On</SelectItem>
+								<SelectItem value="off">Off</SelectItem>
+							</SelectContent>
+						</Select>
+					</SettingsField>
+					<SettingsField
+						label="Runs directory"
+						htmlFor="ws-runs-dir"
+						description="Relative to the workspace root (default: runs)."
+					>
+						<Input
+							id="ws-runs-dir"
+							value={runsDir}
+							onChange={(e) => patchRuns({ dir: e.target.value })}
+							placeholder="runs"
+							className="bg-background font-mono"
+						/>
+					</SettingsField>
 				</SettingsSection>
 			) : null}
 		</SettingsPageLayout>

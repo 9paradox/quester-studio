@@ -4,6 +4,7 @@ import { isCookieJarEnabled } from "@quester-studio/schema";
 import "@quester-studio/nodes";
 import { EngineEventEmitter } from "./events.js";
 import { selectNextEdges, topologicalSort } from "./graph.js";
+import { type RunFileLogger, resolveTemplateDeep } from "./run-log.js";
 import { resolveTemplate } from "./variables.js";
 
 export type ExecuteFlowOptions = {
@@ -21,12 +22,15 @@ export type ExecuteFlowOptions = {
 	cookieJar?: CookieJar;
 	/** Run another workspace flow by id (recursive; depth/cycle guarded by caller). */
 	executeSubflow?: (flowId: string, input: unknown) => Promise<unknown>;
+	/** When set, write incremental per-step JSON under this logger's runDir. */
+	runLogger?: RunFileLogger;
 };
 
 export type NodeStepResult = {
 	nodeId: string;
 	type: string;
 	input: unknown;
+	processedInput?: unknown;
 	output: unknown;
 	error?: string;
 };
@@ -37,6 +41,8 @@ export type ExecuteFlowResult = {
 	nodeInputs: Record<string, unknown>;
 	steps: NodeStepResult[];
 	vars: Record<string, unknown>;
+	/** Absolute path to on-disk run folder when file logging was enabled. */
+	runDir?: string;
 };
 
 export class FlowExecutionError extends Error {
@@ -91,10 +97,11 @@ function buildPartialResult(
 	steps: NodeStepResult[],
 	vars: Record<string, unknown>,
 	lastOutput: unknown,
+	runDir?: string,
 ): ExecuteFlowResult {
 	const outputNode = flow.nodes.find((n) => n.type === "output");
 	const output = outputNode ? nodeOutputs[outputNode.id] : lastOutput;
-	return { output, nodeOutputs, nodeInputs, steps, vars };
+	return { output, nodeOutputs, nodeInputs, steps, vars, runDir };
 }
 
 function throwIfAborted(
@@ -129,36 +136,29 @@ export async function executeFlow(
 
 	const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));
 	let lastOutput: unknown = {};
+	const runLogger = options.runLogger;
+	const runDir = runLogger?.runDir;
+
+	const partial = () =>
+		buildPartialResult(
+			flow,
+			nodeOutputs,
+			nodeInputs,
+			steps,
+			vars,
+			lastOutput,
+			runDir,
+		);
 
 	while (queue.length > 0) {
-		throwIfAborted(
-			options.signal,
-			buildPartialResult(
-				flow,
-				nodeOutputs,
-				nodeInputs,
-				steps,
-				vars,
-				lastOutput,
-			),
-		);
+		throwIfAborted(options.signal, partial());
 
 		const nodeId = queue.shift();
 		if (!nodeId || executed.has(nodeId)) continue;
 		const node = nodeById.get(nodeId);
 		if (!node) continue;
 
-		throwIfAborted(
-			options.signal,
-			buildPartialResult(
-				flow,
-				nodeOutputs,
-				nodeInputs,
-				steps,
-				vars,
-				lastOutput,
-			),
-		);
+		throwIfAborted(options.signal, partial());
 
 		const plugin = getNodePlugin(node.type);
 		if (!plugin) {
@@ -180,6 +180,7 @@ export async function executeFlow(
 			vars,
 			nodeOutputs,
 		};
+		const resolveTpl = (t: string) => resolveTemplate(t, resolverCtx);
 
 		nodeInputs[node.id] = input;
 		events.emit("node:before", {
@@ -194,7 +195,7 @@ export async function executeFlow(
 				flowInput,
 				vars,
 				nodeOutputs,
-				resolveTemplate: (t) => resolveTemplate(t, resolverCtx),
+				resolveTemplate: resolveTpl,
 				fetch: fetchFn,
 				httpDefaults: options.httpDefaults,
 				cookieJar,
@@ -205,16 +206,32 @@ export async function executeFlow(
 			nodeOutputs[node.id] = result.output;
 			lastOutput = result.output;
 			executed.add(node.id);
-			steps.push({
+			const processedInput =
+				result.processedInput ??
+				resolveTemplateDeep(node.data ?? {}, resolveTpl);
+			const step: NodeStepResult = {
 				nodeId: node.id,
 				type: node.type,
 				input,
+				processedInput,
 				output: result.output,
-			});
+			};
+			steps.push(step);
+			if (runLogger) {
+				await runLogger.writeStep({
+					nodeId: step.nodeId,
+					type: step.type,
+					input: step.input,
+					processedInput: step.processedInput,
+					output: step.output,
+					error: null,
+				});
+			}
 			events.emit("node:after", {
 				nodeId: node.id,
 				type: node.type,
 				input,
+				processedInput,
 				output: result.output,
 			});
 
@@ -225,33 +242,51 @@ export async function executeFlow(
 			}
 		} catch (error) {
 			if (options.signal?.aborted) {
+				if (runLogger) {
+					await runLogger.finish({ status: "cancelled" });
+				}
 				throw new FlowCancelledError("Flow run cancelled", {
-					partial: buildPartialResult(
-						flow,
-						nodeOutputs,
-						nodeInputs,
-						steps,
-						vars,
-						lastOutput,
-					),
+					partial: partial(),
 				});
 			}
 			const message = error instanceof Error ? error.message : String(error);
+			const processedInput =
+				error instanceof HttpNodeError
+					? error.request
+					: resolveTemplateDeep(node.data ?? {}, resolveTpl);
 			events.emit("node:error", {
 				nodeId: node.id,
 				type: node.type,
 				input,
+				processedInput,
 				error,
 			});
 			const partialOutput =
 				error instanceof HttpNodeError ? { request: error.request } : undefined;
-			steps.push({
+			const step: NodeStepResult = {
 				nodeId: node.id,
 				type: node.type,
 				input,
+				processedInput,
 				output: partialOutput,
 				error: message,
-			});
+			};
+			steps.push(step);
+			if (runLogger) {
+				await runLogger.writeStep({
+					nodeId: step.nodeId,
+					type: step.type,
+					input: step.input,
+					processedInput: step.processedInput,
+					output: step.output,
+					error: message,
+				});
+				await runLogger.finish({
+					status: "failed",
+					failedNodeId: node.id,
+					error: message,
+				});
+			}
 			throw new FlowExecutionError(message, {
 				partial: {
 					output: undefined,
@@ -259,6 +294,7 @@ export async function executeFlow(
 					nodeInputs,
 					steps,
 					vars,
+					runDir,
 				},
 				failedNodeId: node.id,
 				failedNodeType: node.type,
@@ -269,6 +305,9 @@ export async function executeFlow(
 
 	const outputNode = flow.nodes.find((n) => n.type === "output");
 	const output = outputNode ? nodeOutputs[outputNode.id] : lastOutput;
+	if (runLogger) {
+		await runLogger.finish({ status: "success" });
+	}
 	events.emit("flow:complete", { output });
-	return { output, nodeOutputs, nodeInputs, steps, vars };
+	return { output, nodeOutputs, nodeInputs, steps, vars, runDir };
 }

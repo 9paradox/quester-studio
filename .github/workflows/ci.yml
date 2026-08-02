@@ -26,5 +26,7 @@ jobs:
         continue-on-error: true
       - name: Build apps
         run: bun run build:apps
+      - name: Validate sample workspace
+        run: bun packages/cli/src/cli.ts validate examples/sample-workspace
       - name: Test
         run: bun run test

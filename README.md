@@ -1,11 +1,11 @@
 # Quester Studio
 
-Local-first, privacy-first visual API flows. **Quester Studio** is the desktop app and platform monorepo.
+Design, chain, and regress API journeys — same git-friendly flows for developers, testers, and business analysts. **Quester Studio** is the desktop app and platform monorepo. Secrets stay on your machine.
 
 ![Quester Studio — demo-main-nodes on the canvas](docs/images/quester-studio.png)
 
-- **Desktop app** — visual flow builder (React Flow + Electrobun)
-- **CLI** — `quester init`, `quester validate`, `quester run`
+- **Desktop app** — visual scenario builder (React Flow + Electrobun)
+- **CLI** — `quester init`, `quester validate`, `quester run`, `quester suite`
 - **Schema** — git-friendly `*.flow.json` workspace format
 
 Builtin nodes include `start`, `input`, `http`, `extract`, `template`, `set`, `if`, `switch`, `delay`/`wait`, `foreach`, `try`, `subflow`, `output`, `assert`, `transform`, `merge`, `json`, `log`, `inspect`/`preview`, and canvas-only `note` (not executed). See the [node reference](https://9paradox.com/quester-studio/docs/nodes/).
@@ -48,16 +48,16 @@ bun run test
 bunx --bun quester init ./my-workspace
 bunx --bun quester validate ./my-workspace
 
-# Sample workspace (DummyJSON)
+# Sample workspace (DummyJSON) — hero scenario first
 bunx --bun quester validate examples/sample-workspace
-bunx --bun quester run examples/sample-workspace/flows/demo-main-nodes.flow.json \
-  --workspace examples/sample-workspace --env local
 bunx --bun quester run examples/sample-workspace/flows/login-and-profile.flow.json \
   --workspace examples/sample-workspace --env local \
   --input "{\"username\":\"emilys\",\"password\":\"emilyspass\"}"
+bunx --bun quester run examples/sample-workspace/flows/demo-main-nodes.flow.json \
+  --workspace examples/sample-workspace --env local
 ```
 
-Sample flows: `demo-main-nodes` (short walkthrough), `login-and-profile`, `echo-subflow` (minimal `subflow` target), `kitchen-sink` (every builtin, including delay/switch/try/foreach/subflow/log/inspect and a disconnected `note`).
+Sample flows: `login-and-profile` (auth chain + asserts), `demo-main-nodes` (short node walkthrough), `echo-subflow` (minimal `subflow` target), `kitchen-sink` (every builtin, including delay/switch/try/foreach/subflow/log/inspect and a disconnected `note`).
 
 ## Monorepo tooling
 

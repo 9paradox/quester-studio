@@ -38,9 +38,9 @@ Install the Bun extension (`oven.bun-vscode`) for breakpoints and attach.
 ## Demo flow
 
 1. Launch the app — it opens `examples/sample-workspace` by default
-2. Select **Demo — main nodes** (`demo-main-nodes`) in the flow sidebar
-3. Pick env **local**, then **Run** — fetch a DummyJSON product and extract its title
-4. Optional: open **Login and profile** and set Input / Run panel JSON to `{"username":"emilys","password":"emilyspass"}`
+2. Select **Login and profile** (`login-and-profile`) in the flow sidebar
+3. Pick env **local**, then **Run** — POST login, extract token, GET profile, assert
+4. Optional: open **Demo — main nodes** for a short pedagogical HTTP chain
 5. Canvas **Note** stickies are documentation only (no edges, not executed)
 6. Click **Open workspace** to pick any folder containing `quester.json`
 
@@ -73,6 +73,7 @@ The Release workflow uploads those files to the GitHub Release (Linux, Windows, 
 Compare run output to CLI:
 
 ```bash
-bunx --bun quester run examples/sample-workspace/flows/demo-main-nodes.flow.json \
-  --workspace examples/sample-workspace --env local
+bunx --bun quester run examples/sample-workspace/flows/login-and-profile.flow.json \
+  --workspace examples/sample-workspace --env local \
+  --input '{"username":"emilys","password":"emilyspass"}'
 ```

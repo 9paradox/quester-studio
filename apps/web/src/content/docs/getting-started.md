@@ -25,7 +25,7 @@ bunx --bun quester init ./my-workspace
 bunx --bun quester validate ./my-workspace
 ```
 
-Creates `quester.json`, `flows/hello.flow.json` (`start` → `input`), `environments/local.json`, a secrets example, and `.gitignore` for `*.secrets.json`.
+Creates `quester.json`, `flows/hello.flow.json` (`start` → `input`), `environments/local.json`, a secrets example, and `.gitignore` for `*.secrets.json` and `runs/`.
 
 ## Validate a workspace
 
@@ -33,23 +33,23 @@ Creates `quester.json`, `flows/hello.flow.json` (`start` → `input`), `environm
 bunx quester validate examples/sample-workspace
 ```
 
-## Run a flow
+## Run a scenario
 
-Start with the short pedagogical sample:
-
-```bash
-bunx quester run examples/sample-workspace/flows/demo-main-nodes.flow.json \
-  --workspace examples/sample-workspace \
-  --env local
-```
-
-Auth + profile against [DummyJSON](https://dummyjson.com/docs):
+Start with the hero auth chain:
 
 ```bash
 bunx quester run examples/sample-workspace/flows/login-and-profile.flow.json \
   --workspace examples/sample-workspace \
   --env local \
   --input '{"username":"emilys","password":"emilyspass"}'
+```
+
+Short pedagogical sample:
+
+```bash
+bunx quester run examples/sample-workspace/flows/demo-main-nodes.flow.json \
+  --workspace examples/sample-workspace \
+  --env local
 ```
 
 Longer walkthrough that hits every builtin (including delay, switch, try, foreach, subflow, log, inspect, and a disconnected [`note`](../nodes/note/)) and most HTTP methods:
@@ -61,8 +61,44 @@ bunx quester run examples/sample-workspace/flows/kitchen-sink.flow.json \
   --input '{"username":"emilys","password":"emilyspass","productTitle":"Quester Pencil","searchQuery":"phone"}'
 ```
 
+### Run logs and reports
+
+```bash
+bunx quester run login-and-profile \
+  --workspace examples/sample-workspace \
+  --env local \
+  --runs-dir runs \
+  --report report.json
+```
+
+See [Run logs on disk](../run-logs/) and [Suites](../suites/).
+
+## Continuous integration
+
+Offline-safe validation in GitHub Actions:
+
+```yaml
+- name: Validate sample workspace
+  run: bunx --bun quester validate examples/sample-workspace
+```
+
+Optional suite (needs network for DummyJSON):
+
+```yaml
+- name: Smoke suite
+  run: bunx --bun quester suite smoke --workspace examples/sample-workspace --report suite-report.json
+  continue-on-error: true
+- uses: actions/upload-artifact@v4
+  if: always()
+  with:
+    name: quester-runs
+    path: examples/sample-workspace/runs/
+    if-no-files-found: ignore
+```
+
 ## Learn more
 
+- [Who it’s for](../use-cases/) — developers, testers, and business analysts
 - [How flows work](../concepts/) — connections, ports, wire vs `{{input.*}}` / `{{nodes.*}}`
 - [Try Quester Studio](../try/) — download desktop preview and tester checklist
 - [Workspace files](../workspace/) — `quester.json`, flows, layout
