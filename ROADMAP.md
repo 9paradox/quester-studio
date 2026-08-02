@@ -37,6 +37,25 @@ Parallel to v0.5 nodes (separate PRs). Release hotfixes first, then IDE-feel pol
 - [x] macOS desktop release artifact (unsigned; CI `macos-latest` + Electrobun build)
 - [x] Thin API collection import — `quester import-collection` (Postman v2.1) + desktop Collections **Import**
 
+### v0.5.x — Desktop polish
+
+Parallel to v0.5 nodes (separate PRs). Release hotfixes first, then IDE-feel polish. Epic: #86. Bugs: [BUGS.md](BUGS.md) B1–B3. TLS verify stays On by default (not a code change).
+
+**Release hotfixes**
+
+- [ ] B2 — Sample workspace in release + Open sample writable copy — #88
+- [ ] B1 — NSIS Desktop/Start Menu shortcut + DisplayIcon use installed `icon.ico` — #87
+- [ ] B3 — Per-flow run state + success/error toasts — #89
+
+**Builder / IDE polish** (after B3 where noted)
+
+- [ ] Stop run — `AbortSignal` in engine + HTTP fetch; desktop Stop UI (needs B3)
+- [ ] Workspace chip in TopBar (name ▾ | tabs…)
+- [ ] Command registry + Ctrl/Cmd+Shift+P palette
+- [ ] More fixed shortcuts + Preferences Shortcuts table
+- [ ] Run summary in Response when no node selected (needs B3)
+- [ ] JMESPath assist v1 — snippets + path picker + inspector help
+
 ## Next
 
 ### v0.6.0 — Control & composition
