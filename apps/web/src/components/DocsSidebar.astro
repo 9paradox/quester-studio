@@ -1,6 +1,7 @@
 ---
 /**
  * Shared sidebar for /docs — UI + CLI, same theme as the product site.
+ * Mobile: collapsible panel. Desktop: sticky left rail.
  */
 const base = import.meta.env.BASE_URL;
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
@@ -190,47 +191,157 @@ const groups = [
 		],
 	},
 ];
+
+const currentLabel =
+	groups.flatMap((g) => g.items).find((item) => item.on)?.label ?? "Docs";
 ---
 
-<aside class="docs-sidebar w-full shrink-0 border-b border-border bg-sidebar md:w-56 md:border-b-0 md:border-r md:border-sidebar-border">
+<aside
+	class="docs-sidebar w-full shrink-0 border-b border-border bg-sidebar md:w-56 md:border-b-0 md:border-r md:border-sidebar-border"
+	data-docs-sidebar
+>
+	<div
+		class="sticky top-14 z-40 flex items-center justify-between gap-3 border-b border-border bg-sidebar px-3 py-2.5 md:hidden"
+	>
+		<p class="min-w-0 truncate text-sm text-muted-foreground">
+			<span class="text-foreground/50">Docs</span>
+			<span class="mx-1.5 text-foreground/30" aria-hidden="true">/</span>
+			<span class="font-medium text-foreground">{currentLabel}</span>
+		</p>
+		<button
+			type="button"
+			class="docs-sidebar__toggle inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm font-medium text-foreground"
+			data-docs-nav-toggle
+			aria-expanded="false"
+			aria-controls="docs-sidebar-nav"
+		>
+			Menu
+			<svg
+				class="docs-sidebar__chevron size-3.5 opacity-70"
+				viewBox="0 0 24 24"
+				aria-hidden="true"
+				><path
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M6 9l6 6 6-6"></path
+				></svg
+			>
+		</button>
+	</div>
+
 	<nav
-		class="docs-sidebar__nav sticky top-14 max-h-[calc(100dvh-3.5rem)] overflow-y-auto overscroll-contain px-3 py-6 sm:px-4"
+		id="docs-sidebar-nav"
+		class="docs-sidebar__nav max-h-0 overflow-hidden overscroll-contain px-3 opacity-0 transition-[max-height,opacity] duration-200 ease-out md:sticky md:top-14 md:max-h-[calc(100dvh-3.5rem)] md:overflow-y-auto md:px-4 md:py-6 md:opacity-100"
 		aria-label="Docs"
-	>		{
-			groups.map((group) => (
-				<div class="mb-6">
-					<p class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-						{group.label}
-					</p>
-					<ul class="space-y-0.5">
-						{group.items.map((item) => (
-							<li>
-								<a
-									href={item.href}
-									class:list={[
-										"block rounded-md px-2 py-1.5 text-sm transition-colors",
-										item.on
-											? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-											: "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-									]}
-								>
-									{item.label}
-								</a>
-							</li>
-						))}
-					</ul>
-				</div>
-			))
-		}
+		data-docs-nav
+	>
+		<div class="space-y-0 py-3 md:py-0" data-docs-nav-inner>
+			{
+				groups.map((group) => (
+					<div class="mb-6">
+						<p class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+							{group.label}
+						</p>
+						<ul class="space-y-0.5">
+							{group.items.map((item) => (
+								<li>
+									<a
+										href={item.href}
+										class:list={[
+											"block rounded-md px-2 py-1.5 text-sm transition-colors",
+											item.on
+												? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+												: "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+										]}
+									>
+										{item.label}
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				))
+			}
+		</div>
 	</nav>
 </aside>
 
+<script>
+	const root = document.querySelector("[data-docs-sidebar]");
+	if (root instanceof HTMLElement) {
+		const toggle = root.querySelector("[data-docs-nav-toggle]");
+		const nav = root.querySelector("[data-docs-nav]");
+
+		function setOpen(open: boolean) {
+			if (!(toggle instanceof HTMLElement) || !(nav instanceof HTMLElement))
+				return;
+			toggle.setAttribute("aria-expanded", open ? "true" : "false");
+			root.classList.toggle("is-open", open);
+			if (open) {
+				nav.removeAttribute("inert");
+			} else if (!window.matchMedia("(min-width: 768px)").matches) {
+				nav.setAttribute("inert", "");
+			} else {
+				nav.removeAttribute("inert");
+			}
+		}
+
+		toggle?.addEventListener("click", () => {
+			const open = toggle.getAttribute("aria-expanded") !== "true";
+			setOpen(open);
+		});
+
+		const mq = window.matchMedia("(min-width: 768px)");
+		function syncDesktop() {
+			if (!(nav instanceof HTMLElement)) return;
+			if (mq.matches) {
+				root.classList.remove("is-open");
+				toggle?.setAttribute("aria-expanded", "false");
+				nav.removeAttribute("inert");
+			} else if (toggle?.getAttribute("aria-expanded") !== "true") {
+				nav.setAttribute("inert", "");
+			}
+		}
+		mq.addEventListener("change", syncDesktop);
+		syncDesktop();
+	}
+</script>
+
 <style>
+	.docs-sidebar.is-open .docs-sidebar__chevron {
+		transform: rotate(180deg);
+	}
+
+	.docs-sidebar.is-open .docs-sidebar__nav {
+		/* site header (~3.5rem) + docs toggle bar (~2.75rem) */
+		max-height: calc(100dvh - 6.25rem);
+		opacity: 1;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.docs-sidebar__chevron {
+		transition: transform 0.2s ease;
+	}
+
 	.docs-sidebar__nav {
 		scrollbar-gutter: stable;
 		scrollbar-width: thin;
 		scrollbar-color: color-mix(in oklch, var(--sidebar-foreground) 22%, transparent)
 			transparent;
+	}
+
+	@media (min-width: 768px) {
+		.docs-sidebar__nav {
+			max-height: calc(100dvh - 3.5rem) !important;
+			opacity: 1 !important;
+			overflow-y: auto !important;
+			border-bottom: none !important;
+		}
 	}
 
 	.docs-sidebar__nav::-webkit-scrollbar {

@@ -35,10 +35,16 @@
 .qs-diagram .qs-svg {
 	display: block;
 	width: 100%;
-	min-width: 28rem;
+	min-width: 20rem;
 	height: auto;
 	margin: 0 auto;
 	font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (min-width: 640px) {
+	.qs-diagram .qs-svg {
+		min-width: 28rem;
+	}
 }
 
 .qs-diagram-sm .qs-svg {

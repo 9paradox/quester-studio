@@ -428,10 +428,26 @@ const steps = [
 	}
 
 	.demo__win {
-		display: flex;
+		display: none;
 		flex-shrink: 0;
 		align-items: stretch;
 		margin-left: auto;
+	}
+
+	@media (min-width: 640px) {
+		.demo__win {
+			display: flex;
+		}
+	}
+
+	.demo__tab:not(.is-active) {
+		display: none;
+	}
+
+	@media (min-width: 640px) {
+		.demo__tab:not(.is-active) {
+			display: inline-flex;
+		}
 	}
 
 	.demo__win-btn {
@@ -454,7 +470,7 @@ const steps = [
 	.demo__main {
 		display: grid;
 		grid-template-columns: 2.5rem minmax(0, 1fr);
-		min-height: 17.5rem;
+		min-height: 20rem;
 	}
 
 	@media (min-width: 800px) {
@@ -629,34 +645,61 @@ const steps = [
 				)
 				0 0 / 16px 16px,
 			var(--muted);
-		padding: 1.35rem 0.75rem;
-		min-height: 11rem;
+		padding: 0.85rem 0.75rem;
+		min-height: 16rem;
+	}
+
+	@media (min-width: 640px) {
+		.demo__canvas {
+			padding: 1.35rem 0.75rem;
+			min-height: 11rem;
+		}
 	}
 
 	.demo__graph {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr) 14px minmax(0, 1fr) 14px minmax(
-				0,
-				1fr
-			) 14px minmax(0, 1fr);
+		grid-template-columns: 1fr;
+		justify-items: stretch;
 		align-items: center;
+		gap: 0;
 		width: 100%;
+		max-width: 15rem;
+		margin: 0 auto;
 		overflow: hidden;
+	}
+
+	@media (min-width: 640px) {
+		.demo__graph {
+			grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr) 14px minmax(0, 1fr) 14px
+				minmax(0, 1fr) 14px minmax(0, 1fr);
+			max-width: none;
+			margin: 0;
+		}
 	}
 
 	.demo__edge {
 		display: block;
-		height: 2px;
-		width: 100%;
+		width: 2px;
+		height: 0.85rem;
+		justify-self: center;
 		border-radius: 9999px;
 		background: var(--border);
 		opacity: 0.2;
-		transform: scaleX(0.35);
+		transform: scaleY(0.35);
 		transform-origin: center;
 		transition:
 			opacity 0.35s ease,
 			transform 0.45s ease,
 			background 0.35s ease;
+	}
+
+	@media (min-width: 640px) {
+		.demo__edge {
+			width: 100%;
+			height: 2px;
+			justify-self: stretch;
+			transform: scaleX(0.35);
+		}
 	}
 
 	.fn {
@@ -870,8 +913,16 @@ const steps = [
 	.demo[data-step="2"] .demo__edge,
 	.demo[data-step="3"] .demo__edge {
 		opacity: 1;
-		transform: scaleX(1);
+		transform: scaleY(1);
 		background: color-mix(in oklch, var(--primary) 60%, var(--border));
+	}
+
+	@media (min-width: 640px) {
+		.demo[data-step="1"] .demo__edge,
+		.demo[data-step="2"] .demo__edge,
+		.demo[data-step="3"] .demo__edge {
+			transform: scaleX(1);
+		}
 	}
 
 	.demo[data-step="1"] [data-panel="canvas"] {
