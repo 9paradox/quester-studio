@@ -6,7 +6,7 @@
 	"scripts": {
 		"build": "bun run build:pkgs; bun run build:apps",
 		"build:pkgs": "bun run --filter @quester-studio/schema build; bun run --filter @quester-studio/nodes build; bun run --filter @quester-studio/engine build; bun run --filter @quester-studio/cli build; bun run --filter @quester-studio/api-contract build; bun run --filter @quester-studio/workspace-service build",
-		"build:apps": "bun run --filter @quester-studio/web build; bun run --filter @quester-studio/docs build; bun run --filter @quester-studio/desktop build",
+		"build:apps": "bun run --filter @quester-studio/web build; bun run --filter @quester-studio/desktop build",
 		"test": "bun run --filter @quester-studio/schema test; bun run --filter @quester-studio/nodes test; bun run --filter @quester-studio/engine test; bun run --filter @quester-studio/cli test; bun run --filter @quester-studio/api-contract test; bun run --filter @quester-studio/workspace-service test; bun run --filter @quester-studio/api test; bun run --filter @quester-studio/desktop test",
 		"lint": "biome check .",
 		"format": "biome format --write .",

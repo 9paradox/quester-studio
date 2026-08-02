@@ -5,38 +5,40 @@ description: Layout and formats for quester.json, flows, environments, and colle
 
 A **workspace** is a folder with a `quester.json` manifest. Everything Quester loads — flows, environments, secrets, and collections — lives under that root.
 
+For how nodes connect and how `{{input.*}}` differs from the `input` node, see [How flows work](../concepts/).
+
 ## Layout
 
-```
-my-workspace/
-  quester.json
-  flows/
-    demo-main-nodes.flow.json
-    login-and-profile.flow.json
-    echo-subflow.flow.json
-    kitchen-sink.flow.json
-  environments/
-    local.json
-    local.secrets.json          # gitignored
-    local.secrets.json.example  # committed template
-  collections/
-    Auth/
-      login.request.json
-      me.request.json
-      refresh.request.json
-    Products/
-      search-products.request.json
-      add-product.request.json
-      update-product.request.json
-      patch-product.request.json
-      delete-product.request.json
-    System/
-      ping.request.json
-      head-test.request.json
-      options-test.request.json
-    Users/
-      get-user.request.json
-```
+<figure class="qs-filetree" aria-label="Sample workspace directory layout">
+<pre class="qs-filetree__pre"><code><span class="qs-ft-dir">my-workspace/</span>
+  <span class="qs-ft-file">quester.json</span>
+  <span class="qs-ft-dir">flows/</span>
+    <span class="qs-ft-file">demo-main-nodes.flow.json</span>
+    <span class="qs-ft-file">login-and-profile.flow.json</span>
+    <span class="qs-ft-file">echo-subflow.flow.json</span>
+    <span class="qs-ft-file">kitchen-sink.flow.json</span>
+  <span class="qs-ft-dir">environments/</span>
+    <span class="qs-ft-file">local.json</span>
+    <span class="qs-ft-file">local.secrets.json</span> <span class="qs-ft-note"># gitignored</span>
+    <span class="qs-ft-file">local.secrets.json.example</span> <span class="qs-ft-note"># committed template</span>
+  <span class="qs-ft-dir">collections/</span>
+    <span class="qs-ft-dir">Auth/</span>
+      <span class="qs-ft-file">login.request.json</span>
+      <span class="qs-ft-file">me.request.json</span>
+      <span class="qs-ft-file">refresh.request.json</span>
+    <span class="qs-ft-dir">Products/</span>
+      <span class="qs-ft-file">search-products.request.json</span>
+      <span class="qs-ft-file">add-product.request.json</span>
+      <span class="qs-ft-file">update-product.request.json</span>
+      <span class="qs-ft-file">patch-product.request.json</span>
+      <span class="qs-ft-file">delete-product.request.json</span>
+    <span class="qs-ft-dir">System/</span>
+      <span class="qs-ft-file">ping.request.json</span>
+      <span class="qs-ft-file">head-test.request.json</span>
+      <span class="qs-ft-file">options-test.request.json</span>
+    <span class="qs-ft-dir">Users/</span>
+      <span class="qs-ft-file">get-user.request.json</span></code></pre>
+</figure>
 
 ## `quester.json`
 

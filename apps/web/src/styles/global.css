@@ -122,6 +122,45 @@
 
 	html {
 		@apply font-sans;
+		/* Astro Shiki css-variables — aligned with desktop JsonViewer */
+		--astro-code-foreground: var(--foreground);
+		--astro-code-background: var(--muted);
+		--astro-code-token-constant: color-mix(
+			in oklch,
+			var(--primary) 38%,
+			var(--foreground)
+		);
+		--astro-code-token-string: color-mix(
+			in oklch,
+			var(--primary) 72%,
+			var(--foreground)
+		);
+		--astro-code-token-comment: var(--muted-foreground);
+		--astro-code-token-keyword: color-mix(
+			in oklch,
+			var(--foreground) 72%,
+			var(--primary)
+		);
+		--astro-code-token-parameter: color-mix(
+			in oklch,
+			var(--foreground) 72%,
+			var(--primary)
+		);
+		--astro-code-token-function: color-mix(
+			in oklch,
+			var(--foreground) 72%,
+			var(--primary)
+		);
+		--astro-code-token-string-expression: color-mix(
+			in oklch,
+			var(--primary) 72%,
+			var(--foreground)
+		);
+		--astro-code-token-punctuation: var(--muted-foreground);
+		--astro-code-token-link: var(--primary);
+		/* Legacy Shiki names (some tooling still emits these) */
+		--shiki-foreground: var(--astro-code-foreground);
+		--shiki-background: var(--astro-code-background);
 	}
 
 	body {
@@ -232,10 +271,26 @@
 	padding: 0.85rem 1rem;
 }
 
+/* Astro/Shiki: override github-dark-looking defaults with product shell */
+.prose-docs pre.astro-code,
+.prose-docs pre.astro-code span {
+	font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", monospace;
+}
+
+.prose-docs pre.astro-code {
+	background-color: var(--astro-code-background) !important;
+	color: var(--astro-code-foreground) !important;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 0.85rem 1rem;
+	box-shadow: none;
+}
+
 .prose-docs pre code {
 	background: transparent;
 	padding: 0;
 	font-size: 0.8rem;
+	color: inherit;
 }
 
 .prose-docs ul,

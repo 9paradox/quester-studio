@@ -4,8 +4,6 @@
 	input: unknown;
 	vars: Record<string, unknown>;
 	nodeOutputs: Record<string, unknown>;
-	/** Previous node output (execute input / wire). */
-	previous?: unknown;
 };
 
 function getPath(obj: unknown, path: string): unknown {
@@ -34,8 +32,6 @@ function resolvePath(
 			return getPath(ctx.input, path);
 		case "vars":
 			return getPath(ctx.vars, path);
-		case "previous":
-			return getPath(ctx.previous, path);
 		default:
 			if (scope.startsWith("nodes.")) {
 				const rest = scope.slice("nodes.".length);

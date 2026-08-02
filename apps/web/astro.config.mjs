@@ -9,6 +9,12 @@ export default defineConfig({
 	vite: {
 		plugins: [tailwindcss()],
 	},
+	markdown: {
+		shikiConfig: {
+			// Product tokens via CSS — see global.css --shiki-* (match desktop JsonViewer)
+			theme: "css-variables",
+		},
+	},
 	// Old Starlight /cli paths → unified docs
 	redirects: {
 		"/cli": "/docs/getting-started/",

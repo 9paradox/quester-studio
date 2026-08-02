@@ -179,7 +179,6 @@ export async function executeFlow(
 			input: flowInput,
 			vars,
 			nodeOutputs,
-			previous: input,
 		};
 
 		nodeInputs[node.id] = input;

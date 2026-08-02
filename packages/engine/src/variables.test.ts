@@ -9,7 +9,6 @@ const ctx = {
 	nodeOutputs: {
 		login: { body: { id: 42 }, status: 200 },
 	},
-	previous: { status: 201, body: { id: 99, title: "widget" } },
 };
 
 describe("resolveTemplate", () => {
@@ -36,22 +35,6 @@ describe("resolveTemplate", () => {
 
 	test("resolves node outputs", () => {
 		expect(resolveTemplate("id={{nodes.login.body.id}}", ctx)).toBe("id=42");
-	});
-
-	test("resolves previous (wire / execute input)", () => {
-		expect(resolveTemplate("id={{previous.body.id}}", ctx)).toBe("id=99");
-		expect(resolveTemplate("t={{previous.body.title}}", ctx)).toBe("t=widget");
-		expect(resolveTemplate("s={{previous.status}}", ctx)).toBe("s=201");
-	});
-
-	test("returns empty string for missing previous paths", () => {
-		expect(resolveTemplate("{{previous.missing}}", ctx)).toBe("");
-		expect(
-			resolveTemplate("{{previous.body.id}}", {
-				...ctx,
-				previous: undefined,
-			}),
-		).toBe("");
 	});
 
 	test("returns empty string for missing values", () => {

@@ -36,7 +36,7 @@ Open PR with version bumps. Merge to `main`.
    - `publish-npm` uses `actions/setup-node` with `registry-url` so `NODE_AUTH_TOKEN` reaches npm.
    - Desktop job runs `bun run --filter @quester-studio/desktop build:app` (`vite` + `electrobun build --env=stable` + Windows `package-windows.mjs`).
    - Windows CI installs NSIS; uploads `apps/desktop/artifacts/**` including `Quester-*-win-x64-portable.zip` and `Quester-*-win-x64-setup.exe`.
-5. Confirm [Try Quester](../../apps/docs/src/content/docs/try.md) docs match the live Release links.
+5. Confirm [Try Quester](../../apps/web/src/content/docs/try.md) docs match the live Release links.
 
 Release notes include: *Development build — see SECURITY.md for download verification.*
 

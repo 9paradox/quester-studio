@@ -100,7 +100,7 @@ See [DEBUGGING.md](DEBUGGING.md) for setup / develop / debug per mode (desktop, 
 - CLI `quester init` — scaffold workspace — #63
 - Desktop workspace welcome / empty state — #69
 - Renderer smoke tests — #64
-- First public test release — npm `@quester-studio/*` + unsigned Windows/Linux desktop + [Try Quester](apps/docs/src/content/docs/try.md) — #65
+- First public test release — npm `@quester-studio/*` + unsigned Windows/Linux desktop + [Try Quester](apps/web/src/content/docs/try.md) — #65
 
 ### v0.3.0 — Builder UX
 
