@@ -1,5 +1,14 @@
 # @quester-studio/api-contract
 
+## 0.4.7
+
+### Patch Changes
+
+- Updated dependencies [02ea008]
+- Updated dependencies [f90b614]
+  - @quester-studio/engine@0.6.0
+  - @quester-studio/schema@0.6.0
+
 ## 0.4.6
 
 ### Patch Changes
