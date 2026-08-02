@@ -3,7 +3,7 @@ title: transform
 description: Build a new object by mapping keys to JMESPath expressions
 ---
 
-Creates an object where each key is the result of a JMESPath expression over the previous output.
+Creates an object where each key is the result of a JMESPath expression over the previous output (`body.id`, not `previous.body.id`). Run fields: `{{input.*}}` in other nodes — see [How flows work](../../concepts/).
 
 ## Data
 

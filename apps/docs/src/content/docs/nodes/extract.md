@@ -7,6 +7,12 @@ Selects a value from the **previous node’s output** using [JMESPath](https://j
 
 For run-panel / `--input` fields, use `{{input.*}}` in templates (or a `template` / `set` node) — not extract.
 
+<div class="qs-callout-mistakes">
+
+**Do not type** `previous.body` or `input.abc` in the JMESPath expression. After an HTTP node the root *is* the response — use `body.id`, `body.title`, `status`. In a **templated** field on another node you may write `{{previous.body.id}}`. Diagrams: [How flows work](../../concepts/).
+
+</div>
+
 ## Data
 
 | Field | Type | Description |
@@ -95,6 +101,8 @@ Or capture it with `set` / `template`:
   "data": { "variables": { "email": "{{input.email}}" } }
 }
 ```
+
+If you truly need JMESPath over the run payload, place an [`input`](../input/) node immediately before extract so previous *is* that object, then express `email` (not `input.email`).
 
 ### Example — missing path
 

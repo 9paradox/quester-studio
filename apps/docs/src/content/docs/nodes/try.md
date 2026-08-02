@@ -5,6 +5,8 @@ description: Soft-fail branch — ok / catch handles without failing the run
 
 Like [`if`](../if/), but intended for soft failure paths: failing checks take the **`catch`** handle instead of throwing (unlike [`assert`](../assert/)).
 
+`checks` use JMESPath on **previous** (`status`, not `previous.status`). Templated `condition` may use `{{input.*}}`. [How flows work](../../concepts/).
+
 ## Data
 
 | Field | Type | Description |

@@ -5,6 +5,15 @@ description: Perform an HTTP request and capture status, body, headers, and timi
 
 Sends an HTTP request. URL, headers, and body support [templates](../../templates/).
 
+The previous node’s JSON is available as execute input but is **not** sent unless you template it into `url` / `headers` / `body`. Typical teaching chain: `start → input → http → extract` ([How flows work](../../concepts/)).
+
+| Need in this node | Use |
+| --- | --- |
+| Run panel / `--input` field | `{{input.username}}` |
+| Field from an earlier named node | `{{nodes.login.body.token}}` |
+| Field from the immediate previous step | `{{previous.body.token}}` |
+| Do not type in JMESPath extract | `previous.body` (use `body`) |
+
 ## Data
 
 | Field | Type | Default | Description |

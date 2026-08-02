@@ -16,10 +16,17 @@ export default defineConfig({
 					href: "https://github.com/9paradox/quester-studio",
 				},
 			],
+			customCss: ["./src/styles/diagrams.css"],
 			sidebar: [
 				{
 					label: "Start",
-					items: ["try", "getting-started", "contributing", "roadmap"],
+					items: [
+						"try",
+						"getting-started",
+						"concepts",
+						"contributing",
+						"roadmap",
+					],
 				},
 				{
 					label: "Workspace",

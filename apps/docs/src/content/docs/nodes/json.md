@@ -5,7 +5,7 @@ description: Pass through or subset the previous node output with optional JMESP
 
 Selects JSON for the next step — either the whole previous output or a JMESPath subset. Useful as a display/debug step or to narrow data before `assert` / `transform`.
 
-For run-panel / `--input` data, use `{{input.*}}` (not this node’s root).
+For run-panel / `--input` data, use `{{input.*}}` (not this node’s root). Expressions are JMESPath on previous — `body`, not `previous.body` or `input.field` ([How flows work](../../concepts/)).
 
 ## Data
 

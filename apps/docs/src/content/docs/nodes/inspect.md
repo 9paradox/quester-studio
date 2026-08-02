@@ -5,7 +5,7 @@ description: Pass through or JMESPath-subset previous output for debugging; alia
 
 Debug/display step — same idea as [`json`](../json/): passthrough or JMESPath subset of the **previous** output. Alias type: **`preview`**.
 
-Prefer this when you want an explicit “inspect” step in the canvas; `json` remains available for the same behavior.
+Prefer this when you want an explicit “inspect” step in the canvas; `json` remains available for the same behavior. Expressions start at the previous root (`body`), not `previous.body` ([How flows work](../../concepts/)).
 
 ## Data
 

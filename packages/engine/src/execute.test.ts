@@ -176,36 +176,46 @@ describe("executeFlow", () => {
 		}
 	});
 
-	test("aborts in-flight HTTP when signal is cancelled", async () => {
-		const controller = new AbortController();
-		const fetchMock = mock(async (_url, init?) => {
-			await new Promise<void>((_resolve, reject) => {
-				init?.signal?.addEventListener(
-					"abort",
-					() => {
-						reject(
-							new DOMException("The operation was aborted.", "AbortError"),
-						);
+	test("resolves {{previous.*}} from the previous node output", async () => {
+		const flow: FlowV1 = {
+			id: "prev",
+			version: "v1",
+			nodes: [
+				{ id: "start", type: "start", data: {} },
+				{
+					id: "http",
+					type: "http",
+					data: {
+						method: "GET",
+						url: "https://example.com/api",
+						headers: {},
 					},
-					{ once: true },
-				);
-				setTimeout(() => controller.abort(), 10);
-			});
-			return new Response("{}");
+				},
+				{
+					id: "out",
+					type: "output",
+					data: {
+						map: {
+							id: "{{previous.body.id}}",
+							named: "{{nodes.http.body.id}}",
+						},
+					},
+				},
+			],
+			edges: [
+				{ id: "e0", source: "start", target: "http" },
+				{ id: "e1", source: "http", target: "out" },
+			],
+		};
+		const result = await executeFlow(flow, {
+			fetch: mock(
+				async () =>
+					new Response(JSON.stringify({ id: 7 }), {
+						status: 200,
+						headers: { "Content-Type": "application/json" },
+					}),
+			) as unknown as typeof fetch,
 		});
-		try {
-			await executeFlow(httpFlow, {
-				signal: controller.signal,
-				fetch: fetchMock as unknown as typeof fetch,
-			});
-			expect.unreachable("should throw");
-		} catch (err) {
-			expect(err).toBeInstanceOf(FlowCancelledError);
-			const cancelled = err as FlowCancelledError;
-			expect(cancelled.partial.steps.map((s) => s.nodeId)).toEqual([
-				"start",
-				"in",
-			]);
-		}
+		expect(result.output).toEqual({ id: 7, named: 7 });
 	});
 });

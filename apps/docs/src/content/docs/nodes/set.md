@@ -5,6 +5,8 @@ description: Write flow variables for later {{vars.*}} references
 
 Merges key/value pairs into the flow’s `vars` bag. The previous node’s output is passed through unchanged.
 
+String values are [templated](../../templates/): `{{input.*}}`, `{{nodes.id…}}`, or `{{previous.*}}`. Overview: [How flows work](../../concepts/).
+
 ## Data
 
 | Field | Type | Default | Description |

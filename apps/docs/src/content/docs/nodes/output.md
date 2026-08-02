@@ -3,7 +3,7 @@ title: output
 description: Produce the final flow result (passthrough or mapped fields)
 ---
 
-Marks the flow result. Without `map`, returns the previous node’s output. With `map`, builds a new object from templated values.
+Marks the flow result. Without `map`, returns the previous node’s output. With `map`, builds a new object from templated values (`{{input.*}}`, `{{nodes.id…}}`, `{{previous.*}}`). [How flows work](../../concepts/).
 
 ## Data
 

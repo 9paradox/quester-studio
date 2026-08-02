@@ -5,6 +5,8 @@ description: Map over an array with max-items / concurrency caps
 
 Processes an array of items (map-style), returning `{ results, count, truncated }`. Caps protect against runaway loops — see [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md).
 
+`items` is either JMESPath on **previous** (`body.items`) or a templated JSON array string that includes `{{…}}` (e.g. `{{input.ids}}` or `{{previous.body.items}}`). In JMESPath mode do not write `previous.body.items`. [How flows work](../../concepts/).
+
 ## Data
 
 | Field | Type | Description |
