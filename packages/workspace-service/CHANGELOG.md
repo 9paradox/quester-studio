@@ -1,5 +1,16 @@
 # @quester-studio/workspace-service
 
+## 0.6.0
+
+### Patch Changes
+
+- f90b614: Scenario testing focus: site and docs for developers, testers, and business analysts; on-disk per-step run logs; `quester suite` and `--report` JSON; sample smoke suite and continuous integration validate step.
+- Updated dependencies [02ea008]
+- Updated dependencies [f90b614]
+  - @quester-studio/engine@0.6.0
+  - @quester-studio/schema@0.6.0
+  - @quester-studio/api-contract@0.4.7
+
 ## 0.5.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @quester-studio/schema
 
+## 0.6.0
+
+### Minor Changes
+
+- f90b614: Scenario testing focus: site and docs for developers, testers, and business analysts; on-disk per-step run logs; `quester suite` and `--report` JSON; sample smoke suite and continuous integration validate step.
+
 ## 0.5.0
 
 ### Minor Changes
