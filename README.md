@@ -26,7 +26,6 @@ Legacy [apitester](https://github.com/9paradox/apitester) remains separate.
 ```
 apps/desktop   Quester Studio desktop app
 apps/web       Product site + docs (https://9paradox.com/quester-studio/)
-apps/docs      Legacy Starlight package (content mirrored in apps/web)
 packages/schema   @quester-studio/schema
 packages/engine   @quester-studio/engine
 packages/nodes    @quester-studio/nodes

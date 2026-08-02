@@ -1,4 +1,4 @@
-/** Quester template token: {{ env.* | secrets.* | input.* | nodes.* | vars.* | previous.* }}. */
+/** Quester template token: {{ env.* | secrets.* | input.* | nodes.* | vars.* }}. */
 export const TEMPLATE_RE = /\{\{[^{}]*\}\}/g;
 
 export type TemplateRange = { from: number; to: number };
@@ -48,7 +48,6 @@ export const TEMPLATE_ROOTS = [
 	"input",
 	"nodes",
 	"vars",
-	"previous",
 ] as const;
 
 export const ETA_ROOTS = ["input", "vars", "nodes", "previous"] as const;
@@ -255,30 +254,6 @@ export function resolveTemplateHover(
 				found: value !== undefined,
 			};
 		}
-		case "previous": {
-			const paths =
-				ctx.previousPaths.length > 0 ? ctx.previousPaths : ctx.jmesPaths;
-			if (paths.length === 0) {
-				return {
-					path: trimmed,
-					source: "previous node",
-					display: "(no previous shape yet)",
-					found: false,
-				};
-			}
-			const known =
-				paths.includes(rest) ||
-				paths.some(
-					(p) =>
-						p === rest || p.startsWith(`${rest}.`) || p.startsWith(`${rest}[`),
-				);
-			return {
-				path: trimmed,
-				source: "previous node",
-				display: known ? `previous.${rest}` : "(path not on previous shape)",
-				found: known,
-			};
-		}
 		default:
 			return null;
 	}
@@ -372,17 +347,6 @@ export function templateSuggestions(
 				`secrets.${rest}`,
 				"secret",
 			);
-		case "previous": {
-			const paths =
-				ctx.previousPaths.length > 0 ? ctx.previousPaths : ctx.jmesPaths;
-			const labels = paths
-				.filter((p) => p.toLowerCase().startsWith(rest.toLowerCase()))
-				.map((p) => `previous.${p}`);
-			return labels.map((label) => ({
-				label,
-				detail: "previous node",
-			}));
-		}
 		default:
 			return [];
 	}
@@ -583,21 +547,6 @@ export function classifyTemplatePath(
 				paths.some(
 					(p) =>
 						p === path || p.startsWith(`${path}.`) || p.startsWith(`${path}[`),
-				)
-			) {
-				return "known";
-			}
-			return "unknown";
-		}
-		case "previous": {
-			const paths =
-				ctx.previousPaths.length > 0 ? ctx.previousPaths : ctx.jmesPaths;
-			if (paths.length === 0) return "skip";
-			if (paths.includes(rest)) return "known";
-			if (
-				paths.some(
-					(p) =>
-						p === rest || p.startsWith(`${rest}.`) || p.startsWith(`${rest}[`),
 				)
 			) {
 				return "known";

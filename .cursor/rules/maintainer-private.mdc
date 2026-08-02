@@ -27,7 +27,7 @@ Apply these defaults when proposing CI, release, or infrastructure changes.
 
 ## Public documentation rule
 
-Never write budget, cost, or pricing rationale in README, CONTRIBUTING, SECURITY, ROADMAP, CHANGELOG, apps/docs, issues, or PR text. State technical policy only (e.g. "unsigned builds", "GitHub Pages hosting").
+Never write budget, cost, or pricing rationale in README, CONTRIBUTING, SECURITY, ROADMAP, CHANGELOG, apps/web, issues, or PR text. State technical policy only (e.g. "unsigned builds", "GitHub Pages hosting").
 
 ## CI efficiency
 

@@ -1,0 +1,294 @@
+/**
+ * Docs flow diagrams — product tokens (Geist + lime primary).
+ */
+.qs-diagram,
+.qs-rule-list {
+	--qs-ink: var(--foreground);
+	--qs-muted: var(--muted-foreground);
+	--qs-faint: color-mix(in oklch, var(--muted-foreground) 72%, transparent);
+	--qs-line: var(--border);
+	--qs-surface: var(--card);
+	--qs-panel: var(--muted);
+	--qs-accent: var(--primary);
+	--qs-accent-soft: color-mix(in oklch, var(--primary) 18%, transparent);
+	--qs-ok: color-mix(in oklch, var(--primary) 70%, oklch(0.55 0.12 145));
+	--qs-deny: oklch(0.62 0.17 25);
+}
+
+.qs-diagram {
+	margin: 1.1rem 0 1.6rem;
+	padding: 1rem 0.85rem 0.85rem;
+	border: 1px solid var(--qs-line);
+	border-radius: var(--radius);
+	background:
+		radial-gradient(120% 80% at 0% 0%, var(--qs-accent-soft), transparent 55%),
+		var(--qs-panel);
+	overflow-x: auto;
+}
+
+.qs-diagram-sm {
+	margin: 0;
+	padding: 0.65rem 0.5rem;
+	min-width: 0;
+}
+
+.qs-diagram .qs-svg {
+	display: block;
+	width: 100%;
+	min-width: 28rem;
+	height: auto;
+	margin: 0 auto;
+	font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+.qs-diagram-sm .qs-svg {
+	min-width: 0;
+	max-width: 14rem;
+}
+
+.qs-diagram figcaption {
+	margin: 0.7rem 0.15rem 0;
+	font-size: 0.875rem;
+	line-height: 1.45;
+	color: var(--qs-muted);
+}
+
+.qs-rule-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+	margin: 1rem 0 1.75rem;
+}
+
+.qs-rule {
+	display: grid;
+	grid-template-columns: minmax(10rem, 13rem) 1fr;
+	gap: 0.85rem 1.1rem;
+	align-items: center;
+	padding: 0.65rem 0.75rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--card);
+}
+
+@media (max-width: 640px) {
+	.qs-rule {
+		grid-template-columns: 1fr;
+	}
+
+	.qs-diagram-sm .qs-svg {
+		max-width: none;
+	}
+}
+
+.qs-rule > div > :first-child {
+	margin-top: 0;
+}
+
+.qs-rule > div > :last-child {
+	margin-bottom: 0;
+}
+
+.qs-rule p {
+	margin: 0.25rem 0 0;
+	color: var(--muted-foreground);
+	font-size: 0.9rem;
+	line-height: 1.45;
+}
+
+.qs-diagram figcaption strong {
+	color: var(--qs-ink);
+}
+
+.qs-rule strong {
+	color: var(--foreground);
+	font-size: 0.95rem;
+}
+
+.qs-diagram .qs-node {
+	fill: var(--qs-surface);
+	stroke: var(--qs-line);
+	stroke-width: 1.5;
+}
+
+.qs-diagram .qs-node-accent {
+	stroke: var(--qs-accent);
+	stroke-width: 2;
+}
+
+.qs-diagram .qs-node-deny {
+	stroke: var(--qs-deny);
+	stroke-dasharray: 5 4;
+	stroke-width: 1.5;
+	fill: color-mix(in oklch, var(--qs-deny) 14%, var(--qs-surface));
+}
+
+.qs-rule-break {
+	border-color: color-mix(in oklch, var(--qs-deny) 45%, var(--border));
+	box-shadow: inset 3px 0 0 var(--qs-deny);
+}
+
+.qs-break {
+	display: inline-block;
+	margin-top: 0.35rem;
+	padding: 0.1rem 0.4rem;
+	border-radius: calc(var(--radius) - 2px);
+	background: color-mix(in oklch, var(--qs-deny) 16%, transparent);
+	color: color-mix(in oklch, var(--qs-deny) 80%, var(--foreground));
+	font-size: 0.72rem;
+	font-weight: 650;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.qs-diagram .qs-label {
+	fill: var(--qs-ink);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.qs-diagram-sm .qs-label {
+	font-size: 12px;
+}
+
+.qs-diagram .qs-caption {
+	fill: var(--qs-muted);
+	font-size: 11px;
+	font-weight: 500;
+}
+
+.qs-diagram .qs-data {
+	fill: var(--qs-accent);
+	font-family: ui-monospace, "Cascadia Code", monospace;
+	font-size: 10px;
+	font-weight: 600;
+}
+
+.qs-diagram .qs-mono {
+	fill: var(--qs-ink);
+	font-family: ui-monospace, "Cascadia Code", monospace;
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.qs-diagram .qs-edge {
+	stroke: var(--qs-faint);
+	stroke-width: 2;
+	fill: none;
+	marker-end: url(#qs-arrow);
+}
+
+.qs-diagram .qs-edge-ok {
+	stroke: var(--qs-ok);
+}
+
+.qs-diagram .qs-edge-deny {
+	stroke: var(--qs-deny);
+	stroke-dasharray: 4 3;
+	marker-end: none;
+}
+
+.qs-diagram .qs-port {
+	fill: var(--qs-surface);
+	stroke: var(--qs-accent);
+	stroke-width: 2;
+}
+
+.qs-diagram .qs-port-muted {
+	stroke: var(--qs-faint);
+}
+
+.qs-diagram .qs-badge {
+	fill: var(--qs-accent-soft);
+	stroke: var(--qs-accent);
+	stroke-width: 1;
+}
+
+.qs-diagram .qs-badge-text {
+	fill: var(--qs-ink);
+	font-size: 10px;
+	font-weight: 600;
+}
+
+.qs-diagram .qs-x {
+	stroke: var(--qs-deny);
+	stroke-width: 2;
+	stroke-linecap: round;
+}
+
+.qs-callout {
+	border-inline-start: 3px solid var(--qs-accent);
+	padding: 0.75rem 1rem;
+	margin: 1rem 0 1.4rem;
+	background: var(--qs-panel);
+	border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.qs-callout > :first-child {
+	margin-top: 0;
+}
+
+.qs-callout > :last-child {
+	margin-bottom: 0;
+}
+
+.qs-callout-warn {
+	border-inline-start-color: oklch(0.7 0.12 70);
+}
+
+/* Directory trees in docs (Layout blocks) */
+.qs-filetree {
+	--qs-accent: var(--primary);
+	--qs-panel: var(--muted);
+	--qs-line: var(--border);
+	margin: 1.1rem 0 1.6rem;
+	padding: 0.85rem 1rem;
+	border: 1px solid var(--qs-line);
+	border-radius: var(--radius);
+	background:
+		radial-gradient(120% 80% at 0% 0%, color-mix(in oklch, var(--primary) 14%, transparent), transparent 55%),
+		var(--qs-panel);
+	overflow-x: auto;
+}
+
+.qs-filetree__pre,
+.prose-docs .qs-filetree__pre {
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: transparent !important;
+	box-shadow: none;
+	font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", monospace;
+	font-size: 0.8rem;
+	line-height: 1.55;
+	color: var(--foreground);
+	white-space: pre;
+}
+
+.qs-filetree__pre code,
+.prose-docs .qs-filetree__pre code {
+	background: transparent;
+	padding: 0;
+	font-size: inherit;
+	color: inherit;
+}
+
+.qs-ft-dir {
+	font-weight: 650;
+	color: color-mix(in oklch, var(--foreground) 55%, var(--primary));
+}
+
+.qs-ft-file {
+	color: var(--foreground);
+}
+
+.qs-ft-note {
+	color: var(--muted-foreground);
+	font-weight: 500;
+}
+
+.prose-docs .qs-diagram figcaption code,
+.prose-docs .qs-callout code,
+.prose-docs .qs-rule code {
+	font-size: 0.85em;
+}

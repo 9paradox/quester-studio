@@ -78,7 +78,6 @@ describe("templateSuggestions", () => {
 			"input",
 			"nodes",
 			"vars",
-			"previous",
 		]);
 	});
 
@@ -102,16 +101,6 @@ describe("templateSuggestions", () => {
 		expect(templateSuggestions("vars.", ctx).map((s) => s.label)).toEqual([
 			"vars.token",
 		]);
-	});
-
-	test("suggests previous paths", () => {
-		expect(templateSuggestions("previous.", ctx).map((s) => s.label)).toEqual([
-			"previous.status",
-			"previous.body.id",
-		]);
-		expect(
-			templateSuggestions("previous.body", ctx).map((s) => s.label),
-		).toEqual(["previous.body.id"]);
 	});
 
 	test("suggests env and secrets keys", () => {
@@ -187,12 +176,6 @@ describe("classifyTemplatePath", () => {
 		expect(classifyTemplatePath("nodes.login.body.id", ctx)).toBe("known");
 		expect(classifyTemplatePath("secrets.password", ctx)).toBe("known");
 		expect(classifyTemplatePath("secrets.nope", ctx)).toBe("unknown");
-	});
-
-	test("known previous paths", () => {
-		expect(classifyTemplatePath("previous", ctx)).toBe("known");
-		expect(classifyTemplatePath("previous.body.id", ctx)).toBe("known");
-		expect(classifyTemplatePath("previous.nope", ctx)).toBe("unknown");
 	});
 
 	test("skips empty", () => {

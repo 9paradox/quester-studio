@@ -1,6 +1,9 @@
 ---
 name: quester-studio
-description: Develop the Quester Studio monorepo — Bun workspaces, flow schema, engine, CLI, and apps. Use when working in quester-studio, adding packages, running builds/tests, validating flows, or changing workspace/flow JSON formats.
+description: >-
+  Develop the Quester Studio monorepo — Bun workspaces, flow schema, engine,
+  CLI, and apps. Use when working in quester-studio, adding packages, running
+  builds/tests, validating flows, or changing workspace/flow JSON formats.
 ---
 
 # Quester Studio
@@ -11,8 +14,7 @@ Local-first visual API flow platform. **Quester** = desktop product; **Quester S
 
 ```
 apps/desktop     Electrobun + React Flow (visual builder)
-apps/web         Marketing site (Astro)
-apps/docs        Documentation (Astro Starlight)
+apps/web         Product site + docs (Astro; GitHub Pages)
 packages/schema  Zod schemas + validation (@quester-studio/schema)
 packages/nodes   Node plugins — execute() per node type (@quester-studio/nodes)
 packages/engine  Flow execution, workspace loading (@quester-studio/engine)
@@ -22,6 +24,8 @@ examples/        Sample workspaces (*.flow.json)
 ```
 
 **Data flow:** `*.flow.json` → `@quester-studio/schema` validates → `@quester-studio/engine` executes via `@quester-studio/nodes` plugins.
+
+Docs content lives under `apps/web/src/content/docs/` (not a separate Starlight app).
 
 ## Requirements
 
@@ -41,6 +45,7 @@ bun run dev            # turbo run dev
 # Package-scoped
 bun run --filter @quester-studio/schema build
 bun run --filter @quester-studio/desktop dev
+bun run --filter @quester-studio/web build
 
 # CLI (after build)
 bunx --bun quester validate examples/sample-workspace
@@ -59,8 +64,9 @@ my-workspace/
   environments/local.secrets.json  # secrets (gitignored)
 ```
 
-Template strings use `{{env.*}}`, `{{input.*}}`, `{{nodes.id}}`, `{{vars.*}}`, `{{previous.*}}`.
+Template strings use `{{env.*}}`, `{{input.*}}`, `{{nodes.id}}`, `{{vars.*}}`, `{{secrets.*}}`.
 
+Previous-node JSON is the **wire** (execute input). JMESPath on extract/assert/json uses `body.id`, not `{{previous.*}}` (there is no mustache previous scope). See docs: How flows work.
 
 ## Builtin node types
 
@@ -75,51 +81,12 @@ Template strings use `{{env.*}}`, `{{input.*}}`, `{{nodes.id}}`, `{{vars.*}}`, `
 | Execution logic | `packages/nodes` plugin + `packages/engine` if graph/vars |
 | CLI | `packages/cli/src/cli.ts` |
 | Desktop UI | See skill `quester-desktop` |
+| Docs / marketing | `apps/web` (`src/content/docs/`, site pages) |
 | Public JSON Schema | Rebuild `@quester-studio/schema` (updates `schemas/`) |
 
 ## Conventions
 
-- ESM (`"type": "module"`), `.js` extensions in TypeScript imports
-- Zod for all schema; `validateFlow` / `validateWorkspace` return `{ success, data?, error?, issues? }`
-- Tests: `bun:test` in each package's `src/*.test.ts`
-- Keep changes minimal; match existing package boundaries
-- Do not commit secrets; use `*.secrets.json.example` patterns
-
-## Verification loop
-
-After package changes:
-
-1. `bun run lint`
-2. `bun run typecheck`
-3. `bun run --filter <package> build`
-4. `bun run --filter <package> test`
-5. If schema changed: confirm `schemas/` updated
-6. If user-facing: add `.changeset/*.md` (`bun run changeset`)
-7. If engine/nodes changed: run sample flow via CLI
-
-## Testing (required from project start)
-
-Every package with logic must have `bun:test` coverage in `src/**/*.test.ts`:
-
-| Package | Test focus |
-|---------|------------|
-| `@quester-studio/schema` | Zod validation, graph rules, workspace/env manifests |
-| `@quester-studio/nodes` | Plugin registry, each builtin `execute()` |
-| `@quester-studio/engine` | Templates, graph sort, workspace load, flow execution |
-| `@quester-studio/cli` | End-to-end CLI against `examples/sample-workspace` |
-| `@quester-studio/desktop` | Main-process workspace RPCs |
-
-Run all tests: `bun run test`
-
-**When adding features**, add or extend tests in the same PR — no placeholder tests.
-
-## Additional resources
-
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) — branches, commits, PRs
-- [ROADMAP.md](../../ROADMAP.md) — planned work
-- Architecture details: [architecture.md](architecture.md)
-- Dev loop (debug → merge): skill `dev-workflow`
-- Adding nodes: skill `add-flow-node`
-- Desktop app: skill `quester-desktop`
-- Releases: skill `release-workflow`
-- Feature planning: skill `feature-planning`
+- ESM with `.js` import suffixes in TypeScript
+- Tests in `src/**/*.test.ts` (`bun:test`)
+- User-facing changes need a Changeset
+- Never commit secrets, `.env`, or hand-edited `schemas/`

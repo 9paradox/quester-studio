@@ -12,11 +12,10 @@ bun install
 bun run build
 ```
 
-Or install from npm (v0.4.0+) with Bun or npm:
+Or install from npm (v0.4.0+):
 
 ```bash
 bunx @quester-studio/cli --help
-npx @quester-studio/cli --help
 ```
 
 ## Scaffold a workspace
@@ -64,11 +63,12 @@ bunx quester run examples/sample-workspace/flows/kitchen-sink.flow.json \
 
 ## Learn more
 
+- [How flows work](../concepts/) — connections, ports, wire vs `{{input.*}}` / `{{nodes.*}}`
 - [Try Quester Studio](../try/) — download desktop preview and tester checklist
 - [Workspace files](../workspace/) — `quester.json`, flows, layout
 - [Environments & secrets](../workspace-secrets/) — `{{env.*}}` and `{{secrets.*}}`
 - [Collections & requests](../collections/) — standalone `*.request.json`
-- [Template syntax](../templates/) — `{{input.*}}` vs previous / `{{nodes.*}}`
-- [Nodes](../nodes/) — every builtin type with input/output examples
+- [Template syntax](../templates/) — scopes and JMESPath
+- [Nodes](../nodes/) — every builtin type with ports
 - [note](../nodes/note/) — canvas sticky (not executed)
-- [extract](../nodes/extract/) — JMESPath on the previous node only
+- [extract](../nodes/extract/) — JMESPath on the wire (`body.id`, `products[0]`)
