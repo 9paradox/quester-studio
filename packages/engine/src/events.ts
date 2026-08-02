@@ -4,12 +4,14 @@
 		nodeId: string;
 		type: string;
 		input: unknown;
+		processedInput?: unknown;
 		output: unknown;
 	};
 	"node:error": {
 		nodeId: string;
 		type: string;
 		input: unknown;
+		processedInput?: unknown;
 		error: unknown;
 	};
 	"flow:complete": { output: unknown };

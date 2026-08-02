@@ -124,6 +124,7 @@ export const desktopRpc = {
 	setAppTlsVerify: (verifyTls: boolean) =>
 		getRpc().request.setAppTlsVerify({ verifyTls }),
 	getAppTlsVerify: () => getRpc().request.getAppTlsVerify({}),
+	openPathInOs: (path: string) => getRpc().request.openPathInOs({ path }),
 	setNativeChromeTheme: (theme: ThemePreference) =>
 		getRpc().request.setNativeChromeTheme({ theme }),
 };

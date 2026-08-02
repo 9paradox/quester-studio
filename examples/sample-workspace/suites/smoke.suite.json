@@ -1,0 +1,16 @@
+{
+	"id": "smoke",
+	"version": "v1",
+	"name": "Smoke",
+	"env": "local",
+	"flows": [
+		{ "id": "demo-main-nodes" },
+		{
+			"id": "login-and-profile",
+			"input": {
+				"username": "emilys",
+				"password": "emilyspass"
+			}
+		}
+	]
+}

@@ -198,6 +198,6 @@ export const httpPlugin: FlowNodePlugin = {
 			size,
 		};
 
-		return { output };
+		return { output, processedInput: request };
 	},
 };

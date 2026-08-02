@@ -1,11 +1,13 @@
 ---
 const bunSnippet = `bunx @quester-studio/cli validate ./my-workspace
-bunx @quester-studio/cli run ./my-workspace/flows/demo.flow.json \\
-  --workspace ./my-workspace --env local --input '{}'`;
+bunx @quester-studio/cli run login-and-profile \\
+  --workspace ./my-workspace --env local \\
+  --input '{"username":"emilys","password":"emilyspass"}'`;
 
 const npmSnippet = `npx @quester-studio/cli validate ./my-workspace
-npx @quester-studio/cli run ./my-workspace/flows/demo.flow.json \\
-  --workspace ./my-workspace --env local --input '{}'`;
+npx @quester-studio/cli run login-and-profile \\
+  --workspace ./my-workspace --env local \\
+  --input '{"username":"emilys","password":"emilyspass"}'`;
 ---
 
 <div class="cli-tabs mt-6 max-w-xl" data-cli-tabs>

@@ -212,6 +212,10 @@ export type DesktopRPC = {
 				params: Record<string, never>;
 				response: { verifyTls: boolean };
 			};
+			openPathInOs: {
+				params: { path: string };
+				response: { ok: boolean; error?: string };
+			};
 			setNativeChromeTheme: {
 				params: { theme: ThemePreference };
 				response: { ok: true; dark: boolean; theme: ThemePreference };

@@ -23,6 +23,8 @@ export type NodeExecutionResult = {
 	output: unknown;
 	branch?: string;
 	vars?: Record<string, unknown>;
+	/** Template-resolved config / request the node actually used. */
+	processedInput?: unknown;
 };
 
 export interface FlowNodePlugin {

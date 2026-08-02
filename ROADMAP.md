@@ -2,7 +2,7 @@
 
 > Living document. Trackable work lives in [GitHub Issues](https://github.com/9paradox/quester-studio/issues).  
 > Known bugs: [BUGS.md](BUGS.md).  
-> Last updated: 2026-08-01
+> Last updated: 2026-08-02
 
 ## Now (v0.5.0 — Flow nodes)
 
@@ -53,6 +53,17 @@ Loops need max-iteration / timeout limits (see [SECURITY.md](SECURITY.md)).
 - [x] `log` — message + resolved template to run log (passthrough)
 - [x] `inspect` / `preview` — pinned pretty JSON on canvas
 - [x] Disk-persisted cookie jar
+
+### v0.7.x — Scenario testing (developers, testers, business analysts)
+
+Parallel to completed v0.7.0 observability. Messaging and sample polish ship first; product items as separate PRs.
+
+- [x] Site / README / guide positioning toward scenario API testing
+- [x] Hero sample path — `login-and-profile` (+ use-cases doc)
+- [x] File run logging — timestamped `runs/` folders with per-step input / processedInput / output
+- [x] Suite CLI — `quester suite` + sample smoke suite
+- [x] Structured CLI failure reports (`--report json`)
+- [x] Continuous integration docs + `quester validate` sample workspace in CI
 
 ## Later / backlog
 
@@ -129,4 +140,5 @@ See [DEBUGGING.md](DEBUGGING.md) for setup / develop / debug per mode (desktop, 
 | v0.5.x | Desktop polish — install/sample hotfixes, runs/commands/workspace UX |
 | v0.6.0 | Control & composition — `foreach`, `try`/`catch`, `subflow` |
 | v0.7.0 | Runs & observability — history/replay, `log`/`inspect`, disk cookies |
+| v0.7.x | Scenario testing — positioning, file run logs, suite CLI, CI docs |
 | v1.0.0 | Stable — flow format v1 freeze, polished desktop, collection import, macOS artifact |

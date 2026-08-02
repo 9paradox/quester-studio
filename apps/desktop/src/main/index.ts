@@ -173,6 +173,8 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				const { getAppTlsVerify } = await import("./handlers.js");
 				return { verifyTls: getAppTlsVerify() };
 			},
+			openPathInOs: async ({ path }) =>
+				(await import("./handlers.js")).openPathInOs(path),
 			setNativeChromeTheme: async ({ theme }) => {
 				const dark = setThemePreference(theme);
 				setAttachedTitleBarDarkMode(dark);

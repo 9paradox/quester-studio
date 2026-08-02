@@ -65,3 +65,33 @@ export async function pickCollectionFile(): Promise<string | null> {
 	});
 	return paths[0] ?? null;
 }
+
+/** Open a file or folder in the OS file manager. */
+export async function openPathInOs(
+	targetPath: string,
+): Promise<{ ok: boolean; error?: string }> {
+	const { access } = await import("node:fs/promises");
+	const { spawn } = await import("node:child_process");
+	const { resolve } = await import("node:path");
+	const abs = resolve(targetPath);
+	try {
+		await access(abs);
+	} catch {
+		return { ok: false, error: `Path not found: ${abs}` };
+	}
+	try {
+		if (process.platform === "win32") {
+			spawn("explorer", [abs], { detached: true, stdio: "ignore" }).unref();
+		} else if (process.platform === "darwin") {
+			spawn("open", [abs], { detached: true, stdio: "ignore" }).unref();
+		} else {
+			spawn("xdg-open", [abs], { detached: true, stdio: "ignore" }).unref();
+		}
+		return { ok: true };
+	} catch (error) {
+		return {
+			ok: false,
+			error: error instanceof Error ? error.message : String(error),
+		};
+	}
+}

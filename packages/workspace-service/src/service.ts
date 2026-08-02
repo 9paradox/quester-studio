@@ -21,8 +21,11 @@ import {
 	EngineEventEmitter,
 	FlowCancelledError,
 	FlowExecutionError,
+	RunFileLogger,
+	collectSecretValues,
 	createExecuteSubflow,
 	createHttpFetch,
+	createRunDirName,
 	deleteRequest as deleteRequestFile,
 	ensureCollectionsDir,
 	executeFlow,
@@ -431,6 +434,30 @@ export async function executeFlowRpc(
 		);
 	}
 
+	let runLogger: RunFileLogger | undefined;
+	if (ws.manifest.runs?.enabled) {
+		const runDir = join(
+			root,
+			ws.manifest.runs.dir ?? "runs",
+			flowId,
+			createRunDirName(),
+		);
+		await mkdir(runDir, { recursive: true });
+		runLogger = new RunFileLogger({
+			runDir,
+			secretValues: collectSecretValues(secrets),
+			meta: {
+				flowId,
+				flowName: validated.data.name,
+				env: envName,
+				startedAt: new Date().toISOString(),
+				status: "running",
+			},
+		});
+		await runLogger.init();
+		pushLog("info", `Run file log: ${runDir}`, { phase: "start" });
+	}
+
 	try {
 		const runSignal =
 			options?.signal ??
@@ -464,6 +491,7 @@ export async function executeFlowRpc(
 				httpDefaults,
 				cookieJar,
 				executeSubflow,
+				runLogger,
 			});
 			return { ...result, logs };
 		} finally {

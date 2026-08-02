@@ -202,5 +202,9 @@ export function createHttpQuesterClient(
 			post("/v1/path-shapes/write", { workspace, data }),
 		setAppTlsVerify: (verifyTls) => post("/v1/prefs/tls", { verifyTls }),
 		getAppTlsVerify: () => get("/v1/prefs/tls"),
+		openPathInOs: async () => ({
+			ok: false,
+			error: "Opening folders is only supported in the desktop app",
+		}),
 	};
 }

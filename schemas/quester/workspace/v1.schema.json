@@ -24,6 +24,21 @@
       "type": "string",
       "default": "collections"
     },
+    "runs": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "dir": {
+          "type": "string",
+          "minLength": 1,
+          "default": "runs"
+        }
+      },
+      "additionalProperties": false
+    },
     "settings": {
       "type": "object",
       "properties": {

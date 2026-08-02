@@ -2,7 +2,7 @@
 	"id": "demo-main-nodes",
 	"version": "v1",
 	"name": "Demo — main nodes",
-	"description": "Pedagogical flow for screenshots and the product guide: start → input → http → extract → output, with assert on the HTTP response (DummyJSON). Includes a disconnected note sticky.",
+	"description": "Pedagogical node tour (screenshots / learning): start → input → http → extract → output, with assert on the HTTP response (DummyJSON). For a real auth chain, open login-and-profile. Includes a disconnected note sticky.",
 	"nodes": [
 		{
 			"id": "start",

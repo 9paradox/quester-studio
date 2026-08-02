@@ -166,6 +166,8 @@ export type QuesterApiMethods = {
 		verifyTls: boolean,
 	) => Promise<{ ok: true; verifyTls: boolean }>;
 	getAppTlsVerify: () => Promise<{ verifyTls: boolean }>;
+	/** Desktop: reveal a path in the OS file manager. HTTP/API may return ok: false. */
+	openPathInOs: (path: string) => Promise<{ ok: boolean; error?: string }>;
 };
 
 export type QuesterClient = QuesterApiMethods & {
