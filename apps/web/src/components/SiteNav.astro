@@ -26,38 +26,49 @@ const links = [
 ];
 ---
 
-<header class="border-b border-border bg-background/90 backdrop-blur-sm sticky top-0 z-50">
-	<div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+<header
+	class="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-sm"
+	data-site-nav
+>
+	<div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
 		<a
 			href={base}
-			class="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground hover:text-foreground/80"
+			class="flex min-w-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground hover:text-foreground/80"
 		>
 			<img
 				src={logoSrc}
 				alt=""
 				width="22"
 				height="22"
-				class="size-[22px] rounded-md"
+				class="size-[22px] shrink-0 rounded-md"
 				decoding="async"
 			/>
-			Quester Studio
+			<span class="truncate">Quester Studio</span>
 		</a>
-		<nav class="flex flex-wrap items-center justify-end gap-1 sm:gap-2" aria-label="Primary">
-			{
-				links.map((link) => (
-					<a
-						href={link.href}
-						class:list={[
-							"rounded-lg px-2.5 py-1.5 text-sm transition-colors",
-							link.active
-								? "bg-muted text-foreground"
-								: "text-muted-foreground hover:bg-muted hover:text-foreground",
-						]}
-					>
-						{link.label}
-					</a>
-				))
-			}
+
+		<div class="flex items-center gap-0.5 sm:gap-1">
+			<nav
+				class="hidden items-center gap-1 sm:flex"
+				aria-label="Primary"
+				data-site-nav-desktop
+			>
+				{
+					links.map((link) => (
+						<a
+							href={link.href}
+							class:list={[
+								"rounded-lg px-2.5 py-1.5 text-sm transition-colors",
+								link.active
+									? "bg-muted text-foreground"
+									: "text-muted-foreground hover:bg-muted hover:text-foreground",
+							]}
+						>
+							{link.label}
+						</a>
+					))
+				}
+			</nav>
+
 			<a
 				href="https://github.com/9paradox/quester-studio"
 				class="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -91,9 +102,75 @@ const links = [
 					></path></svg
 				>
 			</button>
-		</nav>
+
+			<button
+				type="button"
+				class="site-nav__menu-btn inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:hidden"
+				data-site-nav-toggle
+				aria-expanded="false"
+				aria-controls="site-nav-mobile"
+				aria-label="Open menu"
+			>
+				<svg class="site-nav__icon-open size-4" viewBox="0 0 24 24" aria-hidden="true"
+					><path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						d="M4 7h16M4 12h16M4 17h16"></path
+					></svg
+				>
+				<svg class="site-nav__icon-close hidden size-4" viewBox="0 0 24 24" aria-hidden="true"
+					><path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						d="M6 6l12 12M18 6L6 18"></path
+					></svg
+				>
+			</button>
+		</div>
 	</div>
+
+	<nav
+		id="site-nav-mobile"
+		class="hidden border-t border-border px-4 py-2 sm:hidden"
+		aria-label="Primary mobile"
+		data-site-nav-mobile
+		hidden
+	>
+		<ul class="flex flex-col gap-0.5 pb-1">
+			{
+				links.map((link) => (
+					<li>
+						<a
+							href={link.href}
+							class:list={[
+								"block rounded-lg px-3 py-2.5 text-sm transition-colors",
+								link.active
+									? "bg-muted font-medium text-foreground"
+									: "text-muted-foreground hover:bg-muted hover:text-foreground",
+							]}
+						>
+							{link.label}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</nav>
 </header>
+
+<style>
+	.site-nav__menu-btn[aria-expanded="true"] .site-nav__icon-open {
+		display: none;
+	}
+
+	.site-nav__menu-btn[aria-expanded="true"] .site-nav__icon-close {
+		display: block;
+	}
+</style>
 
 <script>
 	const btn = document.getElementById("theme-toggle");
@@ -107,4 +184,30 @@ const links = [
 			/* ignore */
 		}
 	});
+
+	const siteNav = document.querySelector("[data-site-nav]");
+	if (siteNav instanceof HTMLElement) {
+		const toggle = siteNav.querySelector("[data-site-nav-toggle]");
+		const panel = siteNav.querySelector("[data-site-nav-mobile]");
+
+		function setOpen(open: boolean) {
+			if (!(toggle instanceof HTMLElement) || !(panel instanceof HTMLElement))
+				return;
+			toggle.setAttribute("aria-expanded", open ? "true" : "false");
+			toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+			panel.classList.toggle("hidden", !open);
+			if (open) panel.removeAttribute("hidden");
+			else panel.setAttribute("hidden", "");
+		}
+
+		toggle?.addEventListener("click", () => {
+			const open = toggle.getAttribute("aria-expanded") !== "true";
+			setOpen(open);
+		});
+
+		const mq = window.matchMedia("(min-width: 640px)");
+		mq.addEventListener("change", () => {
+			if (mq.matches) setOpen(false);
+		});
+	}
 </script>
