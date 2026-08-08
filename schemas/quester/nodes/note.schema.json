@@ -7,6 +7,12 @@
     "text": {
       "type": "string",
       "default": ""
+    },
+    "fontSize": {
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 48,
+      "default": 12
     }
   },
   "additionalProperties": false,

@@ -1,5 +1,9 @@
 import { type NodeHelp, nodeHelpByType } from "@/lib/nodeHelp.js";
-import { type BuiltinNodeType, builtinNodeTypes } from "@quester-studio/schema";
+import {
+	type BuiltinNodeType,
+	NOTE_FONT_SIZE_DEFAULT,
+	builtinNodeTypes,
+} from "@quester-studio/schema";
 import {
 	IconArrowBarToDown,
 	IconArrowBarToUp,
@@ -333,7 +337,7 @@ export function defaultNodeData(
 		case "log":
 			return { label: "Log", message: "{{input}}" };
 		case "note":
-			return { label: "Note", text: "" };
+			return { label: "Note", text: "", fontSize: NOTE_FONT_SIZE_DEFAULT };
 		default: {
 			const _exhaustive: never = type;
 			return { label: _exhaustive };

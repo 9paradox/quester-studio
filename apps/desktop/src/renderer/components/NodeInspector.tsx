@@ -33,6 +33,9 @@ import {
 	FOREACH_MAX_CONCURRENCY,
 	FOREACH_MAX_ITEMS_CEILING,
 	type FlowNodeV1,
+	NOTE_FONT_SIZE_DEFAULT,
+	NOTE_FONT_SIZE_MAX,
+	NOTE_FONT_SIZE_MIN,
 	builtinNodeTypes,
 } from "@quester-studio/schema";
 import type { ReactNode } from "react";
@@ -663,18 +666,45 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			) : null}
 
 			{node.type === "note" ? (
-				<InspectorField
-					label="Text"
-					hint="Plain text shown on the canvas sticky. Notes are not executed."
-				>
-					<Textarea
-						value={String(data.text ?? "")}
-						onChange={(e) => setField("text", e.target.value)}
-						placeholder="Add a note…"
-						rows={8}
-						className="min-h-[120px] font-sans text-sm"
-					/>
-				</InspectorField>
+				<>
+					<InspectorField
+						label="Text"
+						hint="Plain text shown on the canvas sticky. Notes are not executed."
+					>
+						<Textarea
+							value={String(data.text ?? "")}
+							onChange={(e) => setField("text", e.target.value)}
+							placeholder="Add a note…"
+							rows={8}
+							className="min-h-[120px] font-sans text-sm"
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Font size"
+						hint={`Body size in pixels (${NOTE_FONT_SIZE_MIN}–${NOTE_FONT_SIZE_MAX}).`}
+					>
+						<Input
+							type="number"
+							min={NOTE_FONT_SIZE_MIN}
+							max={NOTE_FONT_SIZE_MAX}
+							value={String(data.fontSize ?? NOTE_FONT_SIZE_DEFAULT)}
+							onChange={(e) =>
+								setField(
+									"fontSize",
+									Math.min(
+										NOTE_FONT_SIZE_MAX,
+										Math.max(
+											NOTE_FONT_SIZE_MIN,
+											Math.round(
+												Number(e.target.value) || NOTE_FONT_SIZE_DEFAULT,
+											),
+										),
+									),
+								)
+							}
+						/>
+					</InspectorField>
+				</>
 			) : null}
 
 			{node.type === "output" ? (
