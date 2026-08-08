@@ -29,7 +29,7 @@ export type RunFileLoggerOptions = {
 	secretValues?: string[];
 };
 
-const AUTH_HEADER = /^authorization$/i;
+const SENSITIVE_HEADER = /^(authorization|cookie|set-cookie)$/i;
 
 function filesystemTimestamp(d = new Date()): string {
 	return d
@@ -42,7 +42,7 @@ export function createRunDirName(now = new Date()): string {
 	return filesystemTimestamp(now);
 }
 
-/** Deep-clone JSON with secret values and Authorization headers redacted. */
+/** Deep-clone JSON with secret values and sensitive headers redacted. */
 export function redactForRunLog(
 	value: unknown,
 	secretValues: string[] = [],
@@ -60,7 +60,7 @@ export function redactForRunLog(
 
 	const walk = (v: unknown, key?: string): unknown => {
 		if (typeof v === "string") {
-			if (key && AUTH_HEADER.test(key)) return "***";
+			if (key && SENSITIVE_HEADER.test(key)) return "***";
 			return scrubString(v);
 		}
 		if (Array.isArray(v)) return v.map((item) => walk(item));

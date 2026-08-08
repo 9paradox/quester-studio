@@ -65,3 +65,55 @@ export function selectNextEdges(
 	);
 	return filtered.length > 0 ? filtered : edges.filter((e) => !e.sourceHandle);
 }
+
+/** Nodes that have run or may still run given exclusive branch choices. */
+export function computeLiveNodes(
+	flow: FlowV1,
+	executed: ReadonlySet<string>,
+	branchTaken: ReadonlyMap<string, string | undefined>,
+): Set<string> {
+	const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));
+	const hasIncoming = new Set(flow.edges.map((e) => e.target));
+	const starts = flow.nodes
+		.filter((n) => !hasIncoming.has(n.id))
+		.map((n) => n.id);
+	const live = new Set<string>();
+	const queue = [...starts];
+	while (queue.length > 0) {
+		const id = queue.shift();
+		if (!id || live.has(id)) continue;
+		live.add(id);
+		const node = nodeById.get(id);
+		if (!node || !executed.has(id)) continue;
+		for (const edge of selectNextEdges(flow, node, branchTaken.get(id))) {
+			if (!live.has(edge.target)) queue.push(edge.target);
+		}
+	}
+	return live;
+}
+
+/**
+ * AND-join with XOR orphan awareness: wait for all live predecessors.
+ * Exclusive-branch arms that were not selected are treated as orphaned.
+ */
+export function isNodeReady(
+	flow: FlowV1,
+	nodeId: string,
+	executed: ReadonlySet<string>,
+	branchTaken: ReadonlyMap<string, string | undefined>,
+): boolean {
+	const incoming = flow.edges.filter((e) => e.target === nodeId);
+	if (incoming.length === 0) return true;
+	const live = computeLiveNodes(flow, executed, branchTaken);
+	let hasExecutedPred = false;
+	for (const edge of incoming) {
+		const pred = edge.source;
+		if (executed.has(pred)) {
+			hasExecutedPred = true;
+			continue;
+		}
+		if (!live.has(pred)) continue;
+		return false;
+	}
+	return hasExecutedPred;
+}

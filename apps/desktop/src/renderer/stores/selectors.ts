@@ -63,7 +63,10 @@ export function selectStatusLabel(state: QuesterState): string {
 
 export function selectCanRun(state: QuesterState): boolean {
 	return Boolean(
-		selectActiveFlowTab(state) && state.workspacePath && !state.isLoading,
+		selectActiveFlowTab(state) &&
+			state.workspacePath &&
+			!state.isLoading &&
+			!selectActiveFlowRun(state).isRunning,
 	);
 }
 

@@ -2,6 +2,8 @@
 
 Local HTTP JSON + SSE API over `@quester-studio/workspace-service`.
 
+**Localhost-dev only** — no authentication; do not bind beyond loopback or expose on a network. See [SECURITY.md](../../SECURITY.md).
+
 ## Commands
 
 ```bash
@@ -11,7 +13,8 @@ bun run --filter @quester-studio/api dev
 ```
 
 - Listen: `http://127.0.0.1:8787` (`QUESTER_API_PORT` / `QUESTER_API_HOST`)
-- Workspace: `QUESTER_WORKSPACE_ROOT` (optional; discovers `examples/sample-workspace`)
+- Non-loopback bind requires `QUESTER_API_ALLOW_REMOTE=1` (discouraged)
+- Workspace: `QUESTER_WORKSPACE_ROOT` (optional default discovery; when set, also jails `workspace`/`path` request fields)
 
 ## With browser UI
 

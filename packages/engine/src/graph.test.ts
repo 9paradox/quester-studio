@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import type { FlowV1 } from "@quester-studio/schema";
-import { selectNextEdges, topologicalSort } from "./graph.js";
+import {
+	computeLiveNodes,
+	isNodeReady,
+	selectNextEdges,
+	topologicalSort,
+} from "./graph.js";
 
 const flow: FlowV1 = {
 	id: "test",
@@ -112,5 +117,71 @@ describe("selectNextEdges", () => {
 		expect(
 			selectNextEdges(tryFlow, node, "catch").map((e) => e.target),
 		).toEqual(["catch"]);
+	});
+});
+
+describe("isNodeReady / computeLiveNodes", () => {
+	const diamond: FlowV1 = {
+		id: "diamond",
+		version: "v1",
+		nodes: [
+			{ id: "start", type: "start", data: {} },
+			{ id: "a", type: "set", data: { variables: { arm: "a" } } },
+			{ id: "b", type: "set", data: { variables: { arm: "b" } } },
+			{ id: "c", type: "set", data: { variables: { arm: "c" } } },
+			{ id: "d", type: "merge", data: { sources: ["b", "c"] } },
+		],
+		edges: [
+			{ id: "e0", source: "start", target: "a" },
+			{ id: "e1", source: "a", target: "b" },
+			{ id: "e2", source: "a", target: "c" },
+			{ id: "e3", source: "b", target: "d" },
+			{ id: "e4", source: "c", target: "d" },
+		],
+	};
+
+	const xorRejoin: FlowV1 = {
+		id: "xor",
+		version: "v1",
+		nodes: [
+			{ id: "start", type: "start", data: {} },
+			{ id: "check", type: "if", data: { condition: "true" } },
+			{ id: "yes", type: "set", data: {} },
+			{ id: "no", type: "set", data: {} },
+			{ id: "out", type: "output", data: {} },
+		],
+		edges: [
+			{ id: "e0", source: "start", target: "check" },
+			{ id: "e1", source: "check", target: "yes", sourceHandle: "true" },
+			{ id: "e2", source: "check", target: "no", sourceHandle: "false" },
+			{ id: "e3", source: "yes", target: "out" },
+			{ id: "e4", source: "no", target: "out" },
+		],
+	};
+
+	test("diamond join waits for both arms", () => {
+		const executed = new Set(["start", "a", "b"]);
+		const branchTaken = new Map<string, string | undefined>([
+			["start", undefined],
+			["a", undefined],
+			["b", undefined],
+		]);
+		expect(isNodeReady(diamond, "d", executed, branchTaken)).toBe(false);
+		executed.add("c");
+		branchTaken.set("c", undefined);
+		expect(isNodeReady(diamond, "d", executed, branchTaken)).toBe(true);
+	});
+
+	test("xor rejoin does not wait for untaken arm", () => {
+		const executed = new Set(["start", "check", "yes"]);
+		const branchTaken = new Map<string, string | undefined>([
+			["start", undefined],
+			["check", "true"],
+			["yes", undefined],
+		]);
+		const live = computeLiveNodes(xorRejoin, executed, branchTaken);
+		expect(live.has("yes")).toBe(true);
+		expect(live.has("no")).toBe(false);
+		expect(isNodeReady(xorRejoin, "out", executed, branchTaken)).toBe(true);
 	});
 });

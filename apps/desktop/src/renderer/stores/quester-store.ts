@@ -120,6 +120,15 @@ export function patchFlowRun(
 	return { ...runByFlowId, [flowId]: { ...prev, ...patch } };
 }
 
+function cancelInFlightRuns(runByFlowId: Record<string, FlowRunState>): void {
+	const client = getQuesterClient();
+	for (const slot of Object.values(runByFlowId)) {
+		if (slot.isRunning && slot.activeRunId) {
+			void client.cancelFlowRun({ runId: slot.activeRunId });
+		}
+	}
+}
+
 const DEFAULT_PANEL_HEIGHT = 180;
 const DEFAULT_SIDEBAR_WIDTH = 240;
 const DEFAULT_RIGHT_WIDTH = 320;
@@ -746,7 +755,9 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	loadWorkspace: async (path) => {
-		const { refreshWorkspaceLists, loadFlow, appendConsole } = get();
+		const { refreshWorkspaceLists, loadFlow, appendConsole, runByFlowId } =
+			get();
+		cancelInFlightRuns(runByFlowId);
 		set({
 			isLoading: true,
 			loadError: null,
@@ -798,6 +809,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	closeWorkspace: () => {
+		cancelInFlightRuns(get().runByFlowId);
 		clearLastWorkspacePath();
 		set({
 			workspacePath: "",
@@ -1440,10 +1452,14 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			activeTabId,
 			saveActiveTab,
 			canvasDirty,
+			runByFlowId,
 		} = get();
 		const activeTab = openTabs.find((t) => t.id === activeTabId);
 		const activeFlowTab = activeTab?.kind === "flow" ? activeTab : null;
 		if (!activeFlowTab || !workspacePath) return;
+
+		const flowId = activeFlowTab.flowId;
+		if (runByFlowId[flowId]?.isRunning) return;
 
 		if (activeFlowTab.dirty || canvasDirty) {
 			await saveActiveTab(activeFlowTab.id);
@@ -1459,7 +1475,6 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		}
 
 		const runId = crypto.randomUUID();
-		const flowId = activeFlowTab.flowId;
 		const nodeIds = activeFlowTab.flow.nodes.map((n) => n.id);
 		set((s) => ({
 			runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
@@ -1485,15 +1500,18 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				input,
 			});
 			const slot = get().runByFlowId[flowId] ?? emptyFlowRunState();
-			const reconciled =
-				slot.activeRunId === runId
-					? reconcileNodeStatuses(nodeIds, result.steps, slot.nodeStatuses)
-					: slot.nodeStatuses;
+			if (slot.activeRunId !== runId) return;
+
+			const reconciled = reconcileNodeStatuses(
+				nodeIds,
+				result.steps,
+				slot.nodeStatuses,
+			);
 			set((s) => ({
 				runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
 					runResult: result,
 					runError: result.error ?? null,
-					...(slot.activeRunId === runId ? { nodeStatuses: reconciled } : {}),
+					nodeStatuses: reconciled,
 				}),
 			}));
 			appendRunHistory({
@@ -1535,6 +1553,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				appendConsole("Run finished");
 			}
 		} catch (err) {
+			void getQuesterClient().cancelFlowRun({ runId });
 			const message =
 				err instanceof Error
 					? [err.message, err.stack].filter(Boolean).join("\n")
@@ -1555,20 +1574,18 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 						nodeStatuses: reconciled,
 					}),
 				}));
-			} else {
-				set((s) => ({
-					runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
-						runError: err instanceof Error ? err.message : message,
-					}),
-				}));
 			}
 			appendConsole(message);
 		} finally {
-			set((s) => ({
-				runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
-					isRunning: false,
-				}),
-			}));
+			set((s) => {
+				const slot = s.runByFlowId[flowId];
+				if (!slot || slot.activeRunId !== runId) return s;
+				return {
+					runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
+						isRunning: false,
+					}),
+				};
+			});
 		}
 	},
 

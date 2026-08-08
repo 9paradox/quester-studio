@@ -3,7 +3,7 @@ import type { FlowV1, HttpSettingsV1 } from "@quester-studio/schema";
 import { isCookieJarEnabled } from "@quester-studio/schema";
 import "@quester-studio/nodes";
 import { EngineEventEmitter } from "./events.js";
-import { selectNextEdges, topologicalSort } from "./graph.js";
+import { isNodeReady, selectNextEdges, topologicalSort } from "./graph.js";
 import { type RunFileLogger, resolveTemplateDeep } from "./run-log.js";
 import { resolveTemplate } from "./variables.js";
 
@@ -126,6 +126,8 @@ export async function executeFlow(
 	const steps: NodeStepResult[] = [];
 	const order = topologicalSort(flow);
 	const executed = new Set<string>();
+	const branchTaken = new Map<string, string | undefined>();
+	const pending = new Set<string>();
 	const startNodes = order.filter((n) => n.type === "start");
 	const queue: string[] = startNodes.map((n) => n.id);
 	if (queue.length === 0 && order[0]) queue.push(order[0].id);
@@ -138,6 +140,19 @@ export async function executeFlow(
 	let lastOutput: unknown = {};
 	const runLogger = options.runLogger;
 	const runDir = runLogger?.runDir;
+
+	const enqueueReady = () => {
+		for (const target of [...pending]) {
+			if (executed.has(target) || queue.includes(target)) {
+				pending.delete(target);
+				continue;
+			}
+			if (isNodeReady(flow, target, executed, branchTaken)) {
+				queue.push(target);
+				pending.delete(target);
+			}
+		}
+	};
 
 	const partial = () =>
 		buildPartialResult(
@@ -155,6 +170,10 @@ export async function executeFlow(
 
 		const nodeId = queue.shift();
 		if (!nodeId || executed.has(nodeId)) continue;
+		if (!isNodeReady(flow, nodeId, executed, branchTaken)) {
+			pending.add(nodeId);
+			continue;
+		}
 		const node = nodeById.get(nodeId);
 		if (!node) continue;
 
@@ -168,7 +187,10 @@ export async function executeFlow(
 		const incoming = flow.edges.filter((e) => e.target === nodeId);
 		let input: unknown = lastOutput;
 		if (incoming.length > 0) {
-			const src = incoming[0]?.source;
+			const completedPreds = steps
+				.map((s) => s.nodeId)
+				.filter((id) => incoming.some((e) => e.source === id));
+			const src = completedPreds.at(-1) ?? incoming[0]?.source;
 			if (src && nodeOutputs[src] !== undefined) input = nodeOutputs[src];
 		}
 		if (node.type === "input") input = flowInput;
@@ -235,11 +257,11 @@ export async function executeFlow(
 				output: result.output,
 			});
 
+			branchTaken.set(node.id, result.branch);
 			for (const edge of selectNextEdges(flow, node, result.branch)) {
-				if (!executed.has(edge.target) && !queue.includes(edge.target)) {
-					queue.push(edge.target);
-				}
+				if (!executed.has(edge.target)) pending.add(edge.target);
 			}
+			enqueueReady();
 		} catch (error) {
 			if (options.signal?.aborted) {
 				if (runLogger) {

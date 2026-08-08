@@ -26,6 +26,7 @@ import {
 	resolveUserSampleWorkspaceRoot,
 	saveEnvironment,
 	saveFlow,
+	saveSecretsFile,
 	writePathShapes,
 } from "./service.js";
 
@@ -208,6 +209,80 @@ describe("workspace-service", () => {
 				output: { name: "demo" },
 			});
 		} finally {
+			await deleteFlow(flowId, sampleWorkspace);
+		}
+	});
+
+	test("executeFlowRpc redacts secrets from RPC logs and result", async () => {
+		const flowId = "desktop-secret-redact-test";
+		await createFlow(sampleWorkspace, flowId, "Secret Redact Test");
+		const secretValue = `rpc-redact-${crypto.randomUUID()}`;
+		const previousSecrets = await loadSecretsFile(
+			sampleWorkspace,
+			"local",
+		).catch(() => null);
+		try {
+			const flow = await loadFlow(flowId, sampleWorkspace);
+			await saveFlow(
+				{
+					...flow,
+					nodes: [
+						{
+							id: "start",
+							type: "start",
+							data: { label: "Start" },
+							position: { x: -160, y: 0 },
+						},
+						{
+							id: "in",
+							type: "input",
+							data: { label: "Input" },
+							position: { x: 0, y: 0 },
+						},
+						{
+							id: "set",
+							type: "set",
+							data: {
+								variables: { token: "{{secrets.apiToken}}" },
+							},
+							position: { x: 160, y: 0 },
+						},
+						{
+							id: "out",
+							type: "output",
+							data: { label: "Output" },
+							position: { x: 320, y: 0 },
+						},
+					],
+					edges: [
+						{ id: "e0", source: "start", target: "in" },
+						{ id: "e1", source: "in", target: "set" },
+						{ id: "e2", source: "set", target: "out" },
+					],
+				},
+				sampleWorkspace,
+			);
+
+			await saveSecretsFile(sampleWorkspace, "local", {
+				version: "v1",
+				secrets: { apiToken: secretValue },
+			});
+
+			const result = await executeFlowRpc(flowId, {
+				workspace: sampleWorkspace,
+				env: "local",
+				input: {},
+			});
+			const dumped = JSON.stringify(result);
+			expect(dumped).not.toContain(secretValue);
+			expect(dumped).toContain("***");
+			expect(
+				result.logs.some((l) => l.phase === "after" && l.nodeId === "set"),
+			).toBe(true);
+		} finally {
+			if (previousSecrets) {
+				await saveSecretsFile(sampleWorkspace, "local", previousSecrets);
+			}
 			await deleteFlow(flowId, sampleWorkspace);
 		}
 	});

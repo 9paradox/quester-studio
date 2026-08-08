@@ -1,3 +1,4 @@
+import { isAbsolute, relative, resolve } from "node:path";
 import type { NodeRunStatusEvent } from "@quester-studio/api-contract";
 import {
 	cancelFlowRun,
@@ -40,13 +41,69 @@ import { publishRunEvent, subscribeRun } from "./run-events.js";
 const PORT = Number(process.env.QUESTER_API_PORT ?? 8787);
 const HOST = process.env.QUESTER_API_HOST ?? "127.0.0.1";
 
+export function isLoopbackHost(hostname: string): boolean {
+	const h = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+	return h === "127.0.0.1" || h === "::1" || h === "localhost";
+}
+
+/** Refuse non-loopback bind unless QUESTER_API_ALLOW_REMOTE=1 (loud warn). */
+export function assertBindAllowed(
+	hostname: string,
+	env: NodeJS.ProcessEnv = process.env,
+): void {
+	if (isLoopbackHost(hostname)) return;
+	if (env.QUESTER_API_ALLOW_REMOTE === "1") {
+		console.warn(
+			`[@quester-studio/api] WARNING: binding to non-loopback "${hostname}" with QUESTER_API_ALLOW_REMOTE=1. This API has no authentication and can expose workspace secrets. Intended for localhost development only — see SECURITY.md.`,
+		);
+		return;
+	}
+	throw new Error(
+		`Refusing to bind to non-loopback host "${hostname}". Default is 127.0.0.1. Set QUESTER_API_ALLOW_REMOTE=1 only if you accept the risk (no auth; see SECURITY.md).`,
+	);
+}
+
+/** When QUESTER_WORKSPACE_ROOT is set, reject paths outside that directory. */
+export function assertWorkspaceAllowed(
+	workspacePath: string,
+	env: NodeJS.ProcessEnv = process.env,
+): void {
+	const jail = env.QUESTER_WORKSPACE_ROOT?.trim();
+	if (!jail) return;
+	const root = resolve(jail);
+	const target = resolve(workspacePath);
+	const rel = relative(root, target);
+	if (rel.startsWith("..") || isAbsolute(rel)) {
+		throw new Error(
+			`Workspace path outside QUESTER_WORKSPACE_ROOT: ${workspacePath}`,
+		);
+	}
+}
+
+function isLocalOrigin(origin: string): boolean {
+	try {
+		return isLoopbackHost(new URL(origin).hostname);
+	} catch {
+		return false;
+	}
+}
+
 function corsHeaders(req: Request): HeadersInit {
-	const origin = req.headers.get("origin") ?? "*";
+	const origin = req.headers.get("origin");
+	if (origin && isLocalOrigin(origin)) {
+		return {
+			"access-control-allow-origin": origin,
+			"access-control-allow-methods": "GET,POST,OPTIONS",
+			"access-control-allow-headers": "content-type,accept",
+			"access-control-allow-credentials": "true",
+			vary: "Origin",
+		};
+	}
 	return {
-		"access-control-allow-origin": origin,
+		"access-control-allow-origin": "http://127.0.0.1",
 		"access-control-allow-methods": "GET,POST,OPTIONS",
 		"access-control-allow-headers": "content-type,accept",
-		"access-control-allow-credentials": "true",
+		vary: "Origin",
 	};
 }
 
@@ -66,7 +123,15 @@ function errorResponse(req: Request, error: unknown, status = 400): Response {
 }
 
 async function readBody<T>(req: Request): Promise<T> {
-	return (await req.json()) as T;
+	const body = (await req.json()) as T;
+	const record = body as Record<string, unknown>;
+	for (const key of ["workspace", "path"] as const) {
+		const value = record[key];
+		if (typeof value === "string" && value.length > 0) {
+			assertWorkspaceAllowed(value);
+		}
+	}
+	return body;
 }
 
 type RouteHandler = (req: Request, url: URL) => Promise<Response> | Response;
@@ -379,6 +444,7 @@ export function startServer(options?: {
 }): ReturnType<typeof Bun.serve> {
 	const port = options?.port ?? PORT;
 	const hostname = options?.hostname ?? HOST;
+	assertBindAllowed(hostname);
 	const server = Bun.serve({
 		port,
 		hostname,
@@ -392,6 +458,9 @@ export function startServer(options?: {
 			`[@quester-studio/api] QUESTER_WORKSPACE_ROOT=${process.env.QUESTER_WORKSPACE_ROOT}`,
 		);
 	}
+	console.log(
+		"[@quester-studio/api] localhost-dev only — no authentication; see SECURITY.md",
+	);
 	return server;
 }
 
