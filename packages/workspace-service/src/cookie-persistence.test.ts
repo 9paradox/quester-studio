@@ -21,10 +21,20 @@ describe("cookie persistence", () => {
 
 			const raw = JSON.parse(await readFile(cookiesFilePath(dir), "utf8")) as {
 				version: number;
-				hosts: Record<string, Record<string, string>>;
+				hosts: Record<
+					string,
+					Record<
+						string,
+						string | { value: string; path: string; secure: boolean }
+					>
+				>;
 			};
 			expect(raw.version).toBe(1);
-			expect(raw.hosts["api.example.com"]?.session).toBe("abc");
+			expect(raw.hosts["api.example.com"]?.session).toEqual({
+				value: "abc",
+				path: "/",
+				secure: false,
+			});
 
 			const loaded = await loadPersistedCookieJar(dir);
 			expect(loaded).toBeDefined();

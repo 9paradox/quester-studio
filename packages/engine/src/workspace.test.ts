@@ -69,4 +69,23 @@ describe("loadSecrets", () => {
 			await rm(dir, { recursive: true, force: true });
 		}
 	});
+
+	test("honors custom environmentsDir", async () => {
+		const dir = await mkdtemp(join(tmpdir(), "quester-secrets-envs-"));
+		try {
+			const envDir = join(dir, "envs");
+			await mkdir(envDir, { recursive: true });
+			await writeFile(
+				join(envDir, "local.secrets.json"),
+				JSON.stringify({ version: "v1", secrets: { TOKEN: "from-envs" } }),
+				"utf8",
+			);
+			expect(await loadSecrets(dir, "local")).toEqual({});
+			expect(await loadSecrets(dir, "local", "envs")).toEqual({
+				TOKEN: "from-envs",
+			});
+		} finally {
+			await rm(dir, { recursive: true, force: true });
+		}
+	});
 });

@@ -1,7 +1,7 @@
 # Plan 02 — Stability (medium)
 
 **Priority:** 2  
-**Status:** ready after / alongside low-risk parts of 01  
+**Status:** code complete (awaiting user X/Y/Z confirm)  
 **ROADMAP:** §1 Stability — Medium + Ongoing  
 **BUGS:** B9–B15, B17  
 
@@ -19,14 +19,14 @@ Prefer B4 fixed before deep engine cookie work (optional). B13 docs-only until p
 
 ## Work
 
-- [ ] **B9** — Abortable `delay` + cap `ms` (`nodes`, `schema`)  
-- [ ] **B10** — Safe flow / env / secrets path ids (`workspace-service`, `schema`)  
-- [ ] **B11** — Cookie jar final URL + Secure / Path (`nodes`)  
-- [ ] **B12** — CLI `environmentsDir` + shared cookie jar (`cli`, `engine`)  
-- [ ] **B13** — Until plan 09: clearer docs / UX that `try` is not exception catch  
-- [ ] **B14** — Exclude `*.secrets.json` from desktop sample sync (`apps/desktop/scripts`)  
-- [ ] **B15** — Template trust: **A + C** (document + `mode` flag) — see below  
-- [ ] **B17** — Web roadmap / Try / Guide drift (or fold into plan 08)  
+- [x] **B9** — Abortable `delay` + cap `ms` (`nodes`, `schema`)  
+- [x] **B10** — Safe flow / env / secrets path ids (`workspace-service`, `schema`)  
+- [x] **B11** — Cookie jar final URL + Secure / Path (`nodes`)  
+- [x] **B12** — CLI `environmentsDir` + shared cookie jar (`cli`, `engine`)  
+- [x] **B13** — Until plan 09: clearer docs / UX that `try` is not exception catch  
+- [x] **B14** — Exclude `*.secrets.json` from desktop sample sync (`apps/desktop/scripts`)  
+- [x] **B15** — Template trust: **A + C** (document + `mode` flag) — see below  
+- [x] **B17** — Web roadmap / Try / Guide drift (or fold into plan 08)  
 - [ ] Ongoing — harden foreach/subflow/abort tests; save/reload reliability; suite CI smoke green  
 
 ### B15 detail — A (docs) + C (`mode`)

@@ -145,7 +145,7 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 	template: withHelp({
 		type: "template",
 		label: "Template",
-		description: "Render template",
+		description: "Render {{…}} / optional Eta",
 		icon: IconCode,
 		accentTone: "border-l-chart-3",
 		badgeTone: "bg-chart-3/15 text-chart-3",
@@ -209,7 +209,7 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 	try: withHelp({
 		type: "try",
 		label: "Try",
-		description: "Soft branch on checks",
+		description: "Soft branch (not exceptions)",
 		icon: IconShieldCheck,
 		accentTone: "border-l-chart-4",
 		badgeTone: "bg-chart-4/15 text-foreground",

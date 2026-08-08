@@ -567,6 +567,28 @@ describe("workspace-service", () => {
 		expect(flows.some((f) => f.id === "desktop-test-renamed")).toBe(false);
 	});
 
+	test("rejects unsafe flow / env / secrets path ids", async () => {
+		await expect(createFlow(sampleWorkspace, "../outside")).rejects.toThrow(
+			/Invalid flow id/,
+		);
+		await expect(createFlow(sampleWorkspace, "a/b")).rejects.toThrow(
+			/Invalid flow id/,
+		);
+		await expect(
+			saveSecretsFile(sampleWorkspace, "..\\escape", {
+				version: "v1",
+				secrets: {},
+			}),
+		).rejects.toThrow(/Invalid environment name/);
+		await expect(
+			saveEnvironment(sampleWorkspace, {
+				name: "../outside",
+				version: "v1",
+				variables: {},
+			}),
+		).rejects.toThrow();
+	});
+
 	test("loadEnvironment saveEnvironment round-trip", async () => {
 		const env = await loadEnvironment(sampleWorkspace, "local");
 		expect(env.name).toBe("local");

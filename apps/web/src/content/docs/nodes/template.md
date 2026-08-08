@@ -1,10 +1,10 @@
 ---
 title: template
-description: Render a string with {{…}} tokens and optional Eta expressions
+description: Render a string with {{…}} tokens and optional Eta (mode eta) or safe interpolation only
 ---
-Builds a string. First `{{…}}` tokens are resolved, then the result is rendered with [Eta](https://eta.js.org/).
+Builds a string. First `{{…}}` tokens are resolved. With default `mode: "eta"`, the result is then rendered with [Eta](https://eta.js.org/) (**in-process JavaScript**, not a sandbox). With `mode: "safe"`, only `{{…}}` interpolation is allowed and Eta tags (`<% %>`, `<%= %>`) fail the node.
 
-Mustache templates use `{{input.*}}` and `{{nodes.*}}`. Eta can also use `it.previous` for the wire JSON. Concepts: [How flows work](../../concepts/).
+Mustache templates use `{{input.*}}` and `{{nodes.*}}`. Eta can also use `it.previous` for the wire JSON. Trust model: [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md). Concepts: [How flows work](../../concepts/).
 
 
 <!-- qs-ports:start -->
@@ -33,16 +33,17 @@ Mustache templates use `{{input.*}}` and `{{nodes.*}}`. Eta can also use `it.pre
 | Field | Type | Description |
 | --- | --- | --- |
 | `label` | string | Optional UI label |
+| `mode` | `"eta"` \| `"safe"` | Default `"eta"`. `"safe"` rejects Eta tags |
 | `template` | string | required | Template source |
 
 ## Input / output
 
 | | Value |
 | --- | --- |
-| **Execute input** | Previous node output (available as Eta `it.previous`) |
+| **Execute input** | Previous node output (available as Eta `it.previous` when mode is eta) |
 | **Output** | Rendered string |
 
-### Eta context (`it`)
+### Eta context (`it`) — mode `eta` only
 
 | Key | Meaning |
 | --- | --- |
@@ -53,25 +54,27 @@ Mustache templates use `{{input.*}}` and `{{nodes.*}}`. Eta can also use `it.pre
 
 ## Examples
 
-### Simple mustache only
+### Safe mustache only
 
 ```json
 {
   "id": "msg",
   "type": "template",
   "data": {
+    "mode": "safe",
     "template": "Hello {{input.username}}, token={{vars.token}}"
   }
 }
 ```
 
-### Eta expression
+### Eta expression (default mode)
 
 ```json
 {
   "id": "eta",
   "type": "template",
   "data": {
+    "mode": "eta",
     "template": "Hello <%= it.input.username %>"
   }
 }
@@ -96,6 +99,3 @@ Mustache templates use `{{input.*}}` and `{{nodes.*}}`. Eta can also use `it.pre
   "template": "<%= it.input.active ? 'on' : 'off' %>"
 }
 ```
-
-
-

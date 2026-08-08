@@ -143,6 +143,16 @@ export function CodeEditor({
 			EditorView.contentAttributes.of(
 				ariaLabel ? { "aria-label": ariaLabel } : {},
 			),
+			// React Flow listens for Backspace/Delete on document; composedPath may be a
+			// Text node inside cm-content so RF's isInputDOMNode misses. Stop bubble.
+			EditorView.domEventHandlers({
+				keydown(event) {
+					if (event.key === "Backspace" || event.key === "Delete") {
+						event.stopPropagation();
+					}
+					return false;
+				},
+			}),
 			...languageExtensions(language, lint),
 		];
 
@@ -213,7 +223,8 @@ export function CodeEditor({
 			maxHeight={maxHeight}
 			theme="none"
 			className={cn(
-				"rounded-md border bg-muted/20 px-2 py-1.5 text-xs focus-within:ring-1 focus-within:ring-ring",
+				// React Flow: skip canvas delete/hotkeys while interacting here
+				"nokey rounded-md border bg-muted/20 px-2 py-1.5 text-xs focus-within:ring-1 focus-within:ring-ring",
 				className,
 			)}
 		/>

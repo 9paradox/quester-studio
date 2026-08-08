@@ -25,14 +25,14 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 
 **Medium**
 
-- [ ] B9 — Abortable `delay` + cap `ms`  
-- [ ] B10 — Safe flow / env / secrets path ids (no `..` escape)  
-- [ ] B11 — Cookie jar final URL + Secure / Path  
-- [ ] B12 — CLI `environmentsDir` + shared cookie jar parity with desktop  
-- [ ] B13 — `try` catch semantics — resolved by framed subgraph containers (see §6 Control); until then clearer docs / UX copy  
-- [ ] B14 — Exclude `*.secrets.json` from desktop sample sync  
-- [ ] B15 — Template: document eta-as-code + `mode: "eta" \| "safe"` (default eta; safe = `{{…}}` only)  
-- [ ] B17 — Web roadmap / Try / Guide / checksum / import-collection docs drift  
+- [x] B9 — Abortable `delay` + cap `ms`  
+- [x] B10 — Safe flow / env / secrets path ids (no `..` escape)  
+- [x] B11 — Cookie jar final URL + Secure / Path  
+- [x] B12 — CLI `environmentsDir` + shared cookie jar parity with desktop  
+- [x] B13 — `try` catch semantics — docs/UX clarified (soft-check only); full exception boundary → framed containers (§6 / plan 09)  
+- [x] B14 — Exclude `*.secrets.json` from desktop sample sync  
+- [x] B15 — Template: document eta-as-code + `mode: "eta" \| "safe"` (default eta; safe = `{{…}}` only)  
+- [x] B17 — Web roadmap / Try / Guide / checksum / import-collection docs drift  
 
 **Ongoing**
 
@@ -63,6 +63,7 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 - [ ] Flow drag-and-drop onto canvas — drag a flow from the sidebar/list to open or nest/`subflow` placement (define UX: open tab vs drop as `subflow` node)  
 - [ ] Form / code drag-and-drop onto canvas — same sidebar → canvas DnD pattern as flows/collections  
 - [ ] Nodes UI enhance — clearer chrome, status, handles, and type identity on canvas; better selected / running / error states  
+- [ ] Later: optional Monaco (or shared Monaco-class editor from collections) for large `template` / code-like inspector fields — after JSON viewers; keep CodeMirror for compact fields; pairs with `code` node editor  
 
 **Run UX**
 

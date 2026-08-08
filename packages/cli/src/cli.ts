@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join, resolve } from "node:path";
 import {
+	CookieJar,
 	createExecuteSubflow,
 	createHttpFetch,
 	importPostmanCollectionFile,
@@ -10,6 +11,7 @@ import {
 	loadWorkspace,
 } from "@quester-studio/engine";
 import {
+	isCookieJarEnabled,
 	mergeHttpSettings,
 	validateFlow,
 	validateSuite,
@@ -162,7 +164,11 @@ program
 
 			const ws = await loadWorkspace(wsPath).catch(() => null);
 			const envVars = ws?.environments[opts.env]?.variables ?? {};
-			const secrets = await loadSecrets(wsPath, opts.env);
+			const secrets = await loadSecrets(
+				wsPath,
+				opts.env,
+				ws?.manifest.environmentsDir,
+			);
 			const input = JSON.parse(opts.input) as unknown;
 			const httpDefaults = mergeHttpSettings(
 				ws?.manifest.settings?.http,
@@ -172,6 +178,9 @@ program
 				httpDefaults,
 				workspaceRoot: wsPath,
 			});
+			const cookieJar = isCookieJarEnabled(httpDefaults)
+				? new CookieJar()
+				: undefined;
 			const executeSubflow =
 				ws === null
 					? undefined
@@ -182,6 +191,7 @@ program
 								secrets,
 								httpDefaults,
 								fetch: fetchImpl,
+								cookieJar,
 							},
 							validated.data.id,
 						);
@@ -203,6 +213,7 @@ program
 					secrets,
 					httpDefaults,
 					fetch: fetchImpl,
+					cookieJar,
 					executeSubflow,
 				},
 				runLogger,
@@ -247,7 +258,11 @@ program
 			const suite = await loadSuite(wsPath, suiteArg);
 			const envName = suite.env;
 			const envVars = ws.environments[envName]?.variables ?? {};
-			const secrets = await loadSecrets(wsPath, envName);
+			const secrets = await loadSecrets(
+				wsPath,
+				envName,
+				ws.manifest.environmentsDir,
+			);
 
 			const flowReports: RunReport[] = [];
 			let failed = 0;
@@ -290,6 +305,9 @@ program
 					httpDefaults,
 					workspaceRoot: wsPath,
 				});
+				const cookieJar = isCookieJarEnabled(httpDefaults)
+					? new CookieJar()
+					: undefined;
 				const executeSubflow = createExecuteSubflow(
 					{ getFlow: (id) => ws.flows[id] },
 					{
@@ -297,6 +315,7 @@ program
 						secrets,
 						httpDefaults,
 						fetch: fetchImpl,
+						cookieJar,
 					},
 					validated.data.id,
 				);
@@ -316,6 +335,7 @@ program
 						secrets,
 						httpDefaults,
 						fetch: fetchImpl,
+						cookieJar,
 						executeSubflow,
 					},
 					runLogger,

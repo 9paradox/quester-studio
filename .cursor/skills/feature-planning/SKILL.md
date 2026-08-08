@@ -48,10 +48,14 @@ PR must include:
 
 | Milestone | Focus |
 |-----------|-------|
-| v0.2.0 | Desktop MVP |
-| v0.3.0 | Builder UX |
-| v0.4.0 | Platform closeout + public preview (`quester init`, smoke tests, first release) |
-| v0.5.0 | Flow nodes — `note`, `delay`, `switch` |
-| v0.6.0 | Control & composition — `foreach`, `try`/`catch`, `subflow` |
-| v0.7.0 | Runs & observability — history/replay, `log`/`inspect` |
-| v1.0.0 | Stable — format freeze, polished desktop |
+| v0.6.0 | **Shipped** |
+| v0.6.x | **Current** — priority polish (see ROADMAP.md); no version jumps |
+| v0.9+ | Only when desktop → web → docs are properly polished |
+
+Work from ROADMAP priority todos and **one plan file at a time** in [.cursor/plans/](../../.cursor/plans/README.md). Prefer patch releases on the current minor line.
+
+Before coding a slice: open the matching `NN-*.md` plan, confirm dependencies, then branch.
+
+## After a plan completes
+
+When automated work for a plan is done (lint/tests green, ROADMAP/BUGS updated as needed), **ask the user to manually test** the concrete X / Y / Z items in that plan’s **After complete — ask user to confirm** section. Do not treat the plan as fully closed until they confirm or explicitly skip.

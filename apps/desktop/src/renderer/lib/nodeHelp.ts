@@ -199,7 +199,7 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 	},
 	template: {
 		summary:
-			"Renders a string template. The resolved string is the node output (parsed as JSON when valid).",
+			"Renders a string template. Default mode eta runs Eta JS in-process after {{…}} resolution. mode safe is interpolation only.",
 		fields: [
 			{
 				name: "label",
@@ -207,9 +207,16 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 				description: "Optional UI label",
 			},
 			{
+				name: "mode",
+				type: '"eta" | "safe"',
+				description:
+					"eta (default): Eta tags allowed (in-process JS). safe: {{…}} only; Eta tags error.",
+			},
+			{
 				name: "template",
 				type: "string",
-				description: "Template string with {{…}} placeholders",
+				description:
+					"Template string with {{…}} placeholders (and Eta when mode is eta)",
 			},
 		],
 		syntax: [
@@ -217,9 +224,12 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 			"{{nodes.login.body.token}}",
 			"{{env.API_BASE}}",
 			"{{vars.retryCount}}",
+			'mode "eta": <%= it.input.username %> (in-process JS — not sandboxed)',
+			'mode "safe": rejects <% %> / <%= %>',
 		],
 		example: {
 			label: "Greeting",
+			mode: "safe",
 			template: "Hello {{input.username}}",
 		},
 		io: {
@@ -479,7 +489,7 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 	},
 	try: {
 		summary:
-			"Soft-fail guard like assert but branches instead of throwing. Connect edges with sourceHandle ok or catch.",
+			"Soft-check branch on condition/checks only — not exception handling. Thrown errors (HTTP/assert) still abort the run. Connect edges with sourceHandle ok or catch.",
 		fields: [
 			{ name: "label", type: "string", description: "Optional UI label" },
 			{
@@ -495,7 +505,7 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 		],
 		syntax: [
 			'Edge sourceHandle must be "ok" or "catch"',
-			"Does not catch upstream node failures yet — checks/condition only",
+			"Does not catch thrown errors from upstream nodes — soft checks/condition only",
 		],
 		example: {
 			label: "2xx?",

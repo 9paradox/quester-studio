@@ -1,5 +1,5 @@
 ﻿import { z } from "zod";
-import { FLOW_VERSION } from "./common.js";
+import { FLOW_VERSION, workspaceFileIdSchema } from "./common.js";
 import { assertNodeDataSchema } from "./nodes/assert.js";
 import { delayNodeDataSchema } from "./nodes/delay.js";
 import { extractNodeDataSchema } from "./nodes/extract.js";
@@ -97,7 +97,7 @@ export const flowEdgeSchemaV1 = z.object({
 });
 
 export const flowSchemaV1 = z.object({
-	id: z.string().min(1),
+	id: workspaceFileIdSchema,
 	version: z.literal(FLOW_VERSION),
 	name: z.string().optional(),
 	description: z.string().optional(),

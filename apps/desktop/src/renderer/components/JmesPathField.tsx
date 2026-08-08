@@ -101,7 +101,8 @@ export function JmesPathField({
 						</DialogHeader>
 						{paths.length === 0 ? (
 							<p className="text-xs text-muted-foreground">
-								No paths yet. Run the flow or wire a predecessor node.
+								No paths yet. Run the flow so the previous node leaves an object
+								output (not only a string), then open Pick path again.
 							</p>
 						) : (
 							<ScrollArea className="max-h-64">

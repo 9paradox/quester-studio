@@ -103,4 +103,53 @@ describe("createExecuteSubflow", () => {
 		);
 		await expect(executeSubflow("f1", {})).rejects.toThrow("max depth");
 	});
+
+	test("shares cookieJar with nested executeFlow", async () => {
+		const { CookieJar } = await import("@quester-studio/nodes");
+		const jar = new CookieJar();
+		jar.storeFromSetCookie("https://api.example.com/", [
+			"session=from-parent; Path=/",
+		]);
+
+		const childWithHttp: FlowV1 = {
+			id: "child-http",
+			version: "v1",
+			nodes: [
+				{ id: "start", type: "start", data: {} },
+				{ id: "in", type: "input", data: {} },
+				{
+					id: "http",
+					type: "http",
+					data: { method: "GET", url: "https://api.example.com/me" },
+				},
+				{ id: "out", type: "output", data: {} },
+			],
+			edges: [
+				{ id: "e0", source: "start", target: "in" },
+				{ id: "e1", source: "in", target: "http" },
+				{ id: "e2", source: "http", target: "out" },
+			],
+		};
+
+		let seenCookie: string | undefined;
+		const fetchMock = mock(
+			async (_url: RequestInfo | URL, init?: RequestInit) => {
+				const headers = init?.headers as Record<string, string>;
+				seenCookie = headers?.Cookie;
+				return new Response("{}", { status: 200 });
+			},
+		) as unknown as typeof fetch;
+
+		const executeSubflow = createExecuteSubflow(
+			{ getFlow: (id) => (id === "child-http" ? childWithHttp : undefined) },
+			{
+				env: {},
+				fetch: fetchMock,
+				cookieJar: jar,
+			},
+			"parent",
+		);
+		await executeSubflow("child-http", {});
+		expect(seenCookie).toBe("session=from-parent");
+	});
 });

@@ -19,6 +19,7 @@ import {
 	isValidFlowConnection,
 	reactFlowToFlow,
 } from "@/lib/flowEditor.js";
+import { isTypingFocus } from "@/lib/typingFocus.js";
 import type { BuiltinNodeType, FlowV1 } from "@quester-studio/schema";
 import { IconFocusCentered, IconMinus, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -218,6 +219,19 @@ function FlowCanvasInner({
 }) {
 	const { zoomIn, zoomOut, fitView, getZoom, screenToFlowPosition } =
 		useReactFlow();
+	const [typingInUi, setTypingInUi] = useState(() =>
+		isTypingFocus(document.activeElement),
+	);
+
+	useEffect(() => {
+		const sync = () => setTypingInUi(isTypingFocus(document.activeElement));
+		document.addEventListener("focusin", sync);
+		document.addEventListener("focusout", sync);
+		return () => {
+			document.removeEventListener("focusin", sync);
+			document.removeEventListener("focusout", sync);
+		};
+	}, []);
 	const [nodes, setNodes] = useState<Node[]>(() => flowToReactFlow(flow).nodes);
 	const [edges, setEdges] = useState<Edge[]>(() => flowToReactFlow(flow).edges);
 	const [contextTarget, setContextTarget] = useState<ContextTarget>({
@@ -478,7 +492,7 @@ function FlowCanvasInner({
 					elementsSelectable
 					edgesUpdatable
 					edgesFocusable
-					deleteKeyCode={["Backspace", "Delete"]}
+					deleteKeyCode={typingInUi ? null : (["Backspace", "Delete"] as const)}
 					defaultEdgeOptions={{
 						interactionWidth: EDGE_INTERACTION_WIDTH,
 						reconnectable: true,

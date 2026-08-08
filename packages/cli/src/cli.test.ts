@@ -213,6 +213,95 @@ describe("quester cli", () => {
 			await rm(dir, { recursive: true, force: true });
 		}
 	});
+
+	test("run loads secrets from manifest environmentsDir", async () => {
+		const dir = await mkdtemp(join(tmpdir(), "quester-envs-dir-cli-"));
+		try {
+			await runCli(["init", dir, "--name", "envs-dir"]);
+			const manifest = JSON.parse(
+				await Bun.file(join(dir, "quester.json")).text(),
+			) as Record<string, unknown>;
+			manifest.environmentsDir = "envs";
+			await Bun.write(
+				join(dir, "quester.json"),
+				`${JSON.stringify(manifest, null, 2)}\n`,
+			);
+			await Bun.write(
+				join(dir, "envs/local.json"),
+				JSON.stringify(
+					{ name: "local", version: "v1", variables: {} },
+					null,
+					2,
+				),
+			);
+			await Bun.write(
+				join(dir, "envs/local.secrets.json"),
+				JSON.stringify(
+					{ version: "v1", secrets: { TOKEN: "secret-from-envs" } },
+					null,
+					2,
+				),
+			);
+			await Bun.write(
+				join(dir, "flows/secret-echo.flow.json"),
+				JSON.stringify(
+					{
+						id: "secret-echo",
+						version: "v1",
+						name: "Secret echo",
+						nodes: [
+							{
+								id: "start",
+								type: "start",
+								data: {},
+								position: { x: 0, y: 0 },
+							},
+							{
+								id: "input",
+								type: "input",
+								data: {},
+								position: { x: 100, y: 0 },
+							},
+							{
+								id: "set",
+								type: "set",
+								data: { variables: { token: "{{secrets.TOKEN}}" } },
+								position: { x: 200, y: 0 },
+							},
+							{
+								id: "out",
+								type: "output",
+								data: { map: { token: "{{vars.token}}" } },
+								position: { x: 300, y: 0 },
+							},
+						],
+						edges: [
+							{
+								id: "e0",
+								source: "start",
+								target: "input",
+								sourceHandle: null,
+							},
+							{ id: "e1", source: "input", target: "set", sourceHandle: null },
+							{ id: "e2", source: "set", target: "out", sourceHandle: null },
+						],
+					},
+					null,
+					2,
+				),
+			);
+			const { stdout, exitCode } = await runCli([
+				"run",
+				"secret-echo",
+				"--workspace",
+				dir,
+			]);
+			expect(exitCode).toBe(0);
+			expect(stdout).toContain("secret-from-envs");
+		} finally {
+			await rm(dir, { recursive: true, force: true });
+		}
+	});
 });
 
 describe("initWorkspace", () => {

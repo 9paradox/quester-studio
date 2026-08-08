@@ -7,7 +7,7 @@ description: Download the desktop app or CLI and smoke-test a workspace
 
 Also see [Download](../../download/), [Guide](../../guide/), and [UI reference](../ui/).
 
-> **Status:** Public preview **[v0.6.0](https://github.com/9paradox/quester-studio/releases/tag/v0.6.0)** — unsigned Windows/Linux/macOS desktop on GitHub Releases, and `@quester-studio/*` on npm. Prefer verifying published checksums when available.
+> **Status:** Public preview **[v0.6.0](https://github.com/9paradox/quester-studio/releases/tag/v0.6.0)** — unsigned Windows/Linux/macOS desktop on GitHub Releases, and `@quester-studio/*` on npm. Verify checksum files when the release attaches them; not every release publishes checksums.
 
 ## Desktop (preview)
 
@@ -34,12 +34,20 @@ Also see [Download](../../download/), [Guide](../../guide/), and [UI reference](
 
 ## CLI
 
+After cloning the [sample workspace](https://github.com/9paradox/quester-studio/tree/main/examples/sample-workspace) (or using **Open sample** in the desktop app):
+
 ```bash
-bunx @quester-studio/cli validate ./my-workspace
-bunx @quester-studio/cli run ./my-workspace/flows/example.flow.json \
-  --workspace ./my-workspace \
+bunx @quester-studio/cli validate ./examples/sample-workspace
+bunx @quester-studio/cli run ./examples/sample-workspace/flows/login-and-profile.flow.json \
+  --workspace ./examples/sample-workspace \
   --env local \
-  --input '{}'
+  --input '{"username":"emilys","password":"emilyspass"}'
+```
+
+Import a Postman collection into a workspace:
+
+```bash
+bunx @quester-studio/cli import-collection ./collection.json --workspace ./my-workspace
 ```
 
 Or clone the repo and follow [Getting started](../getting-started/).

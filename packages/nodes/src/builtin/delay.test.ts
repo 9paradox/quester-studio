@@ -36,4 +36,30 @@ describe("delay plugin", () => {
 		);
 		expect(result.output).toEqual(input);
 	});
+
+	test("aborts mid-delay when signal aborts", async () => {
+		const ac = new AbortController();
+		const pending = delayPlugin.execute(
+			ctx({
+				signal: ac.signal,
+				node: { id: "d1", type: "delay", data: { ms: 60_000 } },
+			}),
+		);
+		await Bun.sleep(20);
+		ac.abort();
+		await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+	});
+
+	test("rejects when signal already aborted", async () => {
+		const ac = new AbortController();
+		ac.abort();
+		await expect(
+			delayPlugin.execute(
+				ctx({
+					signal: ac.signal,
+					node: { id: "d1", type: "delay", data: { ms: 1000 } },
+				}),
+			),
+		).rejects.toMatchObject({ name: "AbortError" });
+	});
 });

@@ -52,11 +52,13 @@ export type CollectJsonPathsOptions = {
 /**
  * Walk a JSON value and collect relative paths to every object key / array index.
  * Root primitives yield `[]`. Caps depth and total paths for performance.
+ * JSON object/array encoded as a string (common template output) is parsed first.
  */
 export function collectJsonPaths(
 	value: unknown,
 	opts: CollectJsonPathsOptions = {},
 ): string[] {
+	const root = coerceJsonContainer(value);
 	const maxDepth = opts.maxDepth ?? PATH_SHAPE_MAX_DEPTH;
 	const maxPaths = opts.maxPaths ?? PATH_SHAPE_MAX_PATHS_PER_SOURCE;
 	const maxStringLeafLength = opts.maxStringLeafLength ?? 10_000;
@@ -109,8 +111,20 @@ export function collectJsonPaths(
 		}
 	};
 
-	walk(value, [], 0);
+	walk(root, [], 0);
 	return paths;
+}
+
+/** Parse a string root when it is a JSON object or array (template/http text). */
+function coerceJsonContainer(value: unknown): unknown {
+	if (typeof value !== "string") return value;
+	const trimmed = value.trim();
+	if (!trimmed || (trimmed[0] !== "{" && trimmed[0] !== "[")) return value;
+	try {
+		return JSON.parse(trimmed) as unknown;
+	} catch {
+		return value;
+	}
 }
 
 /** Merge paths for a source key; bump lastSeen; LRU-trim global entry count. */
