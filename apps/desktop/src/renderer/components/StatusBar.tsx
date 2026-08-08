@@ -4,9 +4,36 @@ import {
 	selectActiveFlowRun,
 	selectActiveFlowTab,
 	selectAnyDirty,
+	selectRunningFlowCount,
+	selectSendingRequestCount,
 	selectStatusLabel,
 } from "@/stores/selectors.js";
 import { IconLoader2, IconPlayerStop } from "@tabler/icons-react";
+
+function formatActivityLabel(
+	runningFlows: number,
+	sendingRequests: number,
+): string | null {
+	const parts: string[] = [];
+	if (runningFlows > 0) {
+		parts.push(runningFlows === 1 ? "1 flow" : `${runningFlows} flows`);
+	}
+	if (sendingRequests > 0) {
+		parts.push(
+			sendingRequests === 1 ? "1 request" : `${sendingRequests} requests`,
+		);
+	}
+	if (parts.length === 0) return null;
+	if (runningFlows > 0 && sendingRequests === 0) {
+		return runningFlows === 1 ? "Running…" : `Running ${runningFlows} flows…`;
+	}
+	if (sendingRequests > 0 && runningFlows === 0) {
+		return sendingRequests === 1
+			? "Sending…"
+			: `Sending ${sendingRequests} requests…`;
+	}
+	return `Running ${parts.join(" · ")}…`;
+}
 
 export function StatusBar() {
 	const workspaceName = useQuesterStore((s) => s.workspaceName);
@@ -14,7 +41,11 @@ export function StatusBar() {
 	const env = useQuesterStore((s) => s.selectedEnv);
 	const activeFlowTab = useQuesterStore(selectActiveFlowTab);
 	const openTabCount = useQuesterStore((s) => s.openTabs.length);
-	const isRunning = useQuesterStore((s) => selectActiveFlowRun(s).isRunning);
+	const activeFlowRunning = useQuesterStore(
+		(s) => selectActiveFlowRun(s).isRunning,
+	);
+	const runningFlows = useQuesterStore(selectRunningFlowCount);
+	const sendingRequests = useQuesterStore(selectSendingRequestCount);
 	const stopFlow = useQuesterStore((s) => s.stopFlow);
 	const pathIndexStatus = useQuesterStore((s) => s.pathIndexStatus);
 	const zoom = useQuesterStore((s) => s.zoom);
@@ -22,6 +53,7 @@ export function StatusBar() {
 
 	const nodeCount = activeFlowTab?.flow.nodes.length ?? 0;
 	const edgeCount = activeFlowTab?.flow.edges.length ?? 0;
+	const activityLabel = formatActivityLabel(runningFlows, sendingRequests);
 
 	return (
 		<footer className="flex h-6 shrink-0 items-center justify-between border-t bg-muted/30 px-2 text-[11px] text-muted-foreground">
@@ -35,20 +67,22 @@ export function StatusBar() {
 				</span>
 				<span className="text-border">|</span>
 				<span>{env}</span>
-				{isRunning ? (
+				{activityLabel ? (
 					<>
 						<span className="text-border">|</span>
-						<span className="text-primary">Running…</span>
-						<Button
-							type="button"
-							variant="ghost"
-							size="sm"
-							className="h-5 px-1.5 text-[11px] text-destructive hover:text-destructive"
-							onClick={stopFlow}
-						>
-							<IconPlayerStop className="size-3" data-icon="inline-start" />
-							Stop
-						</Button>
+						<span className="text-primary">{activityLabel}</span>
+						{activeFlowRunning ? (
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="h-5 px-1.5 text-[11px] text-destructive hover:text-destructive"
+								onClick={stopFlow}
+							>
+								<IconPlayerStop className="size-3" data-icon="inline-start" />
+								Stop
+							</Button>
+						) : null}
 					</>
 				) : null}
 				{pathIndexStatus === "updating" ? (

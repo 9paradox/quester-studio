@@ -101,6 +101,14 @@ export type FlowRunState = {
 	nodeStatuses: Record<string, NodeRunStatus>;
 };
 
+/** Per-collection-request send slot (result panel / Send spinner). */
+export type RequestSendState = {
+	result: ExecuteRequestRpcResult | null;
+	error: string | null;
+	isSending: boolean;
+	sendId: string | null;
+};
+
 export function emptyFlowRunState(): FlowRunState {
 	return {
 		runResult: null,
@@ -111,8 +119,18 @@ export function emptyFlowRunState(): FlowRunState {
 	};
 }
 
+export function emptyRequestSendState(): RequestSendState {
+	return {
+		result: null,
+		error: null,
+		isSending: false,
+		sendId: null,
+	};
+}
+
 /** Stable reference for selectors when no run slot exists (avoids zustand rerender loops). */
 export const STABLE_EMPTY_FLOW_RUN = emptyFlowRunState();
+export const STABLE_EMPTY_REQUEST_SEND = emptyRequestSendState();
 
 export function patchFlowRun(
 	runByFlowId: Record<string, FlowRunState>,
@@ -121,6 +139,15 @@ export function patchFlowRun(
 ): Record<string, FlowRunState> {
 	const prev = runByFlowId[flowId] ?? emptyFlowRunState();
 	return { ...runByFlowId, [flowId]: { ...prev, ...patch } };
+}
+
+export function patchRequestSend(
+	requestByPath: Record<string, RequestSendState>,
+	requestPath: string,
+	patch: Partial<RequestSendState>,
+): Record<string, RequestSendState> {
+	const prev = requestByPath[requestPath] ?? emptyRequestSendState();
+	return { ...requestByPath, [requestPath]: { ...prev, ...patch } };
 }
 
 function cancelInFlightRuns(runByFlowId: Record<string, FlowRunState>): void {
@@ -289,9 +316,8 @@ export type QuesterState = {
 	playgroundOpen: boolean;
 	/** Run state keyed by flow id (active flow drives Response/Logs UI). */
 	runByFlowId: Record<string, FlowRunState>;
-	requestResult: ExecuteRequestRpcResult | null;
-	requestError: string | null;
-	isSendingRequest: boolean;
+	/** Send state keyed by collection request path (per-tab isolation). */
+	requestByPath: Record<string, RequestSendState>;
 	consoleLines: string[];
 
 	setActiveTabId: (tabId: string | null) => void;
@@ -430,9 +456,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	inputError: null,
 	playgroundOpen: false,
 	runByFlowId: {},
-	requestResult: null,
-	requestError: null,
-	isSendingRequest: false,
+	requestByPath: {},
 	consoleLines: ["> Quester ready"],
 
 	setActiveTabId: (tabId) =>
@@ -441,6 +465,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			const tab = s.openTabs.find((t) => t.id === tabId);
 			return {
 				activeTabId: tabId,
+				selectedNodeId: null,
 				canvasDirty: Boolean(tab?.kind === "flow" && tab.dirty),
 				...(tab?.kind === "flow" ? { inputJson: tab.inputJson } : {}),
 			};
@@ -752,8 +777,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (existing) {
 			set({
 				activeTabId: tabId,
-				requestResult: null,
-				requestError: null,
+				selectedNodeId: null,
 			});
 			return;
 		}
@@ -762,7 +786,6 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			requestPath,
 		);
 		get().openTab(createRequestEditorTab(requestPath, request));
-		set({ requestResult: null, requestError: null });
 	},
 
 	loadWorkspace: async (path) => {
@@ -773,8 +796,10 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			isLoading: true,
 			loadError: null,
 			runByFlowId: {},
+			requestByPath: {},
 			openTabs: [],
 			activeTabId: null,
+			selectedNodeId: null,
 			canvasDirty: false,
 			pathShapeIndex: emptyPathShapeIndex(),
 			pathIndexStatus: "idle",
@@ -837,10 +862,9 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			pathShapeIndex: emptyPathShapeIndex(),
 			pathIndexStatus: "idle",
 			runByFlowId: {},
+			requestByPath: {},
 			loadError: null,
 			isLoading: false,
-			requestResult: null,
-			requestError: null,
 		});
 	},
 
@@ -1099,12 +1123,21 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const nextActiveId =
 			activeTabId === tabId ? (remaining[0]?.id ?? null) : activeTabId;
 		const nextActive = remaining.find((t) => t.id === nextActiveId);
-		set({
-			openTabs: remaining,
-			activeTabId: nextActiveId,
-			...(nextActive?.kind === "flow"
-				? { inputJson: nextActive.inputJson }
-				: {}),
+		set((s) => {
+			let requestByPath = s.requestByPath;
+			if (tab?.kind === "request") {
+				const { [tab.requestPath]: _dropped, ...rest } = s.requestByPath;
+				requestByPath = rest;
+			}
+			return {
+				openTabs: remaining,
+				activeTabId: nextActiveId,
+				selectedNodeId: activeTabId === tabId ? null : s.selectedNodeId,
+				requestByPath,
+				...(nextActive?.kind === "flow"
+					? { inputJson: nextActive.inputJson }
+					: {}),
+			};
 		});
 	},
 
@@ -1820,28 +1853,40 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const tab = openTabs.find((t) => t.id === activeTabId);
 		if (!tab || tab.kind !== "request" || !workspacePath) return;
 
+		const requestPath = tab.requestPath;
+		if (get().requestByPath[requestPath]?.isSending) return;
+
 		if (tab.dirty) {
 			await saveActiveTab(tab.id);
 		}
 
-		set({
-			isSendingRequest: true,
-			requestError: null,
-			requestResult: null,
-		});
-		appendConsole(`Send request: ${tab.requestPath}`);
+		const sendId = crypto.randomUUID();
+		set((s) => ({
+			requestByPath: patchRequestSend(s.requestByPath, requestPath, {
+				isSending: true,
+				error: null,
+				result: null,
+				sendId,
+			}),
+		}));
+		appendConsole(`Send request: ${requestPath}`);
 
 		try {
 			const result = await getQuesterClient().executeRequestRpc({
-				requestPath: tab.requestPath,
+				requestPath,
 				workspace: workspacePath,
 				env: selectedEnv,
 			});
-			set({
-				requestResult: result,
-				requestError: result.error ?? null,
-			});
-			scheduleIndexCollectionResponse(tab.requestPath, result.httpOutput);
+			const slot = get().requestByPath[requestPath] ?? emptyRequestSendState();
+			if (slot.sendId !== sendId) return;
+
+			set((s) => ({
+				requestByPath: patchRequestSend(s.requestByPath, requestPath, {
+					result,
+					error: result.error ?? null,
+				}),
+			}));
+			scheduleIndexCollectionResponse(requestPath, result.httpOutput);
 			if (result.error) {
 				appendConsole(`Request failed: ${result.error}`);
 			} else {
@@ -1850,10 +1895,25 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		} catch (err) {
 			const message =
 				err instanceof Error ? err.message : "Request execution failed";
-			set({ requestError: message });
+			const slot = get().requestByPath[requestPath] ?? emptyRequestSendState();
+			if (slot.sendId === sendId) {
+				set((s) => ({
+					requestByPath: patchRequestSend(s.requestByPath, requestPath, {
+						error: message,
+					}),
+				}));
+			}
 			appendConsole(message);
 		} finally {
-			set({ isSendingRequest: false });
+			set((s) => {
+				const slot = s.requestByPath[requestPath];
+				if (!slot || slot.sendId !== sendId) return s;
+				return {
+					requestByPath: patchRequestSend(s.requestByPath, requestPath, {
+						isSending: false,
+					}),
+				};
+			});
 		}
 	},
 }));

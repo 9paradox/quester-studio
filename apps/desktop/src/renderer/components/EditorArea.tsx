@@ -2,10 +2,12 @@ import type { EditorTab } from "@/lib/editorTabs.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	selectActiveFlowRun,
+	selectActiveRequestSend,
 	selectActiveTab,
 	selectCanRun,
 } from "@/stores/selectors.js";
 import type { FlowV1 } from "@quester-studio/schema";
+import { useShallow } from "zustand/react/shallow";
 import { AppPreferencesEditor } from "./AppPreferencesEditor.js";
 import { CanvasControls } from "./CanvasControls.js";
 import { FlowCanvas } from "./FlowCanvas.js";
@@ -36,9 +38,11 @@ export function EditorArea() {
 	const handleDropRequest = useQuesterStore((s) => s.handleDropRequest);
 	const handleRequestChange = useQuesterStore((s) => s.handleRequestChange);
 	const sendRequest = useQuesterStore((s) => s.sendRequest);
-	const requestResult = useQuesterStore((s) => s.requestResult);
-	const requestError = useQuesterStore((s) => s.requestError);
-	const isSendingRequest = useQuesterStore((s) => s.isSendingRequest);
+	const {
+		result: requestResult,
+		error: requestError,
+		isSending: isSendingRequest,
+	} = useQuesterStore(useShallow(selectActiveRequestSend));
 	const deleteNodes = useQuesterStore((s) => s.deleteNodes);
 	const deleteEdges = useQuesterStore((s) => s.deleteEdges);
 	const duplicateNode = useQuesterStore((s) => s.duplicateNode);

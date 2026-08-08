@@ -20,7 +20,9 @@ import type { NodeRunStatus } from "../../shared/rpc.js";
 import {
 	type FlowRunState,
 	type QuesterState,
+	type RequestSendState,
 	STABLE_EMPTY_FLOW_RUN,
+	STABLE_EMPTY_REQUEST_SEND,
 } from "./quester-store.js";
 
 function keysFromRows(rows: KeyValueRow[]): string[] {
@@ -36,6 +38,11 @@ export function selectActiveFlowTab(state: QuesterState) {
 	return tab?.kind === "flow" ? tab : null;
 }
 
+export function selectActiveRequestTab(state: QuesterState) {
+	const tab = selectActiveTab(state);
+	return tab?.kind === "request" ? tab : null;
+}
+
 export function selectFlowRun(
 	state: QuesterState,
 	flowId: string | null | undefined,
@@ -46,6 +53,47 @@ export function selectFlowRun(
 
 export function selectActiveFlowRun(state: QuesterState): FlowRunState {
 	return selectFlowRun(state, selectActiveFlowTab(state)?.flowId);
+}
+
+export function selectRequestSend(
+	state: QuesterState,
+	requestPath: string | null | undefined,
+): RequestSendState {
+	if (!requestPath) return STABLE_EMPTY_REQUEST_SEND;
+	return state.requestByPath[requestPath] ?? STABLE_EMPTY_REQUEST_SEND;
+}
+
+export function selectActiveRequestSend(state: QuesterState): RequestSendState {
+	return selectRequestSend(state, selectActiveRequestTab(state)?.requestPath);
+}
+
+/** Count of flows currently running (status bar). */
+export function selectRunningFlowCount(state: QuesterState): number {
+	let runningFlows = 0;
+	for (const slot of Object.values(state.runByFlowId)) {
+		if (slot.isRunning) runningFlows += 1;
+	}
+	return runningFlows;
+}
+
+/** Count of collection requests currently sending (status bar). */
+export function selectSendingRequestCount(state: QuesterState): number {
+	let sendingRequests = 0;
+	for (const slot of Object.values(state.requestByPath)) {
+		if (slot.isSending) sendingRequests += 1;
+	}
+	return sendingRequests;
+}
+
+/** Counts of in-flight work across all tabs (tests / non-hook use). */
+export function selectInFlightActivity(state: QuesterState): {
+	runningFlows: number;
+	sendingRequests: number;
+} {
+	return {
+		runningFlows: selectRunningFlowCount(state),
+		sendingRequests: selectSendingRequestCount(state),
+	};
 }
 
 export function selectDirtyTabIds(state: QuesterState): string[] {

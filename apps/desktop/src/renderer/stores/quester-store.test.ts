@@ -2,25 +2,37 @@ import { beforeAll, describe, expect, mock, test } from "bun:test";
 import {
 	createEnvEditorTab,
 	createFlowEditorTab,
+	createRequestEditorTab,
 	createSecretsEditorTab,
 	flowTabId,
+	requestTabId,
 } from "@/lib/editorTabs.js";
-import type { EnvironmentV1, FlowV1, SecretsV1 } from "@quester-studio/schema";
+import { getQuesterClient } from "@/lib/quester-client.js";
+import type {
+	EnvironmentV1,
+	FlowV1,
+	RequestV1,
+	SecretsV1,
+} from "@quester-studio/schema";
 import type { useQuesterStore as UseQuesterStore } from "./quester-store.js";
-import { emptyFlowRunState } from "./quester-store.js";
+import { emptyFlowRunState, emptyRequestSendState } from "./quester-store.js";
 import {
 	selectActiveFlowTab,
 	selectActiveTab,
 	selectAnyDirty,
 	selectCanRun,
 	selectDirtyTabIds,
+	selectInFlightActivity,
 	selectNodeRunStatus,
+	selectRequestSend,
 } from "./selectors.js";
 import { slugifyName } from "./slugify.js";
 
 mock.module("@/lib/quester-client.js", () => {
 	let cancelRunId: string | null = null;
 	const cancelledRunIds: string[] = [];
+	/** Per-path delay overrides for overlapping sendRequest tests (ms). */
+	const requestDelaysMs: Record<string, number> = {};
 	return {
 		getQuesterClient: () => ({
 			executeFlowRpc: async ({ runId }: { runId: string }) => {
@@ -83,6 +95,19 @@ mock.module("@/lib/quester-client.js", () => {
 				cancelledRunIds.push(runId);
 				return { ok: true };
 			},
+			executeRequestRpc: async ({ requestPath }: { requestPath: string }) => {
+				const delay = requestDelaysMs[requestPath] ?? 20;
+				await new Promise((resolve) => setTimeout(resolve, delay));
+				return {
+					output: { path: requestPath },
+					nodeOutputs: {},
+					nodeInputs: {},
+					steps: [],
+					vars: {},
+					logs: [],
+					httpOutput: { status: 200, body: { path: requestPath } },
+				};
+			},
 			loadEnvironment: async () => ({
 				name: "local",
 				version: "v1",
@@ -93,6 +118,7 @@ mock.module("@/lib/quester-client.js", () => {
 			writePathShapes: async () => ({ ok: true }),
 			onNodeRunStatus: () => () => {},
 			__cancelledRunIds: cancelledRunIds,
+			__requestDelaysMs: requestDelaysMs,
 		}),
 		setQuesterClient: () => {},
 		resetQuesterClientForTests: () => {},
@@ -138,6 +164,7 @@ function resetStore() {
 		selectedNodeId: null,
 		canvasDirty: false,
 		runByFlowId: {},
+		requestByPath: {},
 	});
 }
 
@@ -975,5 +1002,139 @@ describe("selectors", () => {
 		expect(tab.snapshot).toEqual(snapshot);
 		expect(tab.dirty).toBe(false);
 		expect(state.openTabs.some((t) => t.kind === "response")).toBe(true);
+	});
+
+	test("setActiveTabId clears selectedNodeId when switching flows", () => {
+		resetStore();
+		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
+		const tabB = createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" });
+		useQuesterStore.setState({
+			openTabs: [tabA, tabB],
+			activeTabId: tabA.id,
+			selectedNodeId: "http",
+		});
+		useQuesterStore.getState().setActiveTabId(tabB.id);
+		expect(useQuesterStore.getState().selectedNodeId).toBeNull();
+		expect(useQuesterStore.getState().activeTabId).toBe(tabB.id);
+	});
+
+	test("overlapping sendRequest keeps per-path results and spinners", async () => {
+		resetStore();
+		const delays = (
+			getQuesterClient() as {
+				__requestDelaysMs: Record<string, number>;
+			}
+		).__requestDelaysMs;
+		delays["collections/demo/c.json"] = 40;
+		delays["collections/demo/d.json"] = 120;
+
+		const reqC: RequestV1 = {
+			version: "v1",
+			id: "c",
+			name: "C",
+			method: "GET",
+			url: "https://example.com/c",
+		};
+		const reqD: RequestV1 = {
+			version: "v1",
+			id: "d",
+			name: "D",
+			method: "GET",
+			url: "https://example.com/d",
+		};
+		const tabC = createRequestEditorTab("collections/demo/c.json", reqC);
+		const tabD = createRequestEditorTab("collections/demo/d.json", reqD);
+		useQuesterStore.setState({
+			workspacePath: "/tmp/ws",
+			openTabs: [tabC, tabD],
+			activeTabId: tabC.id,
+			requestByPath: {},
+		});
+
+		const pC = useQuesterStore.getState().sendRequest();
+		useQuesterStore.getState().setActiveTabId(tabD.id);
+		const pD = useQuesterStore.getState().sendRequest();
+
+		await new Promise((r) => setTimeout(r, 70));
+		const mid = useQuesterStore.getState();
+		expect(selectRequestSend(mid, tabC.requestPath).isSending).toBe(false);
+		expect(selectRequestSend(mid, tabC.requestPath).result?.httpOutput).toEqual(
+			{ status: 200, body: { path: tabC.requestPath } },
+		);
+		expect(selectRequestSend(mid, tabD.requestPath).isSending).toBe(true);
+		expect(selectRequestSend(mid, tabD.requestPath).result).toBeNull();
+		expect(selectInFlightActivity(mid)).toEqual({
+			runningFlows: 0,
+			sendingRequests: 1,
+		});
+
+		await Promise.all([pC, pD]);
+		const done = useQuesterStore.getState();
+		expect(selectRequestSend(done, tabC.requestPath).isSending).toBe(false);
+		expect(selectRequestSend(done, tabD.requestPath).isSending).toBe(false);
+		expect(
+			selectRequestSend(done, tabC.requestPath).result?.httpOutput,
+		).toEqual({ status: 200, body: { path: tabC.requestPath } });
+		expect(
+			selectRequestSend(done, tabD.requestPath).result?.httpOutput,
+		).toEqual({ status: 200, body: { path: tabD.requestPath } });
+		expect(selectInFlightActivity(done)).toEqual({
+			runningFlows: 0,
+			sendingRequests: 0,
+		});
+
+		delays["collections/demo/c.json"] = 20;
+		delays["collections/demo/d.json"] = 20;
+	});
+
+	test("closeTab drops request send slot for that path", () => {
+		resetStore();
+		const req: RequestV1 = {
+			version: "v1",
+			id: "c",
+			name: "C",
+			method: "GET",
+			url: "https://example.com/c",
+		};
+		const tab = createRequestEditorTab("collections/demo/c.json", req);
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			requestByPath: {
+				[tab.requestPath]: {
+					...emptyRequestSendState(),
+					result: {
+						output: {},
+						nodeOutputs: {},
+						nodeInputs: {},
+						steps: [],
+						vars: {},
+						logs: [],
+						httpOutput: { status: 200 },
+					},
+				},
+			},
+		});
+		useQuesterStore.getState().closeTab(requestTabId(tab.requestPath));
+		expect(useQuesterStore.getState().requestByPath).toEqual({});
+	});
+
+	test("selectInFlightActivity counts running flows and sending requests", () => {
+		resetStore();
+		useQuesterStore.setState({
+			runByFlowId: {
+				a: { ...emptyFlowRunState(), isRunning: true, activeRunId: "1" },
+				b: { ...emptyFlowRunState(), isRunning: true, activeRunId: "2" },
+				c: emptyFlowRunState(),
+			},
+			requestByPath: {
+				"x.json": { ...emptyRequestSendState(), isSending: true, sendId: "s" },
+				"y.json": emptyRequestSendState(),
+			},
+		});
+		expect(selectInFlightActivity(useQuesterStore.getState())).toEqual({
+			runningFlows: 2,
+			sendingRequests: 1,
+		});
 	});
 });
