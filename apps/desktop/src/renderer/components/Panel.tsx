@@ -358,7 +358,12 @@ export function Panel() {
 						value="logs"
 						className="m-0 min-h-0 flex-1 overflow-auto p-2"
 					>
-						{filteredLogs.length === 0 && !runError ? (
+						{!activeFlowTab ? (
+							<p className="px-1 py-2 text-xs text-muted-foreground">
+								Switch to a flow tab to see execution logs. Collection request
+								results stay in the request editor.
+							</p>
+						) : filteredLogs.length === 0 && !runError ? (
 							<p className="px-1 py-2 text-xs text-muted-foreground">
 								No logs yet. Run a flow to see execution steps and response
 								objects.
@@ -390,7 +395,7 @@ export function Panel() {
 					>
 						{!activeFlowTab ? (
 							<p className="px-1 py-2 text-xs text-muted-foreground">
-								Open a flow to browse run history.
+								Switch to a flow tab to browse run history.
 							</p>
 						) : historyEntries.length === 0 ? (
 							<p className="px-1 py-2 text-xs text-muted-foreground">
