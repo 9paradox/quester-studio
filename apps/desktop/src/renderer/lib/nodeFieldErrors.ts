@@ -1,5 +1,12 @@
 import { validateNodeData } from "@quester-studio/schema";
-import type { ZodIssue } from "zod";
+
+type IssueLike = {
+	path: ReadonlyArray<PropertyKey>;
+	code: string;
+	message: string;
+	type?: string;
+	received?: unknown;
+};
 
 /** Map top-level node data field → short message for inspector inline errors. */
 export function getNodeFieldErrors(
@@ -9,7 +16,7 @@ export function getNodeFieldErrors(
 	const result = validateNodeData(type, data);
 	if (result.success) return {};
 	const out: Record<string, string> = {};
-	for (const issue of result.error.issues) {
+	for (const issue of result.error.issues as IssueLike[]) {
 		const key = fieldKeyFromIssue(issue);
 		if (!out[key]) out[key] = humanizeZodIssue(issue);
 	}
@@ -32,19 +39,15 @@ export function flowHasInvalidNodeData(flow: {
 	return { invalid: false };
 }
 
-function fieldKeyFromIssue(issue: ZodIssue): string {
+function fieldKeyFromIssue(issue: IssueLike): string {
 	const head = issue.path[0];
 	return typeof head === "string" || typeof head === "number"
 		? String(head)
 		: "_";
 }
 
-function humanizeZodIssue(issue: ZodIssue): string {
-	if (
-		issue.code === "too_small" &&
-		"type" in issue &&
-		issue.type === "string"
-	) {
+function humanizeZodIssue(issue: IssueLike): string {
+	if (issue.code === "too_small" && issue.type === "string") {
 		return "Required";
 	}
 	if (issue.code === "invalid_type" && issue.received === "undefined") {
