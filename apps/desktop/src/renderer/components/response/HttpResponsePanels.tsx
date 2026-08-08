@@ -12,12 +12,15 @@ import type {
 } from "@/components/response/types.js";
 import { isHttpOutput } from "@/components/response/types.js";
 import { Badge } from "@/components/ui/badge.js";
+import { Button } from "@/components/ui/button.js";
 import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
+import { formatResponseRawText } from "@/lib/formatResponseRaw.js";
+import { IconExternalLink } from "@tabler/icons-react";
 
 export function HttpRequestPanel({
 	request,
@@ -79,16 +82,23 @@ export function HttpResponsePanel({
 	output,
 	error,
 	pathCopyNodeId = null,
+	defaultExpandedDepth = 2,
+	showOpenInTab = false,
+	onOpenInTab,
 }: {
 	output: unknown;
 	error?: string;
 	pathCopyNodeId?: string | null;
+	/** Shallow expand for large payloads; plan 03 may virtualize further. */
+	defaultExpandedDepth?: number;
+	showOpenInTab?: boolean;
+	onOpenInTab?: () => void;
 }) {
 	const http: HttpOutputShape | null = isHttpOutput(output) ? output : null;
 
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="flex flex-wrap gap-2">
+			<div className="flex flex-wrap items-center gap-2">
 				{http?.status !== undefined ? (
 					<Badge variant={statusVariant(http.status)}>
 						{http.status}
@@ -100,6 +110,21 @@ export function HttpResponsePanel({
 				) : null}
 				{http?.size !== undefined ? (
 					<MetaChip label="Size" value={formatByteSize(http.size)} />
+				) : null}
+				{showOpenInTab && onOpenInTab ? (
+					<>
+						<span className="flex-1" />
+						<Button
+							type="button"
+							variant="ghost"
+							size="sm"
+							className="h-7 gap-1.5 px-2 text-xs"
+							onClick={onOpenInTab}
+						>
+							<IconExternalLink className="size-3.5" />
+							Open in tab
+						</Button>
+					</>
 				) : null}
 			</div>
 
@@ -121,7 +146,7 @@ export function HttpResponsePanel({
 					<TabsContent value="body" className="mt-2">
 						<JsonPane
 							value={http.body}
-							defaultExpandedDepth={4}
+							defaultExpandedDepth={defaultExpandedDepth}
 							showRaw={false}
 							pathCopyNodeId={pathCopyNodeId}
 							pathPrefix="body"
@@ -132,12 +157,16 @@ export function HttpResponsePanel({
 					</TabsContent>
 					<TabsContent value="raw" className="mt-2">
 						<pre className="max-h-80 overflow-auto rounded-md border bg-muted/20 p-2.5 font-mono text-[11px] leading-5 break-all whitespace-pre-wrap">
-							{http.text ?? ""}
+							{formatResponseRawText(http.body, http.text)}
 						</pre>
 					</TabsContent>
 				</Tabs>
 			) : !error ? (
-				<JsonPane value={output} pathCopyNodeId={pathCopyNodeId} />
+				<JsonPane
+					value={output}
+					defaultExpandedDepth={defaultExpandedDepth}
+					pathCopyNodeId={pathCopyNodeId}
+				/>
 			) : null}
 		</div>
 	);

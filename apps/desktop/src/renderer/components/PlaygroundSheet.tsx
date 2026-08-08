@@ -1,3 +1,4 @@
+import { CodeEditor } from "@/components/CodeEditor.js";
 import { Button } from "@/components/ui/button.js";
 import { Label } from "@/components/ui/label.js";
 import {
@@ -7,7 +8,6 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet.js";
-import { Textarea } from "@/components/ui/textarea.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectActiveFlowRun } from "@/stores/selectors.js";
 
@@ -29,12 +29,16 @@ export function PlaygroundSheet() {
 				</SheetHeader>
 				<div className="flex flex-col gap-2 px-4">
 					<Label htmlFor="playground-input">Input JSON</Label>
-					<Textarea
+					<CodeEditor
 						id="playground-input"
 						value={inputJson}
-						onChange={(e) => setInputJson(e.target.value)}
-						className="min-h-[200px] font-mono text-xs"
-						spellCheck={false}
+						onChange={setInputJson}
+						language="json"
+						variant="document"
+						formatOnBlur
+						completionMode="none"
+						minHeight="12rem"
+						ariaLabel="Flow run input JSON"
 					/>
 					{inputError ? (
 						<p className="text-sm text-destructive">{inputError}</p>

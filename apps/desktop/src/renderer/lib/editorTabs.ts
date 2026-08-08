@@ -60,13 +60,33 @@ export type WorkspaceSettingsEditorTab = {
 	dirty: boolean;
 };
 
+/** Frozen HTTP / node output for a full-bleed response viewer tab. */
+export type ResponseViewerSnapshot = {
+	source: "flow" | "collection";
+	title: string;
+	/** Optional node / request id shown under the title. */
+	subtitle?: string;
+	error?: string | null;
+	/** Frozen node/http output (plan 03 may virtualize large payloads). */
+	output: unknown;
+	pathCopyNodeId?: string | null;
+};
+
+export type ResponseViewerTab = {
+	kind: "response";
+	id: string;
+	dirty: boolean;
+	snapshot: ResponseViewerSnapshot;
+};
+
 export type EditorTab =
 	| FlowEditorTab
 	| EnvEditorTab
 	| SecretsEditorTab
 	| RequestEditorTab
 	| AppSettingsEditorTab
-	| WorkspaceSettingsEditorTab;
+	| WorkspaceSettingsEditorTab
+	| ResponseViewerTab;
 
 export function flowTabId(flowId: string): string {
 	return `flow:${flowId}`;
@@ -90,6 +110,10 @@ export function appSettingsTabId(): string {
 
 export function workspaceSettingsTabId(): string {
 	return "settings:workspace";
+}
+
+export function responseTabId(sourceKey: string, stamp: number): string {
+	return `response:${sourceKey}:${stamp}`;
 }
 
 export function createFlowEditorTab(flow: FlowV1): FlowEditorTab {
@@ -160,6 +184,19 @@ export function createWorkspaceSettingsEditorTab(
 	};
 }
 
+export function createResponseViewerTab(
+	snapshot: ResponseViewerSnapshot,
+	sourceKey: string,
+	stamp: number = Date.now(),
+): ResponseViewerTab {
+	return {
+		kind: "response",
+		id: responseTabId(sourceKey, stamp),
+		dirty: false,
+		snapshot,
+	};
+}
+
 export function editorTabLabel(tab: EditorTab): string {
 	switch (tab.kind) {
 		case "flow":
@@ -174,6 +211,8 @@ export function editorTabLabel(tab: EditorTab): string {
 			return "Preferences";
 		case "workspaceSettings":
 			return "Workspace settings";
+		case "response":
+			return tab.snapshot.title;
 	}
 }
 
@@ -185,6 +224,7 @@ export function editorTabIcon(
 	| "secrets"
 	| "request"
 	| "appSettings"
-	| "workspaceSettings" {
+	| "workspaceSettings"
+	| "response" {
 	return tab.kind;
 }

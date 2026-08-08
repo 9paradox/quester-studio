@@ -24,6 +24,7 @@ import {
 	IconChevronDown,
 	IconFile,
 	IconFolderOpen,
+	IconJson,
 	IconKey,
 	IconSettings,
 	IconTopologyRing2,
@@ -38,6 +39,7 @@ function TabIcon({ tab }: { tab: EditorTab }) {
 	if (kind === "flow") return <IconTopologyRing2 className={className} />;
 	if (kind === "env") return <IconFile className={className} />;
 	if (kind === "request") return <IconWorld className={className} />;
+	if (kind === "response") return <IconJson className={className} />;
 	if (kind === "appSettings" || kind === "workspaceSettings") {
 		return <IconSettings className={className} />;
 	}

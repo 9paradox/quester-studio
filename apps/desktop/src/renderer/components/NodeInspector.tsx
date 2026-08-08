@@ -243,6 +243,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 							}
 							onChange={(body) => setField("body", body)}
 							language={bodyType}
+							variant="document"
 							lint={false}
 							formatOnBlur={bodyType === "json"}
 							minHeight="10rem"

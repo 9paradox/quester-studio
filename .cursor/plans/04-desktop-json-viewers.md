@@ -1,7 +1,7 @@
 # Plan 04 — Desktop JSON / response viewers
 
 **Priority:** 4  
-**Status:** after plan 01; use plan 03 viewer foundation  
+**Status:** after plan 01; perf pass (plan 03) comes later  
 **ROADMAP:** §3 Builders — collections JSON, response new tab  
 
 ## Goal
@@ -10,19 +10,19 @@ Proper, performant editing/viewing of JSON for collections and responses (Monaco
 
 ## Out of scope
 
-Forms editor (plan 12), code editor (plan 13), folder logs browser (plan 07 — reuse components).
+Forms editor (plan 12), code editor (plan 13), folder logs browser (plan 07 — reuse components). Plan 03 will harden large-payload performance after this lands.
 
 ## Dependencies
 
-Plan 03 JSON viewer foundation ideal; can land a first Monaco integration here if needed.
+None blocking from plan 03. Land Monaco (or equivalent) here; leave hooks / choices that the later perf pass can reuse (virtualize / lazy parse).
 
 ## Work
 
-- [ ] Shared JSON editor/viewer component (e.g. `@monaco-editor/react` or equivalent)  
+- [x] Shared JSON editor/viewer component (e.g. `@monaco-editor/react` or equivalent)  
   - Syntax highlight, fold, search, large-body safe  
-- [ ] Wire into **Collections** request/body (and related JSON fields)  
-- [ ] **Response viewer** — open in a new app tab (full-bleed JSON / pretty / headers; keep panel for quick peek)  
-- [ ] Theme parity with desktop light/dark  
+- [x] Wire into **Collections** request/body (and related JSON fields)  
+- [x] **Response viewer** — open in a new app tab (full-bleed JSON / pretty / headers; keep panel for quick peek)  
+- [x] Theme parity with desktop light/dark  
 
 ## Done when
 

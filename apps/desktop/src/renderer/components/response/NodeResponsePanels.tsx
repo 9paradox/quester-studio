@@ -43,7 +43,7 @@ function ResultWithInput({
 				{!error ? (
 					<JsonPane
 						value={result}
-						defaultExpandedDepth={4}
+						defaultExpandedDepth={2}
 						pathCopyNodeId={pathCopyNodeId}
 					/>
 				) : null}

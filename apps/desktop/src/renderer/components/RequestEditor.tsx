@@ -1,9 +1,8 @@
+import { CodeEditor } from "@/components/CodeEditor.js";
 import { HeadersEditor } from "@/components/HeadersEditor.js";
-import { JsonViewer } from "@/components/JsonViewer.js";
 import { TemplateField } from "@/components/TemplateField.js";
-import { Badge } from "@/components/ui/badge.js";
+import { HttpResponsePanel } from "@/components/response/HttpResponsePanels.js";
 import { Button } from "@/components/ui/button.js";
-import { ScrollArea } from "@/components/ui/scroll-area.js";
 import {
 	Select,
 	SelectContent,
@@ -17,10 +16,10 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
-import { Textarea } from "@/components/ui/textarea.js";
 import { cn } from "@/lib/utils.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
 import type { RequestV1 } from "@quester-studio/schema";
-import { IconPlayerPlay } from "@tabler/icons-react";
+import { IconExternalLink, IconPlayerPlay } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ExecuteRequestRpcResult } from "../../shared/rpc.js";
 import { ResizeGutter, clamp } from "./ResizeGutter.js";
@@ -39,26 +38,6 @@ const PANE_PCT_KEY = "quester.requestPanePct";
 const DEFAULT_PANE_PCT = 50;
 const STACK_BREAKPOINT = 720;
 
-type HttpOutputShape = {
-	status?: number;
-	statusText?: string;
-	headers?: Record<string, string>;
-	body?: unknown;
-	text?: string;
-	timing?: { durationMs: number };
-	size?: number;
-};
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asHttpOutput(value: unknown): HttpOutputShape | null {
-	return isRecord(value) && ("status" in value || "request" in value)
-		? (value as HttpOutputShape)
-		: null;
-}
-
 function readPanePct(): number {
 	try {
 		const raw = localStorage.getItem(PANE_PCT_KEY);
@@ -73,6 +52,7 @@ function readPanePct(): number {
 
 type RequestEditorProps = {
 	request: RequestV1;
+	requestPath?: string;
 	envs: string[];
 	selectedEnv: string;
 	onEnvChange: (env: string) => void;
@@ -85,6 +65,7 @@ type RequestEditorProps = {
 
 export function RequestEditor({
 	request,
+	requestPath,
 	envs,
 	selectedEnv,
 	onEnvChange,
@@ -94,20 +75,13 @@ export function RequestEditor({
 	result,
 	error,
 }: RequestEditorProps) {
-	const http = asHttpOutput(result?.httpOutput);
+	const openResponseViewerTab = useQuesterStore((s) => s.openResponseViewerTab);
 	const bodyText =
 		typeof request.body === "string"
 			? request.body
 			: request.body !== undefined
 				? JSON.stringify(request.body, null, 2)
 				: "";
-
-	const responseBody =
-		http?.body !== undefined
-			? http.body
-			: http?.text !== undefined
-				? http.text
-				: null;
 
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [requestPct, setRequestPct] = useState(readPanePct);
@@ -145,6 +119,32 @@ export function RequestEditor({
 		},
 		[stacked],
 	);
+
+	const setBody = (raw: string) => {
+		if (!raw.trim()) {
+			const { body: _b, ...rest } = request;
+			onChange(rest as RequestV1);
+			return;
+		}
+		// Keep as string while editing — avoid JSON.parse on every keystroke.
+		onChange({ ...request, body: raw });
+	};
+
+	const openInTab = () => {
+		if (!result && !error) return;
+		openResponseViewerTab(
+			{
+				source: "collection",
+				title: `${request.name} response`,
+				subtitle: requestPath ?? request.name,
+				error,
+				output: result?.httpOutput ?? null,
+			},
+			`collection:${requestPath ?? request.name}`,
+		);
+	};
+
+	const hasResponse = Boolean(error || result);
 
 	return (
 		<div className="flex h-full min-h-0 flex-col bg-background">
@@ -234,26 +234,16 @@ export function RequestEditor({
 							value="body"
 							className="min-h-0 flex-1 overflow-auto px-3 pb-3"
 						>
-							<Textarea
+							<CodeEditor
 								value={bodyText}
-								onChange={(e) => {
-									const raw = e.target.value;
-									if (!raw.trim()) {
-										const { body: _b, ...rest } = request;
-										onChange(rest as RequestV1);
-										return;
-									}
-									try {
-										onChange({
-											...request,
-											body: JSON.parse(raw) as Record<string, unknown>,
-										});
-									} catch {
-										onChange({ ...request, body: raw });
-									}
-								}}
+								onChange={setBody}
+								language="json"
+								variant="document"
+								formatOnBlur
+								completionMode="template"
+								minHeight="12rem"
 								placeholder='{"key": "value"} or raw string'
-								className="min-h-[200px] font-mono text-xs"
+								ariaLabel="Request body"
 							/>
 						</TabsContent>
 					</Tabs>
@@ -269,57 +259,33 @@ export function RequestEditor({
 						<span className="text-xs font-medium text-muted-foreground">
 							Response
 						</span>
-						{http?.status !== undefined ? (
-							<Badge variant="secondary">
-								{http.status} {http.statusText ?? ""}
-							</Badge>
-						) : null}
-						{http?.timing?.durationMs !== undefined ? (
-							<span className="text-xs text-muted-foreground">
-								{http.timing.durationMs} ms
-							</span>
+						<div className="flex-1" />
+						{hasResponse ? (
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="h-7 gap-1.5 px-2 text-xs"
+								onClick={openInTab}
+							>
+								<IconExternalLink className="size-3.5" />
+								Open in tab
+							</Button>
 						) : null}
 					</div>
-					<ScrollArea className="min-h-0 flex-1">
-						<div className="p-3">
-							{error ? (
-								<pre className="whitespace-pre-wrap text-xs text-destructive">
-									{error}
-								</pre>
-							) : null}
-							{!error && !http && !result ? (
-								<p className="text-xs text-muted-foreground">
-									Send a request to see the response
-								</p>
-							) : null}
-							{http ? (
-								<div className="flex flex-col gap-3">
-									{http.headers ? (
-										<div>
-											<div className="mb-1 text-xs font-medium text-muted-foreground">
-												Headers
-											</div>
-											<pre className="overflow-auto rounded-md border bg-muted/30 p-2 font-mono text-[11px]">
-												{Object.entries(http.headers)
-													.map(([k, v]) => `${k}: ${v}`)
-													.join("\n")}
-											</pre>
-										</div>
-									) : null}
-									<div>
-										<div className="mb-1 text-xs font-medium text-muted-foreground">
-											Body
-										</div>
-										<JsonViewer
-											value={responseBody}
-											defaultExpandedDepth={2}
-											enablePathCopy
-										/>
-									</div>
-								</div>
-							) : null}
-						</div>
-					</ScrollArea>
+					<div className="min-h-0 flex-1 overflow-auto p-3">
+						{!error && !result ? (
+							<p className="text-xs text-muted-foreground">
+								Send a request to see the response
+							</p>
+						) : (
+							<HttpResponsePanel
+								output={result?.httpOutput}
+								error={error ?? undefined}
+								defaultExpandedDepth={2}
+							/>
+						)}
+					</div>
 				</div>
 			</div>
 		</div>
