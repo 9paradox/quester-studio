@@ -27,6 +27,7 @@ A disconnected canvas sticky for documentation on the flow. Notes have no handle
 | --- | --- | --- |
 | `label` | string | Optional UI label |
 | `text` | string | Plain-text body shown on the canvas |
+| `fontSize` | number | Body font size in CSS pixels (10–48, default 12) |
 
 ## Input / output
 
@@ -43,7 +44,8 @@ A disconnected canvas sticky for documentation on the flow. Notes have no handle
   "type": "note",
   "data": {
     "label": "Note",
-    "text": "Use local env for DummyJSON credentials"
+    "text": "Use local env for DummyJSON credentials",
+    "fontSize": 14
   },
   "position": { "x": 40, "y": 280 },
   "width": 240,

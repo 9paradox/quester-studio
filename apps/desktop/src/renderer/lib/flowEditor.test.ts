@@ -217,7 +217,7 @@ describe("json node size mapping", () => {
 		const note = next.nodes.find((n) => n.type === "note");
 		expect(note?.width).toBe(240);
 		expect(note?.height).toBe(160);
-		expect(note?.data).toEqual({ label: "Note", text: "" });
+		expect(note?.data).toEqual({ label: "Note", text: "", fontSize: 12 });
 	});
 
 	test("flowToReactFlow applies default size for json nodes", () => {

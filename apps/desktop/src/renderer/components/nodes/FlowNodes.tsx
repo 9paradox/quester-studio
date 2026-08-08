@@ -11,6 +11,7 @@ import { NodeResizer } from "@reactflow/node-resizer";
 import type { NodeProps } from "reactflow";
 import { useEdges } from "reactflow";
 import "@reactflow/node-resizer/dist/style.css";
+import { NOTE_FONT_SIZE_DEFAULT } from "@quester-studio/schema";
 import {
 	BaseFlowNode,
 	type FlowNodeData,
@@ -553,6 +554,10 @@ export function LogFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 
 export function NoteFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const text = typeof data.text === "string" ? data.text : "";
+	const fontSize =
+		typeof data.fontSize === "number" && Number.isFinite(data.fontSize)
+			? data.fontSize
+			: NOTE_FONT_SIZE_DEFAULT;
 	return (
 		<>
 			<NodeResizer
@@ -574,11 +579,16 @@ export function NoteFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 				className="bg-muted/40"
 			>
 				{text.trim() ? (
-					<div className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap text-left text-xs leading-relaxed">
+					<div
+						className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap text-left leading-relaxed"
+						style={{ fontSize }}
+					>
 						{text}
 					</div>
 				) : (
-					<span className="text-muted-foreground">Add note text…</span>
+					<span className="text-muted-foreground" style={{ fontSize }}>
+						Add note text…
+					</span>
 				)}
 			</BaseFlowNode>
 		</>

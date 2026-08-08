@@ -579,10 +579,16 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 				type: "string",
 				description: "Sticky body shown on the canvas",
 			},
+			{
+				name: "fontSize",
+				type: "number",
+				description: "Body font size in CSS pixels (10–48, default 12)",
+			},
 		],
 		example: {
 			label: "Note",
 			text: "Use local env for DummyJSON credentials",
+			fontSize: 14,
 		},
 		io: {
 			input: "None (canvas-only)",
