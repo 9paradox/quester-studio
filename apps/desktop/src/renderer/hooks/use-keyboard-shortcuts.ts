@@ -3,15 +3,8 @@ import {
 	isCommandPaletteOpen,
 	runCommand,
 } from "@/lib/commands.js";
+import { isTypingFocus } from "@/lib/typingFocus.js";
 import { useEffect } from "react";
-
-function isEditableTarget(target: EventTarget | null): boolean {
-	if (!(target instanceof HTMLElement)) return false;
-	const tag = target.tagName;
-	if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
-	if (target.isContentEditable) return true;
-	return Boolean(target.closest("[contenteditable='true']"));
-}
 
 /** App-wide keyboard shortcuts (documented in Preferences → Shortcuts). */
 export function useKeyboardShortcuts() {
@@ -22,7 +15,7 @@ export function useKeyboardShortcuts() {
 			const command = findCommandForKeyboardEvent(event);
 			if (!command) return;
 
-			if (command.id === "tab.close" && isEditableTarget(event.target)) {
+			if (command.id === "tab.close" && isTypingFocus(event.target)) {
 				return;
 			}
 

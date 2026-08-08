@@ -33,7 +33,7 @@ export function AuxiliarySidebar() {
 	return (
 		<aside
 			style={{ width }}
-			className="flex h-full min-h-0 shrink-0 flex-col border-l bg-sidebar text-sidebar-foreground"
+			className="nokey flex h-full min-h-0 shrink-0 flex-col border-l bg-sidebar text-sidebar-foreground"
 		>
 			<div className="flex h-9 shrink-0 items-center justify-between gap-2 px-3">
 				<span className="text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/70">

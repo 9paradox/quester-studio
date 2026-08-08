@@ -21,6 +21,7 @@ import {
 } from "@/lib/flowEditor.js";
 import { promptName } from "@/lib/namePrompt.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
+import { flowHasInvalidNodeData } from "@/lib/nodeFieldErrors.js";
 import { indexCollectionResponse, indexNodeOutputs } from "@/lib/pathIndex.js";
 import {
 	type PathShapeIndex,
@@ -1152,6 +1153,30 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (!tab?.dirty) return;
 		try {
 			if (tab.kind === "flow") {
+				const invalid = flowHasInvalidNodeData(tab.flow);
+				if (invalid.invalid) {
+					// Keep dirty; skip disk write until fields are valid.
+					// Inspector shows field errors — do not surface as a run-level alert.
+					set((s) => {
+						const slot = s.runByFlowId[tab.flowId];
+						const clearValidationAlert =
+							slot?.runError?.includes("Flow validation failed") ||
+							slot?.runError?.includes("fix the invalid fields");
+						return {
+							selectedNodeId: invalid.nodeId,
+							rightPanelOpen: true,
+							rightPanelTab: "inspector" as const,
+							...(clearValidationAlert
+								? {
+										runByFlowId: patchFlowRun(s.runByFlowId, tab.flowId, {
+											runError: null,
+										}),
+									}
+								: {}),
+						};
+					});
+					return;
+				}
 				const saved = await getQuesterClient().saveFlow(
 					tab.flow,
 					workspacePath,
@@ -1252,7 +1277,33 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			}
 			await refreshWorkspaceLists(workspacePath);
 		} catch (err) {
-			showError(err instanceof Error ? err.message : "Save failed");
+			const message = err instanceof Error ? err.message : "Save failed";
+			if (
+				message.includes("Flow validation failed") ||
+				message.includes("fix the invalid fields")
+			) {
+				const match = message.match(/Select (\S+) in the inspector/);
+				set((s) => ({
+					...(match?.[1]
+						? {
+								selectedNodeId: match[1],
+								rightPanelOpen: true,
+								rightPanelTab: "inspector" as const,
+							}
+						: {}),
+					...(tab.kind === "flow" &&
+					s.runByFlowId[tab.flowId]?.runError?.includes("Flow validation")
+						? {
+								runByFlowId: patchFlowRun(s.runByFlowId, tab.flowId, {
+									runError: null,
+								}),
+							}
+						: {}),
+				}));
+				toast.warning("Fix invalid node fields in the inspector");
+				return;
+			}
+			showError(message);
 		}
 	},
 
@@ -1460,6 +1511,17 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 
 		const flowId = activeFlowTab.flowId;
 		if (runByFlowId[flowId]?.isRunning) return;
+
+		const invalid = flowHasInvalidNodeData(activeFlowTab.flow);
+		if (invalid.invalid) {
+			set({
+				selectedNodeId: invalid.nodeId,
+				rightPanelOpen: true,
+				rightPanelTab: "inspector",
+			});
+			toast.warning("Fix invalid node fields in the inspector before running");
+			return;
+		}
 
 		if (activeFlowTab.dirty || canvasDirty) {
 			await saveActiveTab(activeFlowTab.id);

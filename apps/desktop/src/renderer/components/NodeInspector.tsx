@@ -27,9 +27,12 @@ import {
 	inferBodyType,
 } from "@/lib/httpBodyType.js";
 import { getNodePresentation } from "@/lib/nodeCatalog.js";
+import { getNodeFieldErrors } from "@/lib/nodeFieldErrors.js";
+import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	type BuiltinNodeType,
+	DELAY_MS_CEILING,
 	FOREACH_MAX_CONCURRENCY,
 	FOREACH_MAX_ITEMS_CEILING,
 	type FlowNodeV1,
@@ -71,6 +74,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 	const data = node.data as Record<string, unknown>;
 	const inputJson = useQuesterStore((s) => s.inputJson);
 	const setInputJson = useQuesterStore((s) => s.setInputJson);
+	const fieldErrors = getNodeFieldErrors(node.type, data);
 
 	const setField = (key: string, value: unknown) => {
 		onUpdate({ ...data, [key]: value });
@@ -249,25 +253,79 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			) : null}
 
 			{node.type === "template" ? (
-				<InspectorField
-					label="Template"
-					hint={
-						<>
-							Use <code className="font-mono text-[10px]">{"{{input.*}}"}</code>
-							, <code className="font-mono text-[10px]">{"{{nodes.id}}"}</code>,{" "}
-							<code className="font-mono text-[10px]">{"{{env.*}}"}</code>, or
-							Eta <code className="font-mono text-[10px]">{"<%= it.* %>"}</code>
-						</>
-					}
-				>
-					<TemplateField
-						value={String(data.template ?? "")}
-						onChange={(template) => setField("template", template)}
-						multiline
-						rows={8}
-						completionMode="template+eta"
-					/>
-				</InspectorField>
+				<>
+					<InspectorField
+						label="Mode"
+						hint="eta (default) runs Eta JS in-process. safe is {{…}} interpolation only and rejects Eta tags."
+					>
+						<Select
+							value={String(data.mode ?? "eta")}
+							onValueChange={(mode) => mode && setField("mode", mode)}
+						>
+							<SelectTrigger className="w-full">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="eta">eta — Eta + {"{{…}}"}</SelectItem>
+								<SelectItem value="safe">safe — {"{{…}}"} only</SelectItem>
+							</SelectContent>
+						</Select>
+					</InspectorField>
+					<InspectorField
+						label="Template"
+						error={fieldErrors.template}
+						hint={
+							(data.mode ?? "eta") === "safe" ? (
+								<>
+									Interpolation only:{" "}
+									<code className="font-mono text-[10px]">{"{{input.*}}"}</code>
+									,{" "}
+									<code className="font-mono text-[10px]">
+										{"{{nodes.id}}"}
+									</code>
+									, <code className="font-mono text-[10px]">{"{{env.*}}"}</code>
+								</>
+							) : (
+								<>
+									Use{" "}
+									<code className="font-mono text-[10px]">{"{{input.*}}"}</code>
+									,{" "}
+									<code className="font-mono text-[10px]">
+										{"{{nodes.id}}"}
+									</code>
+									, <code className="font-mono text-[10px]">{"{{env.*}}"}</code>
+									, or Eta{" "}
+									<code className="font-mono text-[10px]">{"<%= it.* %>"}</code>{" "}
+									(in-process JS — see{" "}
+									<a
+										href="https://github.com/9paradox/quester-studio/blob/main/SECURITY.md"
+										target="_blank"
+										rel="noopener noreferrer"
+										className="underline underline-offset-2 hover:text-foreground"
+									>
+										SECURITY.md
+									</a>
+									)
+								</>
+							)
+						}
+					>
+						<TemplateField
+							value={String(data.template ?? "")}
+							onChange={(template) => setField("template", template)}
+							multiline
+							rows={8}
+							placeholder="{{input}}"
+							completionMode={
+								(data.mode ?? "eta") === "safe" ? "template" : "template+eta"
+							}
+							className={cn(
+								fieldErrors.template &&
+									"rounded-md ring-2 ring-destructive/30 border-destructive",
+							)}
+						/>
+					</InspectorField>
+				</>
 			) : null}
 
 			{node.type === "if" ? (
@@ -320,27 +378,41 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Milliseconds"
-						hint="Base sleep duration before the next node runs."
+						hint={`Base sleep duration before the next node runs (max ${DELAY_MS_CEILING} ms).`}
 					>
 						<Input
 							type="number"
 							min={0}
+							max={DELAY_MS_CEILING}
 							value={String(data.ms ?? 0)}
 							onChange={(e) =>
-								setField("ms", Math.max(0, Number(e.target.value) || 0))
+								setField(
+									"ms",
+									Math.min(
+										DELAY_MS_CEILING,
+										Math.max(0, Number(e.target.value) || 0),
+									),
+								)
 							}
 						/>
 					</InspectorField>
 					<InspectorField
 						label="Jitter (ms)"
-						hint="Optional random extra delay from 0 up to this value."
+						hint={`Optional random extra delay from 0 up to this value (max ${DELAY_MS_CEILING}).`}
 					>
 						<Input
 							type="number"
 							min={0}
+							max={DELAY_MS_CEILING}
 							value={String(data.jitterMs ?? 0)}
 							onChange={(e) =>
-								setField("jitterMs", Math.max(0, Number(e.target.value) || 0))
+								setField(
+									"jitterMs",
+									Math.min(
+										DELAY_MS_CEILING,
+										Math.max(0, Number(e.target.value) || 0),
+									),
+								)
 							}
 						/>
 					</InspectorField>
@@ -438,7 +510,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Condition"
-						hint="Optional templated truthy string. Combined with checks using AND when both are set."
+						hint="Optional templated truthy string. Soft checks only — thrown errors (HTTP/assert) are not caught. Combined with checks using AND when both are set."
 					>
 						<TemplateField
 							value={String(data.condition ?? "")}
@@ -459,7 +531,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Checks"
-						hint='On fail, branch "catch" instead of stopping the flow.'
+						hint='On soft check fail, branch "catch". Does not catch thrown node errors.'
 					>
 						<AssertChecksEditor
 							checks={data.checks}
@@ -740,11 +812,13 @@ function InspectorField({
 	label,
 	hint,
 	action,
+	error,
 	children,
 }: {
 	label: string;
 	hint?: ReactNode;
 	action?: ReactNode;
+	error?: string;
 	children: ReactNode;
 }) {
 	return (
@@ -759,6 +833,7 @@ function InspectorField({
 				</p>
 			) : null}
 			{children}
+			{error ? <p className="text-xs text-destructive">{error}</p> : null}
 		</div>
 	);
 }

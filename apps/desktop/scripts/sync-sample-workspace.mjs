@@ -24,6 +24,8 @@ cpSync(source, dest, {
 		const base = src.replace(/\\/g, "/");
 		if (base.endsWith("/.gitignore")) return false;
 		if (base.includes("/.quester/")) return false;
+		if (base.includes("/runs/") || base.endsWith("/runs")) return false;
+		if (base.endsWith(".secrets.json")) return false;
 		return true;
 	},
 });

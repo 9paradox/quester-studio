@@ -168,7 +168,8 @@ export const httpPlugin: FlowNodePlugin = {
 		}
 
 		if (jar) {
-			jar.storeFromSetCookie(url, collectSetCookie(res.headers));
+			const storeUrl = res.url || url;
+			jar.storeFromSetCookie(storeUrl, collectSetCookie(res.headers));
 		}
 
 		let json: unknown = text;

@@ -53,6 +53,7 @@ import {
 	REQUEST_VERSION,
 	SECRETS_VERSION,
 	isCookieJarEnabled,
+	isSafeWorkspaceFileId,
 	mergeHttpSettings,
 	secretsSchemaV1,
 	validateEnvironment,
@@ -84,6 +85,12 @@ export {
 } from "./run-cancellation.js";
 
 export { getAppTlsVerify, setAppTlsVerify };
+
+function assertSafeWorkspaceFileId(id: string, label: string): void {
+	if (!isSafeWorkspaceFileId(id)) {
+		throw new Error(`Invalid ${label}: ${id}`);
+	}
+}
 
 function createRunFetch(
 	workspaceRoot: string,
@@ -546,6 +553,7 @@ export async function saveFlow(
 ): Promise<FlowV1> {
 	const validated = validateFlow(flow);
 	if (!validated.success) throw new Error(validated.error);
+	assertSafeWorkspaceFileId(validated.data.id, "flow id");
 
 	const root = resolve(workspace);
 	const ws = await loadWorkspace(root);
@@ -567,6 +575,7 @@ export async function createFlow(
 	flowId: string,
 	name?: string,
 ): Promise<FlowV1> {
+	assertSafeWorkspaceFileId(flowId, "flow id");
 	const root = resolve(workspace);
 	const ws = await loadWorkspace(root);
 	if (ws.flows[flowId]) {
@@ -606,6 +615,7 @@ export async function deleteFlow(
 	flowId: string,
 	workspace: string,
 ): Promise<void> {
+	assertSafeWorkspaceFileId(flowId, "flow id");
 	const root = resolve(workspace);
 	const ws = await loadWorkspace(root);
 	if (!ws.flows[flowId]) {
@@ -621,6 +631,8 @@ export async function renameFlow(
 	newId: string,
 	name?: string,
 ): Promise<FlowV1> {
+	assertSafeWorkspaceFileId(flowId, "flow id");
+	assertSafeWorkspaceFileId(newId, "flow id");
 	if (flowId === newId) {
 		const flow = await loadFlow(flowId, workspace);
 		if (name && name !== flow.name) {
@@ -664,6 +676,7 @@ export async function saveEnvironment(
 ): Promise<EnvironmentV1> {
 	const validated = validateEnvironment(environment);
 	if (!validated.success) throw new Error(validated.error);
+	assertSafeWorkspaceFileId(validated.data.name, "environment name");
 
 	const root = resolve(workspace);
 	const ws = await loadWorkspace(root);
@@ -684,6 +697,7 @@ export async function createEnvironment(
 	workspace: string,
 	envName: string,
 ): Promise<EnvironmentV1> {
+	assertSafeWorkspaceFileId(envName, "environment name");
 	const ws = await openWorkspace(workspace);
 	if (ws.environments[envName]) {
 		throw new Error(`Environment already exists: ${envName}`);
@@ -721,6 +735,7 @@ export async function loadSecretsFile(
 	workspace: string,
 	envName: string,
 ): Promise<SecretsV1> {
+	assertSafeWorkspaceFileId(envName, "environment name");
 	const root = resolve(workspace);
 	const ws = await loadWorkspace(root);
 	const path = join(
@@ -748,6 +763,7 @@ export async function saveSecretsFile(
 	envName: string,
 	secrets: SecretsV1,
 ): Promise<SecretsV1> {
+	assertSafeWorkspaceFileId(envName, "environment name");
 	const parsed = secretsSchemaV1.safeParse(secrets);
 	if (!parsed.success) {
 		throw new Error(parsed.error.message);
@@ -767,6 +783,7 @@ export async function createSecretsFile(
 	workspace: string,
 	envName: string,
 ): Promise<SecretsV1> {
+	assertSafeWorkspaceFileId(envName, "environment name");
 	try {
 		await loadSecretsFile(workspace, envName);
 		throw new Error(`Secrets file already exists: ${envName}.secrets.json`);

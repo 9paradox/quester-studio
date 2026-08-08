@@ -53,6 +53,20 @@ describe("builtin node plugins", () => {
 		expect(result.output).toBe(7);
 	});
 
+	test("extract parses JSON string input before JMESPath", async () => {
+		const result = await extractPlugin.execute(
+			ctx({
+				input: '{"title":"Essence Mascara Lash Princess"\n}',
+				node: {
+					id: "ex",
+					type: "extract",
+					data: { expression: "title" },
+				},
+			}),
+		);
+		expect(result.output).toBe("Essence Mascara Lash Princess");
+	});
+
 	test("set merges resolved variables", async () => {
 		const result = await setPlugin.execute(
 			ctx({
@@ -135,6 +149,58 @@ describe("builtin node plugins", () => {
 			}),
 		);
 		expect(result.output).toBe("Hello alice");
+	});
+
+	test("template parses JSON object output for extract/JMESPath", async () => {
+		const result = await templatePlugin.execute(
+			ctx({
+				node: {
+					id: "tpl",
+					type: "template",
+					data: {
+						mode: "safe",
+						template: '{"title":"{{input.username}}"}',
+					},
+				},
+				resolveTemplate: (t) =>
+					t.replace("{{input.username}}", "Essence Mascara"),
+			}),
+		);
+		expect(result.output).toEqual({ title: "Essence Mascara" });
+	});
+
+	test("template mode safe interpolates mustache only", async () => {
+		const result = await templatePlugin.execute(
+			ctx({
+				node: {
+					id: "tpl",
+					type: "template",
+					data: {
+						mode: "safe",
+						template: "Hello {{input.username}}",
+					},
+				},
+				resolveTemplate: (t) => t.replace("{{input.username}}", "alice"),
+			}),
+		);
+		expect(result.output).toBe("Hello alice");
+	});
+
+	test("template mode safe rejects Eta tags", async () => {
+		await expect(
+			templatePlugin.execute(
+				ctx({
+					node: {
+						id: "tpl",
+						type: "template",
+						data: {
+							mode: "safe",
+							template: "Hello <%= it.input.username %>",
+						},
+					},
+				}),
+			),
+		).rejects.toThrow(/mode "safe"/);
 	});
 
 	test("assertHttpUrl accepts http and https", () => {
@@ -291,5 +357,40 @@ describe("builtin node plugins", () => {
 			}),
 		);
 		expect(calls).toBe(2);
+	});
+
+	test("http plugin stores cookies against Response.url after redirect", async () => {
+		const { CookieJar } = await import("../cookie-jar.js");
+		const jar = new CookieJar();
+		const fetchMock = (async () => {
+			const res = new Response("{}", {
+				status: 200,
+				headers: { "set-cookie": "sid=1; Path=/; Secure" },
+			});
+			Object.defineProperty(res, "url", {
+				value: "https://b.example.com/session",
+			});
+			return res;
+		}) as typeof fetch;
+		await httpPlugin.execute(
+			ctx({
+				node: {
+					id: "http",
+					type: "http",
+					data: { method: "GET", url: "http://a.example.com/login" },
+				},
+				cookieJar: jar,
+				fetch: fetchMock,
+			}),
+		);
+		const wrongHost: Record<string, string> = {};
+		jar.applyToHeaders("https://a.example.com/", wrongHost);
+		expect(wrongHost.Cookie).toBeUndefined();
+		const rightHost: Record<string, string> = {};
+		jar.applyToHeaders("https://b.example.com/me", rightHost);
+		expect(rightHost.Cookie).toBe("sid=1");
+		const insecure: Record<string, string> = {};
+		jar.applyToHeaders("http://b.example.com/me", insecure);
+		expect(insecure.Cookie).toBeUndefined();
 	});
 });

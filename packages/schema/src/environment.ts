@@ -1,10 +1,10 @@
 ﻿import { z } from "zod";
-import { ENVIRONMENT_VERSION } from "./common.js";
+import { ENVIRONMENT_VERSION, workspaceFileIdSchema } from "./common.js";
 
 const envValue = z.union([z.string(), z.number(), z.boolean()]);
 
 export const environmentSchemaV1 = z.object({
-	name: z.string().min(1),
+	name: workspaceFileIdSchema,
 	version: z.literal(ENVIRONMENT_VERSION),
 	variables: z.record(envValue).default({}),
 });

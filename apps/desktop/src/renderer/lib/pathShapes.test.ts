@@ -45,6 +45,12 @@ describe("collectJsonPaths", () => {
 		expect(collectJsonPaths("hi")).toEqual([]);
 		expect(collectJsonPaths(42)).toEqual([]);
 	});
+
+	test("parses JSON object/array strings at root", () => {
+		expect(collectJsonPaths('{"title":"Essence"}')).toEqual(["title"]);
+		expect(collectJsonPaths('[{"id":1}]')).toContain("[0]");
+		expect(collectJsonPaths('[{"id":1}]')).toContain("[0].id");
+	});
 });
 
 describe("mergePathShapes", () => {

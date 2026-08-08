@@ -100,4 +100,12 @@ describe("validateFlow", () => {
 			).toBe(true);
 		}
 	});
+
+	test("rejects unsafe flow ids", () => {
+		expect(validateFlow({ ...validFlow, id: "../outside" }).success).toBe(
+			false,
+		);
+		expect(validateFlow({ ...validFlow, id: "a/b" }).success).toBe(false);
+		expect(validateFlow({ ...validFlow, id: "a\\b" }).success).toBe(false);
+	});
 });

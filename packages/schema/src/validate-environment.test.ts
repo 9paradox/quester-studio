@@ -30,4 +30,16 @@ describe("validateEnvironment", () => {
 		});
 		expect(result.success).toBe(false);
 	});
+
+	test("rejects unsafe environment names", () => {
+		expect(
+			validateEnvironment({ name: "../outside", version: "v1" }).success,
+		).toBe(false);
+		expect(validateEnvironment({ name: "a/b", version: "v1" }).success).toBe(
+			false,
+		);
+		expect(validateEnvironment({ name: "a\\b", version: "v1" }).success).toBe(
+			false,
+		);
+	});
 });

@@ -38,12 +38,56 @@ describe("CookieJar", () => {
 		expect(headers.Cookie).toBeUndefined();
 	});
 
-	test("snapshot round-trips host cookies", () => {
+	test("snapshot round-trips host cookies with path/secure", () => {
 		const jar = new CookieJar();
-		jar.storeFromSetCookie("https://api.example.com/", ["a=1", "b=2"]);
-		const restored = CookieJar.fromSnapshot(jar.toSnapshot());
+		jar.storeFromSetCookie("https://api.example.com/login", [
+			"a=1; Path=/; Secure",
+			"b=2; Path=/api",
+		]);
+		const snap = jar.toSnapshot();
+		expect(snap["api.example.com"]?.a).toEqual({
+			value: "1",
+			path: "/",
+			secure: true,
+		});
+		const restored = CookieJar.fromSnapshot(snap);
+		const httpsHeaders: Record<string, string> = {};
+		restored.applyToHeaders("https://api.example.com/api/me", httpsHeaders);
+		expect(httpsHeaders.Cookie).toBe("a=1; b=2");
+	});
+
+	test("loads legacy string snapshot values", () => {
+		const restored = CookieJar.fromSnapshot({
+			"api.example.com": { session: "abc" },
+		});
 		const headers: Record<string, string> = {};
-		restored.applyToHeaders("https://api.example.com/", headers);
-		expect(headers.Cookie).toBe("a=1; b=2");
+		restored.applyToHeaders("https://api.example.com/me", headers);
+		expect(headers.Cookie).toBe("session=abc");
+	});
+
+	test("honors Secure — not sent over http", () => {
+		const jar = new CookieJar();
+		jar.storeFromSetCookie("https://api.example.com/", [
+			"sid=1; Path=/; Secure",
+		]);
+		const httpHeaders: Record<string, string> = {};
+		jar.applyToHeaders("http://api.example.com/", httpHeaders);
+		expect(httpHeaders.Cookie).toBeUndefined();
+		const httpsHeaders: Record<string, string> = {};
+		jar.applyToHeaders("https://api.example.com/", httpsHeaders);
+		expect(httpsHeaders.Cookie).toBe("sid=1");
+	});
+
+	test("honors Path prefix match", () => {
+		const jar = new CookieJar();
+		jar.storeFromSetCookie("https://api.example.com/api/v1/login", [
+			"tok=1; Path=/api",
+		]);
+		const miss: Record<string, string> = {};
+		jar.applyToHeaders("https://api.example.com/other", miss);
+		expect(miss.Cookie).toBeUndefined();
+		const hit: Record<string, string> = {};
+		jar.applyToHeaders("https://api.example.com/api/me", hit);
+		expect(hit.Cookie).toBe("tok=1");
 	});
 });

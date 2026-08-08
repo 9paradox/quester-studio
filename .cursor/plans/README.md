@@ -5,7 +5,7 @@ Open **one plan at a time**, in priority order. Source of truth for checkboxes: 
 | # | Plan | When to open |
 |---|------|----------------|
 | 01 | [Stability — critical / high](./01-stability-critical.md) | **Start here** |
-| 02 | [Stability — medium](./02-stability-medium.md) | After 01 (or parallel low-risk items) |
+| 02 | [Stability — medium](./02-stability-medium.md) | After 01 — **code complete** (await user X/Y/Z) |
 | 03 | [Performance](./03-performance.md) | After core run correctness (01 B4/B5) |
 | 04 | [Desktop — JSON / response viewers](./04-desktop-json-viewers.md) | After 01; pairs with 03 |
 | 05 | [Desktop — Run UX](./05-desktop-run-ux.md) | After B5/B8 (plan 01) |

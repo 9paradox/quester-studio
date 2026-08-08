@@ -6,11 +6,13 @@
     },
     "ms": {
       "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "maximum": 3600000
     },
     "jitterMs": {
       "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "maximum": 3600000
     }
   },
   "required": [

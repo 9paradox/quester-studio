@@ -21,6 +21,9 @@ Quester does not encrypt secrets at rest. Protect workspace directories with OS-
 - **HTTP nodes** can request any `http:` or `https:` URL after template resolution.
 - Quester does **not** sandbox network egress. Users are responsible for URLs their flows call.
 - Flows run with the privileges of the user running the CLI or desktop app.
+- **Templates:** Ordinary `{{env.*}}` / `{{input.*}}` / `{{nodes.*}}` / `{{vars.*}}` / `{{secrets.*}}` fields are **interpolation only** (no arbitrary JS).
+- The **`template` node** defaults to `mode: "eta"`, which runs [Eta](https://eta.js.org/) in-process (`<% %>`, `<%= it.* %>`). That is **in-process JavaScript**, not a sandbox. Prefer `mode: "safe"` for interpolation-only bodies. Treat imported or third-party flows like untrusted code.
+- Full isolation for arbitrary user code is a separate future capability (planned `code` node), not claimed here.
 
 ## Loops, composition, and resource caps
 

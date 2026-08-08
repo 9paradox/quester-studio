@@ -109,7 +109,7 @@ Disk run files redact via `collectSecretValues` / `redactForRunLog`. Live `node:
 | --- | --- |
 | **Severity** | medium |
 | **Area** | nodes, schema |
-| **Status** | open |
+| **Status** | fixed |
 
 Plain `setTimeout` in `packages/nodes/src/builtin/delay.ts`; schema `ms` unbounded. Stop during delay waits until sleep ends.
 
@@ -125,7 +125,7 @@ Plain `setTimeout` in `packages/nodes/src/builtin/delay.ts`; schema `ms` unbound
 | --- | --- |
 | **Severity** | medium |
 | **Area** | workspace-service, schema |
-| **Status** | open |
+| **Status** | fixed |
 
 `saveFlow` / env / secrets writers join filenames from ids without forbidding `..` / separators. Collections harden `..`; flows/envs do not. Malicious shared workspace can write outside `flowsDir`.
 
@@ -143,7 +143,7 @@ Plain `setTimeout` in `packages/nodes/src/builtin/delay.ts`; schema `ms` unbound
 | --- | --- |
 | **Severity** | medium |
 | **Area** | nodes |
-| **Status** | open |
+| **Status** | fixed |
 
 `storeFromSetCookie(url, …)` uses pre-redirect request URL after `fetch` follows redirects. `Secure` / `Domain` / `Path` not fully honored.
 
@@ -161,7 +161,7 @@ Plain `setTimeout` in `packages/nodes/src/builtin/delay.ts`; schema `ms` unbound
 | --- | --- |
 | **Severity** | medium |
 | **Area** | cli, engine |
-| **Status** | open |
+| **Status** | fixed |
 
 CLI `loadSecrets(wsPath, env)` omits `manifest.environmentsDir`. CLI does not share one `cookieJar` across root + `createExecuteSubflow` (each subflow can get its own jar).
 
@@ -179,13 +179,13 @@ CLI `loadSecrets(wsPath, env)` omits `manifest.environmentsDir`. CLI does not sh
 | --- | --- |
 | **Severity** | medium |
 | **Area** | nodes, docs |
-| **Status** | open |
+| **Status** | docs clarified (full fix → plan 09) |
 
 `try` branches on condition/checks only. HTTP/`assert` throws still abort the flow as `FlowExecutionError`. Easy to misread as exception handling.
 
 **Example:** `try` wrap around HTTP that 500s (or `assert` that fails). User expects catch branch; instead the whole run fails with `FlowExecutionError`. Catch only runs when soft condition/checks say so — not on thrown errors.
 
-**Fix direction:** Either catch execute throws into catch branch, or document clearly as soft-check only and rename UX copy.
+**Fix direction:** Docs/UX copy updated (soft-check only). Real exception-boundary `try` remains plan 09 (framed subgraphs).
 
 ---
 
@@ -195,7 +195,7 @@ CLI `loadSecrets(wsPath, env)` omits `manifest.environmentsDir`. CLI does not sh
 | --- | --- |
 | **Severity** | medium |
 | **Area** | desktop |
-| **Status** | open |
+| **Status** | fixed |
 
 `apps/desktop/scripts/sync-sample-workspace.mjs` does not exclude `*.secrets.json`. Local maintainer builds with secrets present can ship them in `Resources/sample-workspace`. CI clean checkouts are usually fine.
 
@@ -211,7 +211,7 @@ CLI `loadSecrets(wsPath, env)` omits `manifest.environmentsDir`. CLI does not sh
 | --- | --- |
 | **Severity** | medium |
 | **Area** | nodes, SECURITY |
-| **Status** | open |
+| **Status** | fixed |
 
 `new Eta({ autoEscape: false })` + `renderString` allows `<% %>` code in flows. Local trust model allows powerful flows, but this is process JS, not mere `{{…}}` interpolation. Under-documented in `SECURITY.md`.
 
@@ -243,7 +243,7 @@ No auth; client-chosen workspace paths; full secrets over HTTP; reflective CORS 
 | --- | --- |
 | **Severity** | medium |
 | **Area** | web, docs |
-| **Status** | open |
+| **Status** | fixed |
 
 Related to B6. Site roadmap still points at “v0.7 scenario testing”; Guide omits macOS; Try CLI snippet uses non-existent `example.flow.json`; checksum guidance without published files; Postman import undocumentated; UI screenshots incomplete.
 

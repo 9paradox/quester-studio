@@ -7,6 +7,14 @@
     "template": {
       "type": "string",
       "minLength": 1
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "eta",
+        "safe"
+      ],
+      "default": "eta"
     }
   },
   "required": [
