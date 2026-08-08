@@ -12,10 +12,10 @@ Thank you for contributing. This document covers local development, git workflow
 ```bash
 bun install
 bun run build
-bun run lint
-bun run typecheck
-bun run test
+bun run check   # lint → typecheck → test; stops on first failure
 ```
+
+Prefer `bun run check` over chaining `lint; typecheck; test` with `;` (especially on PowerShell — that only surfaces the last command’s exit code).
 
 Package-scoped work:
 
@@ -43,9 +43,10 @@ VS Code / Cursor launch configs for engine, CLI, desktop main process, and React
 
 ### When to commit
 
-1. After a **logical unit** of work passes local checks (`lint` + affected `test`/`build`).
-2. Before opening or updating a PR, run `bun run build && bun run test`.
+1. After a **logical unit** of work passes local checks (`bun run check` or lint + affected `test`/`build`).
+2. Before opening or updating a PR, run `bun run build` and `bun run check`.
 3. Do **not** commit failing tests, secrets, or hand-edited `schemas/` output.
+4. Repo text is LF (see `.gitattributes`). Prefer `core.autocrlf=false` for this clone so Biome does not fail on CRLF.
 
 ### Commit message format (Conventional Commits)
 

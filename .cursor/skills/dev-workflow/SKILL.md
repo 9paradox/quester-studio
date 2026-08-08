@@ -94,24 +94,32 @@ bun run --filter @quester-studio/desktop test
 
 ## 4. Verify (before commit or PR)
 
+Prefer the fail-fast gate (stops on first failure — safe on PowerShell):
+
 ```powershell
-bun run lint
-bun run typecheck
+bun run check
+```
+
+Do **not** chain with `;` (`bun run lint; bun run typecheck; bun run test`) — PowerShell reports only the last exit code and can hide a failed typecheck.
+
+Package-scoped while iterating:
+
+```powershell
 bun run --filter <affected-package> test
 bun run --filter <affected-package> build
 ```
 
-Before opening or updating a PR, run the full gate:
+Before opening or updating a PR, also build when needed:
 
 ```powershell
 bun run build
-bun run test
+bun run check
 ```
 
 Hooks (installed via `bun install` / Lefthook):
 
 - **pre-commit** — Biome on staged files
-- **pre-push** — full test suite
+- **pre-push** — `typecheck` then `test` (fail-fast); run `bun run check` for lint+typecheck+test before PRs
 
 ## 5. Commit
 
