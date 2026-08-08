@@ -6,5 +6,10 @@ pre-commit:
 
 pre-push:
   commands:
+    # Fail-fast typecheck + test (do not use `;` — early failures must stop the push).
+    # Full `bun run check` also runs lint; omit from pre-push while Windows CRLF trees
+    # still trip Biome — use `bun run check` before opening a PR / when the tree is LF.
+    typecheck:
+      run: bun run typecheck
     test:
       run: bun run test
