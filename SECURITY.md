@@ -51,6 +51,16 @@ These limits reduce accidental or malicious resource exhaustion from flow graphs
 
 Desktop release artifacts are **unsigned development builds**. Verify checksums published on GitHub Releases before running. See your platform documentation for running unsigned applications safely.
 
+## Local HTTP API (`apps/api`)
+
+`@quester-studio/api` is a **localhost development** surface over workspace-service. It is **not** a multi-tenant or internet-facing product.
+
+- **No authentication** — any client that can reach the server can list/load flows, run them, and read/write secrets.
+- **Default bind:** `127.0.0.1` only. Binding beyond loopback (e.g. `0.0.0.0`) is refused unless `QUESTER_API_ALLOW_REMOTE=1` (logs a loud warning).
+- **CORS** allows loopback browser origins only (not reflective remote `Origin`).
+- When `QUESTER_WORKSPACE_ROOT` is set, request `workspace` / `path` values outside that directory are rejected.
+- Do not expose this API on a network, reverse proxy, or tunnel until auth and isolation exist.
+
 ## Supported versions
 
 | Version | Supported |

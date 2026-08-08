@@ -43,7 +43,7 @@
 				"headers": {
 					"Content-Type": "application/json"
 				},
-				"body": "{\n  \"username\": \"{{secrets.username}}\",\n  \"password\": \"{{secrets.password}}\"\n}",
+				"body": "{\n  \"username\": \"{{input.username}}\",\n  \"password\": \"{{input.password}}\"\n}",
 				"label": "Login"
 			},
 			"position": {

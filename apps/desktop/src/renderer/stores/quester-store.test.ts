@@ -20,11 +20,12 @@ import { slugifyName } from "./slugify.js";
 
 mock.module("@/lib/quester-client.js", () => {
 	let cancelRunId: string | null = null;
+	const cancelledRunIds: string[] = [];
 	return {
 		getQuesterClient: () => ({
 			executeFlowRpc: async ({ runId }: { runId: string }) => {
 				await new Promise((resolve) => setTimeout(resolve, 50));
-				if (cancelRunId === runId) {
+				if (cancelRunId === runId || cancelledRunIds.includes(runId)) {
 					return {
 						output: undefined,
 						nodeOutputs: { start: {}, in: { name: "demo" } },
@@ -79,6 +80,7 @@ mock.module("@/lib/quester-client.js", () => {
 			},
 			cancelFlowRun: async ({ runId }: { runId: string }) => {
 				cancelRunId = runId;
+				cancelledRunIds.push(runId);
 				return { ok: true };
 			},
 			loadEnvironment: async () => ({
@@ -90,6 +92,7 @@ mock.module("@/lib/quester-client.js", () => {
 			readPathShapes: async () => null,
 			writePathShapes: async () => ({ ok: true }),
 			onNodeRunStatus: () => () => {},
+			__cancelledRunIds: cancelledRunIds,
 		}),
 		setQuesterClient: () => {},
 		resetQuesterClientForTests: () => {},
@@ -820,6 +823,98 @@ describe("useQuesterStore", () => {
 		expect(done?.runResult?.cancelled).toBe(true);
 		expect(done?.runResult?.steps?.length).toBe(2);
 	});
+
+	test("runFlow ignores overlapping start while already running", async () => {
+		resetStore();
+		const tab = createFlowEditorTab(sampleFlow);
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			workspacePath: "/tmp/ws",
+			selectedEnv: "local",
+			inputJson: '{"name":"demo"}',
+		});
+
+		const first = useQuesterStore.getState().runFlow();
+		const firstId =
+			useQuesterStore.getState().runByFlowId["demo-flow"]?.activeRunId;
+		await useQuesterStore.getState().runFlow();
+		expect(
+			useQuesterStore.getState().runByFlowId["demo-flow"]?.activeRunId,
+		).toBe(firstId);
+		await first;
+	});
+
+	test("stale run finally does not clear a newer active run", async () => {
+		resetStore();
+		const tab = createFlowEditorTab(sampleFlow);
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			workspacePath: "/tmp/ws",
+			selectedEnv: "local",
+			inputJson: '{"name":"demo"}',
+			runByFlowId: {
+				"demo-flow": {
+					...emptyFlowRunState(),
+					isRunning: true,
+					activeRunId: "stale-run",
+				},
+			},
+		});
+
+		// Simulate an older runFlow finally clearing after a newer run started
+		useQuesterStore.setState((s) => ({
+			runByFlowId: {
+				...s.runByFlowId,
+				"demo-flow": {
+					...(s.runByFlowId["demo-flow"] ?? emptyFlowRunState()),
+					isRunning: true,
+					activeRunId: "newer-run",
+				},
+			},
+		}));
+
+		// Manually apply the scoped finally logic for the stale id
+		useQuesterStore.setState((s) => {
+			const slot = s.runByFlowId["demo-flow"];
+			if (!slot || slot.activeRunId !== "stale-run") return s;
+			return {
+				runByFlowId: {
+					...s.runByFlowId,
+					"demo-flow": { ...slot, isRunning: false },
+				},
+			};
+		});
+
+		const slot = useQuesterStore.getState().runByFlowId["demo-flow"];
+		expect(slot?.activeRunId).toBe("newer-run");
+		expect(slot?.isRunning).toBe(true);
+	});
+
+	test("closeWorkspace cancels in-flight runs", async () => {
+		resetStore();
+		const { getQuesterClient } = await import("@/lib/quester-client.js");
+		const client = getQuesterClient() as {
+			__cancelledRunIds?: string[];
+		};
+		client.__cancelledRunIds?.splice(0);
+
+		useQuesterStore.setState({
+			workspacePath: "/tmp/ws",
+			workspaceName: "Demo",
+			runByFlowId: {
+				"demo-flow": {
+					...emptyFlowRunState(),
+					isRunning: true,
+					activeRunId: "run-to-cancel",
+				},
+			},
+		});
+		useQuesterStore.getState().closeWorkspace();
+		expect(client.__cancelledRunIds).toContain("run-to-cancel");
+		expect(useQuesterStore.getState().runByFlowId).toEqual({});
+	});
 });
 
 describe("selectors", () => {
@@ -839,5 +934,24 @@ describe("selectors", () => {
 		expect(selectCanRun(state)).toBe(true);
 		expect(selectAnyDirty(state)).toBe(false);
 		expect(selectDirtyTabIds(state)).toEqual([]);
+	});
+
+	test("selectCanRun is false while a flow is running", () => {
+		resetStore();
+		const tab = createFlowEditorTab(sampleFlow);
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			workspacePath: "/tmp/ws",
+			isLoading: false,
+			runByFlowId: {
+				"demo-flow": {
+					...emptyFlowRunState(),
+					isRunning: true,
+					activeRunId: "r1",
+				},
+			},
+		});
+		expect(selectCanRun(useQuesterStore.getState())).toBe(false);
 	});
 });

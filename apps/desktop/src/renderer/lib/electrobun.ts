@@ -14,7 +14,8 @@ type NodeRunStatusListener = (event: NodeRunStatusEvent) => void;
 const nodeRunStatusListeners = new Set<NodeRunStatusListener>();
 
 const rpc = Electroview.defineRPC<DesktopRPC>({
-	maxRequestTime: 30_000,
+	/** Keep in sync with main process (B5). */
+	maxRequestTime: 3_600_000,
 	handlers: {
 		requests: {},
 		messages: {

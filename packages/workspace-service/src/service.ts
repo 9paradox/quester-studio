@@ -35,6 +35,7 @@ import {
 	loadRequest as loadRequestFile,
 	loadSecrets,
 	loadWorkspace,
+	redactForRunLog,
 	resolveTlsVerifyActive,
 	saveRequest as saveRequestFile,
 } from "@quester-studio/engine";
@@ -334,13 +335,26 @@ export async function executeFlowRpc(
 	);
 
 	const logs: ExecutionLogEntry[] = [];
+	const secretValues = collectSecretValues(secrets);
 	const pushLog = (
 		level: ExecutionLogEntry["level"],
 		message: string,
 		extra?: Omit<ExecutionLogEntry, "ts" | "level" | "message">,
 	) => {
-		logs.push({ ts: Date.now(), level, message, ...extra });
+		const data =
+			extra?.data !== undefined
+				? redactForRunLog(extra.data, secretValues)
+				: undefined;
+		logs.push({
+			ts: Date.now(),
+			level,
+			message: String(redactForRunLog(message, secretValues)),
+			...extra,
+			...(data !== undefined ? { data } : {}),
+		});
 	};
+	const redactRpc = <T>(value: T): T =>
+		redactForRunLog(value, secretValues) as T;
 
 	const emitStatus = (
 		status: Extract<
@@ -445,7 +459,7 @@ export async function executeFlowRpc(
 		await mkdir(runDir, { recursive: true });
 		runLogger = new RunFileLogger({
 			runDir,
-			secretValues: collectSecretValues(secrets),
+			secretValues,
 			meta: {
 				flowId,
 				flowName: validated.data.name,
@@ -493,7 +507,7 @@ export async function executeFlowRpc(
 				executeSubflow,
 				runLogger,
 			});
-			return { ...result, logs };
+			return redactRpc({ ...result, logs });
 		} finally {
 			if (cookieJarEnabled && cookieJar) {
 				await savePersistedCookieJar(root, cookieJar);
@@ -506,21 +520,21 @@ export async function executeFlowRpc(
 		const msg = formatErrorForConsole(error);
 		if (error instanceof FlowCancelledError) {
 			pushLog("info", "Flow run cancelled", { phase: "complete" });
-			return {
+			return redactRpc({
 				...error.partial,
 				logs,
 				cancelled: true,
 				error: error.message,
-			};
+			});
 		}
 		pushLog("error", msg);
 		if (error instanceof FlowExecutionError) {
-			return {
+			return redactRpc({
 				...error.partial,
 				logs,
 				error: error.message,
 				failedNodeId: error.failedNodeId,
-			};
+			});
 		}
 		throw error;
 	}
@@ -948,13 +962,26 @@ export async function executeRequestRpc(
 	const httpDefaults = mergeHttpSettings(ws.manifest.settings?.http, undefined);
 
 	const logs: ExecutionLogEntry[] = [];
+	const secretValues = collectSecretValues(secrets);
 	const pushLog = (
 		level: ExecutionLogEntry["level"],
 		message: string,
 		extra?: Omit<ExecutionLogEntry, "ts" | "level" | "message">,
 	) => {
-		logs.push({ ts: Date.now(), level, message, ...extra });
+		const data =
+			extra?.data !== undefined
+				? redactForRunLog(extra.data, secretValues)
+				: undefined;
+		logs.push({
+			ts: Date.now(),
+			level,
+			message: String(redactForRunLog(message, secretValues)),
+			...extra,
+			...(data !== undefined ? { data } : {}),
+		});
 	};
+	const redactRpc = <T>(value: T): T =>
+		redactForRunLog(value, secretValues) as T;
 
 	const events = new EngineEventEmitter();
 	events.on("node:before", ({ nodeId, type }) => {
@@ -1022,18 +1049,18 @@ export async function executeRequestRpc(
 			httpDefaults,
 		});
 		const httpOutput = result.nodeOutputs.http ?? null;
-		return { ...result, httpOutput, logs };
+		return redactRpc({ ...result, httpOutput, logs });
 	} catch (error) {
 		const msg = formatErrorForConsole(error);
 		pushLog("error", msg);
 		if (error instanceof FlowExecutionError) {
-			return {
+			return redactRpc({
 				...error.partial,
 				httpOutput: error.partial.nodeOutputs.http ?? null,
 				logs,
 				error: error.message,
 				failedNodeId: error.failedNodeId,
-			};
+			});
 		}
 		throw error;
 	}

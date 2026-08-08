@@ -41,7 +41,8 @@ function sendNodeRunStatus(
 }
 
 const rpc = BrowserView.defineRPC<DesktopRPC>({
-	maxRequestTime: 30_000,
+	/** Long ceiling so slow flows / delays aren't cut off at 30s (B5). */
+	maxRequestTime: 3_600_000,
 	handlers: {
 		requests: {
 			getDefaultWorkspace: async () =>

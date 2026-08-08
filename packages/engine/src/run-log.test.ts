@@ -26,6 +26,22 @@ describe("run file logging", () => {
 		expect((redacted.nested as { password: string }).password).toBe("***");
 	});
 
+	test("redactForRunLog masks Cookie and Set-Cookie headers", () => {
+		const redacted = redactForRunLog(
+			{
+				headers: {
+					Cookie: "session=abc",
+					"Set-Cookie": "session=abc; Path=/",
+					"Content-Type": "application/json",
+				},
+			},
+			[],
+		) as { headers: Record<string, string> };
+		expect(redacted.headers.Cookie).toBe("***");
+		expect(redacted.headers["Set-Cookie"]).toBe("***");
+		expect(redacted.headers["Content-Type"]).toBe("application/json");
+	});
+
 	test("collectSecretValues flattens string secrets", () => {
 		expect(collectSecretValues({ a: "x", b: 1, c: true })).toEqual([
 			"x",
