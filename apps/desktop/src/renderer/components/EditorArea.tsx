@@ -11,6 +11,7 @@ import { CanvasControls } from "./CanvasControls.js";
 import { FlowCanvas } from "./FlowCanvas.js";
 import { KeyValueEditor } from "./KeyValueEditor.js";
 import { RequestEditor } from "./RequestEditor.js";
+import { ResponseViewerPage } from "./ResponseViewerPage.js";
 import { WorkspaceSettingsEditor } from "./WorkspaceSettingsEditor.js";
 import { WorkspaceWelcome } from "./WorkspaceWelcome.js";
 
@@ -181,6 +182,7 @@ export function EditorArea() {
 			<div className="relative h-full min-h-0 min-w-0 flex-1">
 				<RequestEditor
 					request={activeTab.request}
+					requestPath={activeTab.requestPath}
 					envs={envs}
 					selectedEnv={selectedEnv}
 					onEnvChange={setSelectedEnv}
@@ -190,6 +192,14 @@ export function EditorArea() {
 					result={requestResult}
 					error={requestError}
 				/>
+			</div>
+		);
+	}
+
+	if (activeTab.kind === "response") {
+		return (
+			<div className="relative h-full min-h-0 min-w-0 flex-1">
+				<ResponseViewerPage snapshot={activeTab.snapshot} />
 			</div>
 		);
 	}

@@ -1,4 +1,4 @@
-import { CodeEditor } from "@/components/CodeEditor.js";
+import { CodeEditor, type CodeEditorVariant } from "@/components/CodeEditor.js";
 import {
 	type JsonDraftState,
 	createJsonDraft,
@@ -14,6 +14,8 @@ type JsonDraftFieldProps = {
 	minHeight?: string;
 	id?: string;
 	placeholder?: string;
+	/** Document mode for fold / line numbers / search (default). */
+	variant?: CodeEditorVariant;
 };
 
 /**
@@ -27,6 +29,7 @@ export function JsonDraftField({
 	minHeight = "6rem",
 	id,
 	placeholder,
+	variant = "document",
 }: JsonDraftFieldProps) {
 	const [draft, setDraft] = useState<JsonDraftState>(() =>
 		createJsonDraft(value),
@@ -53,6 +56,8 @@ export function JsonDraftField({
 				id={id}
 				value={draft.text}
 				language="json"
+				variant={variant}
+				formatOnBlur
 				minHeight={minHeight}
 				placeholder={placeholder}
 				className={className}

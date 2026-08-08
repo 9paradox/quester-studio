@@ -1,3 +1,4 @@
+import { CodeEditor } from "@/components/CodeEditor.js";
 import { JsonViewer, stringifyJson } from "@/components/JsonViewer.js";
 import { Button } from "@/components/ui/button.js";
 import {
@@ -6,7 +7,6 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
-import { Textarea } from "@/components/ui/textarea.js";
 import { cn } from "@/lib/utils.js";
 import { IconCopy } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
@@ -142,20 +142,31 @@ export function JsonPane({
 				<TabsContent value="raw" className="mt-2">
 					{editable && onEdit ? (
 						<>
-							<Textarea
+							<CodeEditor
 								value={typeof value === "string" ? value : stringifyJson(value)}
-								onChange={(e) => onEdit(e.target.value)}
-								className="min-h-40 font-mono text-xs"
-								spellCheck={false}
+								onChange={onEdit}
+								language="json"
+								variant="document"
+								formatOnBlur
+								minHeight="10rem"
+								ariaLabel="JSON raw editor"
 							/>
 							{editError ? (
 								<p className="mt-1 text-xs text-destructive">{editError}</p>
 							) : null}
 						</>
 					) : (
-						<pre className="max-h-80 overflow-auto rounded-md border bg-muted/20 p-2.5 font-mono text-[11px] leading-5 whitespace-pre-wrap break-all">
-							{raw}
-						</pre>
+						<CodeEditor
+							value={raw}
+							readOnly
+							language="json"
+							variant="document"
+							completionMode="none"
+							lint={false}
+							minHeight="10rem"
+							maxHeight="20rem"
+							ariaLabel="JSON raw view"
+						/>
 					)}
 				</TabsContent>
 			</Tabs>

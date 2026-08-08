@@ -55,9 +55,27 @@ export const questerEditorTheme = EditorView.theme({
 	"& ::-moz-selection": { backgroundColor: "transparent" },
 	".cm-activeLine": { backgroundColor: "transparent" },
 	".cm-gutters": {
-		backgroundColor: "transparent",
+		backgroundColor: "color-mix(in oklch, var(--muted) 70%, transparent)",
 		color: "var(--muted-foreground)",
 		border: "none",
+		borderRight: "1px solid var(--border)",
+	},
+	/* Explicit — CM base styles otherwise wash out numbers in dark mode */
+	".cm-lineNumbers .cm-gutterElement": {
+		color: "var(--muted-foreground)",
+		minWidth: "2.25rem",
+		padding: "0 0.45rem 0 0.35rem",
+	},
+	".cm-foldGutter .cm-gutterElement": {
+		color: "var(--muted-foreground)",
+		opacity: "0.9",
+	},
+	".cm-activeLineGutter": {
+		backgroundColor: "transparent",
+		color: "var(--foreground)",
+	},
+	".cm-activeLineGutter.cm-gutterElement": {
+		color: "var(--foreground)",
 	},
 	".cm-template": {
 		color: "var(--sidebar-primary)",

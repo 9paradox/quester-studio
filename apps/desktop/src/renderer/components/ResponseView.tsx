@@ -9,12 +9,13 @@ import { Button } from "@/components/ui/button.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { getNodePresentation } from "@/lib/nodeCatalog.js";
 import { getQuesterClient } from "@/lib/quester-client.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	type BuiltinNodeType,
 	type FlowNodeV1,
 	builtinNodeTypes,
 } from "@quester-studio/schema";
-import { IconFolderOpen } from "@tabler/icons-react";
+import { IconExternalLink, IconFolderOpen } from "@tabler/icons-react";
 import { useState } from "react";
 import type { ExecuteFlowRpcResult } from "../../shared/rpc.js";
 
@@ -193,6 +194,8 @@ export function ResponseView({
 	selectedNode,
 	onSelectNode,
 }: ResponseViewProps) {
+	const openResponseViewerTab = useQuesterStore((s) => s.openResponseViewerTab);
+
 	if (!runResult && !runError) {
 		return (
 			<p className="text-sm text-muted-foreground">
@@ -219,6 +222,19 @@ export function ResponseView({
 	const Icon = presentation?.icon;
 
 	if (!selectedNodeId) {
+		const openFlowOutput = () => {
+			if (runResult.output === undefined && !errorText) return;
+			openResponseViewerTab(
+				{
+					source: "flow",
+					title: "Flow output",
+					subtitle: "final",
+					error: errorText,
+					output: runResult.output ?? null,
+				},
+				`flow-output:${runResult.runDir ?? "latest"}`,
+			);
+		};
 		return (
 			<div className="flex flex-col gap-3">
 				<RunSummary
@@ -233,10 +249,21 @@ export function ResponseView({
 								Flow output
 							</h3>
 							<Badge variant="outline">final</Badge>
+							<span className="flex-1" />
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="h-7 gap-1.5 px-2 text-xs"
+								onClick={openFlowOutput}
+							>
+								<IconExternalLink className="size-3.5" />
+								Open in tab
+							</Button>
 						</div>
 						<JsonViewer
 							value={runResult.output}
-							defaultExpandedDepth={3}
+							defaultExpandedDepth={2}
 							enablePathCopy
 						/>
 					</section>
@@ -263,6 +290,20 @@ export function ResponseView({
 	const failed =
 		Boolean(selected.error) || runResult.failedNodeId === selected.nodeId;
 
+	const openNodeResponse = () => {
+		openResponseViewerTab(
+			{
+				source: "flow",
+				title: `${selected.nodeId} response`,
+				subtitle: presentation?.label ?? nodeType ?? "node",
+				error: selected.error ?? (failed ? errorText : null),
+				output: selected.output,
+				pathCopyNodeId: selected.nodeId,
+			},
+			`flow:${selected.nodeId}`,
+		);
+	};
+
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="flex flex-wrap items-center gap-2">
@@ -287,6 +328,16 @@ export function ResponseView({
 						<Badge variant="outline">{selected.output.status}</Badge>
 					) : null
 				) : null}
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="h-7 gap-1.5 px-2 text-xs"
+					onClick={openNodeResponse}
+				>
+					<IconExternalLink className="size-3.5" />
+					Open in tab
+				</Button>
 			</div>
 
 			<NodeResponsePanels step={selected} node={selectedNode} />

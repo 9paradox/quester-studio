@@ -954,4 +954,26 @@ describe("selectors", () => {
 		});
 		expect(selectCanRun(useQuesterStore.getState())).toBe(false);
 	});
+
+	test("openResponseViewerTab adds a frozen response tab", () => {
+		resetStore();
+		const snapshot = {
+			source: "flow" as const,
+			title: "getProfile response",
+			subtitle: "http",
+			error: null as string | null,
+			output: { status: 200, body: { id: 1 } },
+			pathCopyNodeId: "getProfile",
+		};
+		useQuesterStore
+			.getState()
+			.openResponseViewerTab(snapshot, "flow:getProfile");
+		const state = useQuesterStore.getState();
+		const tab = selectActiveTab(state);
+		expect(tab?.kind).toBe("response");
+		if (tab?.kind !== "response") throw new Error("expected response tab");
+		expect(tab.snapshot).toEqual(snapshot);
+		expect(tab.dirty).toBe(false);
+		expect(state.openTabs.some((t) => t.kind === "response")).toBe(true);
+	});
 });

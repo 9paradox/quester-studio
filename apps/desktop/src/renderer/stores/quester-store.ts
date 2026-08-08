@@ -1,9 +1,11 @@
 import {
 	type EditorTab,
+	type ResponseViewerSnapshot,
 	createAppSettingsEditorTab,
 	createEnvEditorTab,
 	createFlowEditorTab,
 	createRequestEditorTab,
+	createResponseViewerTab,
 	createSecretsEditorTab,
 	createWorkspaceSettingsEditorTab,
 	editorTabLabel,
@@ -325,6 +327,10 @@ export type QuesterState = {
 		http?: HttpSettingsV1;
 	}) => void;
 	openTab: (tab: EditorTab) => void;
+	openResponseViewerTab: (
+		snapshot: ResponseViewerSnapshot,
+		sourceKey: string,
+	) => void;
 	applyNodeRunStatusEvent: (event: NodeRunStatusEvent) => void;
 	refreshWorkspaceLists: (path: string) => Promise<{
 		flowList: FlowMeta[];
@@ -659,6 +665,10 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				...(active?.kind === "flow" ? { inputJson: active.inputJson } : {}),
 			};
 		});
+	},
+
+	openResponseViewerTab: (snapshot, sourceKey) => {
+		get().openTab(createResponseViewerTab(snapshot, sourceKey));
 	},
 
 	applyNodeRunStatusEvent: (event) => {
