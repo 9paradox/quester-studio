@@ -1,4 +1,9 @@
-import { CookieJar, HttpNodeError, getNodePlugin } from "@quester-studio/nodes";
+import {
+	AssertNodeError,
+	CookieJar,
+	HttpNodeError,
+	getNodePlugin,
+} from "@quester-studio/nodes";
 import type { FlowV1, HttpSettingsV1 } from "@quester-studio/schema";
 import { isCookieJarEnabled } from "@quester-studio/schema";
 import "@quester-studio/nodes";
@@ -284,7 +289,11 @@ export async function executeFlow(
 				error,
 			});
 			const partialOutput =
-				error instanceof HttpNodeError ? { request: error.request } : undefined;
+				error instanceof HttpNodeError
+					? { request: error.request }
+					: error instanceof AssertNodeError
+						? error.output
+						: undefined;
 			const step: NodeStepResult = {
 				nodeId: node.id,
 				type: node.type,

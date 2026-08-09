@@ -19,9 +19,11 @@ export function AuxiliarySidebar() {
 	const activeTab = useQuesterStore((s) => s.rightPanelTab);
 	const flowTab = useQuesterStore(selectActiveFlowTab);
 	const selectedNodeId = useQuesterStore((s) => s.selectedNodeId);
-	const { runResult, runError } = useQuesterStore(selectActiveFlowRun);
+	const pinnedToSummary = useQuesterStore((s) => s.responsePinnedToRunSummary);
+	const { runResult, runError, isRunning, nodeStatuses, nodeTimings } =
+		useQuesterStore(selectActiveFlowRun);
 	const handleUpdateNode = useQuesterStore((s) => s.handleUpdateNode);
-	const handleSelectNode = useQuesterStore((s) => s.handleSelectNode);
+	const focusNodeOnCanvas = useQuesterStore((s) => s.focusNodeOnCanvas);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const dirty = Boolean(flowTab?.dirty);
 
@@ -75,9 +77,14 @@ export function AuxiliarySidebar() {
 					<ResponseViewScroll
 						runResult={runResult}
 						runError={runError}
+						isRunning={isRunning}
+						flowNodes={flow?.nodes ?? []}
+						nodeStatuses={nodeStatuses}
+						nodeTimings={nodeTimings}
 						selectedNodeId={selectedNodeId}
 						selectedNode={selectedNode}
-						onSelectNode={handleSelectNode}
+						pinnedToSummary={pinnedToSummary}
+						onFocusNode={focusNodeOnCanvas}
 					/>
 				</div>
 			)}

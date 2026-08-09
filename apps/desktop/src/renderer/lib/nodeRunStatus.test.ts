@@ -1,8 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
 	applyNodeStatusEvent,
+	applyNodeTimingEvent,
 	initNodeStatuses,
+	nodeTimingDurationMs,
 	reconcileNodeStatuses,
+	totalRunDurationMs,
 } from "./nodeRunStatus.js";
 
 describe("nodeRunStatus helpers", () => {
@@ -15,6 +18,46 @@ describe("nodeRunStatus helpers", () => {
 		expect(
 			applyNodeStatusEvent(current, { nodeId: "a", status: "running" }),
 		).toEqual({ a: "running", b: "idle" });
+	});
+
+	test("applyNodeStatusEvent is a no-op when status unchanged", () => {
+		const statuses = { a: "running" as const };
+		expect(
+			applyNodeStatusEvent(statuses, { nodeId: "a", status: "running" }),
+		).toBe(statuses);
+	});
+
+	test("applyNodeTimingEvent records start and end", () => {
+		let timings = applyNodeTimingEvent(
+			{},
+			{ nodeId: "a", status: "running", ts: 1000 },
+		);
+		expect(timings).toEqual({ a: { startedAt: 1000 } });
+		timings = applyNodeTimingEvent(timings, {
+			nodeId: "a",
+			status: "success",
+			ts: 1120,
+		});
+		expect(timings).toEqual({ a: { startedAt: 1000, endedAt: 1120 } });
+		expect(nodeTimingDurationMs(timings.a)).toBe(120);
+	});
+
+	test("applyNodeTimingEvent ends without prior start uses event ts", () => {
+		const timings = applyNodeTimingEvent(
+			{},
+			{ nodeId: "a", status: "error", ts: 50 },
+		);
+		expect(timings).toEqual({ a: { startedAt: 50, endedAt: 50 } });
+		expect(nodeTimingDurationMs(timings.a)).toBe(0);
+	});
+
+	test("totalRunDurationMs spans first start to last end", () => {
+		expect(
+			totalRunDurationMs({
+				a: { startedAt: 100, endedAt: 150 },
+				b: { startedAt: 140, endedAt: 200 },
+			}),
+		).toBe(100);
 	});
 
 	test("reconcileNodeStatuses marks successes, errors, and skips", () => {

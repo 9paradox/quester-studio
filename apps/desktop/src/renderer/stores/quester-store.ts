@@ -71,7 +71,9 @@ import {
 } from "../components/KeyValueEditor.js";
 import { clamp } from "../components/ResizeGutter.js";
 import {
+	type NodeTiming,
 	applyNodeStatusEvent,
+	applyNodeTimingEvent,
 	initNodeStatuses,
 	reconcileNodeStatuses,
 } from "../lib/nodeRunStatus.js";
@@ -99,6 +101,7 @@ export type FlowRunState = {
 	isRunning: boolean;
 	activeRunId: string | null;
 	nodeStatuses: Record<string, NodeRunStatus>;
+	nodeTimings: Record<string, NodeTiming>;
 };
 
 /** Per-collection-request send slot (result panel / Send spinner). */
@@ -116,6 +119,7 @@ export function emptyFlowRunState(): FlowRunState {
 		isRunning: false,
 		activeRunId: null,
 		nodeStatuses: {},
+		nodeTimings: {},
 	};
 }
 
@@ -296,6 +300,13 @@ export type QuesterState = {
 	openTabs: EditorTab[];
 	activeTabId: string | null;
 	selectedNodeId: string | null;
+	/** One-shot request for FlowCanvas to pan/zoom to a node (timeline focus). */
+	canvasFocusRequest: { nodeId: string; nonce: number } | null;
+	/**
+	 * When true, Response tab stays on run summary+timeline even if a node is selected
+	 * (timeline focus). Canvas selection clears this to show node detail.
+	 */
+	responsePinnedToRunSummary: boolean;
 	zoom: number;
 
 	activityView: ActivityView;
@@ -392,6 +403,9 @@ export type QuesterState = {
 		position?: { x: number; y: number },
 	) => Promise<void>;
 	handleSelectNode: (nodeId: string | null) => void;
+	/** Select a node and request canvas pan/zoom (Response timeline stays on summary). */
+	focusNodeOnCanvas: (nodeId: string) => void;
+	clearCanvasFocusRequest: () => void;
 	handleUpdateNode: (nodeId: string, data: Record<string, unknown>) => void;
 	deleteNodes: (nodeIds: string[]) => void;
 	deleteEdges: (edgeIds: string[]) => void;
@@ -438,6 +452,8 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	openTabs: [],
 	activeTabId: null,
 	selectedNodeId: null,
+	canvasFocusRequest: null,
+	responsePinnedToRunSummary: false,
 	zoom: 1,
 
 	activityView: "flows",
@@ -699,11 +715,18 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	applyNodeRunStatusEvent: (event) => {
 		const slot = get().runByFlowId[event.flowId] ?? emptyFlowRunState();
 		if (event.runId !== slot.activeRunId) return;
-		const next = applyNodeStatusEvent(slot.nodeStatuses, event);
-		if (next === slot.nodeStatuses) return;
+		const nextStatuses = applyNodeStatusEvent(slot.nodeStatuses, event);
+		const nextTimings = applyNodeTimingEvent(slot.nodeTimings, event);
+		if (
+			nextStatuses === slot.nodeStatuses &&
+			nextTimings === slot.nodeTimings
+		) {
+			return;
+		}
 		set((s) => ({
 			runByFlowId: patchFlowRun(s.runByFlowId, event.flowId, {
-				nodeStatuses: next,
+				nodeStatuses: nextStatuses,
+				nodeTimings: nextTimings,
 			}),
 		}));
 	},
@@ -1062,8 +1085,25 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (state.selectedNodeId === nodeId) return;
 		set({
 			selectedNodeId: nodeId,
+			responsePinnedToRunSummary: false,
 			...(nodeId ? { rightPanelOpen: true } : {}),
 		});
+	},
+
+	focusNodeOnCanvas: (nodeId) => {
+		const nonce = (get().canvasFocusRequest?.nonce ?? 0) + 1;
+		set({
+			selectedNodeId: nodeId,
+			canvasFocusRequest: { nodeId, nonce },
+			responsePinnedToRunSummary: true,
+			rightPanelOpen: true,
+			rightPanelTab: "response",
+		});
+	},
+
+	clearCanvasFocusRequest: () => {
+		if (!get().canvasFocusRequest) return;
+		set({ canvasFocusRequest: null });
 	},
 
 	handleUpdateNode: (nodeId, data) => {
@@ -1588,11 +1628,13 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				runResult: null,
 				activeRunId: runId,
 				nodeStatuses: initNodeStatuses(nodeIds),
+				nodeTimings: {},
 			}),
 			panelOpen: true,
 			panelTab: "logs",
 			rightPanelOpen: true,
 			rightPanelTab: "response",
+			responsePinnedToRunSummary: true,
 		}));
 		appendConsole(`Run started: ${flowId}`);
 
@@ -1719,6 +1761,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			}),
 			rightPanelOpen: true,
 			rightPanelTab: "response",
+			responsePinnedToRunSummary: true,
 			panelOpen: true,
 			panelTab: "logs",
 		}));

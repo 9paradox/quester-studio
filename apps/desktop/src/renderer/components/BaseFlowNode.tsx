@@ -67,14 +67,16 @@ export function BaseFlowNode({
 	return (
 		<div
 			className={cn(
-				"relative overflow-hidden rounded-lg border bg-card text-card-foreground",
+				"relative overflow-hidden rounded-lg border bg-card text-card-foreground transition-[box-shadow,opacity,transform] duration-200",
 				fill
 					? "flex h-full min-h-0 w-full min-w-0 flex-col"
 					: "min-w-[210px] max-w-[300px]",
 				presentation.accentTone,
 				"border-l-[3px]",
 				selected && "border-primary shadow-sm",
-				runStatus === "running" && "ring-1 ring-primary/40",
+				runStatus === "running" &&
+					"quester-node-running ring-1 ring-primary/40",
+				runStatus === "success" && "quester-node-success",
 				runStatus === "error" && "ring-1 ring-destructive/50",
 				runStatus === "skipped" && "opacity-70",
 				className,

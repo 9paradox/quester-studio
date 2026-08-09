@@ -8,7 +8,7 @@ import type { StepView } from "@/components/response/types.js";
 import {
 	isHttpOutput,
 	isRecord,
-	parseAssertFailures,
+	resolveAssertChecks,
 } from "@/components/response/types.js";
 import { Badge } from "@/components/ui/badge.js";
 import { Separator } from "@/components/ui/separator.js";
@@ -58,8 +58,13 @@ function ResultWithInput({
 }
 
 function AssertPanels({ step }: { step: StepView }) {
-	const failures = parseAssertFailures(step.error);
-	const ok = !step.error && isRecord(step.output) && step.output.ok === true;
+	const checks = resolveAssertChecks(step.output, step.error);
+	const failures = checks.filter((c) => !c.ok);
+	const ok =
+		!step.error &&
+		(checks.length === 0
+			? isRecord(step.output) && step.output.ok === true
+			: failures.length === 0);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -73,17 +78,27 @@ function AssertPanels({ step }: { step: StepView }) {
 				)}
 			</div>
 
-			{failures.length > 0 ? (
+			{checks.length > 0 ? (
 				<section className="flex flex-col gap-2">
-					<h3 className="text-xs font-medium text-muted-foreground">
-						Failures
-					</h3>
+					<h3 className="text-xs font-medium text-muted-foreground">Checks</h3>
 					<ul className="flex flex-col gap-1.5">
-						{failures.map((msg) => (
-							<li key={msg}>
-								<ErrorAlert title="Check failed" message={msg} />
-							</li>
-						))}
+						{checks.map((check) =>
+							check.ok ? (
+								<li
+									key={`${check.path}:ok`}
+									className="rounded-md border border-border bg-muted/30 px-2.5 py-2 font-mono text-xs text-muted-foreground"
+								>
+									✓ {check.path}
+								</li>
+							) : (
+								<li key={`${check.path}:${check.message ?? "fail"}`}>
+									<ErrorAlert
+										title="Check failed"
+										message={check.message ?? check.path}
+									/>
+								</li>
+							),
+						)}
 					</ul>
 				</section>
 			) : step.error ? (
