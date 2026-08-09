@@ -1,7 +1,8 @@
 # Plan 05 — Desktop Run UX
 
 **Priority:** 5  
-**Status:** blocked on B5 + B8 (plan 01)  
+**Status:** code complete (await user X/Y/Z)  
+
 **ROADMAP:** §3 Run UX (+ run/debug clarity)  
 
 ## Goal
@@ -18,11 +19,11 @@ Folder logs browser (plan 07); engine fan-in (plan 01 B4) but list should show r
 
 ## Work
 
-- [ ] Node run animation — in-progress / success / fail (performant on large graphs)  
-- [ ] Run status panel — compact list of **all** nodes (order, type/name, state, duration)  
-- [ ] Assert visibility — every `assert` / check outcome (pass/fail + message)  
-- [ ] Final overall status — success / failed / cancelled + counts (asserts, failed nodes, timing)  
-- [ ] Tie into existing Response/Logs panels without breaking per-flow isolation (B3)  
+- [x] Node run animation — in-progress / success / fail (performant on large graphs)  
+- [x] Run status panel — compact list of **all** nodes (order, type/name, state, duration)  
+- [x] Assert visibility — every `assert` / check outcome (pass/fail + message)  
+- [x] Final overall status — success / failed / cancelled + counts (asserts, failed nodes, timing)  
+- [x] Tie into existing Response/Logs panels without breaking per-flow isolation (B3)  
 
 ## Done when
 

@@ -20,6 +20,7 @@ import {
 	reactFlowToFlow,
 } from "@/lib/flowEditor.js";
 import { isTypingFocus } from "@/lib/typingFocus.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
 import type { BuiltinNodeType, FlowV1 } from "@quester-studio/schema";
 import { IconFocusCentered, IconMinus, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -84,6 +85,36 @@ function SelectionBridge({
 			onSelectNodeRef.current?.(nodes[0]?.id ?? null);
 		}, []),
 	});
+	return null;
+}
+
+/** Pan/zoom to a node requested from the Response timeline (stay on summary). */
+function CanvasFocusBridge() {
+	const request = useQuesterStore((s) => s.canvasFocusRequest);
+	const clearCanvasFocusRequest = useQuesterStore(
+		(s) => s.clearCanvasFocusRequest,
+	);
+	const { fitView, setNodes } = useReactFlow();
+	const nodesInitialized = useNodesInitialized();
+
+	useEffect(() => {
+		if (!request || !nodesInitialized) return;
+		const { nodeId } = request;
+		setNodes((current) =>
+			current.map((n) => ({
+				...n,
+				selected: n.id === nodeId,
+			})),
+		);
+		void fitView({
+			nodes: [{ id: nodeId }],
+			padding: 0.35,
+			duration: 280,
+			maxZoom: 1.25,
+		});
+		clearCanvasFocusRequest();
+	}, [request, nodesInitialized, fitView, setNodes, clearCanvasFocusRequest]);
+
 	return null;
 }
 
@@ -549,6 +580,7 @@ function FlowCanvasInner({
 						onZoomChange={onZoomChange}
 					/>
 					<SelectionBridge onSelectNode={onSelectNode} />
+					<CanvasFocusBridge />
 					<ViewportBridge onZoomChange={onZoomChange} />
 				</ReactFlow>
 			</ContextMenuTrigger>

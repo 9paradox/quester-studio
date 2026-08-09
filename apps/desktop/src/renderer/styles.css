@@ -317,3 +317,37 @@
 		color: var(--foreground);
 	}
 }
+
+@keyframes quester-node-pulse {
+	0%,
+	100% {
+		box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 35%, transparent);
+	}
+	50% {
+		box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 0%, transparent);
+	}
+}
+
+@keyframes quester-node-success-flash {
+	0% {
+		box-shadow: 0 0 0 0 color-mix(in oklch, var(--chart-2) 40%, transparent);
+	}
+	100% {
+		box-shadow: 0 0 0 0 transparent;
+	}
+}
+
+.quester-node-running {
+	animation: quester-node-pulse 1.4s ease-in-out infinite;
+}
+
+.quester-node-success {
+	animation: quester-node-success-flash 0.55s ease-out 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.quester-node-running,
+	.quester-node-success {
+		animation: none;
+	}
+}

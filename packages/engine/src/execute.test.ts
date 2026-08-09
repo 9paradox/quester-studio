@@ -242,4 +242,43 @@ describe("executeFlow", () => {
 			]);
 		}
 	});
+
+	test("assert failure retains structured check output on the step", async () => {
+		const flow: FlowV1 = {
+			id: "assert-fail",
+			version: "v1",
+			nodes: [
+				{ id: "start", type: "start", data: {} },
+				{ id: "in", type: "input", data: {} },
+				{
+					id: "check",
+					type: "assert",
+					data: {
+						checks: [{ path: "status", equals: 200 }, { path: "ok" }],
+					},
+				},
+			],
+			edges: [
+				{ id: "e0", source: "start", target: "in" },
+				{ id: "e1", source: "in", target: "check" },
+			],
+		};
+		try {
+			await executeFlow(flow, { input: { status: 500, ok: true } });
+			expect.unreachable("should throw");
+		} catch (err) {
+			expect(err).toBeInstanceOf(FlowExecutionError);
+			const failure = err as FlowExecutionError;
+			expect(failure.failedNodeId).toBe("check");
+			const step = failure.partial.steps.find((s) => s.nodeId === "check");
+			expect(step?.error).toMatch(/Assertion failed/);
+			expect(step?.output).toMatchObject({
+				ok: false,
+				checks: [
+					{ path: "status", ok: false },
+					{ path: "ok", ok: true },
+				],
+			});
+		}
+	});
 });

@@ -67,10 +67,10 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 
 **Run UX**
 
-- [ ] Node run animation — subtle in-progress / success / fail motion on canvas nodes while a flow runs (performant; no jank on large graphs)  
-- [ ] Run status panel — compact list of **all** nodes for the active run (order, type/name, state, duration); easy scan  
-- [ ] Assert visibility — every `assert` / check outcome in that list (pass/fail + message), not only the last error  
-- [ ] Final overall status — clear run rollup (success / failed / cancelled) with counts (passed asserts, failed nodes, timing)  
+- [x] Node run animation — subtle in-progress / success / fail motion on canvas nodes while a flow runs (performant; no jank on large graphs)  
+- [x] Run status panel — compact list of **all** nodes for the active run (order, type/name, state, duration); easy scan  
+- [x] Assert visibility — every `assert` / check outcome in that list (pass/fail + message), not only the last error  
+- [x] Final overall status — clear run rollup (success / failed / cancelled) with counts (passed asserts, failed nodes, timing)  
 
 **Canvas & editor**
 

@@ -162,6 +162,8 @@ function resetStore() {
 		openTabs: [],
 		activeTabId: null,
 		selectedNodeId: null,
+		canvasFocusRequest: null,
+		responsePinnedToRunSummary: false,
 		canvasDirty: false,
 		runByFlowId: {},
 		requestByPath: {},
@@ -706,6 +708,25 @@ describe("useQuesterStore", () => {
 			a: "success",
 			b: "idle",
 		});
+		expect(
+			useQuesterStore.getState().runByFlowId["demo-flow"]?.nodeTimings,
+		).toEqual({
+			a: { startedAt: 1, endedAt: 2 },
+		});
+	});
+
+	test("focusNodeOnCanvas pins response summary and requests pan", () => {
+		resetStore();
+		useQuesterStore.getState().focusNodeOnCanvas("login");
+		const state = useQuesterStore.getState();
+		expect(state.selectedNodeId).toBe("login");
+		expect(state.responsePinnedToRunSummary).toBe(true);
+		expect(state.rightPanelTab).toBe("response");
+		expect(state.canvasFocusRequest).toEqual({ nodeId: "login", nonce: 1 });
+		useQuesterStore.getState().handleSelectNode("profile");
+		const after = useQuesterStore.getState();
+		expect(after.selectedNodeId).toBe("profile");
+		expect(after.responsePinnedToRunSummary).toBe(false);
 	});
 
 	test("applyNodeRunStatusEvent ignores stale run and flow ids", () => {

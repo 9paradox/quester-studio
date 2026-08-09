@@ -24,6 +24,12 @@ export type HttpOutputShape = {
 	size?: number;
 };
 
+export type AssertCheckView = {
+	path: string;
+	ok: boolean;
+	message?: string;
+};
+
 export function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -42,4 +48,28 @@ export function parseAssertFailures(error: string | undefined): string[] {
 		.split("; ")
 		.map((s) => s.trim())
 		.filter(Boolean);
+}
+
+/** Prefer structured `output.checks`; fall back to parsing the thrown message. */
+export function resolveAssertChecks(
+	output: unknown,
+	error?: string,
+): AssertCheckView[] {
+	if (isRecord(output) && Array.isArray(output.checks)) {
+		const checks: AssertCheckView[] = [];
+		for (const item of output.checks) {
+			if (!isRecord(item) || typeof item.path !== "string") continue;
+			checks.push({
+				path: item.path,
+				ok: item.ok === true,
+				message: typeof item.message === "string" ? item.message : undefined,
+			});
+		}
+		if (checks.length > 0) return checks;
+	}
+	return parseAssertFailures(error).map((message) => {
+		const colon = message.indexOf(": ");
+		const path = colon >= 0 ? message.slice(0, colon) : message;
+		return { path, ok: false, message };
+	});
 }

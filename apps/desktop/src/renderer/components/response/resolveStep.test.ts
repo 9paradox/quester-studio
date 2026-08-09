@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { ExecuteFlowRpcResult } from "../../../shared/rpc.js";
 import { resolveSelectedStep } from "./resolveStep.js";
-import { parseAssertFailures } from "./types.js";
+import { parseAssertFailures, resolveAssertChecks } from "./types.js";
 
 describe("resolveSelectedStep", () => {
 	const baseResult = {
@@ -60,5 +60,34 @@ describe("parseAssertFailures", () => {
 
 	test("returns empty for missing error", () => {
 		expect(parseAssertFailures(undefined)).toEqual([]);
+	});
+});
+
+describe("resolveAssertChecks", () => {
+	test("reads structured output.checks", () => {
+		expect(
+			resolveAssertChecks(
+				{
+					ok: false,
+					checks: [
+						{ path: "status", ok: false, message: "status: expected 200" },
+						{ path: "ok", ok: true },
+					],
+				},
+				"Assertion failed: status: expected 200",
+			),
+		).toEqual([
+			{ path: "status", ok: false, message: "status: expected 200" },
+			{ path: "ok", ok: true },
+		]);
+	});
+
+	test("falls back to parseAssertFailures", () => {
+		expect(
+			resolveAssertChecks(undefined, "Assertion failed: a: bad; b: worse"),
+		).toEqual([
+			{ path: "a", ok: false, message: "a: bad" },
+			{ path: "b", ok: false, message: "b: worse" },
+		]);
 	});
 });
