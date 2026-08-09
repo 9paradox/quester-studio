@@ -7,11 +7,11 @@ description: Download the desktop app or CLI and smoke-test a workspace
 
 Also see [Download](../../download/), [Guide](../../guide/), and [UI reference](../ui/).
 
-> **Status:** Public preview **[v0.6.0](https://github.com/9paradox/quester-studio/releases/tag/v0.6.0)** — unsigned Windows/Linux/macOS desktop on GitHub Releases, and `@quester-studio/*` on npm. Verify checksum files when the release attaches them; not every release publishes checksums.
+> **Status:** Public preview **[v0.6.2](https://github.com/9paradox/quester-studio/releases/tag/v0.6.2)** — unsigned Windows/Linux/macOS desktop on GitHub Releases, and `@quester-studio/*` on npm. Verify checksum files when the release attaches them; not every release publishes checksums.
 
 ## Desktop (preview)
 
-1. Prefer the product [Download](https://9paradox.com/quester-studio/download/) page, or open the latest [GitHub Release](https://github.com/9paradox/quester-studio/releases) (current: [v0.6.0](https://github.com/9paradox/quester-studio/releases/tag/v0.6.0)).
+1. Prefer the product [Download](https://9paradox.com/quester-studio/download/) page, or open the latest [GitHub Release](https://github.com/9paradox/quester-studio/releases) (current: [v0.6.2](https://github.com/9paradox/quester-studio/releases/tag/v0.6.2)).
 2. Download a desktop artifact for your OS:
    - **Windows:** `Quester-*-win-x64-setup.exe` (NSIS installer) or `Quester-*-win-x64-portable.zip` (extract, run `Quester\bin\launcher.exe`). Older builds used `stable-win-x64-Quester-Setup.zip`.
    - **Linux:** `stable-linux-x64-Quester-Setup.tar.gz` (or the matching `.tar.zst` / update JSON for your arch).

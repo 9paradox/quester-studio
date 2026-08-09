@@ -1,5 +1,38 @@
 # @quester-studio/desktop
 
+## 0.6.2
+
+### Patch Changes
+
+- e51f3f0: Desktop canvas polish: per-flow console isolation, drag flows onto the canvas as `subflow` nodes (with sidebar grip affordances), form/code drop stubs, subflow flow picker, multi-select inspector, and align/distribute actions.
+- 1e76b81: Collections JSON bodies use a document CodeMirror editor (fold/search/templates); responses can open in a frozen full-bleed tab while the peek panel remains.
+- b091c84: Desktop Runs browser: tree navigation, delete file/run folders with confirm, and fix cancel leaving run meta stuck as "running".
+- d597645: Desktop Run UX: live Response summary + step timeline (click to focus on canvas), assert per-check outcomes, node run durations/animation, and cancelled/success rollup.
+- 1be5a6a: Isolate collection request send state per path and keep status bar / logs honest across concurrent flow and request tabs.
+- f2c407e: Frame polish: put `success`/`failed`/`complete` on the header-right, allow only one entry and one exit per frame, reattach exit when chaining body nodes, and reject body sibling cycles on the canvas.
+- cbf5369: Breaking: framed `try` / `foreach` containers with `parentId`, entry/exit edges, and outer `success`/`failed` / `complete` handles. Soft-try and map-only foreach are rejected; soft branching stays on `if`.
+- 126f286: Align if/switch outs with try (header-right, auto-grow, live handle refresh) and replace Switch cases JSON with a row editor so canvas ports update as cases change.
+- 205ff52: Enforce at most one incoming edge for ordinary nodes (docs `in ×1`). New `join` node accepts N inputs and emits a collect-map of predecessor outputs for diamonds and post-branch reconvergence. Frame auto-wiring no longer adds redundant entry edges.
+- bdb408f: Allow nesting `try` / `foreach` frames on the canvas (deepest-frame drop target). Nested frames wire parent `entry`→child `in` and child `success`/`complete`→parent `exit`. Template lint recognizes `{{item}}`/`{{index}}` inside nested foreach bodies.
+- e74aeba: Stability: fan-in join semantics, long desktop runs, secret redaction in RPC logs, hero sample `{{input.*}}` credentials, and localhost-only API guardrails.
+- f4ddc5e: Stability: template `mode` (`eta` | `safe`), document eta-as-code in SECURITY, and clarify try soft-check + web Try/Guide/roadmap drift.
+- f4ddc5e: Stability: abortable capped `delay`, reject unsafe flow/env/secrets path ids, and exclude secrets/runs from desktop sample sync.
+- Updated dependencies [b091c84]
+- Updated dependencies [d597645]
+- Updated dependencies [f2c407e]
+- Updated dependencies [cbf5369]
+- Updated dependencies [205ff52]
+- Updated dependencies [bdb408f]
+- Updated dependencies [bba12dc]
+- Updated dependencies [e74aeba]
+- Updated dependencies [f4ddc5e]
+- Updated dependencies [f4ddc5e]
+- Updated dependencies [f4ddc5e]
+  - @quester-studio/workspace-service@0.6.2
+  - @quester-studio/api-contract@0.4.8
+  - @quester-studio/engine@0.6.2
+  - @quester-studio/schema@0.6.2
+
 ## 0.6.0
 
 ### Patch Changes
