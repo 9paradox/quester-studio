@@ -55,7 +55,7 @@ type CodeEditorProps = {
 	singleLine?: boolean;
 	/**
 	 * `compact` — dense fields (default). `document` — fold, line numbers, search
-	 * for large JSON bodies / response Raw (plan 03 can swap virtualize later).
+	 * for large JSON bodies / response Raw (plan 17 can swap virtualize later).
 	 */
 	variant?: CodeEditorVariant;
 	/** Read-only viewer (no edits). */

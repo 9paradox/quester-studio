@@ -67,7 +67,7 @@ export type ResponseViewerSnapshot = {
 	/** Optional node / request id shown under the title. */
 	subtitle?: string;
 	error?: string | null;
-	/** Frozen node/http output (plan 03 may virtualize large payloads). */
+	/** Frozen node/http output (plan 17 may virtualize large payloads). */
 	output: unknown;
 	pathCopyNodeId?: string | null;
 };

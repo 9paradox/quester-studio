@@ -89,7 +89,7 @@ export function HttpResponsePanel({
 	output: unknown;
 	error?: string;
 	pathCopyNodeId?: string | null;
-	/** Shallow expand for large payloads; plan 03 may virtualize further. */
+	/** Shallow expand for large payloads; plan 17 may virtualize further. */
 	defaultExpandedDepth?: number;
 	showOpenInTab?: boolean;
 	onOpenInTab?: () => void;
