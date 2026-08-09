@@ -3,8 +3,10 @@ import type { FlowV1 } from "@quester-studio/schema";
 import {
 	EDGE_INTERACTION_WIDTH,
 	addNodeToFlow,
+	alignNodes,
 	deleteEdgesFromFlow,
 	deleteNodesFromFlow,
+	distributeNodes,
 	duplicateNodeInFlow,
 	flowToReactFlow,
 	isValidFlowConnection,
@@ -257,5 +259,66 @@ describe("json node size mapping", () => {
 		const roundTrip = reactFlowToFlow(flow, rf.nodes, rf.edges);
 		expect(roundTrip.nodes[0]?.width).toBe(300);
 		expect(roundTrip.nodes[0]?.height).toBe(200);
+	});
+});
+
+describe("alignNodes / distributeNodes", () => {
+	const three: FlowV1 = {
+		version: "v1",
+		id: "align",
+		name: "Align",
+		nodes: [
+			{
+				id: "a",
+				type: "http",
+				data: { label: "A", method: "GET", url: "/" },
+				position: { x: 0, y: 10 },
+				width: 100,
+			},
+			{
+				id: "b",
+				type: "http",
+				data: { label: "B", method: "GET", url: "/" },
+				position: { x: 40, y: 80 },
+				width: 100,
+			},
+			{
+				id: "c",
+				type: "http",
+				data: { label: "C", method: "GET", url: "/" },
+				position: { x: 200, y: 30 },
+				width: 100,
+			},
+		],
+		edges: [],
+	};
+
+	test("align left sets shared x", () => {
+		const next = alignNodes(three, ["a", "b", "c"], "left");
+		expect(next.nodes.map((n) => n.position?.x)).toEqual([0, 0, 0]);
+		expect(next.nodes.find((n) => n.id === "b")?.position?.y).toBe(80);
+	});
+
+	test("align right uses widths", () => {
+		const next = alignNodes(three, ["a", "c"], "right");
+		const a = next.nodes.find((n) => n.id === "a");
+		const c = next.nodes.find((n) => n.id === "c");
+		expect((a?.position?.x ?? 0) + (a?.width ?? 0)).toBe(300);
+		expect((c?.position?.x ?? 0) + (c?.width ?? 0)).toBe(300);
+	});
+
+	test("distribute horizontal spaces evenly", () => {
+		const next = distributeNodes(three, ["a", "b", "c"], "horizontal");
+		const xs = ["a", "b", "c"].map(
+			(id) => next.nodes.find((n) => n.id === id)?.position?.x,
+		);
+		expect(xs[0]).toBe(0);
+		expect(xs[2]).toBe(200);
+		expect(xs[1]).toBe(100);
+	});
+
+	test("noop when fewer than required nodes", () => {
+		expect(alignNodes(three, ["a"], "left")).toBe(three);
+		expect(distributeNodes(three, ["a", "b"], "horizontal")).toBe(three);
 	});
 });

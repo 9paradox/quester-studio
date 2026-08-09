@@ -250,3 +250,137 @@ export function duplicateNodeInFlow(
 		},
 	};
 }
+
+export type AlignNodesMode =
+	| "left"
+	| "right"
+	| "top"
+	| "bottom"
+	| "centerX"
+	| "centerY";
+
+function nodeX(node: FlowV1["nodes"][number]): number {
+	return node.position?.x ?? 0;
+}
+
+function nodeY(node: FlowV1["nodes"][number]): number {
+	return node.position?.y ?? 0;
+}
+
+function nodeW(node: FlowV1["nodes"][number]): number {
+	return typeof node.width === "number" && node.width > 0 ? node.width : 0;
+}
+
+function nodeH(node: FlowV1["nodes"][number]): number {
+	return typeof node.height === "number" && node.height > 0 ? node.height : 0;
+}
+
+/** Align selected nodes; preserves each node's size. Needs ≥2 ids. */
+export function alignNodes(
+	flow: FlowV1,
+	nodeIds: readonly string[],
+	mode: AlignNodesMode,
+): FlowV1 {
+	const idSet = new Set(nodeIds);
+	const targets = flow.nodes.filter((n) => idSet.has(n.id));
+	if (targets.length < 2) return flow;
+
+	let nextX: ((n: FlowV1["nodes"][number]) => number) | null = null;
+	let nextY: ((n: FlowV1["nodes"][number]) => number) | null = null;
+
+	switch (mode) {
+		case "left": {
+			const v = Math.min(...targets.map(nodeX));
+			nextX = () => v;
+			break;
+		}
+		case "right": {
+			const v = Math.max(...targets.map((n) => nodeX(n) + nodeW(n)));
+			nextX = (n) => v - nodeW(n);
+			break;
+		}
+		case "centerX": {
+			const min = Math.min(...targets.map(nodeX));
+			const max = Math.max(...targets.map((n) => nodeX(n) + nodeW(n)));
+			const mid = (min + max) / 2;
+			nextX = (n) => mid - nodeW(n) / 2;
+			break;
+		}
+		case "top": {
+			const v = Math.min(...targets.map(nodeY));
+			nextY = () => v;
+			break;
+		}
+		case "bottom": {
+			const v = Math.max(...targets.map((n) => nodeY(n) + nodeH(n)));
+			nextY = (n) => v - nodeH(n);
+			break;
+		}
+		case "centerY": {
+			const min = Math.min(...targets.map(nodeY));
+			const max = Math.max(...targets.map((n) => nodeY(n) + nodeH(n)));
+			const mid = (min + max) / 2;
+			nextY = (n) => mid - nodeH(n) / 2;
+			break;
+		}
+		default: {
+			const _exhaustive: never = mode;
+			return _exhaustive;
+		}
+	}
+
+	return {
+		...flow,
+		nodes: flow.nodes.map((n) => {
+			if (!idSet.has(n.id)) return n;
+			return {
+				...n,
+				position: {
+					x: nextX ? nextX(n) : nodeX(n),
+					y: nextY ? nextY(n) : nodeY(n),
+				},
+			};
+		}),
+	};
+}
+
+/** Evenly space nodes between the first and last along an axis. Needs ≥3 ids. */
+export function distributeNodes(
+	flow: FlowV1,
+	nodeIds: readonly string[],
+	axis: "horizontal" | "vertical",
+): FlowV1 {
+	const idSet = new Set(nodeIds);
+	const targets = flow.nodes.filter((n) => idSet.has(n.id));
+	if (targets.length < 3) return flow;
+
+	const sorted = [...targets].sort((a, b) =>
+		axis === "horizontal" ? nodeX(a) - nodeX(b) : nodeY(a) - nodeY(b),
+	);
+	const first = sorted[0];
+	const last = sorted[sorted.length - 1];
+	if (!first || !last) return flow;
+
+	const start = axis === "horizontal" ? nodeX(first) : nodeY(first);
+	const end = axis === "horizontal" ? nodeX(last) : nodeY(last);
+	const step = (end - start) / (sorted.length - 1);
+	const positions = new Map<string, { x: number; y: number }>();
+	for (let i = 0; i < sorted.length; i += 1) {
+		const n = sorted[i];
+		if (!n) continue;
+		if (axis === "horizontal") {
+			positions.set(n.id, { x: start + step * i, y: nodeY(n) });
+		} else {
+			positions.set(n.id, { x: nodeX(n), y: start + step * i });
+		}
+	}
+
+	return {
+		...flow,
+		nodes: flow.nodes.map((n) => {
+			const pos = positions.get(n.id);
+			if (!pos) return n;
+			return { ...n, position: pos };
+		}),
+	};
+}

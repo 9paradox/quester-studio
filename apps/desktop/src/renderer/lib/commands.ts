@@ -146,6 +146,60 @@ export function buildAppCommands(): AppCommand[] {
 			},
 		},
 		{
+			id: "canvas.align-left",
+			label: "Align Left",
+			keywords: ["multi", "selection", "layout"],
+			when: () => useQuesterStore.getState().selectedNodeIds.length >= 2,
+			run: () => {
+				useQuesterStore.getState().alignSelectedNodes("left");
+			},
+		},
+		{
+			id: "canvas.align-right",
+			label: "Align Right",
+			keywords: ["multi", "selection", "layout"],
+			when: () => useQuesterStore.getState().selectedNodeIds.length >= 2,
+			run: () => {
+				useQuesterStore.getState().alignSelectedNodes("right");
+			},
+		},
+		{
+			id: "canvas.align-top",
+			label: "Align Top",
+			keywords: ["multi", "selection", "layout"],
+			when: () => useQuesterStore.getState().selectedNodeIds.length >= 2,
+			run: () => {
+				useQuesterStore.getState().alignSelectedNodes("top");
+			},
+		},
+		{
+			id: "canvas.align-bottom",
+			label: "Align Bottom",
+			keywords: ["multi", "selection", "layout"],
+			when: () => useQuesterStore.getState().selectedNodeIds.length >= 2,
+			run: () => {
+				useQuesterStore.getState().alignSelectedNodes("bottom");
+			},
+		},
+		{
+			id: "canvas.distribute-horizontal",
+			label: "Distribute Horizontally",
+			keywords: ["multi", "selection", "layout", "space"],
+			when: () => useQuesterStore.getState().selectedNodeIds.length >= 3,
+			run: () => {
+				useQuesterStore.getState().distributeSelectedNodes("horizontal");
+			},
+		},
+		{
+			id: "canvas.distribute-vertical",
+			label: "Distribute Vertically",
+			keywords: ["multi", "selection", "layout", "space"],
+			when: () => useQuesterStore.getState().selectedNodeIds.length >= 3,
+			run: () => {
+				useQuesterStore.getState().distributeSelectedNodes("vertical");
+			},
+		},
+		{
 			id: "canvas.zoom-out",
 			label: "Zoom Out",
 			keywords: ["canvas"],

@@ -18,12 +18,12 @@ None hard. Forms/code DnD consummated in 12/13.
 
 ## Work
 
-- [ ] Nodes UI enhance — chrome, status, handles, type identity; selected / running / error  
-- [ ] Flow drag-and-drop onto canvas — define UX: open tab vs drop as `subflow`  
-- [ ] Form / code DnD hooks — same sidebar → canvas pattern (stub OK until 12/13)  
-- [ ] Canvas ergonomics — selection, multi-select, alignment, edge editing  
-- [ ] Inspector depth — clear per-node forms; fewer dead ends  
-- [ ] Per-flow console lines (fix global `consoleLines` gap)  
+- [x] Nodes UI enhance — chrome, status, handles, type identity; selected / running / error  
+- [x] Flow drag-and-drop onto canvas — define UX: open tab vs drop as `subflow`  
+- [x] Form / code DnD hooks — same sidebar → canvas pattern (stub OK until 12/13)  
+- [x] Canvas ergonomics — selection, multi-select, alignment, edge editing  
+- [x] Inspector depth — clear per-node forms; fewer dead ends  
+- [x] Per-flow console lines (fix global `consoleLines` gap)  
 - [ ] Template / JMESPath assist polish beyond v1  
 - [ ] Command palette + shortcuts coverage  
 - [ ] Preferences discoverability  
@@ -32,6 +32,8 @@ None hard. Forms/code DnD consummated in 12/13.
 ## Done when
 
 Dragging a flow from the sidebar has a documented, working behavior; node visual states readable at a glance; console does not leak across flows.
+
+**UX locked this slice:** Click flow → open tab. Drag flow → insert `subflow` (self-drop blocked). Droppable sidebar rows show grip icons.
 
 ## After complete — ask user to confirm
 

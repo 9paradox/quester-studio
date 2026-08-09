@@ -15,9 +15,12 @@ import {
 	secretsTabId,
 } from "@/lib/editorTabs.js";
 import {
+	type AlignNodesMode,
 	addNodeToFlow,
+	alignNodes,
 	deleteEdgesFromFlow,
 	deleteNodesFromFlow,
+	distributeNodes,
 	duplicateNodeInFlow,
 	reactFlowToFlow,
 } from "@/lib/flowEditor.js";
@@ -135,6 +138,33 @@ export function emptyRequestSendState(): RequestSendState {
 /** Stable reference for selectors when no run slot exists (avoids zustand rerender loops). */
 export const STABLE_EMPTY_FLOW_RUN = emptyFlowRunState();
 export const STABLE_EMPTY_REQUEST_SEND = emptyRequestSendState();
+
+/** Console key when no flow tab is active (welcome / envs / requests). */
+export const APP_CONSOLE_KEY = "_app";
+
+export const DEFAULT_CONSOLE_LINES = ["> Quester ready"] as const;
+
+export function resolveConsoleKey(
+	openTabs: ReadonlyArray<{ id: string; kind: string; flowId?: string }>,
+	activeTabId: string | null,
+	explicitFlowId?: string,
+): string {
+	if (explicitFlowId) return explicitFlowId;
+	const tab = openTabs.find((t) => t.id === activeTabId);
+	if (tab?.kind === "flow" && typeof tab.flowId === "string") {
+		return tab.flowId;
+	}
+	return APP_CONSOLE_KEY;
+}
+
+export function appendConsoleLine(
+	consoleByFlowId: Record<string, string[]>,
+	key: string,
+	line: string,
+): Record<string, string[]> {
+	const prev = consoleByFlowId[key] ?? [...DEFAULT_CONSOLE_LINES];
+	return { ...consoleByFlowId, [key]: [...prev, `> ${line}`] };
+}
 
 export function patchFlowRun(
 	runByFlowId: Record<string, FlowRunState>,
@@ -300,6 +330,8 @@ export type QuesterState = {
 	openTabs: EditorTab[];
 	activeTabId: string | null;
 	selectedNodeId: string | null;
+	/** All canvas-selected node ids (Shift/box multi-select). */
+	selectedNodeIds: string[];
 	/** One-shot request for FlowCanvas to pan/zoom to a node (timeline focus). */
 	canvasFocusRequest: { nodeId: string; nonce: number } | null;
 	/**
@@ -329,7 +361,8 @@ export type QuesterState = {
 	runByFlowId: Record<string, FlowRunState>;
 	/** Send state keyed by collection request path (per-tab isolation). */
 	requestByPath: Record<string, RequestSendState>;
-	consoleLines: string[];
+	/** Console transcript keyed by flow id (or {@link APP_CONSOLE_KEY}). */
+	consoleByFlowId: Record<string, string[]>;
 
 	setActiveTabId: (tabId: string | null) => void;
 	setSelectedEnv: (env: string) => void;
@@ -350,7 +383,8 @@ export type QuesterState = {
 	resizeRightPanel: (delta: number) => void;
 	handleRightPanelView: (tab: RightPanelTab) => void;
 
-	appendConsole: (line: string) => void;
+	/** Append a console line to a flow (or active flow / app bucket). */
+	appendConsole: (line: string, flowId?: string) => void;
 	clearConsole: () => void;
 	clearLogs: () => void;
 	showError: (message: string) => void;
@@ -402,7 +436,10 @@ export type QuesterState = {
 		requestPath: string,
 		position?: { x: number; y: number },
 	) => Promise<void>;
+	handleDropFlow: (flowId: string, position?: { x: number; y: number }) => void;
 	handleSelectNode: (nodeId: string | null) => void;
+	/** Replace canvas selection (multi-select aware). */
+	handleSelectNodes: (nodeIds: string[]) => void;
 	/** Select a node and request canvas pan/zoom (Response timeline stays on summary). */
 	focusNodeOnCanvas: (nodeId: string) => void;
 	clearCanvasFocusRequest: () => void;
@@ -410,6 +447,8 @@ export type QuesterState = {
 	deleteNodes: (nodeIds: string[]) => void;
 	deleteEdges: (edgeIds: string[]) => void;
 	duplicateNode: (nodeId: string) => void;
+	alignSelectedNodes: (mode: AlignNodesMode) => void;
+	distributeSelectedNodes: (axis: "horizontal" | "vertical") => void;
 	closeTab: (tabId: string) => void;
 	reorderTabs: (fromIndex: number, toIndex: number) => void;
 	closeTabsToLeft: (tabId: string) => void;
@@ -452,6 +491,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	openTabs: [],
 	activeTabId: null,
 	selectedNodeId: null,
+	selectedNodeIds: [],
 	canvasFocusRequest: null,
 	responsePinnedToRunSummary: false,
 	zoom: 1,
@@ -473,7 +513,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	playgroundOpen: false,
 	runByFlowId: {},
 	requestByPath: {},
-	consoleLines: ["> Quester ready"],
+	consoleByFlowId: { [APP_CONSOLE_KEY]: [...DEFAULT_CONSOLE_LINES] },
 
 	setActiveTabId: (tabId) =>
 		set((s) => {
@@ -482,6 +522,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			return {
 				activeTabId: tabId,
 				selectedNodeId: null,
+				selectedNodeIds: [],
 				canvasDirty: Boolean(tab?.kind === "flow" && tab.dirty),
 				...(tab?.kind === "flow" ? { inputJson: tab.inputJson } : {}),
 			};
@@ -593,9 +634,23 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		set({ rightPanelTab: tab, rightPanelOpen: true });
 	},
 
-	appendConsole: (line) =>
-		set((s) => ({ consoleLines: [...s.consoleLines, `> ${line}`] })),
-	clearConsole: () => set({ consoleLines: ["> Console cleared"] }),
+	appendConsole: (line, flowId) =>
+		set((s) => {
+			const key = resolveConsoleKey(s.openTabs, s.activeTabId, flowId);
+			return {
+				consoleByFlowId: appendConsoleLine(s.consoleByFlowId, key, line),
+			};
+		}),
+	clearConsole: () =>
+		set((s) => {
+			const key = resolveConsoleKey(s.openTabs, s.activeTabId);
+			return {
+				consoleByFlowId: {
+					...s.consoleByFlowId,
+					[key]: ["> Console cleared"],
+				},
+			};
+		}),
 	clearLogs: () =>
 		set((s) => {
 			const flowTab = s.openTabs.find((t) => t.id === s.activeTabId);
@@ -702,6 +757,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				openTabs,
 				activeTabId: tab.id,
 				selectedNodeId: tab.kind === "flow" ? null : s.selectedNodeId,
+				selectedNodeIds: tab.kind === "flow" ? [] : s.selectedNodeIds,
 				canvasDirty: Boolean(active?.kind === "flow" && active.dirty),
 				...(active?.kind === "flow" ? { inputJson: active.inputJson } : {}),
 			};
@@ -757,6 +813,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			set({
 				activeTabId: tabId,
 				selectedNodeId: null,
+				selectedNodeIds: [],
 				canvasDirty: Boolean(existing.kind === "flow" && existing.dirty),
 				...(existing.kind === "flow" ? { inputJson: existing.inputJson } : {}),
 			});
@@ -801,6 +858,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			set({
 				activeTabId: tabId,
 				selectedNodeId: null,
+				selectedNodeIds: [],
 			});
 			return;
 		}
@@ -820,9 +878,11 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			loadError: null,
 			runByFlowId: {},
 			requestByPath: {},
+			consoleByFlowId: { [APP_CONSOLE_KEY]: [...DEFAULT_CONSOLE_LINES] },
 			openTabs: [],
 			activeTabId: null,
 			selectedNodeId: null,
+			selectedNodeIds: [],
 			canvasDirty: false,
 			pathShapeIndex: emptyPathShapeIndex(),
 			pathIndexStatus: "idle",
@@ -881,11 +941,13 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			openTabs: [],
 			activeTabId: null,
 			selectedNodeId: null,
+			selectedNodeIds: [],
 			canvasDirty: false,
 			pathShapeIndex: emptyPathShapeIndex(),
 			pathIndexStatus: "idle",
 			runByFlowId: {},
 			requestByPath: {},
+			consoleByFlowId: { [APP_CONSOLE_KEY]: [...DEFAULT_CONSOLE_LINES] },
 			loadError: null,
 			isLoading: false,
 		});
@@ -1080,13 +1142,67 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		await get().handleDropRequest(requestPath);
 	},
 
-	handleSelectNode: (nodeId) => {
-		const state = get();
-		if (state.selectedNodeId === nodeId) return;
+	handleDropFlow: (droppedFlowId, position) => {
+		const { openTabs, activeTabId, flows } = get();
+		const activeTab = openTabs.find((t) => t.id === activeTabId);
+		if (activeTab?.kind !== "flow") {
+			toast.warning("Open a flow before adding a subflow");
+			return;
+		}
+		if (droppedFlowId === activeTab.flowId) {
+			toast.warning("Cannot nest a flow inside itself");
+			return;
+		}
+		const meta = flows.find((f) => f.id === droppedFlowId);
+		const label = meta?.name ?? droppedFlowId;
+		let createdId: string | null = null;
+		get().updateActiveFlow((flow) => {
+			const next = addNodeToFlow(flow, "subflow", position);
+			const last = next.nodes[next.nodes.length - 1];
+			if (!last || last.type !== "subflow") return next;
+			createdId = last.id;
+			return {
+				...next,
+				nodes: next.nodes.map((n) =>
+					n.id === last.id
+						? {
+								...n,
+								data: {
+									label,
+									flowId: droppedFlowId,
+									input: {},
+								},
+							}
+						: n,
+				),
+			};
+		});
 		set({
-			selectedNodeId: nodeId,
+			selectedNodeId: createdId,
+			selectedNodeIds: createdId ? [createdId] : [],
+			rightPanelOpen: true,
+			rightPanelTab: "inspector",
+			canvasDirty: true,
+		});
+	},
+
+	handleSelectNode: (nodeId) => {
+		get().handleSelectNodes(nodeId ? [nodeId] : []);
+	},
+
+	handleSelectNodes: (nodeIds) => {
+		const state = get();
+		const primary = nodeIds[0] ?? null;
+		const same =
+			state.selectedNodeId === primary &&
+			state.selectedNodeIds.length === nodeIds.length &&
+			state.selectedNodeIds.every((id, i) => id === nodeIds[i]);
+		if (same) return;
+		set({
+			selectedNodeIds: nodeIds,
+			selectedNodeId: primary,
 			responsePinnedToRunSummary: false,
-			...(nodeId ? { rightPanelOpen: true } : {}),
+			...(primary || nodeIds.length > 0 ? { rightPanelOpen: true } : {}),
 		});
 	},
 
@@ -1094,6 +1210,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const nonce = (get().canvasFocusRequest?.nonce ?? 0) + 1;
 		set({
 			selectedNodeId: nodeId,
+			selectedNodeIds: [nodeId],
 			canvasFocusRequest: { nodeId, nonce },
 			responsePinnedToRunSummary: true,
 			rightPanelOpen: true,
@@ -1118,11 +1235,19 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	deleteNodes: (nodeIds) => {
 		if (nodeIds.length === 0) return;
 		get().updateActiveFlow((flow) => deleteNodesFromFlow(flow, nodeIds));
-		const { selectedNodeId } = get();
+		const { selectedNodeId, selectedNodeIds } = get();
+		const remove = new Set(nodeIds);
+		const nextIds = selectedNodeIds.filter((id) => !remove.has(id));
+		const clearedPrimary = selectedNodeId != null && remove.has(selectedNodeId);
 		set({
 			canvasDirty: true,
-			...(selectedNodeId && nodeIds.includes(selectedNodeId)
-				? { selectedNodeId: null }
+			...(clearedPrimary || nextIds.length !== selectedNodeIds.length
+				? {
+						selectedNodeIds: nextIds,
+						selectedNodeId: clearedPrimary
+							? (nextIds[0] ?? null)
+							: selectedNodeId,
+					}
 				: {}),
 		});
 	},
@@ -1144,10 +1269,27 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (!newId) return;
 		set({
 			selectedNodeId: newId,
+			selectedNodeIds: [newId],
 			rightPanelOpen: true,
 			rightPanelTab: "inspector",
 			canvasDirty: true,
 		});
+	},
+
+	alignSelectedNodes: (mode) => {
+		const { selectedNodeIds } = get();
+		if (selectedNodeIds.length < 2) return;
+		get().updateActiveFlow((flow) => alignNodes(flow, selectedNodeIds, mode));
+		set({ canvasDirty: true });
+	},
+
+	distributeSelectedNodes: (axis) => {
+		const { selectedNodeIds } = get();
+		if (selectedNodeIds.length < 3) return;
+		get().updateActiveFlow((flow) =>
+			distributeNodes(flow, selectedNodeIds, axis),
+		);
+		set({ canvasDirty: true });
 	},
 
 	closeTab: (tabId) => {
@@ -1173,6 +1315,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				openTabs: remaining,
 				activeTabId: nextActiveId,
 				selectedNodeId: activeTabId === tabId ? null : s.selectedNodeId,
+				selectedNodeIds: activeTabId === tabId ? [] : s.selectedNodeIds,
 				requestByPath,
 				...(nextActive?.kind === "flow"
 					? { inputJson: nextActive.inputJson }
@@ -1247,6 +1390,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 							slot?.runError?.includes("fix the invalid fields");
 						return {
 							selectedNodeId: invalid.nodeId,
+							selectedNodeIds: invalid.nodeId ? [invalid.nodeId] : [],
 							rightPanelOpen: true,
 							rightPanelTab: "inspector" as const,
 							...(clearValidationAlert
@@ -1370,6 +1514,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					...(match?.[1]
 						? {
 								selectedNodeId: match[1],
+								selectedNodeIds: [match[1]],
 								rightPanelOpen: true,
 								rightPanelTab: "inspector" as const,
 							}
@@ -1599,6 +1744,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		if (invalid.invalid) {
 			set({
 				selectedNodeId: invalid.nodeId,
+				selectedNodeIds: invalid.nodeId ? [invalid.nodeId] : [],
 				rightPanelOpen: true,
 				rightPanelTab: "inspector",
 			});
@@ -1636,7 +1782,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			rightPanelTab: "response",
 			responsePinnedToRunSummary: true,
 		}));
-		appendConsole(`Run started: ${flowId}`);
+		appendConsole(`Run started: ${flowId}`, flowId);
 
 		try {
 			const result = await getQuesterClient().executeFlowRpc({
@@ -1672,14 +1818,15 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			scheduleIndexNodeOutputs(result.nodeOutputs);
 			if (result.cancelled) {
 				toast.warning("Run cancelled");
-				appendConsole("Run cancelled");
+				appendConsole("Run cancelled", flowId);
 			} else if (result.error) {
 				toast.error(result.error);
-				appendConsole(`Run failed: ${result.error}`);
+				appendConsole(`Run failed: ${result.error}`, flowId);
 				const failedStep = result.steps.find((s) => s.error);
 				if (failedStep) {
 					appendConsole(
 						`Failed node: ${failedStep.type} (${failedStep.nodeId})`,
+						flowId,
 					);
 					appendConsole(
 						JSON.stringify(
@@ -1687,17 +1834,18 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 							null,
 							2,
 						),
+						flowId,
 					);
 				}
 				for (const entry of result.logs.filter((l) => l.level === "error")) {
-					appendConsole(entry.message);
+					appendConsole(entry.message, flowId);
 					if (entry.data !== undefined) {
-						appendConsole(JSON.stringify(entry.data, null, 2));
+						appendConsole(JSON.stringify(entry.data, null, 2), flowId);
 					}
 				}
 			} else {
 				toast.success(`Run finished: ${flowId}`);
-				appendConsole("Run finished");
+				appendConsole("Run finished", flowId);
 			}
 		} catch (err) {
 			void getQuesterClient().cancelFlowRun({ runId });
@@ -1722,7 +1870,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					}),
 				}));
 			}
-			appendConsole(message);
+			appendConsole(message, flowId);
 		} finally {
 			set((s) => {
 				const slot = s.runByFlowId[flowId];

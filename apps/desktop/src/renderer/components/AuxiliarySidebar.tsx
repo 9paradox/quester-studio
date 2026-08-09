@@ -19,10 +19,12 @@ export function AuxiliarySidebar() {
 	const activeTab = useQuesterStore((s) => s.rightPanelTab);
 	const flowTab = useQuesterStore(selectActiveFlowTab);
 	const selectedNodeId = useQuesterStore((s) => s.selectedNodeId);
+	const selectedNodeIds = useQuesterStore((s) => s.selectedNodeIds);
 	const pinnedToSummary = useQuesterStore((s) => s.responsePinnedToRunSummary);
 	const { runResult, runError, isRunning, nodeStatuses, nodeTimings } =
 		useQuesterStore(selectActiveFlowRun);
 	const handleUpdateNode = useQuesterStore((s) => s.handleUpdateNode);
+	const deleteNodes = useQuesterStore((s) => s.deleteNodes);
 	const focusNodeOnCanvas = useQuesterStore((s) => s.focusNodeOnCanvas);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const dirty = Boolean(flowTab?.dirty);
@@ -31,6 +33,7 @@ export function AuxiliarySidebar() {
 
 	const flow = flowTab?.flow ?? null;
 	const selectedNode = flow?.nodes.find((n) => n.id === selectedNodeId) ?? null;
+	const multiSelectCount = selectedNodeIds.length;
 
 	return (
 		<aside
@@ -58,7 +61,22 @@ export function AuxiliarySidebar() {
 			{activeTab === "inspector" ? (
 				<ScrollArea className="min-h-0 flex-1">
 					<div className="p-3">
-						{selectedNode ? (
+						{multiSelectCount > 1 ? (
+							<div className="flex flex-col gap-3">
+								<p className="text-sm text-muted-foreground">
+									{multiSelectCount} nodes selected. Align or distribute from
+									the canvas context menu, or delete the selection.
+								</p>
+								<Button
+									type="button"
+									variant="destructive"
+									size="sm"
+									onClick={() => deleteNodes(selectedNodeIds)}
+								>
+									Delete selected
+								</Button>
+							</div>
+						) : selectedNode ? (
 							<NodeInspector
 								node={selectedNode}
 								onUpdate={(data: Record<string, unknown>) =>

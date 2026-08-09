@@ -17,6 +17,7 @@ import type {
 import type { useQuesterStore as UseQuesterStore } from "./quester-store.js";
 import { emptyFlowRunState, emptyRequestSendState } from "./quester-store.js";
 import {
+	selectActiveConsoleLines,
 	selectActiveFlowTab,
 	selectActiveTab,
 	selectAnyDirty,
@@ -162,11 +163,13 @@ function resetStore() {
 		openTabs: [],
 		activeTabId: null,
 		selectedNodeId: null,
+		selectedNodeIds: [],
 		canvasFocusRequest: null,
 		responsePinnedToRunSummary: false,
 		canvasDirty: false,
 		runByFlowId: {},
 		requestByPath: {},
+		consoleByFlowId: { _app: ["> Quester ready"] },
 	});
 }
 
@@ -1157,5 +1160,100 @@ describe("selectors", () => {
 			runningFlows: 2,
 			sendingRequests: 1,
 		});
+	});
+
+	test("appendConsole isolates lines per flow", () => {
+		resetStore();
+		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
+		const tabB = createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" });
+		useQuesterStore.getState().openTab(tabA);
+		useQuesterStore.getState().appendConsole("from A");
+		useQuesterStore.getState().openTab(tabB);
+		expect(selectActiveConsoleLines(useQuesterStore.getState())).toEqual([
+			"> Quester ready",
+		]);
+		useQuesterStore.getState().appendConsole("from B");
+		expect(selectActiveConsoleLines(useQuesterStore.getState())).toContain(
+			"> from B",
+		);
+		useQuesterStore.getState().setActiveTabId(flowTabId("a"));
+		const linesA = selectActiveConsoleLines(useQuesterStore.getState());
+		expect(linesA).toContain("> from A");
+		expect(linesA.some((l) => l.includes("from B"))).toBe(false);
+	});
+
+	test("clearConsole clears only the active console bucket", () => {
+		resetStore();
+		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
+		const tabB = createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" });
+		useQuesterStore.getState().openTab(tabA);
+		useQuesterStore.getState().appendConsole("keep A");
+		useQuesterStore.getState().openTab(tabB);
+		useQuesterStore.getState().appendConsole("clear me");
+		useQuesterStore.getState().clearConsole();
+		expect(selectActiveConsoleLines(useQuesterStore.getState())).toEqual([
+			"> Console cleared",
+		]);
+		useQuesterStore.getState().setActiveTabId(flowTabId("a"));
+		expect(selectActiveConsoleLines(useQuesterStore.getState())).toContain(
+			"> keep A",
+		);
+	});
+
+	test("appendConsole uses _app when no flow tab is active", () => {
+		resetStore();
+		useQuesterStore.getState().appendConsole("app only");
+		expect(useQuesterStore.getState().consoleByFlowId._app).toContain(
+			"> app only",
+		);
+		expect(selectActiveConsoleLines(useQuesterStore.getState())).toContain(
+			"> app only",
+		);
+	});
+
+	test("handleDropFlow inserts a subflow node", () => {
+		resetStore();
+		const tab = createFlowEditorTab({
+			...sampleFlow,
+			id: "main",
+			name: "Main",
+		});
+		useQuesterStore.setState({
+			flows: [
+				{ id: "main", name: "Main" },
+				{ id: "echo-subflow", name: "Echo" },
+			],
+			openTabs: [tab],
+			activeTabId: tab.id,
+		});
+		useQuesterStore.getState().handleDropFlow("echo-subflow", { x: 40, y: 60 });
+		const flow = selectActiveFlowTab(useQuesterStore.getState())?.flow;
+		const sub = flow?.nodes.find((n) => n.type === "subflow");
+		expect(sub?.data).toMatchObject({
+			flowId: "echo-subflow",
+			label: "Echo",
+			input: {},
+		});
+		expect(sub?.position).toEqual({ x: 40, y: 60 });
+		expect(useQuesterStore.getState().selectedNodeId).toBe(sub?.id);
+	});
+
+	test("handleDropFlow rejects self nesting", () => {
+		resetStore();
+		const tab = createFlowEditorTab({
+			...sampleFlow,
+			id: "main",
+			name: "Main",
+		});
+		const beforeCount = tab.flow.nodes.length;
+		useQuesterStore.setState({
+			flows: [{ id: "main", name: "Main" }],
+			openTabs: [tab],
+			activeTabId: tab.id,
+		});
+		useQuesterStore.getState().handleDropFlow("main");
+		const flow = selectActiveFlowTab(useQuesterStore.getState())?.flow;
+		expect(flow?.nodes).toHaveLength(beforeCount);
+		expect(flow?.nodes.some((n) => n.type === "subflow")).toBe(false);
 	});
 });

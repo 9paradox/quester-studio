@@ -25,7 +25,10 @@ import type { FlowEditorTab } from "@/lib/editorTabs.js";
 import { listRunHistory } from "@/lib/runHistory.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
-import { selectActiveFlowRun } from "@/stores/selectors.js";
+import {
+	selectActiveConsoleLines,
+	selectActiveFlowRun,
+} from "@/stores/selectors.js";
 import {
 	IconChevronDown,
 	IconChevronUp,
@@ -125,7 +128,7 @@ export function Panel() {
 	const open = useQuesterStore((s) => s.panelOpen);
 	const height = useQuesterStore((s) => s.panelHeight);
 	const activeTab = useQuesterStore((s) => s.panelTab);
-	const consoleLines = useQuesterStore((s) => s.consoleLines);
+	const consoleLines = useQuesterStore(selectActiveConsoleLines);
 	const { runResult, runError } = useQuesterStore(selectActiveFlowRun);
 
 	const setPanelTab = useQuesterStore((s) => s.setPanelTab);

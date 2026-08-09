@@ -18,6 +18,8 @@ import {
 } from "@/lib/templates.js";
 import type { NodeRunStatus } from "../../shared/rpc.js";
 import {
+	APP_CONSOLE_KEY,
+	DEFAULT_CONSOLE_LINES,
 	type FlowRunState,
 	type QuesterState,
 	type RequestSendState,
@@ -225,4 +227,13 @@ export function selectNodeRunStatus(
 	const resolvedFlowId = flowId ?? activeFlow?.flowId ?? null;
 	if (!resolvedFlowId) return undefined;
 	return selectFlowRun(state, resolvedFlowId).nodeStatuses[nodeId];
+}
+
+const STABLE_DEFAULT_CONSOLE: string[] = [...DEFAULT_CONSOLE_LINES];
+
+/** Console lines for the active flow tab, or the app bucket when none. */
+export function selectActiveConsoleLines(state: QuesterState): string[] {
+	const flowId = selectActiveFlowTab(state)?.flowId;
+	const key = flowId ?? APP_CONSOLE_KEY;
+	return state.consoleByFlowId[key] ?? STABLE_DEFAULT_CONSOLE;
 }
