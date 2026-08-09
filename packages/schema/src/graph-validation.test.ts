@@ -527,4 +527,137 @@ describe("validateFlowGraph", () => {
 			multiExit.issues.some((i) => i.message.includes("only one exit")),
 		).toBe(true);
 	});
+
+	test("rejects start as a frame child", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{
+						id: "start",
+						type: "start",
+						data: {},
+						parentId: "guard",
+					},
+					{ id: "guard", type: "try", data: {} },
+					{ id: "body", type: "set", data: {}, parentId: "guard" },
+				],
+				edges: [
+					{
+						id: "e1",
+						source: "guard",
+						target: "body",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e2",
+						source: "body",
+						target: "guard",
+						targetHandle: "exit",
+					},
+				],
+			}),
+		);
+		expect(result.valid).toBe(false);
+		expect(
+			result.issues.some((i) =>
+				i.message.includes("start node cannot be a frame child"),
+			),
+		).toBe(true);
+	});
+
+	test("rejects parentId on a non-frame node", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "http", type: "http", data: { url: "https://x" } },
+					{
+						id: "child",
+						type: "set",
+						data: {},
+						parentId: "http",
+					},
+				],
+				edges: [{ id: "e0", source: "start", target: "http" }],
+			}),
+		);
+		expect(result.valid).toBe(false);
+		expect(
+			result.issues.some((i) =>
+				i.message.includes("parentId must reference a try or foreach"),
+			),
+		).toBe(true);
+	});
+
+	test("rejects empty frame without body children", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "guard", type: "try", data: {} },
+					{ id: "out", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "guard" },
+					{
+						id: "e1",
+						source: "guard",
+						target: "out",
+						sourceHandle: "success",
+					},
+				],
+			}),
+		);
+		expect(result.valid).toBe(false);
+		expect(
+			result.issues.some((i) =>
+				i.message.includes("requires at least one body child"),
+			),
+		).toBe(true);
+	});
+
+	test("rejects an edge that leaves a frame illegally", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "guard", type: "try", data: {} },
+					{
+						id: "body",
+						type: "set",
+						data: {},
+						parentId: "guard",
+					},
+					{ id: "out", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "guard" },
+					{
+						id: "e1",
+						source: "guard",
+						target: "body",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e2",
+						source: "body",
+						target: "guard",
+						targetHandle: "exit",
+					},
+					// Escape: body → outside (not via container exit)
+					{ id: "e-escape", source: "body", target: "out" },
+					{
+						id: "e3",
+						source: "guard",
+						target: "out",
+						sourceHandle: "success",
+					},
+				],
+			}),
+		);
+		expect(result.valid).toBe(false);
+		expect(result.issues.some((i) => i.message.includes("leaves frame"))).toBe(
+			true,
+		);
+	});
 });
