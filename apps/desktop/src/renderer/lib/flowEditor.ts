@@ -183,12 +183,34 @@ export function isValidFlowConnection(options: {
 	const sh = sourceHandle ?? null;
 	const th = targetHandle ?? null;
 
-	// Frame entry: container → child
+	// Frame entry: container → child (at most one entry edge per frame)
 	if (isFrameContainerType(sourceNode.type) && tp === source) {
 		if (!(sh === "entry" || sh === null)) return false;
+		const hasEntry = edges.some((e) => {
+			if (e.id === ignoreEdgeId || e.source !== source) return false;
+			const tgt = nodes.find((n) => n.id === e.target);
+			if (tgt?.parentId !== source) return false;
+			return (
+				e.sourceHandle === "entry" ||
+				e.sourceHandle == null ||
+				e.sourceHandle === ""
+			);
+		});
+		if (hasEntry) return false;
 	} else if (isFrameContainerType(targetNode.type) && sp === target) {
-		// Frame exit: child → container
+		// Frame exit: child → container (at most one exit edge per frame)
 		if (!(th === "exit" || th === null)) return false;
+		const hasExit = edges.some((e) => {
+			if (e.id === ignoreEdgeId || e.target !== target) return false;
+			const pred = nodes.find((n) => n.id === e.source);
+			if (pred?.parentId !== target) return false;
+			return (
+				e.targetHandle === "exit" ||
+				e.targetHandle == null ||
+				e.targetHandle === ""
+			);
+		});
+		if (hasExit) return false;
 	} else if (isFrameContainerType(sourceNode.type) && tp !== source) {
 		// Outer from frame
 		if (sp !== tp) return false;
@@ -225,7 +247,55 @@ export function isValidFlowConnection(options: {
 		}
 	}
 
+	// Ban cycles among siblings (same parent, including root). Frame entry/exit
+	// edges intentionally touch the container and are excluded from this walk.
+	const isFrameEntry = isFrameContainerType(sourceNode.type) && tp === source;
+	const isFrameExit = isFrameContainerType(targetNode.type) && sp === target;
+	if (
+		!isFrameEntry &&
+		!isFrameExit &&
+		wouldCreateSiblingCycle(nodes, edges, source, target, ignoreEdgeId)
+	) {
+		return false;
+	}
+
 	return true;
+}
+
+/** True if adding source→target would close a cycle in the non-frame-loop graph. */
+function wouldCreateSiblingCycle(
+	nodes: ConnectionNodes,
+	edges: ConnectionEdges,
+	source: string,
+	target: string,
+	ignoreEdgeId?: string | null,
+): boolean {
+	if (source === target) return true;
+	const nodeById = new Map(nodes.map((n) => [n.id, n]));
+	const adj = new Map<string, string[]>();
+	for (const n of nodes) adj.set(n.id, []);
+	for (const e of edges) {
+		if (e.id === ignoreEdgeId || !e.target) continue;
+		const sn = nodeById.get(e.source);
+		const tn = nodeById.get(e.target);
+		if (!sn || !tn) continue;
+		// Skip frame entry/exit (container ↔ body)
+		if (isFrameContainerType(sn.type) && tn.parentId === sn.id) continue;
+		if (isFrameContainerType(tn.type) && sn.parentId === tn.id) continue;
+		adj.get(e.source)?.push(e.target);
+	}
+	// Can target already reach source?
+	const seen = new Set<string>();
+	const stack = [target];
+	while (stack.length > 0) {
+		const cur = stack.pop();
+		if (cur == null) break;
+		if (cur === source) return true;
+		if (seen.has(cur)) continue;
+		seen.add(cur);
+		for (const next of adj.get(cur) ?? []) stack.push(next);
+	}
+	return false;
 }
 
 export function reactFlowToFlow(
@@ -383,16 +453,40 @@ function hasInFrameSuccessor(
 }
 
 /**
- * Ensure a child inside a frame has entry/exit only when it is a body root/sink.
- * Avoids auto ENTRY+sibling both into the same node (max-1-in).
+ * Ensure a child inside a frame has entry/exit only when the frame still
+ * has none and this child is a body root/sink. Frames allow at most one
+ * entry edge and one exit edge.
  */
 export function ensureFrameBodyWiring(
 	flow: FlowV1,
 	containerId: string,
 	childId: string,
 ): FlowV1 {
-	const needsEntry = !hasInFramePredecessor(flow, containerId, childId);
-	const needsExit = !hasInFrameSuccessor(flow, containerId, childId);
+	const frameHasEntry = flow.edges.some((e) => {
+		if (e.source !== containerId) return false;
+		if (
+			!(
+				e.sourceHandle === "entry" ||
+				e.sourceHandle == null ||
+				e.sourceHandle === ""
+			)
+		) {
+			return false;
+		}
+		return flow.nodes.find((n) => n.id === e.target)?.parentId === containerId;
+	});
+	const frameHasExit = flow.edges.some(
+		(e) =>
+			e.target === containerId &&
+			(e.targetHandle === "exit" ||
+				e.targetHandle == null ||
+				e.targetHandle === "") &&
+			flow.nodes.find((n) => n.id === e.source)?.parentId === containerId,
+	);
+	const needsEntry =
+		!frameHasEntry && !hasInFramePredecessor(flow, containerId, childId);
+	const needsExit =
+		!frameHasExit && !hasInFrameSuccessor(flow, containerId, childId);
 	if (!needsEntry && !needsExit) return flow;
 
 	const edges = [...flow.edges];
@@ -416,7 +510,8 @@ export function ensureFrameBodyWiring(
 }
 
 /**
- * After wiring body siblings A→B, drop redundant entry→B and A→exit edges.
+ * After wiring body siblings A→B, drop redundant entry→B and A→exit edges,
+ * then re-attach a single exit on B when the frame no longer has one.
  */
 export function pruneRedundantFrameWiring(
 	flow: FlowV1,
@@ -427,7 +522,7 @@ export function pruneRedundantFrameWiring(
 	const target = flow.nodes.find((n) => n.id === bodyTargetId);
 	if (!source?.parentId || source.parentId !== target?.parentId) return flow;
 	const frameId = source.parentId;
-	const edges = flow.edges.filter((e) => {
+	const filtered = flow.edges.filter((e) => {
 		if (
 			e.source === frameId &&
 			e.target === bodyTargetId &&
@@ -444,7 +539,30 @@ export function pruneRedundantFrameWiring(
 		}
 		return true;
 	});
-	return edges.length === flow.edges.length ? flow : { ...flow, edges };
+	const hasExit = filtered.some(
+		(e) =>
+			e.target === frameId &&
+			(e.targetHandle === "exit" ||
+				e.targetHandle == null ||
+				e.targetHandle === "") &&
+			flow.nodes.find((n) => n.id === e.source)?.parentId === frameId,
+	);
+	if (!hasExit) {
+		return {
+			...flow,
+			edges: [
+				...filtered,
+				{
+					id: `e-${bodyTargetId}-exit-${frameId}`,
+					source: bodyTargetId,
+					target: frameId,
+					targetHandle: "exit",
+				},
+			],
+		};
+	}
+	if (filtered.length === flow.edges.length) return flow;
+	return { ...flow, edges: filtered };
 }
 
 /**

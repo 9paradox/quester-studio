@@ -7,7 +7,7 @@ description: Framed loop — body per item, complete with results
 
 ## Wiring
 
-Same entry/exit model as [`try`](../try/):
+Same entry/exit model as [`try`](../try/) — **one** body entry and **one** body exit. Outer continuation is the header-right **`complete`** handle.
 
 | Edge | Handles |
 |------|---------|

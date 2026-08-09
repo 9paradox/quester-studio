@@ -438,4 +438,93 @@ describe("validateFlowGraph", () => {
 		);
 		expect(result.valid).toBe(true);
 	});
+
+	test("rejects multiple entry or exit edges on a frame", () => {
+		const multiEntry = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "guard", type: "try", data: {} },
+					{ id: "a", type: "set", data: {}, parentId: "guard" },
+					{ id: "b", type: "set", data: {}, parentId: "guard" },
+					{ id: "out", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "guard" },
+					{
+						id: "e1",
+						source: "guard",
+						target: "a",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e2",
+						source: "guard",
+						target: "b",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e3",
+						source: "a",
+						target: "guard",
+						targetHandle: "exit",
+					},
+					{
+						id: "e4",
+						source: "guard",
+						target: "out",
+						sourceHandle: "success",
+					},
+				],
+			}),
+		);
+		expect(multiEntry.valid).toBe(false);
+		expect(
+			multiEntry.issues.some((i) => i.message.includes("only one entry")),
+		).toBe(true);
+
+		const multiExit = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "guard", type: "try", data: {} },
+					{ id: "a", type: "set", data: {}, parentId: "guard" },
+					{ id: "b", type: "set", data: {}, parentId: "guard" },
+					{ id: "out", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "guard" },
+					{
+						id: "e1",
+						source: "guard",
+						target: "a",
+						sourceHandle: "entry",
+					},
+					{ id: "e2", source: "a", target: "b" },
+					{
+						id: "e3",
+						source: "a",
+						target: "guard",
+						targetHandle: "exit",
+					},
+					{
+						id: "e4",
+						source: "b",
+						target: "guard",
+						targetHandle: "exit",
+					},
+					{
+						id: "e5",
+						source: "guard",
+						target: "out",
+						sourceHandle: "success",
+					},
+				],
+			}),
+		);
+		expect(multiExit.valid).toBe(false);
+		expect(
+			multiExit.issues.some((i) => i.message.includes("only one exit")),
+		).toBe(true);
+	});
 });
