@@ -99,23 +99,23 @@ describe("selectNextEdges", () => {
 			version: "v1",
 			nodes: [
 				{ id: "in", type: "input", data: {} },
-				{ id: "guard", type: "try", data: { condition: "true" } },
+				{ id: "guard", type: "try", data: {} },
 				{ id: "ok", type: "set", data: {} },
 				{ id: "catch", type: "set", data: {} },
 			],
 			edges: [
 				{ id: "e1", source: "in", target: "guard" },
-				{ id: "e2", source: "guard", target: "ok", sourceHandle: "ok" },
-				{ id: "e3", source: "guard", target: "catch", sourceHandle: "catch" },
+				{ id: "e2", source: "guard", target: "ok", sourceHandle: "success" },
+				{ id: "e3", source: "guard", target: "catch", sourceHandle: "failed" },
 			],
 		};
 		const node = tryFlow.nodes.find((n) => n.id === "guard");
 		if (!node) throw new Error("missing node");
-		expect(selectNextEdges(tryFlow, node, "ok").map((e) => e.target)).toEqual([
-			"ok",
-		]);
 		expect(
-			selectNextEdges(tryFlow, node, "catch").map((e) => e.target),
+			selectNextEdges(tryFlow, node, "success").map((e) => e.target),
+		).toEqual(["ok"]);
+		expect(
+			selectNextEdges(tryFlow, node, "failed").map((e) => e.target),
 		).toEqual(["catch"]);
 	});
 });

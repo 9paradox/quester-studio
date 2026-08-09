@@ -1,4 +1,5 @@
 import type { BuiltinNodeType, FlowV1 } from "@quester-studio/schema";
+import type { CSSProperties } from "react";
 import type { Edge, Node } from "reactflow";
 import { defaultNodeData, newNodeId } from "./nodeCatalog.js";
 
@@ -6,6 +7,8 @@ const JSON_NODE_DEFAULT_WIDTH = 280;
 const JSON_NODE_DEFAULT_HEIGHT = 220;
 const NOTE_NODE_DEFAULT_WIDTH = 240;
 const NOTE_NODE_DEFAULT_HEIGHT = 160;
+const FRAME_NODE_DEFAULT_WIDTH = 320;
+const FRAME_NODE_DEFAULT_HEIGHT = 240;
 
 function defaultSizeForType(
 	type: string,
@@ -16,7 +19,17 @@ function defaultSizeForType(
 	if (type === "note") {
 		return { width: NOTE_NODE_DEFAULT_WIDTH, height: NOTE_NODE_DEFAULT_HEIGHT };
 	}
+	if (type === "try" || type === "foreach") {
+		return {
+			width: FRAME_NODE_DEFAULT_WIDTH,
+			height: FRAME_NODE_DEFAULT_HEIGHT,
+		};
+	}
 	return undefined;
+}
+
+export function isFrameContainerType(type: string | null | undefined): boolean {
+	return type === "try" || type === "foreach";
 }
 
 /** Wider hit target so edges are easier to select, delete, and reconnect. */
@@ -38,68 +51,159 @@ export function createFlowTab(flow: FlowV1): FlowTab {
 	return { flowId: flow.id, flow, dirty: false };
 }
 
+/** React Flow requires parents before children so kids/edges paint above the frame. */
+export function sortParentsBeforeChildren<
+	T extends { id: string; parentId?: string },
+>(nodes: T[]): T[] {
+	const byId = new Map(nodes.map((n) => [n.id, n]));
+	const depth = (id: string): number => {
+		let d = 0;
+		let cur = byId.get(id)?.parentId;
+		const seen = new Set<string>();
+		while (cur && !seen.has(cur)) {
+			seen.add(cur);
+			d += 1;
+			cur = byId.get(cur)?.parentId;
+		}
+		return d;
+	};
+	return [...nodes].sort((a, b) => depth(a.id) - depth(b.id));
+}
+
 export function flowToReactFlow(flow: FlowV1): {
 	nodes: Node[];
 	edges: Edge[];
 } {
-	const nodes = flow.nodes.map((n) => {
+	const parentIds = new Set(
+		flow.nodes.filter((n) => n.parentId).map((n) => n.parentId as string),
+	);
+	const ordered = sortParentsBeforeChildren(flow.nodes);
+	const nodes = ordered.map((n) => {
 		const defaults = defaultSizeForType(n.type);
 		const width = n.width ?? defaults?.width;
 		const height = n.height ?? defaults?.height;
+		const isFrame = isFrameContainerType(n.type);
+		const isChild = Boolean(n.parentId);
+		const style: CSSProperties = {
+			...(width != null ? { width } : {}),
+			...(height != null ? { height } : {}),
+			...(isFrame ? { zIndex: 0 } : {}),
+			...(isChild ? { zIndex: 1 } : {}),
+		};
 		return {
 			id: n.id,
 			type: n.type,
 			position: n.position ?? { x: 0, y: 0 },
 			...(width != null ? { width } : {}),
 			...(height != null ? { height } : {}),
-			style:
-				width != null || height != null
-					? {
-							...(width != null ? { width } : {}),
-							...(height != null ? { height } : {}),
-						}
-					: undefined,
+			...(n.parentId ? { parentId: n.parentId } : {}),
+			...(n.extent === "parent" ? { extent: "parent" as const } : {}),
+			...(isFrame || isChild ? { zIndex: isFrame ? 0 : 1 } : {}),
+			...(Object.keys(style).length > 0 ? { style } : {}),
 			data: {
 				...(n.data as Record<string, unknown>),
 				label: (n.data as { label?: string })?.label ?? `${n.type} (${n.id})`,
 			},
 		};
 	});
-	const edges = flow.edges.map((e) => ({
-		id: e.id,
-		source: e.source,
-		target: e.target,
-		sourceHandle: e.sourceHandle ?? undefined,
-		interactionWidth: EDGE_INTERACTION_WIDTH,
-		reconnectable: true as const,
-	}));
+	const edges = flow.edges.map((e) => {
+		const sourceIsFrame = parentIds.has(e.source);
+		const targetIsFrame = parentIds.has(e.target);
+		const sourceChild = flow.nodes.find((n) => n.id === e.source)?.parentId;
+		const targetChild = flow.nodes.find((n) => n.id === e.target)?.parentId;
+		const inFrame =
+			Boolean(sourceChild) ||
+			Boolean(targetChild) ||
+			sourceIsFrame ||
+			targetIsFrame ||
+			e.sourceHandle === "entry" ||
+			e.targetHandle === "exit";
+		return {
+			id: e.id,
+			source: e.source,
+			target: e.target,
+			sourceHandle: e.sourceHandle ?? undefined,
+			targetHandle: e.targetHandle ?? undefined,
+			interactionWidth: EDGE_INTERACTION_WIDTH,
+			reconnectable: true as const,
+			// Body + entry/exit edges must paint above the frame fill.
+			...(inFrame ? { zIndex: 1002 } : {}),
+		};
+	});
 	return { nodes, edges };
 }
 
-type ConnectionNodes = ReadonlyArray<{ id: string; type?: string | null }>;
-type ConnectionEdges = ReadonlyArray<{ id: string; source: string }>;
+type ConnectionNodes = ReadonlyArray<{
+	id: string;
+	type?: string | null;
+	parentId?: string | null;
+}>;
+type ConnectionEdges = ReadonlyArray<{
+	id: string;
+	source: string;
+	target?: string;
+	sourceHandle?: string | null;
+	targetHandle?: string | null;
+}>;
 
 /**
- * Canvas connection rules: no incoming edges to `start`; `start` has at most
- * one outgoing edge (ignoreEdgeId lets reconnect move the existing edge);
- * `note` stickies cannot be connected.
+ * Canvas connection rules: start/note constraints and framed try/foreach
+ * entry/exit and pierce bans.
  */
 export function isValidFlowConnection(options: {
 	source: string | null | undefined;
 	target: string | null | undefined;
+	sourceHandle?: string | null;
+	targetHandle?: string | null;
 	nodes: ConnectionNodes;
 	edges: ConnectionEdges;
 	ignoreEdgeId?: string | null;
 }): boolean {
-	const { source, target, nodes, edges, ignoreEdgeId } = options;
+	const {
+		source,
+		target,
+		sourceHandle,
+		targetHandle,
+		nodes,
+		edges,
+		ignoreEdgeId,
+	} = options;
 	if (!source || !target) return false;
 	const sourceNode = nodes.find((n) => n.id === source);
 	const targetNode = nodes.find((n) => n.id === target);
-	if (sourceNode?.type === "note" || targetNode?.type === "note") return false;
-	if (targetNode?.type === "start") return false;
-	if (sourceNode?.type === "start") {
+	if (!sourceNode || !targetNode) return false;
+	if (sourceNode.type === "note" || targetNode.type === "note") return false;
+	if (targetNode.type === "start") return false;
+	if (sourceNode.type === "start") {
 		return !edges.some((e) => e.source === source && e.id !== ignoreEdgeId);
 	}
+
+	const sp = sourceNode.parentId ?? undefined;
+	const tp = targetNode.parentId ?? undefined;
+	const sh = sourceHandle ?? null;
+	const th = targetHandle ?? null;
+
+	// Frame entry: container → child
+	if (isFrameContainerType(sourceNode.type) && tp === source) {
+		if (!(sh === "entry" || sh === null)) return false;
+	} else if (isFrameContainerType(targetNode.type) && sp === target) {
+		// Frame exit: child → container
+		if (!(th === "exit" || th === null)) return false;
+	} else if (isFrameContainerType(sourceNode.type) && tp !== source) {
+		// Outer from frame
+		if (sp !== tp) return false;
+		if (sourceNode.type === "try") {
+			if (!(sh === "success" || sh === "failed")) return false;
+		} else if (sourceNode.type === "foreach") {
+			if (sh !== "complete") return false;
+		} else {
+			return false;
+		}
+	} else if (sp !== tp) {
+		// Pierce ban
+		return false;
+	}
+
 	return true;
 }
 
@@ -108,25 +212,29 @@ export function reactFlowToFlow(
 	nodes: Node[],
 	edges: Edge[],
 ): FlowV1 {
+	const mapped = nodes.map((n) => {
+		const width = readNodeSize(n, "width");
+		const height = readNodeSize(n, "height");
+		return {
+			id: n.id,
+			type: n.type ?? "input",
+			data: stripNodeData(n.data as Record<string, unknown>),
+			position: n.position,
+			...(width != null ? { width } : {}),
+			...(height != null ? { height } : {}),
+			...(n.parentId ? { parentId: n.parentId } : {}),
+			...(n.extent === "parent" ? { extent: "parent" as const } : {}),
+		};
+	});
 	return {
 		...baseFlow,
-		nodes: nodes.map((n) => {
-			const width = readNodeSize(n, "width");
-			const height = readNodeSize(n, "height");
-			return {
-				id: n.id,
-				type: n.type ?? "input",
-				data: stripNodeData(n.data as Record<string, unknown>),
-				position: n.position,
-				...(width != null ? { width } : {}),
-				...(height != null ? { height } : {}),
-			};
-		}),
+		nodes: sortParentsBeforeChildren(mapped),
 		edges: edges.map((e) => ({
 			id: e.id,
 			source: e.source,
 			target: e.target,
 			sourceHandle: e.sourceHandle ?? null,
+			targetHandle: e.targetHandle ?? null,
 		})),
 	};
 }
@@ -194,6 +302,18 @@ export function deleteNodesFromFlow(flow: FlowV1, nodeIds: string[]): FlowV1 {
 	for (const n of flow.nodes) {
 		if (n.type === "start") remove.delete(n.id);
 	}
+	// Cascade delete frame children
+	let grew = true;
+	while (grew) {
+		grew = false;
+		for (const n of flow.nodes) {
+			if (n.parentId && remove.has(n.parentId) && !remove.has(n.id)) {
+				if (n.type === "start") continue;
+				remove.add(n.id);
+				grew = true;
+			}
+		}
+	}
 	if (remove.size === 0) return flow;
 	return {
 		...flow,
@@ -214,6 +334,147 @@ export function deleteEdgesFromFlow(flow: FlowV1, edgeIds: string[]): FlowV1 {
 }
 
 const DUPLICATE_OFFSET = { x: 40, y: 40 };
+
+/** Ensure a child inside a frame has entry and exit edges when reparented. */
+export function ensureFrameBodyWiring(
+	flow: FlowV1,
+	containerId: string,
+	childId: string,
+): FlowV1 {
+	const hasEntry = flow.edges.some(
+		(e) =>
+			e.source === containerId &&
+			e.target === childId &&
+			(e.sourceHandle === "entry" || e.sourceHandle == null),
+	);
+	const hasExit = flow.edges.some(
+		(e) =>
+			e.source === childId &&
+			e.target === containerId &&
+			(e.targetHandle === "exit" || e.targetHandle == null),
+	);
+	if (hasEntry && hasExit) return flow;
+
+	const edges = [...flow.edges];
+	if (!hasEntry) {
+		edges.push({
+			id: `e-${containerId}-entry-${childId}`,
+			source: containerId,
+			target: childId,
+			sourceHandle: "entry",
+		});
+	}
+	if (!hasExit) {
+		edges.push({
+			id: `e-${childId}-exit-${containerId}`,
+			source: childId,
+			target: containerId,
+			targetHandle: "exit",
+		});
+	}
+	return { ...flow, edges };
+}
+
+/**
+ * Reparent a node into a frame (or clear parent when frameId is null).
+ * Positions are absolute canvas coords on the way in; converted to relative
+ * when assigning a parent.
+ */
+export function reparentNodeInFlow(
+	flow: FlowV1,
+	nodeId: string,
+	frameId: string | null,
+	absolutePosition: { x: number; y: number },
+): FlowV1 {
+	const node = flow.nodes.find((n) => n.id === nodeId);
+	if (!node || node.type === "start" || isFrameContainerType(node.type)) {
+		return flow;
+	}
+	if (frameId === nodeId) return flow;
+	if (frameId) {
+		const frame = flow.nodes.find((n) => n.id === frameId);
+		if (!frame || !isFrameContainerType(frame.type)) return flow;
+		// No parenting onto own descendant
+		let walk: string | undefined = frame.parentId;
+		while (walk) {
+			if (walk === nodeId) return flow;
+			walk = flow.nodes.find((n) => n.id === walk)?.parentId;
+		}
+		const fx = frame.position?.x ?? 0;
+		const fy = frame.position?.y ?? 0;
+		const relative = {
+			x: absolutePosition.x - fx,
+			y: Math.max(40, absolutePosition.y - fy),
+		};
+		let next: FlowV1 = {
+			...flow,
+			nodes: flow.nodes.map((n) =>
+				n.id === nodeId
+					? {
+							...n,
+							parentId: frameId,
+							extent: "parent" as const,
+							position: relative,
+						}
+					: n,
+			),
+		};
+		next = ensureFrameBodyWiring(next, frameId, nodeId);
+		return next;
+	}
+	// Clear parent — use absolute position
+	return {
+		...flow,
+		nodes: flow.nodes.map((n) => {
+			if (n.id !== nodeId) return n;
+			const { parentId: _p, extent: _e, ...rest } = n;
+			return { ...rest, position: absolutePosition };
+		}),
+		edges: flow.edges.filter((e) => {
+			// Drop entry/exit edges tied to old parent
+			if (!node.parentId) return true;
+			if (
+				e.source === node.parentId &&
+				e.target === nodeId &&
+				(e.sourceHandle === "entry" || e.sourceHandle == null)
+			) {
+				return false;
+			}
+			if (
+				e.source === nodeId &&
+				e.target === node.parentId &&
+				(e.targetHandle === "exit" || e.targetHandle == null)
+			) {
+				return false;
+			}
+			return true;
+		}),
+	};
+}
+
+export function findFrameAtPoint(
+	flow: FlowV1,
+	point: { x: number; y: number },
+	excludeNodeId?: string,
+): string | null {
+	const frames = flow.nodes.filter(
+		(n) =>
+			isFrameContainerType(n.type) && n.id !== excludeNodeId && !n.parentId, // top-level frames for hit-test; nested ok later
+	);
+	// Prefer smallest containing frame (most specific)
+	let best: { id: string; area: number } | null = null;
+	for (const frame of frames) {
+		const x = frame.position?.x ?? 0;
+		const y = frame.position?.y ?? 0;
+		const w = frame.width ?? FRAME_NODE_DEFAULT_WIDTH;
+		const h = frame.height ?? FRAME_NODE_DEFAULT_HEIGHT;
+		if (point.x >= x && point.x <= x + w && point.y >= y && point.y <= y + h) {
+			const area = w * h;
+			if (!best || area < best.area) best = { id: frame.id, area };
+		}
+	}
+	return best?.id ?? null;
+}
 
 export function duplicateNodeInFlow(
 	flow: FlowV1,

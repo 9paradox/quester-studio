@@ -6,7 +6,7 @@ function ctx(
 	overrides: Partial<NodeExecutionContext> = {},
 ): NodeExecutionContext {
 	return {
-		node: { id: "t1", type: "try", data: { condition: "true" } },
+		node: { id: "t1", type: "try", data: {} },
 		input: { status: 200 },
 		flowInput: {},
 		vars: {},
@@ -18,32 +18,23 @@ function ctx(
 }
 
 describe("try plugin", () => {
-	test("branches ok when checks pass", async () => {
-		const result = await tryPlugin.execute(
-			ctx({
-				node: {
-					id: "t1",
-					type: "try",
-					data: { checks: [{ path: "status", op: "eq", value: 200 }] },
-				},
-			}),
-		);
-		expect(result.branch).toBe("ok");
-		expect(result.output).toEqual({ ok: true, input: { status: 200 } });
+	test("accepts framed try data and returns success stub", async () => {
+		const result = await tryPlugin.execute(ctx());
+		expect(result.branch).toBe("success");
+		expect(result.output).toEqual({ status: 200 });
 	});
 
-	test("branches catch when checks fail", async () => {
-		const result = await tryPlugin.execute(
-			ctx({
-				input: { status: 404 },
-				node: {
-					id: "t1",
-					type: "try",
-					data: { checks: [{ path: "status", op: "eq", value: 200 }] },
-				},
-			}),
-		);
-		expect(result.branch).toBe("catch");
-		expect(result.output).toEqual({ ok: false, input: { status: 404 } });
+	test("rejects legacy soft checks", async () => {
+		await expect(
+			tryPlugin.execute(
+				ctx({
+					node: {
+						id: "t1",
+						type: "try",
+						data: { checks: [{ path: "status", op: "eq", value: 200 }] },
+					},
+				}),
+			),
+		).rejects.toThrow();
 	});
 });

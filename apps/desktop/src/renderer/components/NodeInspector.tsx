@@ -425,7 +425,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Items"
-						hint="JMESPath on previous output or templated JSON array string."
+						hint="JMESPath on previous output or templated JSON array string. Body runs once per item."
 					>
 						<JmesPathField
 							value={String(data.items ?? "items")}
@@ -434,23 +434,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						/>
 					</InspectorField>
 					<InspectorField
-						label="Map"
-						hint="Optional JMESPath on { [itemVar]: item, index } per element."
+						label="Item variable"
+						hint='Template scope name (default "item"). Use {{item}} / {{index}} in the body.'
 					>
-						<JmesPathField
-							value={String(data.map ?? "")}
-							onChange={(map) => {
-								if (map === "") {
-									const { map: _omit, ...rest } = data;
-									onUpdate(rest);
-									return;
-								}
-								setField("map", map);
-							}}
-							placeholder="item.id"
-						/>
-					</InspectorField>
-					<InspectorField label="Item variable" hint='Default "item".'>
 						<Input
 							value={String(data.itemVar ?? "item")}
 							onChange={(e) => setField("itemVar", e.target.value)}
@@ -478,7 +464,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Concurrency"
-						hint={`Optional parallel item processing limit (max ${FOREACH_MAX_CONCURRENCY}).`}
+						hint={`Parallel body iterations (max ${FOREACH_MAX_CONCURRENCY}). Leave empty for sequential.`}
 					>
 						<Input
 							type="number"
@@ -509,49 +495,13 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			) : null}
 
 			{node.type === "try" ? (
-				<>
-					<InspectorField
-						label="Condition"
-						hint="Optional templated truthy string. Soft checks only — thrown errors (HTTP/assert) are not caught. Combined with checks using AND when both are set."
-					>
-						<TemplateField
-							value={String(data.condition ?? "")}
-							onChange={(condition) => {
-								const hasChecks =
-									Array.isArray(data.checks) && data.checks.length > 0;
-								if (condition === "") {
-									onUpdate({
-										...data,
-										condition: hasChecks ? undefined : "true",
-									});
-									return;
-								}
-								setField("condition", condition);
-							}}
-							placeholder="{{input.active}}"
-						/>
-					</InspectorField>
-					<InspectorField
-						label="Checks"
-						hint='On soft check fail, branch "catch". Does not catch thrown node errors.'
-					>
-						<AssertChecksEditor
-							checks={data.checks}
-							minChecks={0}
-							onChange={(checks) => {
-								onUpdate({
-									...data,
-									checks: checks.length > 0 ? checks : undefined,
-									condition:
-										checks.length === 0 &&
-										(data.condition === undefined || data.condition === "")
-											? "true"
-											: data.condition,
-								});
-							}}
-						/>
-					</InspectorField>
-				</>
+				<p className="text-xs text-muted-foreground">
+					Framed exception boundary. Drag body nodes into the frame and wire{" "}
+					<span className="font-mono">entry → body → exit</span>. Outer handles:{" "}
+					<span className="font-mono">success</span> /{" "}
+					<span className="font-mono">failed</span>. Soft branching uses{" "}
+					<span className="font-mono">if</span>.
+				</p>
 			) : null}
 
 			{node.type === "subflow" ? (

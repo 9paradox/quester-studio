@@ -159,11 +159,12 @@ function IfPanels({ step }: { step: StepView }) {
 }
 
 function TryPanels({ step }: { step: StepView }) {
-	const ok =
-		isRecord(step.output) && typeof step.output.ok === "boolean"
-			? step.output.ok
+	const failed = isRecord(step.output) && step.output.failed === true;
+	const branch = failed
+		? "failed"
+		: step.output !== undefined
+			? "success"
 			: null;
-	const branch = ok === true ? "ok" : ok === false ? "catch" : null;
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -171,14 +172,49 @@ function TryPanels({ step }: { step: StepView }) {
 			<section className="flex flex-col gap-2">
 				<h3 className="text-xs font-medium text-muted-foreground">Branch</h3>
 				<div className="flex flex-wrap gap-2">
-					{ok !== null ? <MetaChip label="Passed" value={String(ok)} /> : null}
+					{failed ? <MetaChip label="Failed" value="true" /> : null}
 					{branch ? (
-						<Badge variant={branch === "ok" ? "secondary" : "outline"}>
+						<Badge variant={branch === "success" ? "secondary" : "outline"}>
 							→ {branch}
 						</Badge>
 					) : (
 						<Badge variant="outline">No branch data</Badge>
 					)}
+				</div>
+			</section>
+			<ResultWithInput
+				result={step.output}
+				input={step.input}
+				error={step.error}
+				pathCopyNodeId={step.nodeId}
+			/>
+		</div>
+	);
+}
+
+function ForeachPanels({ step }: { step: StepView }) {
+	const count =
+		isRecord(step.output) && typeof step.output.count === "number"
+			? step.output.count
+			: null;
+	const truncated =
+		isRecord(step.output) && typeof step.output.truncated === "boolean"
+			? step.output.truncated
+			: null;
+
+	return (
+		<div className="flex flex-col gap-4">
+			{step.error ? <ErrorAlert message={step.error} /> : null}
+			<section className="flex flex-col gap-2">
+				<h3 className="text-xs font-medium text-muted-foreground">Loop</h3>
+				<div className="flex flex-wrap gap-2">
+					{count !== null ? (
+						<MetaChip label="Count" value={String(count)} />
+					) : null}
+					{truncated !== null ? (
+						<MetaChip label="Truncated" value={String(truncated)} />
+					) : null}
+					<Badge variant="secondary">→ complete</Badge>
 				</div>
 			</section>
 			<ResultWithInput
@@ -328,6 +364,8 @@ export function NodeResponsePanels({
 			return <IfPanels step={step} />;
 		case "try":
 			return <TryPanels step={step} />;
+		case "foreach":
+			return <ForeachPanels step={step} />;
 		case "set":
 			return <SetPanels step={step} node={node} />;
 		case "start":

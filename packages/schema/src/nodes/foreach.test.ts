@@ -12,16 +12,24 @@ describe("foreachNodeDataSchema", () => {
 		expect(parsed.itemVar).toBeUndefined();
 	});
 
-	test("accepts optional map and concurrency", () => {
+	test("accepts concurrency and itemVar", () => {
 		expect(
 			foreachNodeDataSchema.safeParse({
 				items: "{{input.ids}}",
-				map: "id",
 				concurrency: 4,
 				maxItems: 50,
 				itemVar: "row",
 			}).success,
 		).toBe(true);
+	});
+
+	test("rejects legacy map field", () => {
+		expect(
+			foreachNodeDataSchema.safeParse({
+				items: "items",
+				map: "id",
+			}).success,
+		).toBe(false);
 	});
 
 	test("rejects maxItems above security ceiling", () => {

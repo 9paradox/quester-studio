@@ -150,6 +150,23 @@ describe("isValidFlowConnection", () => {
 			}),
 		).toBe(false);
 	});
+
+	test("allows frame exit when outer wire already exists", () => {
+		const framed = [
+			{ id: "start", type: "start" },
+			{ id: "guard", type: "try" },
+			{ id: "body", type: "http", parentId: "guard" },
+		];
+		expect(
+			isValidFlowConnection({
+				source: "body",
+				target: "guard",
+				targetHandle: "exit",
+				nodes: framed,
+				edges: [{ id: "e0", source: "start", target: "guard" }],
+			}),
+		).toBe(true);
+	});
 });
 
 describe("flowToReactFlow edges", () => {
@@ -259,6 +276,89 @@ describe("json node size mapping", () => {
 		const roundTrip = reactFlowToFlow(flow, rf.nodes, rf.edges);
 		expect(roundTrip.nodes[0]?.width).toBe(300);
 		expect(roundTrip.nodes[0]?.height).toBe(200);
+	});
+
+	test("round-trips parentId, extent, and targetHandle", () => {
+		const flow: FlowV1 = {
+			version: "v1",
+			id: "framed",
+			nodes: [
+				{ id: "start", type: "start", data: {}, position: { x: 0, y: 0 } },
+				{
+					id: "guard",
+					type: "try",
+					data: { label: "Try" },
+					position: { x: 100, y: 0 },
+					width: 320,
+					height: 240,
+				},
+				{
+					id: "body",
+					type: "set",
+					data: {},
+					parentId: "guard",
+					extent: "parent",
+					position: { x: 40, y: 60 },
+				},
+			],
+			edges: [
+				{ id: "e0", source: "start", target: "guard" },
+				{
+					id: "e1",
+					source: "guard",
+					target: "body",
+					sourceHandle: "entry",
+				},
+				{
+					id: "e2",
+					source: "body",
+					target: "guard",
+					targetHandle: "exit",
+				},
+			],
+		};
+		const rf = flowToReactFlow(flow);
+		expect(rf.nodes.find((n) => n.id === "body")?.parentId).toBe("guard");
+		expect(rf.nodes.find((n) => n.id === "body")?.extent).toBe("parent");
+		expect(rf.nodes.find((n) => n.id === "guard")?.width).toBe(320);
+		expect(rf.edges.find((e) => e.id === "e2")?.targetHandle).toBe("exit");
+		const roundTrip = reactFlowToFlow(flow, rf.nodes, rf.edges);
+		expect(roundTrip.nodes.find((n) => n.id === "body")?.parentId).toBe(
+			"guard",
+		);
+		expect(roundTrip.edges.find((e) => e.id === "e2")?.targetHandle).toBe(
+			"exit",
+		);
+	});
+
+	test("places parent frames before body children", () => {
+		const flow: FlowV1 = {
+			version: "v1",
+			id: "order",
+			nodes: [
+				{
+					id: "body",
+					type: "http",
+					data: {},
+					parentId: "guard",
+					extent: "parent",
+					position: { x: 20, y: 40 },
+				},
+				{
+					id: "guard",
+					type: "try",
+					data: {},
+					position: { x: 0, y: 0 },
+					width: 320,
+					height: 240,
+				},
+			],
+			edges: [],
+		};
+		const { nodes } = flowToReactFlow(flow);
+		expect(nodes.map((n) => n.id)).toEqual(["guard", "body"]);
+		expect(nodes[0]?.zIndex).toBe(0);
+		expect(nodes[1]?.zIndex).toBe(1);
 	});
 });
 

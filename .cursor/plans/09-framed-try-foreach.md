@@ -1,7 +1,7 @@
 # Plan 09 — Framed try / foreach
 
 **Priority:** 9  
-**Status:** after B4 (plan 01)  
+**Status:** code complete (await user X/Y/Z)  
 **ROADMAP:** §6 Control — Framed `try` / `foreach`  
 **BUGS:** closes B13  
 
@@ -19,12 +19,12 @@ Generic `group`/`frame` (Later); `parallel` / `while` (same §6, separate follow
 
 ## Work
 
-- [ ] Schema — `parentId` (+ optional `extent`); children only under `try`/`foreach`; forbid edges leaving frame except container handles  
-- [ ] Engine — `try` body once; throw → `failed`, else `success`  
-- [ ] Engine — `foreach` body per item (`item`/`index`); single `complete` with `results`  
-- [ ] Desktop — resizable frames; drag into/out of parent; handles: try `success`/`failed`, foreach `complete`  
-- [ ] Inspector — container fields only; drop soft-guard / map-only empty modes  
-- [ ] Migrate samples + docs; validate errors on legacy soft-`try` / map-only `foreach`; soft branch stays on `if`  
+- [x] Schema — `parentId` (+ optional `extent`); children only under `try`/`foreach`; forbid edges leaving frame except container handles  
+- [x] Engine — `try` body once; throw → `failed`, else `success`  
+- [x] Engine — `foreach` body per item (`item`/`index`); single `complete` with `results`  
+- [x] Desktop — resizable frames; drag into/out of parent; handles: try `success`/`failed`, foreach `complete`  
+- [x] Inspector — container fields only; drop soft-guard / map-only empty modes  
+- [x] Migrate samples + docs; validate errors on legacy soft-`try` / map-only `foreach`; soft branch stays on `if`  
 
 ## Done when
 

@@ -9,6 +9,7 @@ export * from "./if.js";
 export * from "./switch.js";
 export * from "./delay.js";
 export * from "./foreach.js";
+export * from "./foreach-items.js";
 export * from "./try.js";
 export * from "./subflow.js";
 export * from "./output.js";

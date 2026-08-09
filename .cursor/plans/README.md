@@ -6,19 +6,19 @@ Open **one plan at a time**, in priority order. Source of truth for checkboxes: 
 |---|------|----------------|
 | 01 | [Stability — critical / high](./01-stability-critical.md) | **Start here** |
 | 02 | [Stability — medium](./02-stability-medium.md) | After 01 — **code complete** (await user X/Y/Z) |
-| 03 | [Performance](./03-performance.md) | After core run correctness (01 B4/B5) |
-| 04 | [Desktop — JSON / response viewers](./04-desktop-json-viewers.md) | After 01; pairs with 03 |
+| 04 | [Desktop — JSON / response viewers](./04-desktop-json-viewers.md) | After 01; perf hardening later (plan 17) |
 | 05 | [Desktop — Run UX](./05-desktop-run-ux.md) | After B5/B8 (plan 01) |
 | 06 | [Desktop — canvas, DnD, nodes UI](./06-desktop-canvas-nodes.md) | After 01 — **code complete** (await user X/Y/Z) |
 | 07 | [Desktop — folder logs viewer](./07-desktop-logs-viewer.md) | After 04 (reuse viewer) — **code complete** (await user X/Y/Z) |
-| 08 | [Web + docs](./08-web-and-docs.md) | Can parallel with 01 if touching B6/B17 |
-| 09 | [Framed try / foreach](./09-framed-try-foreach.md) | After B4 (fan-in) |
+| 09 | [Framed try / foreach](./09-framed-try-foreach.md) | After B4 (fan-in) — **code complete** (await user X/Y/Z) |
 | 10 | [Nodes — auth + HTTP](./10-nodes-auth-http.md) | After stability wave |
 | 11 | [Nodes — data helpers](./11-nodes-data.md) | After stability wave |
 | 12 | [Forms](./12-forms.md) | After 04/06 patterns (editor + DnD) |
 | 13 | [Code node](./13-code-node.md) | After 04 + SECURITY discipline; do not rush |
 | 14 | [AI options](./14-ai-options.md) | Later — after polish track |
 | 15 | [MCP integration](./15-mcp.md) | Later — after polish track |
+| 16 | [Web + docs](./16-web-and-docs.md) | After 09–15; one pass absorbs landed product changes |
+| 17 | [Performance](./17-performance.md) | **Last** — after 04–16; harden hotspots from landed UI/engine work |
 
 ## How to use
 

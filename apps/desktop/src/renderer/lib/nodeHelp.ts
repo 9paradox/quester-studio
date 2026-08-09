@@ -445,7 +445,7 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 	},
 	foreach: {
 		summary:
-			"Map-style iteration over an array from JMESPath or template. Returns mapped results[] (full loop-with-body subgraph is future work).",
+			"Framed loop: body children run once per array item. Wire entry → body → exit. Outer handle: complete. Templates {{item}} / {{index}} (or itemVar).",
 		fields: [
 			{ name: "label", type: "string", description: "Optional UI label" },
 			{
@@ -457,7 +457,7 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 			{
 				name: "itemVar",
 				type: "string",
-				description: 'Scope key for each item when using map (default "item")',
+				description: 'Template scope name for each item (default "item")',
 			},
 			{
 				name: "maxItems",
@@ -467,20 +467,19 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 			{
 				name: "concurrency",
 				type: "number",
-				description: "Optional parallel processing limit",
+				description: "Optional parallel body iterations",
 			},
-			{
-				name: "map",
-				type: "string",
-				description:
-					"Optional JMESPath on { [itemVar]: item, index } per element",
-			},
+		],
+		syntax: [
+			'Entry edge: sourceHandle "entry" from foreach to a body child',
+			'Exit edge: targetHandle "exit" from a body child back to foreach',
+			'Outer continue: sourceHandle "complete"',
 		],
 		example: {
 			label: "Map ids",
 			items: "body.users",
-			map: "item.id",
 			maxItems: 50,
+			concurrency: 4,
 		},
 		io: {
 			input: "Previous node output",
@@ -489,31 +488,21 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 	},
 	try: {
 		summary:
-			"Soft-check branch on condition/checks only — not exception handling. Thrown errors (HTTP/assert) still abort the run. Connect edges with sourceHandle ok or catch.",
+			"Framed exception boundary: body runs once; thrown errors take failed, else success. Soft branching stays on if.",
 		fields: [
 			{ name: "label", type: "string", description: "Optional UI label" },
-			{
-				name: "condition",
-				type: "string",
-				description: "Optional templated truthy/falsey string",
-			},
-			{
-				name: "checks",
-				type: "array",
-				description: "Optional JMESPath checks (same ops as assert)",
-			},
 		],
 		syntax: [
-			'Edge sourceHandle must be "ok" or "catch"',
-			"Does not catch thrown errors from upstream nodes — soft checks/condition only",
+			'Entry edge: sourceHandle "entry" from try to a body child',
+			'Exit edge: targetHandle "exit" from a body child back to try',
+			'Outer handles: "success" / "failed"',
 		],
 		example: {
-			label: "2xx?",
-			checks: [{ path: "status", op: "gte", value: 200 }],
+			label: "Guard HTTP",
 		},
 		io: {
 			input: "Previous node output",
-			output: '{ "ok": boolean, "input": previous }; branch "ok" or "catch"',
+			output: "body exit output on success; { failed, error, input } on failed",
 		},
 	},
 	subflow: {

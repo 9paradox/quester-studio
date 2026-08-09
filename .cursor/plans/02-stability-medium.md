@@ -11,7 +11,7 @@ Close remaining correctness / trust gaps from the 2026-08-08 audit.
 
 ## Out of scope
 
-Framed `try`/`foreach` implementation (plan 09 closes B13 for real). B17 site rewrite can share PRs with plan 08.
+Framed `try`/`foreach` implementation (plan 09 closes B13 for real). B17 site rewrite lands with plan 16 (last).
 
 ## Dependencies
 
@@ -26,7 +26,7 @@ Prefer B4 fixed before deep engine cookie work (optional). B13 docs-only until p
 - [x] **B13** — Until plan 09: clearer docs / UX that `try` is not exception catch  
 - [x] **B14** — Exclude `*.secrets.json` from desktop sample sync (`apps/desktop/scripts`)  
 - [x] **B15** — Template trust: **A + C** (document + `mode` flag) — see below  
-- [x] **B17** — Web roadmap / Try / Guide drift (or fold into plan 08)  
+- [x] **B17** — Web roadmap / Try / Guide drift (or fold into plan 16)  
 - [ ] Ongoing — harden foreach/subflow/abort tests; save/reload reliability; suite CI smoke green  
 
 ### B15 detail — A (docs) + C (`mode`)

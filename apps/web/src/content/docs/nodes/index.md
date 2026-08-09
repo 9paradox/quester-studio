@@ -41,8 +41,8 @@ Read [How flows work](../concepts/) for connection rules, fan-out vs branches, a
 | [if](./if/) | 1 | `true` / `false` | `{ condition }` |
 | [switch](./switch/) | 1 | cases + default | `{ matched }` |
 | [delay](./delay/) | 1 | 1 | Passthrough |
-| [foreach](./foreach/) | 1 | 1 | `{ results, count, truncated }` |
-| [try](./try/) | 1 | `ok` / `catch` | `{ ok, input }` |
+| [foreach](./foreach/) | 1 | 1 (`complete`) · fan-out ok | `{ results, count, truncated }` |
+| [try](./try/) | 1 | `success` / `failed` | body exit output · or `{ failed, error, input }` |
 | [subflow](./subflow/) | 1 | 1 | Subflow output |
 | [output](./output/) | 1 | 0 | Flow result |
 | [assert](./assert/) | 1 | 1 | `{ ok: true }` or throws |

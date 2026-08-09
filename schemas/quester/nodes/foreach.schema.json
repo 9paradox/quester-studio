@@ -23,10 +23,7 @@
       "exclusiveMinimum": 0,
       "maximum": 32
     },
-    "map": {
-      "type": "string",
-      "minLength": 1
-    }
+    "map": {}
   },
   "required": [
     "items"
