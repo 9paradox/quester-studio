@@ -85,7 +85,7 @@ export type RunLogEditorTab = {
 	id: string;
 	relativePath: string;
 	title: string;
-	dirty: false;
+	dirty: boolean;
 	data: unknown | null;
 	error?: string | null;
 	loading: boolean;
