@@ -24,7 +24,7 @@ None. Blocks plans 05, 09 (partially).
 - [x] **B5** — Desktop `executeFlowRpc` 30s timeout  
   - Packages: `apps/desktop` (main + renderer Electrobun client)
 - [x] **B6** — Hero sample + Try credentials (`login-and-profile` vs `input` / secrets)  
-  - Packages: `examples/`, docs as needed; align with plan 08 if site copy changes
+  - Packages: `examples/`, docs as needed; align with plan 16 if site copy changes
 - [x] **B7** — Redact secrets in UI / RPC logs (parity with disk run logs)  
   - Packages: `workspace-service`, `engine` redact helpers, `apps/desktop`
 - [x] **B8** — Gate Mod+Enter double-run; scope Stop / `isRunning`; cancel on workspace close  

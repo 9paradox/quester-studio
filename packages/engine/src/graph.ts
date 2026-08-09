@@ -1,10 +1,13 @@
 import type { FlowEdgeV1, FlowNodeV1, FlowV1 } from "@quester-studio/schema";
+import { isFrameContainerType } from "@quester-studio/schema";
+import { isFrameLoopEdge } from "./frame.js";
 
 export function topologicalSort(flow: FlowV1): FlowNodeV1[] {
 	const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));
 	const indegree = new Map<string, number>();
 	for (const node of flow.nodes) indegree.set(node.id, 0);
 	for (const edge of flow.edges) {
+		if (isFrameLoopEdge(edge, nodeById)) continue;
 		indegree.set(edge.target, (indegree.get(edge.target) ?? 0) + 1);
 	}
 	const queue = flow.nodes
@@ -13,6 +16,7 @@ export function topologicalSort(flow: FlowV1): FlowNodeV1[] {
 	const order: FlowNodeV1[] = [];
 	const adj = new Map<string, string[]>();
 	for (const edge of flow.edges) {
+		if (isFrameLoopEdge(edge, nodeById)) continue;
 		const list = adj.get(edge.source) ?? [];
 		list.push(edge.target);
 		adj.set(edge.source, list);
@@ -35,12 +39,19 @@ export function outgoingEdges(flow: FlowV1, nodeId: string): FlowEdgeV1[] {
 	return flow.edges.filter((e) => e.source === nodeId);
 }
 
+/** Outer successors only — excludes frame entry edges into body children. */
 export function selectNextEdges(
 	flow: FlowV1,
 	node: FlowNodeV1,
 	branch?: string,
 ): FlowEdgeV1[] {
-	const edges = outgoingEdges(flow, node.id);
+	const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));
+	const edges = outgoingEdges(flow, node.id).filter((e) => {
+		const target = nodeById.get(e.target);
+		if (target?.parentId === node.id) return false;
+		return true;
+	});
+
 	if (node.type === "switch") {
 		const handle = branch ?? "default";
 		const filtered = edges.filter(
@@ -55,7 +66,8 @@ export function selectNextEdges(
 		{ defaultHandle: string; fallbackHandle: string }
 	> = {
 		if: { defaultHandle: "false", fallbackHandle: "true" },
-		try: { defaultHandle: "catch", fallbackHandle: "ok" },
+		try: { defaultHandle: "failed", fallbackHandle: "success" },
+		foreach: { defaultHandle: "complete", fallbackHandle: "complete" },
 	};
 	const config = branchConfig[node.type];
 	if (!config) return edges;
@@ -73,9 +85,13 @@ export function computeLiveNodes(
 	branchTaken: ReadonlyMap<string, string | undefined>,
 ): Set<string> {
 	const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));
-	const hasIncoming = new Set(flow.edges.map((e) => e.target));
+	const hasIncoming = new Set(
+		flow.edges
+			.filter((e) => !isFrameLoopEdge(e, nodeById))
+			.map((e) => e.target),
+	);
 	const starts = flow.nodes
-		.filter((n) => !hasIncoming.has(n.id))
+		.filter((n) => !hasIncoming.has(n.id) && !n.parentId)
 		.map((n) => n.id);
 	const live = new Set<string>();
 	const queue = [...starts];
@@ -95,6 +111,7 @@ export function computeLiveNodes(
 /**
  * AND-join with XOR orphan awareness: wait for all live predecessors.
  * Exclusive-branch arms that were not selected are treated as orphaned.
+ * Frame exit edges (child→container) are ignored as predecessors.
  */
 export function isNodeReady(
 	flow: FlowV1,
@@ -102,7 +119,13 @@ export function isNodeReady(
 	executed: ReadonlySet<string>,
 	branchTaken: ReadonlyMap<string, string | undefined>,
 ): boolean {
-	const incoming = flow.edges.filter((e) => e.target === nodeId);
+	const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));
+	const incoming = flow.edges.filter((e) => {
+		if (e.target !== nodeId) return false;
+		const source = nodeById.get(e.source);
+		if (source?.parentId === nodeId) return false;
+		return true;
+	});
 	if (incoming.length === 0) return true;
 	const live = computeLiveNodes(flow, executed, branchTaken);
 	let hasExecutedPred = false;
@@ -116,4 +139,8 @@ export function isNodeReady(
 		return false;
 	}
 	return hasExecutedPred;
+}
+
+export function isFrameContainer(node: FlowNodeV1): boolean {
+	return isFrameContainerType(node.type);
 }

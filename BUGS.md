@@ -29,7 +29,7 @@ After fan-out (`A→B`, `A→C`, then `B/C→D`), `D` can run when the first par
 
 **Where:** `packages/engine/src/execute.ts`, `packages/engine/src/graph.ts` (`selectNextEdges`).
 
-**Fix direction:** Run a node only when all relevant predecessors have completed (or forbid multi-in except documented join). Add diamond-graph tests in `execute.test.ts`.
+**Fix:** AND-join readiness (`isNodeReady`) waits for all live predecessors. Diamond regression in `execute.test.ts`.
 
 ---
 
@@ -179,13 +179,11 @@ CLI `loadSecrets(wsPath, env)` omits `manifest.environmentsDir`. CLI does not sh
 | --- | --- |
 | **Severity** | medium |
 | **Area** | nodes, docs |
-| **Status** | docs clarified (full fix → plan 09) |
+| **Status** | fixed |
 
-`try` branches on condition/checks only. HTTP/`assert` throws still abort the flow as `FlowExecutionError`. Easy to misread as exception handling.
+`try` was soft condition/checks only. HTTP/`assert` throws aborted the flow as `FlowExecutionError`.
 
-**Example:** `try` wrap around HTTP that 500s (or `assert` that fails). User expects catch branch; instead the whole run fails with `FlowExecutionError`. Catch only runs when soft condition/checks say so — not on thrown errors.
-
-**Fix direction:** Docs/UX copy updated (soft-check only). Real exception-boundary `try` remains plan 09 (framed subgraphs).
+**Fix:** Framed `try` / `foreach` (plan 09) — body subgraph with real exception boundary (`success` / `failed`). Soft branching stays on `if`.
 
 ---
 

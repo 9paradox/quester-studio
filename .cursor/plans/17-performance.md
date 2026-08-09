@@ -1,32 +1,34 @@
-# Plan 03 — Performance
+# Plan 17 — Performance
 
-**Priority:** 3  
-**Status:** after B4/B5 (plan 01) preferred  
+**Priority:** 17 (last)  
+**Status:** Later — after plans 04–16; absorb perf debt from landed viewers / run UX / canvas  
 **ROADMAP:** §2 Performance  
 
 ## Goal
 
-Snappy desktop + predictable engine/CLI under large flows, big JSON, long suites.
+Snappy desktop + predictable engine/CLI under large flows, big JSON, long suites — after feature/UI foundations exist so the pass targets real hotspots.
 
 ## Out of scope
 
-New viewer product UX (plan 04/07) — but share virtualization choices with them.
+New viewer product UX (plan 04/07) — land those first; this plan hardens virtualization / lazy parse on top.
 
 ## Dependencies
 
-B5 fixed so long runs can be profiled honestly.
+- Run **last** so canvas, JSON/response viewers, logs, and run UX can ship first; this pass profiles and hardens them.
+- B5 fixed so long runs can be profiled honestly (plan 01).
 
 ## Work
 
 - [ ] Profile desktop canvas — pan/zoom/select on large graphs  
 - [ ] Defer canvas position commits to drag-end (no per-frame full-flow stringify)  
 - [ ] Profile inspector / response panel on large JSON / long logs  
-- [ ] Performant JSON viewer foundation — Monaco-class + virtualize / lazy parse (feeds plan 04)  
+- [ ] Performant JSON viewer hardening — virtualize / lazy parse on plan 04 foundations  
 - [ ] Lazy / truncate on-canvas `json` / `inspect` viewers  
 - [ ] Engine — big responses, long suites; sensible default `maxResponseBytes`  
 - [ ] Cut unnecessary re-renders / IPC chatter on run status  
 - [ ] Fast workspace load (many flows / collections / run history)  
 - [ ] CLI suite performance for CI-scale smoke  
+- [ ] Fold in any interim perf notes / TODOs left by plans 04–16  
 
 ## Done when
 

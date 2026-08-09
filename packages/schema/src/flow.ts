@@ -79,6 +79,12 @@ export function nodeDataSchemaForType(type: string): z.ZodTypeAny | undefined {
 	return undefined;
 }
 
+export const FRAME_CONTAINER_TYPES = ["try", "foreach"] as const;
+
+export function isFrameContainerType(type: string): boolean {
+	return (FRAME_CONTAINER_TYPES as readonly string[]).includes(type);
+}
+
 export const flowNodeSchemaV1 = z.object({
 	id: z.string().min(1),
 	type: z.string().min(1),
@@ -87,6 +93,10 @@ export const flowNodeSchemaV1 = z.object({
 	/** Canvas layout size (UI only; optional for resizable nodes like `json`). */
 	width: z.number().positive().optional(),
 	height: z.number().positive().optional(),
+	/** Parent frame id when this node is a framed `try` / `foreach` body child. */
+	parentId: z.string().min(1).optional(),
+	/** React Flow extent — children use `"parent"`. */
+	extent: z.literal("parent").optional(),
 });
 
 export const flowEdgeSchemaV1 = z.object({
@@ -94,6 +104,7 @@ export const flowEdgeSchemaV1 = z.object({
 	source: z.string().min(1),
 	target: z.string().min(1),
 	sourceHandle: z.string().nullable().optional(),
+	targetHandle: z.string().nullable().optional(),
 });
 
 export const flowSchemaV1 = z.object({

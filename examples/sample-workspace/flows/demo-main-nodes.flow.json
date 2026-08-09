@@ -59,8 +59,8 @@
 				"label": "Extract title"
 			},
 			"position": {
-				"x": 760,
-				"y": 80
+				"x": 1035.777150434754,
+				"y": 78.68049210318301
 			},
 			"width": 200,
 			"height": 72
@@ -82,8 +82,8 @@
 				"label": "Assert 200"
 			},
 			"position": {
-				"x": 760,
-				"y": 240
+				"x": 799.5852369045101,
+				"y": 354.79718702307946
 			},
 			"width": 200,
 			"height": 87
@@ -99,8 +99,8 @@
 				"label": "Result"
 			},
 			"position": {
-				"x": 1040,
-				"y": 80
+				"x": 1315.777150434754,
+				"y": 78.68049210318301
 			},
 			"width": 180,
 			"height": 72
@@ -118,6 +118,21 @@
 			},
 			"width": 240,
 			"height": 140
+		},
+		{
+			"id": "delay-59be641e",
+			"type": "delay",
+			"data": {
+				"ms": 10000,
+				"jitterMs": 0,
+				"label": "Delay"
+			},
+			"position": {
+				"x": 768.9982376949721,
+				"y": 72.51775230291322
+			},
+			"width": 210,
+			"height": 102
 		}
 	],
 	"edges": [
@@ -134,12 +149,6 @@
 			"sourceHandle": null
 		},
 		{
-			"id": "e-http-extract",
-			"source": "fetchProduct",
-			"target": "title",
-			"sourceHandle": null
-		},
-		{
 			"id": "e-http-assert",
 			"source": "fetchProduct",
 			"target": "assertOk",
@@ -149,6 +158,18 @@
 			"id": "e-extract-output",
 			"source": "title",
 			"target": "output",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-http-extract",
+			"source": "fetchProduct",
+			"target": "delay-59be641e",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-delay-59be641e-title-e4a710",
+			"source": "delay-59be641e",
+			"target": "title",
 			"sourceHandle": null
 		}
 	]

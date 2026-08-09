@@ -1,21 +1,30 @@
 import { z } from "zod";
-import { valueCheckSchema } from "./check.js";
 
+/** Framed exception-boundary container — body children only; no soft condition/checks. */
 export const tryNodeDataSchema = z
 	.object({
 		label: z.string().optional(),
-		/** Templated truthy string. Optional when `checks` is set. */
-		condition: z.string().min(1).optional(),
-		/** JMESPath checks on previous output (same ops as `assert`). On fail, branch `catch`. */
-		checks: z.array(valueCheckSchema).min(1).optional(),
+		condition: z.unknown().optional(),
+		checks: z.unknown().optional(),
 	})
 	.superRefine((data, ctx) => {
-		if (data.condition === undefined && data.checks === undefined) {
+		if (data.condition !== undefined) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: "Provide condition and/or checks",
+				message:
+					"soft-try removed; use `if` for soft branching (framed `try` catches thrown errors)",
+				path: ["condition"],
 			});
 		}
-	});
+		if (data.checks !== undefined) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message:
+					"soft-try removed; use `if` for soft branching (framed `try` catches thrown errors)",
+				path: ["checks"],
+			});
+		}
+	})
+	.transform(({ label }) => ({ label }));
 
-export type TryNodeData = z.infer<typeof tryNodeDataSchema>;
+export type TryNodeData = { label?: string };

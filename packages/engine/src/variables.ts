@@ -4,6 +4,8 @@
 	input: unknown;
 	vars: Record<string, unknown>;
 	nodeOutputs: Record<string, unknown>;
+	/** Foreach body scopes: item (or itemVar) + index. */
+	loop?: Record<string, unknown>;
 };
 
 function getPath(obj: unknown, path: string): unknown {
@@ -23,6 +25,9 @@ function resolvePath(
 	scope: string,
 	path: string,
 ): unknown {
+	if (ctx.loop && Object.hasOwn(ctx.loop, scope)) {
+		return getPath(ctx.loop[scope], path);
+	}
 	switch (scope) {
 		case "env":
 			return getPath(ctx.env, path);
@@ -32,6 +37,8 @@ function resolvePath(
 			return getPath(ctx.input, path);
 		case "vars":
 			return getPath(ctx.vars, path);
+		case "index":
+			return ctx.loop?.index;
 		default:
 			if (scope.startsWith("nodes.")) {
 				const rest = scope.slice("nodes.".length);

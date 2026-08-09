@@ -3,14 +3,28 @@ import {
 	CookieJar,
 	HttpNodeError,
 	getNodePlugin,
+	mapWithConcurrency,
+	resolveForeachItems,
 } from "@quester-studio/nodes";
-import type { FlowV1, HttpSettingsV1 } from "@quester-studio/schema";
-import { isCookieJarEnabled } from "@quester-studio/schema";
+import {
+	type FlowNodeV1,
+	type FlowV1,
+	type HttpSettingsV1,
+	foreachNodeDataSchema,
+	isCookieJarEnabled,
+	tryNodeDataSchema,
+} from "@quester-studio/schema";
 import "@quester-studio/nodes";
 import { EngineEventEmitter } from "./events.js";
-import { isNodeReady, selectNextEdges, topologicalSort } from "./graph.js";
+import { buildBodyFlow, frameEntryTargets, frameExitSources } from "./frame.js";
+import {
+	isFrameContainer,
+	isNodeReady,
+	selectNextEdges,
+	topologicalSort,
+} from "./graph.js";
 import { type RunFileLogger, resolveTemplateDeep } from "./run-log.js";
-import { resolveTemplate } from "./variables.js";
+import { type ResolverContext, resolveTemplate } from "./variables.js";
 
 export type ExecuteFlowOptions = {
 	input?: unknown;
@@ -104,7 +118,7 @@ function buildPartialResult(
 	lastOutput: unknown,
 	runDir?: string,
 ): ExecuteFlowResult {
-	const outputNode = flow.nodes.find((n) => n.type === "output");
+	const outputNode = flow.nodes.find((n) => n.type === "output" && !n.parentId);
 	const output = outputNode ? nodeOutputs[outputNode.id] : lastOutput;
 	return { output, nodeOutputs, nodeInputs, steps, vars, runDir };
 }
@@ -115,11 +129,416 @@ async function abortIfRequested(
 	partial: () => ExecuteFlowResult,
 ): Promise<void> {
 	if (!signal?.aborted) return;
-	// Cancel between nodes used to leave meta.json stuck at status "running".
 	if (runLogger) {
 		await runLogger.finish({ status: "cancelled" });
 	}
 	throw new FlowCancelledError("Flow run cancelled", { partial: partial() });
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+	if (signal?.aborted) {
+		throw new DOMException("Flow run cancelled", "AbortError");
+	}
+}
+
+type Runtime = {
+	flow: FlowV1;
+	options: ExecuteFlowOptions;
+	events: EngineEventEmitter;
+	fetchFn: typeof fetch;
+	flowInput: unknown;
+	vars: Record<string, unknown>;
+	nodeOutputs: Record<string, unknown>;
+	nodeInputs: Record<string, unknown>;
+	steps: NodeStepResult[];
+	cookieJar: CookieJar | undefined;
+	runLogger: RunFileLogger | undefined;
+	runDir: string | undefined;
+	nodeById: Map<string, FlowNodeV1>;
+	lastOutput: unknown;
+	loop?: Record<string, unknown>;
+	/** Prefix for step nodeIds in nested/foreach iterations. */
+	stepPrefix: string;
+	/** When true, node errors do not finish the run log (caught by try frame). */
+	suppressFailFinish: boolean;
+};
+
+function makeResolveTpl(rt: Runtime): (t: string) => string {
+	const ctx: ResolverContext = {
+		env: rt.options.env ?? {},
+		secrets: rt.options.secrets ?? {},
+		input: rt.flowInput,
+		vars: rt.vars,
+		nodeOutputs: rt.nodeOutputs,
+		loop: rt.loop,
+	};
+	return (t: string) => resolveTemplate(t, ctx);
+}
+
+function stepId(rt: Runtime, nodeId: string): string {
+	return rt.stepPrefix ? `${rt.stepPrefix}${nodeId}` : nodeId;
+}
+
+async function runBodyOnce(
+	rt: Runtime,
+	container: FlowNodeV1,
+	containerInput: unknown,
+): Promise<unknown> {
+	const bodyFlow = buildBodyFlow(rt.flow, container.id);
+	const entryTargets = frameEntryTargets(rt.flow, container, rt.nodeById);
+	const exitSources = frameExitSources(rt.flow, container, rt.nodeById);
+	if (entryTargets.length === 0) {
+		throw new Error(`Frame "${container.id}" has no entry edges`);
+	}
+
+	const executed = new Set<string>();
+	const branchTaken = new Map<string, string | undefined>();
+	const pending = new Set<string>();
+	const queue = [...entryTargets];
+	let bodyLastOutput: unknown = containerInput;
+	let exitOutput: unknown = containerInput;
+	let sawExit = false;
+
+	const enqueueReady = () => {
+		for (const target of [...pending]) {
+			if (executed.has(target) || queue.includes(target)) {
+				pending.delete(target);
+				continue;
+			}
+			if (isNodeReady(bodyFlow, target, executed, branchTaken)) {
+				queue.push(target);
+				pending.delete(target);
+			}
+		}
+	};
+
+	while (queue.length > 0) {
+		await abortIfRequested(rt.options.signal, rt.runLogger, () =>
+			buildPartialResult(
+				rt.flow,
+				rt.nodeOutputs,
+				rt.nodeInputs,
+				rt.steps,
+				rt.vars,
+				rt.lastOutput,
+				rt.runDir,
+			),
+		);
+
+		const nodeId = queue.shift();
+		if (!nodeId || executed.has(nodeId)) continue;
+		if (
+			!entryTargets.includes(nodeId) &&
+			!isNodeReady(bodyFlow, nodeId, executed, branchTaken)
+		) {
+			pending.add(nodeId);
+			continue;
+		}
+		const node = rt.nodeById.get(nodeId);
+		if (!node) continue;
+
+		let input: unknown = bodyLastOutput;
+		if (entryTargets.includes(nodeId)) {
+			input = containerInput;
+		} else {
+			const incoming = bodyFlow.edges.filter((e) => e.target === nodeId);
+			if (incoming.length > 0) {
+				const completedPreds = incoming
+					.map((e) => e.source)
+					.filter((id) => executed.has(id));
+				const src = completedPreds.at(-1) ?? incoming[0]?.source;
+				if (src && rt.nodeOutputs[src] !== undefined) {
+					input = rt.nodeOutputs[src];
+				}
+			}
+		}
+
+		const { output, branch } = await executeOneNode(rt, node, input);
+		bodyLastOutput = output;
+		executed.add(node.id);
+		branchTaken.set(node.id, branch);
+
+		if (exitSources.has(node.id)) {
+			exitOutput = output;
+			sawExit = true;
+		}
+
+		for (const edge of selectNextEdges(bodyFlow, node, branch)) {
+			if (!executed.has(edge.target)) pending.add(edge.target);
+		}
+		enqueueReady();
+	}
+
+	if (!sawExit) {
+		throw new Error(
+			`Frame "${container.id}" finished without reaching an exit edge`,
+		);
+	}
+	return exitOutput;
+}
+
+async function executeContainer(
+	rt: Runtime,
+	container: FlowNodeV1,
+	containerInput: unknown,
+): Promise<{ output: unknown; branch?: string }> {
+	if (container.type === "try") {
+		tryNodeDataSchema.parse(container.data);
+		const prevSuppress = rt.suppressFailFinish;
+		rt.suppressFailFinish = true;
+		try {
+			const output = await runBodyOnce(rt, container, containerInput);
+			return { output, branch: "success" };
+		} catch (error) {
+			if (
+				error instanceof FlowCancelledError ||
+				(error instanceof DOMException && error.name === "AbortError") ||
+				rt.options.signal?.aborted
+			) {
+				throw error;
+			}
+			const message = error instanceof Error ? error.message : String(error);
+			return {
+				output: {
+					failed: true,
+					error: message,
+					input: containerInput,
+				},
+				branch: "failed",
+			};
+		} finally {
+			rt.suppressFailFinish = prevSuppress;
+		}
+	}
+
+	if (container.type === "foreach") {
+		const data = foreachNodeDataSchema.parse(container.data);
+		const resolveTpl = makeResolveTpl(rt);
+		const rawItems = resolveForeachItems(
+			data.items,
+			containerInput,
+			resolveTpl,
+		);
+		const capped = rawItems.slice(0, data.maxItems);
+		const itemVar = data.itemVar ?? "item";
+		const concurrency = data.concurrency ?? 1;
+
+		const runItem = async (item: unknown, index: number): Promise<unknown> => {
+			throwIfAborted(rt.options.signal);
+			const itemRt: Runtime = {
+				...rt,
+				loop: { [itemVar]: item, item, index },
+				stepPrefix: `${rt.stepPrefix}${container.id}[${index}]/`,
+				// Isolate per-iteration node outputs for body nodes; keep outer outputs
+				nodeOutputs: { ...rt.nodeOutputs },
+			};
+			return runBodyOnce(itemRt, container, containerInput);
+		};
+
+		const results =
+			concurrency <= 1
+				? await (async () => {
+						const out: unknown[] = [];
+						for (let i = 0; i < capped.length; i += 1) {
+							out.push(await runItem(capped[i], i));
+						}
+						return out;
+					})()
+				: await mapWithConcurrency(
+						capped,
+						concurrency,
+						runItem,
+						rt.options.signal,
+					);
+
+		// Merge vars from last sequential path; parallel already mutated shared rt.vars
+		return {
+			output: {
+				results,
+				count: results.length,
+				truncated: rawItems.length > data.maxItems,
+			},
+			branch: "complete",
+		};
+	}
+
+	throw new Error(`Unknown frame container type: ${container.type}`);
+}
+
+async function executeOneNode(
+	rt: Runtime,
+	node: FlowNodeV1,
+	input: unknown,
+): Promise<{ output: unknown; branch?: string }> {
+	await abortIfRequested(rt.options.signal, rt.runLogger, () =>
+		buildPartialResult(
+			rt.flow,
+			rt.nodeOutputs,
+			rt.nodeInputs,
+			rt.steps,
+			rt.vars,
+			rt.lastOutput,
+			rt.runDir,
+		),
+	);
+
+	const resolveTpl = makeResolveTpl(rt);
+	rt.nodeInputs[node.id] = input;
+	rt.events.emit("node:before", {
+		nodeId: node.id,
+		type: node.type,
+		input,
+	});
+
+	try {
+		let output: unknown;
+		let branch: string | undefined;
+		let processedInput: unknown;
+
+		if (isFrameContainer(node)) {
+			const result = await executeContainer(rt, node, input);
+			output = result.output;
+			branch = result.branch;
+			processedInput = resolveTemplateDeep(node.data ?? {}, resolveTpl);
+		} else {
+			const plugin = getNodePlugin(node.type);
+			if (!plugin) {
+				throw new Error(`No plugin registered for node type: ${node.type}`);
+			}
+			const result = await plugin.execute({
+				node,
+				input,
+				flowInput: rt.flowInput,
+				vars: rt.vars,
+				nodeOutputs: rt.nodeOutputs,
+				resolveTemplate: resolveTpl,
+				fetch: rt.fetchFn,
+				httpDefaults: rt.options.httpDefaults,
+				cookieJar: rt.cookieJar,
+				signal: rt.options.signal,
+				executeSubflow: rt.options.executeSubflow,
+			});
+			if (result.vars) rt.vars = { ...rt.vars, ...result.vars };
+			output = result.output;
+			branch = result.branch;
+			processedInput =
+				result.processedInput ??
+				resolveTemplateDeep(node.data ?? {}, resolveTpl);
+		}
+
+		rt.nodeOutputs[node.id] = output;
+		rt.lastOutput = output;
+		const step: NodeStepResult = {
+			nodeId: stepId(rt, node.id),
+			type: node.type,
+			input,
+			processedInput,
+			output,
+		};
+		rt.steps.push(step);
+		if (rt.runLogger) {
+			await rt.runLogger.writeStep({
+				nodeId: step.nodeId,
+				type: step.type,
+				input: step.input,
+				processedInput: step.processedInput,
+				output: step.output,
+				error: null,
+			});
+		}
+		rt.events.emit("node:after", {
+			nodeId: node.id,
+			type: node.type,
+			input,
+			processedInput,
+			output,
+		});
+		return { output, branch };
+	} catch (error) {
+		if (
+			error instanceof FlowCancelledError ||
+			(error instanceof DOMException && error.name === "AbortError") ||
+			rt.options.signal?.aborted
+		) {
+			if (
+				rt.options.signal?.aborted &&
+				!(error instanceof FlowCancelledError)
+			) {
+				if (rt.runLogger) {
+					await rt.runLogger.finish({ status: "cancelled" });
+				}
+				throw new FlowCancelledError("Flow run cancelled", {
+					partial: buildPartialResult(
+						rt.flow,
+						rt.nodeOutputs,
+						rt.nodeInputs,
+						rt.steps,
+						rt.vars,
+						rt.lastOutput,
+						rt.runDir,
+					),
+				});
+			}
+			throw error;
+		}
+		const message = error instanceof Error ? error.message : String(error);
+		const processedInput =
+			error instanceof HttpNodeError
+				? error.request
+				: resolveTemplateDeep(node.data ?? {}, resolveTpl);
+		rt.events.emit("node:error", {
+			nodeId: node.id,
+			type: node.type,
+			input,
+			processedInput,
+			error,
+		});
+		const partialOutput =
+			error instanceof HttpNodeError
+				? { request: error.request }
+				: error instanceof AssertNodeError
+					? error.output
+					: undefined;
+		const step: NodeStepResult = {
+			nodeId: stepId(rt, node.id),
+			type: node.type,
+			input,
+			processedInput,
+			output: partialOutput,
+			error: message,
+		};
+		rt.steps.push(step);
+		if (rt.runLogger) {
+			await rt.runLogger.writeStep({
+				nodeId: step.nodeId,
+				type: step.type,
+				input: step.input,
+				processedInput: step.processedInput,
+				output: step.output,
+				error: message,
+			});
+			if (!rt.suppressFailFinish) {
+				await rt.runLogger.finish({
+					status: "failed",
+					failedNodeId: node.id,
+					error: message,
+				});
+			}
+		}
+		throw new FlowExecutionError(message, {
+			partial: {
+				output: undefined,
+				nodeOutputs: rt.nodeOutputs,
+				nodeInputs: rt.nodeInputs,
+				steps: rt.steps,
+				vars: rt.vars,
+				runDir: rt.runDir,
+			},
+			failedNodeId: node.id,
+			failedNodeType: node.type,
+			cause: error,
+		});
+	}
 }
 
 export async function executeFlow(
@@ -129,30 +548,48 @@ export async function executeFlow(
 	const events = options.events ?? new EngineEventEmitter();
 	const fetchFn = mergeFetchSignal(options.fetch ?? fetch, options.signal);
 	const flowInput = options.input ?? {};
-	let vars = { ...(options.vars ?? {}) };
-	const nodeOutputs: Record<string, unknown> = {};
-	const nodeInputs: Record<string, unknown> = {};
-	const steps: NodeStepResult[] = [];
-	const order = topologicalSort(flow);
-	const executed = new Set<string>();
-	const branchTaken = new Map<string, string | undefined>();
-	const pending = new Set<string>();
-	const startNodes = order.filter((n) => n.type === "start");
-	const queue: string[] = startNodes.map((n) => n.id);
-	if (queue.length === 0 && order[0]) queue.push(order[0].id);
-
 	const cookieJar =
 		options.cookieJar ??
 		(isCookieJarEnabled(options.httpDefaults) ? new CookieJar() : undefined);
 
-	const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));
-	let lastOutput: unknown = {};
-	const runLogger = options.runLogger;
-	const runDir = runLogger?.runDir;
+	const rt: Runtime = {
+		flow,
+		options,
+		events,
+		fetchFn,
+		flowInput,
+		vars: { ...(options.vars ?? {}) },
+		nodeOutputs: {},
+		nodeInputs: {},
+		steps: [],
+		cookieJar,
+		runLogger: options.runLogger,
+		runDir: options.runLogger?.runDir,
+		nodeById: new Map(flow.nodes.map((n) => [n.id, n])),
+		lastOutput: {},
+		stepPrefix: "",
+		suppressFailFinish: false,
+	};
+
+	const order = topologicalSort(flow);
+	const executed = new Set<string>();
+	const branchTaken = new Map<string, string | undefined>();
+	const pending = new Set<string>();
+	const startNodes = order.filter((n) => n.type === "start" && !n.parentId);
+	const queue: string[] = startNodes.map((n) => n.id);
+	if (queue.length === 0) {
+		const firstRoot = order.find((n) => !n.parentId);
+		if (firstRoot) queue.push(firstRoot.id);
+	}
 
 	const enqueueReady = () => {
 		for (const target of [...pending]) {
 			if (executed.has(target) || queue.includes(target)) {
+				pending.delete(target);
+				continue;
+			}
+			const targetNode = rt.nodeById.get(target);
+			if (targetNode?.parentId) {
 				pending.delete(target);
 				continue;
 			}
@@ -166,183 +603,67 @@ export async function executeFlow(
 	const partial = () =>
 		buildPartialResult(
 			flow,
-			nodeOutputs,
-			nodeInputs,
-			steps,
-			vars,
-			lastOutput,
-			runDir,
+			rt.nodeOutputs,
+			rt.nodeInputs,
+			rt.steps,
+			rt.vars,
+			rt.lastOutput,
+			rt.runDir,
 		);
 
 	while (queue.length > 0) {
-		await abortIfRequested(options.signal, runLogger, partial);
+		await abortIfRequested(options.signal, rt.runLogger, partial);
 
 		const nodeId = queue.shift();
 		if (!nodeId || executed.has(nodeId)) continue;
+		const node = rt.nodeById.get(nodeId);
+		if (!node || node.parentId) continue;
 		if (!isNodeReady(flow, nodeId, executed, branchTaken)) {
 			pending.add(nodeId);
 			continue;
 		}
-		const node = nodeById.get(nodeId);
-		if (!node) continue;
 
-		await abortIfRequested(options.signal, runLogger, partial);
-
-		const plugin = getNodePlugin(node.type);
-		if (!plugin) {
-			throw new Error(`No plugin registered for node type: ${node.type}`);
-		}
-
-		const incoming = flow.edges.filter((e) => e.target === nodeId);
-		let input: unknown = lastOutput;
+		const incoming = flow.edges.filter((e) => {
+			if (e.target !== nodeId) return false;
+			const source = rt.nodeById.get(e.source);
+			if (source?.parentId === nodeId) return false;
+			return true;
+		});
+		let input: unknown = rt.lastOutput;
 		if (incoming.length > 0) {
-			const completedPreds = steps
+			const completedPreds = rt.steps
 				.map((s) => s.nodeId)
 				.filter((id) => incoming.some((e) => e.source === id));
 			const src = completedPreds.at(-1) ?? incoming[0]?.source;
-			if (src && nodeOutputs[src] !== undefined) input = nodeOutputs[src];
+			if (src && rt.nodeOutputs[src] !== undefined) input = rt.nodeOutputs[src];
 		}
 		if (node.type === "input") input = flowInput;
 
-		const resolverCtx = {
-			env: options.env ?? {},
-			secrets: options.secrets ?? {},
-			input: flowInput,
-			vars,
-			nodeOutputs,
-		};
-		const resolveTpl = (t: string) => resolveTemplate(t, resolverCtx);
+		const { output, branch } = await executeOneNode(rt, node, input);
+		executed.add(node.id);
+		branchTaken.set(node.id, branch);
+		void output;
 
-		nodeInputs[node.id] = input;
-		events.emit("node:before", {
-			nodeId: node.id,
-			type: node.type,
-			input,
-		});
-		try {
-			const result = await plugin.execute({
-				node,
-				input,
-				flowInput,
-				vars,
-				nodeOutputs,
-				resolveTemplate: resolveTpl,
-				fetch: fetchFn,
-				httpDefaults: options.httpDefaults,
-				cookieJar,
-				signal: options.signal,
-				executeSubflow: options.executeSubflow,
-			});
-			if (result.vars) vars = { ...vars, ...result.vars };
-			nodeOutputs[node.id] = result.output;
-			lastOutput = result.output;
-			executed.add(node.id);
-			const processedInput =
-				result.processedInput ??
-				resolveTemplateDeep(node.data ?? {}, resolveTpl);
-			const step: NodeStepResult = {
-				nodeId: node.id,
-				type: node.type,
-				input,
-				processedInput,
-				output: result.output,
-			};
-			steps.push(step);
-			if (runLogger) {
-				await runLogger.writeStep({
-					nodeId: step.nodeId,
-					type: step.type,
-					input: step.input,
-					processedInput: step.processedInput,
-					output: step.output,
-					error: null,
-				});
-			}
-			events.emit("node:after", {
-				nodeId: node.id,
-				type: node.type,
-				input,
-				processedInput,
-				output: result.output,
-			});
-
-			branchTaken.set(node.id, result.branch);
-			for (const edge of selectNextEdges(flow, node, result.branch)) {
-				if (!executed.has(edge.target)) pending.add(edge.target);
-			}
-			enqueueReady();
-		} catch (error) {
-			if (options.signal?.aborted) {
-				if (runLogger) {
-					await runLogger.finish({ status: "cancelled" });
-				}
-				throw new FlowCancelledError("Flow run cancelled", {
-					partial: partial(),
-				});
-			}
-			const message = error instanceof Error ? error.message : String(error);
-			const processedInput =
-				error instanceof HttpNodeError
-					? error.request
-					: resolveTemplateDeep(node.data ?? {}, resolveTpl);
-			events.emit("node:error", {
-				nodeId: node.id,
-				type: node.type,
-				input,
-				processedInput,
-				error,
-			});
-			const partialOutput =
-				error instanceof HttpNodeError
-					? { request: error.request }
-					: error instanceof AssertNodeError
-						? error.output
-						: undefined;
-			const step: NodeStepResult = {
-				nodeId: node.id,
-				type: node.type,
-				input,
-				processedInput,
-				output: partialOutput,
-				error: message,
-			};
-			steps.push(step);
-			if (runLogger) {
-				await runLogger.writeStep({
-					nodeId: step.nodeId,
-					type: step.type,
-					input: step.input,
-					processedInput: step.processedInput,
-					output: step.output,
-					error: message,
-				});
-				await runLogger.finish({
-					status: "failed",
-					failedNodeId: node.id,
-					error: message,
-				});
-			}
-			throw new FlowExecutionError(message, {
-				partial: {
-					output: undefined,
-					nodeOutputs,
-					nodeInputs,
-					steps,
-					vars,
-					runDir,
-				},
-				failedNodeId: node.id,
-				failedNodeType: node.type,
-				cause: error,
-			});
+		for (const edge of selectNextEdges(flow, node, branch)) {
+			const target = rt.nodeById.get(edge.target);
+			if (target?.parentId) continue;
+			if (!executed.has(edge.target)) pending.add(edge.target);
 		}
+		enqueueReady();
 	}
 
-	const outputNode = flow.nodes.find((n) => n.type === "output");
-	const output = outputNode ? nodeOutputs[outputNode.id] : lastOutput;
-	if (runLogger) {
-		await runLogger.finish({ status: "success" });
+	const outputNode = flow.nodes.find((n) => n.type === "output" && !n.parentId);
+	const output = outputNode ? rt.nodeOutputs[outputNode.id] : rt.lastOutput;
+	if (rt.runLogger) {
+		await rt.runLogger.finish({ status: "success" });
 	}
 	events.emit("flow:complete", { output });
-	return { output, nodeOutputs, nodeInputs, steps, vars, runDir };
+	return {
+		output,
+		nodeOutputs: rt.nodeOutputs,
+		nodeInputs: rt.nodeInputs,
+		steps: rt.steps,
+		vars: rt.vars,
+		runDir: rt.runDir,
+	};
 }

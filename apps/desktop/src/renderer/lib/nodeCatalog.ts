@@ -202,7 +202,7 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 	foreach: withHelp({
 		type: "foreach",
 		label: "Foreach",
-		description: "Map over array items",
+		description: "Framed loop over array items",
 		icon: IconRepeat,
 		accentTone: "border-l-chart-3",
 		badgeTone: "bg-chart-3/15 text-chart-3",
@@ -210,7 +210,7 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 	try: withHelp({
 		type: "try",
 		label: "Try",
-		description: "Soft branch (not exceptions)",
+		description: "Framed exception boundary",
 		icon: IconShieldCheck,
 		accentTone: "border-l-chart-4",
 		badgeTone: "bg-chart-4/15 text-foreground",
@@ -316,7 +316,6 @@ export function defaultNodeData(
 		case "try":
 			return {
 				label: "Try",
-				checks: [{ path: "status", op: "gte", value: 200 }],
 			};
 		case "subflow":
 			return { label: "Subflow", flowId: "my-flow", input: {} };

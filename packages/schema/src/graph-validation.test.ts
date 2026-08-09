@@ -201,4 +201,147 @@ describe("validateFlowGraph", () => {
 			),
 		).toBe(true);
 	});
+
+	test("accepts framed try with entry and exit", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "guard", type: "try", data: {}, width: 320, height: 240 },
+					{
+						id: "body",
+						type: "set",
+						data: { map: { x: "1" } },
+						parentId: "guard",
+						extent: "parent",
+					},
+					{ id: "after", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "guard" },
+					{
+						id: "e1",
+						source: "guard",
+						target: "body",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e2",
+						source: "body",
+						target: "guard",
+						targetHandle: "exit",
+					},
+					{
+						id: "e3",
+						source: "guard",
+						target: "after",
+						sourceHandle: "success",
+					},
+				],
+			}),
+		);
+		expect(result.valid).toBe(true);
+	});
+
+	test("rejects frame without entry/exit", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "guard", type: "try", data: {} },
+					{ id: "body", type: "set", data: {}, parentId: "guard" },
+				],
+				edges: [{ id: "e0", source: "start", target: "guard" }],
+			}),
+		);
+		expect(result.valid).toBe(false);
+		expect(result.issues.some((i) => i.message.includes("entry edge"))).toBe(
+			true,
+		);
+		expect(result.issues.some((i) => i.message.includes("exit edge"))).toBe(
+			true,
+		);
+	});
+
+	test("rejects edge that pierces into a frame child", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "guard", type: "try", data: {} },
+					{ id: "body", type: "set", data: {}, parentId: "guard" },
+					{ id: "out", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "body" },
+					{
+						id: "e1",
+						source: "guard",
+						target: "body",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e2",
+						source: "body",
+						target: "guard",
+						targetHandle: "exit",
+					},
+					{
+						id: "e3",
+						source: "guard",
+						target: "out",
+						sourceHandle: "success",
+					},
+				],
+			}),
+		);
+		expect(result.valid).toBe(false);
+		expect(result.issues.some((i) => i.message.includes("enters frame"))).toBe(
+			true,
+		);
+	});
+
+	test("accepts framed foreach with complete handle", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{
+						id: "loop",
+						type: "foreach",
+						data: { items: "ids" },
+					},
+					{
+						id: "row",
+						type: "template",
+						data: { template: "{{item}}" },
+						parentId: "loop",
+					},
+					{ id: "after", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "loop" },
+					{
+						id: "e1",
+						source: "loop",
+						target: "row",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e2",
+						source: "row",
+						target: "loop",
+						targetHandle: "exit",
+					},
+					{
+						id: "e3",
+						source: "loop",
+						target: "after",
+						sourceHandle: "complete",
+					},
+				],
+			}),
+		);
+		expect(result.valid).toBe(true);
+	});
 });

@@ -22,9 +22,12 @@ import {
 import {
 	type AlignNodesMode,
 	EDGE_INTERACTION_WIDTH,
+	findFrameAtPoint,
 	flowToReactFlow,
+	isFrameContainerType,
 	isValidFlowConnection,
 	reactFlowToFlow,
+	reparentNodeInFlow,
 } from "@/lib/flowEditor.js";
 import { isTypingFocus } from "@/lib/typingFocus.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
@@ -383,6 +386,8 @@ function FlowCanvasInner({
 				!isValidFlowConnection({
 					source: connection.source,
 					target: connection.target,
+					sourceHandle: connection.sourceHandle,
+					targetHandle: connection.targetHandle,
 					nodes: nodesRef.current,
 					edges: edgesRef.current,
 				})
@@ -390,12 +395,21 @@ function FlowCanvasInner({
 				return;
 			}
 			setEdges((current) => {
+				const src = nodesRef.current.find((n) => n.id === connection.source);
+				const tgt = nodesRef.current.find((n) => n.id === connection.target);
+				const inFrame = Boolean(
+					src?.parentId ||
+						tgt?.parentId ||
+						isFrameContainerType(src?.type) ||
+						isFrameContainerType(tgt?.type),
+				);
 				const next = addEdge(
 					{
 						...connection,
 						id: `e-${connection.source}-${connection.target}-${crypto.randomUUID().slice(0, 6)}`,
 						interactionWidth: EDGE_INTERACTION_WIDTH,
 						reconnectable: true,
+						...(inFrame ? { zIndex: 1002 } : {}),
 					},
 					current,
 				);
@@ -412,6 +426,8 @@ function FlowCanvasInner({
 				!isValidFlowConnection({
 					source: newConnection.source,
 					target: newConnection.target,
+					sourceHandle: newConnection.sourceHandle,
+					targetHandle: newConnection.targetHandle,
 					nodes: nodesRef.current,
 					edges: edgesRef.current,
 					ignoreEdgeId: oldEdge.id,
@@ -450,11 +466,56 @@ function FlowCanvasInner({
 		return isValidFlowConnection({
 			source: connection.source,
 			target: connection.target,
+			sourceHandle: connection.sourceHandle,
+			targetHandle: connection.targetHandle,
 			nodes: nodesRef.current,
 			edges: edgesRef.current,
 			ignoreEdgeId: reconnectingEdgeIdRef.current,
 		});
 	}, []);
+
+	const absoluteNodePosition = useCallback(
+		(node: Node): { x: number; y: number } => {
+			let x = node.position.x;
+			let y = node.position.y;
+			let parentId = node.parentId;
+			const nodes = nodesRef.current;
+			while (parentId) {
+				const parent = nodes.find((n) => n.id === parentId);
+				if (!parent) break;
+				x += parent.position.x;
+				y += parent.position.y;
+				parentId = parent.parentId;
+			}
+			return { x, y };
+		},
+		[],
+	);
+
+	const onNodeDragStop = useCallback(
+		(_: React.MouseEvent, node: Node) => {
+			if (!flow) return;
+			if (node.type === "start" || isFrameContainerType(node.type)) return;
+			const abs = absoluteNodePosition(node);
+			const w = typeof node.width === "number" ? node.width : 120;
+			const h = typeof node.height === "number" ? node.height : 48;
+			const hit = { x: abs.x + w / 2, y: abs.y + h / 2 };
+			const frameId = findFrameAtPoint(flow, hit, node.id);
+			const currentParent = node.parentId ?? null;
+			if (frameId === currentParent) return;
+			const nextFlow = reparentNodeInFlow(flow, node.id, frameId, abs);
+			const mapped = flowToReactFlow(nextFlow);
+			// Preserve selection
+			const withSelection = mapped.nodes.map((n) => ({
+				...n,
+				selected: n.id === node.id,
+			}));
+			setNodes(withSelection);
+			setEdges(mapped.edges);
+			emitGraphChange(withSelection, mapped.edges);
+		},
+		[absoluteNodePosition, emitGraphChange, flow],
+	);
 
 	useEffect(() => {
 		(
@@ -533,6 +594,7 @@ function FlowCanvasInner({
 					onReconnectStart={onReconnectStart}
 					onReconnectEnd={onReconnectEnd}
 					isValidConnection={isValidConnection}
+					onNodeDragStop={onNodeDragStop}
 					onEdgeContextMenu={(_, edge) => {
 						setContextTarget({ kind: "edge", id: edge.id });
 					}}

@@ -9,9 +9,11 @@ import {
 } from "@/stores/selectors.js";
 import { NodeResizer } from "@reactflow/node-resizer";
 import type { NodeProps } from "reactflow";
-import { useEdges } from "reactflow";
 import "@reactflow/node-resizer/dist/style.css";
+import { getNodePresentation } from "@/lib/nodeCatalog.js";
+import { cn } from "@/lib/utils.js";
 import { NOTE_FONT_SIZE_DEFAULT } from "@quester-studio/schema";
+import { Handle, Position, useEdges } from "reactflow";
 import {
 	BaseFlowNode,
 	type FlowNodeData,
@@ -23,9 +25,235 @@ const JSON_NODE_MIN_WIDTH = 210;
 const JSON_NODE_MIN_HEIGHT = 140;
 const NOTE_NODE_MIN_WIDTH = 180;
 const NOTE_NODE_MIN_HEIGHT = 120;
+const FRAME_NODE_MIN_WIDTH = 240;
+const FRAME_NODE_MIN_HEIGHT = 160;
+/** Inset from outer node edge to the inner body frame (entry/exit sit on this). */
+const FRAME_INNER_INSET_PX = 14;
 
 function useNodeRunStatus(nodeId: string) {
 	return useQuesterStore((s) => selectNodeRunStatus(s, nodeId));
+}
+
+function FramePortLabel({
+	side,
+	top,
+	insetPx,
+	children,
+}: {
+	side: "left" | "right";
+	top: string;
+	/** Distance from that outer side (px). Higher = further inward. */
+	insetPx: number;
+	children: string;
+}) {
+	return (
+		<span
+			className="pointer-events-none absolute z-10 -translate-y-1/2 text-[9px] font-medium uppercase tracking-wide text-muted-foreground"
+			style={{
+				top,
+				...(side === "left" ? { left: insetPx } : { right: insetPx }),
+			}}
+		>
+			{children}
+		</span>
+	);
+}
+
+function FrameContainerShell({
+	id,
+	type,
+	title,
+	subtitle,
+	selected,
+	runStatus,
+	outerSources,
+}: {
+	id: string;
+	type: "try" | "foreach";
+	title: string;
+	subtitle: string;
+	selected?: boolean;
+	runStatus?: ReturnType<typeof useNodeRunStatus>;
+	outerSources: { id: string; label: string }[];
+}) {
+	const edges = useEdges();
+	const presentation = getNodePresentation(type);
+	const TypeIcon = presentation.icon;
+
+	const outerInConnected = edges.some(
+		(e) =>
+			e.target === id &&
+			(e.targetHandle == null ||
+				e.targetHandle === "" ||
+				e.targetHandle === "in"),
+	);
+	const entryConnected = isHandleConnected(edges, id, "source", "entry");
+	const exitConnected = isHandleConnected(edges, id, "target", "exit");
+
+	// Body mid of the inner frame (below header).
+	const innerPortTop = "62%";
+	// Outer outs stay on the outer right edge (success / failed / complete).
+	const outerOutTops = outerSources.length <= 1 ? ["34%"] : ["28%", "82%"];
+
+	const handleClass = (connected: boolean) =>
+		cn(
+			"size-2.5! border-2! border-background!",
+			connected ? "bg-primary!" : "bg-muted-foreground!",
+		);
+
+	return (
+		<>
+			<NodeResizer
+				isVisible={Boolean(selected)}
+				minWidth={FRAME_NODE_MIN_WIDTH}
+				minHeight={FRAME_NODE_MIN_HEIGHT}
+				lineClassName="!border-primary"
+				handleClassName="!size-2 !rounded-sm !border-primary !bg-background"
+			/>
+			<div
+				className={cn(
+					"relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-visible rounded-lg border bg-muted/10 text-card-foreground transition-[box-shadow,opacity] duration-200",
+					presentation.accentTone,
+					"border-l-[3px]",
+					selected && "border-primary shadow-sm",
+					runStatus === "running" &&
+						"quester-node-running ring-1 ring-primary/40",
+					runStatus === "success" && "quester-node-success",
+					runStatus === "error" && "ring-1 ring-destructive/50",
+				)}
+				data-run-status={runStatus ?? "none"}
+			>
+				{/* Outside → frame (outer left, header) */}
+				<Handle
+					type="target"
+					position={Position.Left}
+					style={{ top: "2.125rem" }}
+					className={handleClass(outerInConnected)}
+					title="in"
+				/>
+
+				{/*
+				 * 1/3 — entry on INNER left border, facing RIGHT into the body
+				 * so edges (7) leave inward instead of looping outside.
+				 */}
+				<Handle
+					type="source"
+					id="entry"
+					position={Position.Right}
+					style={{
+						top: innerPortTop,
+						left: FRAME_INNER_INSET_PX,
+						right: "auto",
+					}}
+					className={cn(
+						handleClass(entryConnected),
+						"!left-[14px] !right-auto !translate-x-[-50%]",
+					)}
+					title="entry"
+				/>
+				<FramePortLabel
+					side="left"
+					top={innerPortTop}
+					insetPx={FRAME_INNER_INSET_PX + 10}
+				>
+					entry
+				</FramePortLabel>
+
+				{/* 5/6 — success / failed (and foreach complete) on OUTER right */}
+				{outerSources.map((port, index) => {
+					const top = outerOutTops[index] ?? "34%";
+					return (
+						<Handle
+							key={port.id}
+							type="source"
+							id={port.id}
+							position={Position.Right}
+							style={{ top }}
+							className={handleClass(
+								isHandleConnected(edges, id, "source", port.id),
+							)}
+							title={port.label}
+						/>
+					);
+				})}
+				{outerSources.map((port, index) => {
+					const top = outerOutTops[index] ?? "34%";
+					return (
+						<FramePortLabel
+							key={`label-${port.id}`}
+							side="right"
+							top={top}
+							insetPx={10}
+						>
+							{port.label}
+						</FramePortLabel>
+					);
+				})}
+
+				{/*
+				 * 2/4 — exit on INNER right border, facing LEFT into the body
+				 * so edges approach from inside instead of looping outside.
+				 */}
+				<Handle
+					type="target"
+					id="exit"
+					position={Position.Left}
+					style={{
+						top: innerPortTop,
+						right: FRAME_INNER_INSET_PX,
+						left: "auto",
+					}}
+					className={cn(
+						handleClass(exitConnected),
+						"!right-[14px] !left-auto !translate-x-[50%]",
+					)}
+					title="exit"
+				/>
+				<FramePortLabel
+					side="right"
+					top={innerPortTop}
+					insetPx={FRAME_INNER_INSET_PX + 10}
+				>
+					exit
+				</FramePortLabel>
+
+				<div className="flex shrink-0 items-center gap-2 overflow-hidden rounded-t-[inherit] border-b border-border/60 bg-muted/40 px-2.5 py-2">
+					<span
+						className={cn(
+							"inline-flex h-5 items-center gap-1 rounded-sm px-1.5 text-[10px]",
+							presentation.badgeTone,
+							"bg-secondary text-secondary-foreground",
+						)}
+					>
+						<TypeIcon className="size-3 shrink-0" aria-hidden />
+						{presentation.label}
+					</span>
+					<div className="min-w-0 flex-1">
+						<div className="truncate text-sm font-medium leading-tight">
+							{title}
+						</div>
+						<div
+							className="truncate font-mono text-[10px] text-muted-foreground"
+							title={id}
+						>
+							{id}
+						</div>
+						{subtitle ? (
+							<div className="truncate text-[11px] text-muted-foreground">
+								{subtitle}
+							</div>
+						) : null}
+					</div>
+				</div>
+
+				{/* Inner frame — body area; entry/exit sit on these borders */}
+				<div
+					className="pointer-events-none relative m-3.5 min-h-0 flex-1 rounded-md border border-border/70 bg-background/25"
+					aria-hidden
+				/>
+			</div>
+		</>
+	);
 }
 
 export function StartFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
@@ -274,66 +502,43 @@ export function ForeachFlowNode({
 	data,
 	selected,
 }: NodeProps<FlowNodeData>) {
-	const edges = useEdges();
 	const runStatus = useNodeRunStatus(id);
 	const items =
 		typeof data.items === "string" && data.items.length > 0
 			? data.items
 			: "items";
-	const map =
-		typeof data.map === "string" && data.map.length > 0 ? data.map : null;
-	const subtitle = map ? `${items} → ${map}` : items;
+	const conc =
+		typeof data.concurrency === "number" && data.concurrency > 1
+			? ` · conc=${data.concurrency}`
+			: "";
 	return (
-		<BaseFlowNode
+		<FrameContainerShell
+			id={id}
 			type="foreach"
-			nodeId={id}
 			title={data.label ?? "Foreach"}
-			subtitle={subtitle}
+			subtitle={`${items}${conc}`}
 			selected={selected}
 			runStatus={runStatus}
-			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
-			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
-		>
-			<span className="font-mono">{subtitle}</span>
-		</BaseFlowNode>
+			outerSources={[{ id: "complete", label: "complete" }]}
+		/>
 	);
 }
 
 export function TryFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
-	const edges = useEdges();
 	const runStatus = useNodeRunStatus(id);
-	const checks = Array.isArray(data.checks)
-		? normalizeAssertChecks(data.checks, { allowEmpty: true })
-		: [];
-	const condition =
-		typeof data.condition === "string" && data.condition.length > 0
-			? data.condition
-			: null;
-	const subtitle =
-		condition ??
-		(checks.length > 0 ? formatAssertCheckSummary(checks) : "checks");
 	return (
-		<BaseFlowNode
+		<FrameContainerShell
+			id={id}
 			type="try"
-			nodeId={id}
 			title={data.label ?? "Try"}
-			subtitle={subtitle}
+			subtitle="Exception boundary"
 			selected={selected}
 			runStatus={runStatus}
-			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
-			sourcePorts={[
-				{
-					id: "ok",
-					connected: isHandleConnected(edges, id, "source", "ok"),
-				},
-				{
-					id: "catch",
-					connected: isHandleConnected(edges, id, "source", "catch"),
-				},
+			outerSources={[
+				{ id: "success", label: "success" },
+				{ id: "failed", label: "failed" },
 			]}
-		>
-			<span className="font-mono">{subtitle}</span>
-		</BaseFlowNode>
+		/>
 	);
 }
 

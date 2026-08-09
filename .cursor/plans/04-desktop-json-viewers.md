@@ -1,7 +1,7 @@
 # Plan 04 — Desktop JSON / response viewers
 
 **Priority:** 4  
-**Status:** after plan 01; perf pass (plan 03) comes later  
+**Status:** after plan 01; perf pass (plan 17) comes later  
 **ROADMAP:** §3 Builders — collections JSON, response new tab  
 
 ## Goal
@@ -10,11 +10,11 @@ Proper, performant editing/viewing of JSON for collections and responses (Monaco
 
 ## Out of scope
 
-Forms editor (plan 12), code editor (plan 13), folder logs browser (plan 07 — reuse components). Plan 03 will harden large-payload performance after this lands.
+Forms editor (plan 12), code editor (plan 13), folder logs browser (plan 07 — reuse components). Plan 17 will harden large-payload performance after this lands.
 
 ## Dependencies
 
-None blocking from plan 03. Land Monaco (or equivalent) here; leave hooks / choices that the later perf pass can reuse (virtualize / lazy parse).
+None blocking from plan 17. Land Monaco (or equivalent) here; leave hooks / choices that the later perf pass can reuse (virtualize / lazy parse).
 
 ## Work
 

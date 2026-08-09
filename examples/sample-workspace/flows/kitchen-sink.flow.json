@@ -614,8 +614,8 @@
 			"height": 87
 		},
 		{
-			"id": "softTry",
-			"type": "try",
+			"id": "ifSoft",
+			"type": "if",
 			"data": {
 				"checks": [
 					{
@@ -624,7 +624,7 @@
 						"value": "ok"
 					}
 				],
-				"label": "Try matched ok"
+				"label": "Soft matched ok"
 			},
 			"position": {
 				"x": 6080,
@@ -632,6 +632,35 @@
 			},
 			"width": 210,
 			"height": 87
+		},
+		{
+			"id": "guardTry",
+			"type": "try",
+			"data": {
+				"label": "Framed try"
+			},
+			"position": {
+				"x": 6340,
+				"y": 1680
+			},
+			"width": 320,
+			"height": 200
+		},
+		{
+			"id": "tryBody",
+			"type": "set",
+			"parentId": "guardTry",
+			"extent": "parent",
+			"data": {
+				"variables": {
+					"guarded": "yes"
+				},
+				"label": "Try body"
+			},
+			"position": {
+				"x": 40,
+				"y": 56
+			}
 		},
 		{
 			"id": "switchOther",
@@ -652,27 +681,55 @@
 			"type": "foreach",
 			"data": {
 				"items": "[{{vars.limit}},{{vars.skip}},3]",
-				"map": "item",
 				"maxItems": 10,
 				"label": "Foreach demo ids"
 			},
 			"position": {
-				"x": 6340,
-				"y": 1720
+				"x": 6700,
+				"y": 1680
 			},
-			"width": 220,
-			"height": 87
+			"width": 320,
+			"height": 200
+		},
+		{
+			"id": "foreachRow",
+			"type": "template",
+			"parentId": "mapIds",
+			"extent": "parent",
+			"data": {
+				"template": "{{item}}",
+				"mode": "safe",
+				"label": "Row"
+			},
+			"position": {
+				"x": 40,
+				"y": 56
+			}
 		},
 		{
 			"id": "catchLog",
 			"type": "log",
 			"data": {
-				"message": "Try catch branch (matched check failed)",
+				"message": "Soft if false branch (matched check failed)",
 				"label": "Catch log"
 			},
 			"position": {
 				"x": 6340,
-				"y": 1920
+				"y": 2040
+			},
+			"width": 240,
+			"height": 87
+		},
+		{
+			"id": "tryFailedLog",
+			"type": "log",
+			"data": {
+				"message": "Framed try failed branch",
+				"label": "Try failed"
+			},
+			"position": {
+				"x": 6700,
+				"y": 1960
 			},
 			"width": 240,
 			"height": 87
@@ -688,7 +745,7 @@
 				"label": "Call echo-subflow"
 			},
 			"position": {
-				"x": 6620,
+				"x": 7080,
 				"y": 1720
 			},
 			"width": 230,
@@ -885,7 +942,7 @@
 		{
 			"id": "e-switch-ok",
 			"source": "statusSwitch",
-			"target": "softTry",
+			"target": "ifSoft",
 			"sourceHandle": "ok"
 		},
 		{
@@ -895,22 +952,58 @@
 			"sourceHandle": "other"
 		},
 		{
-			"id": "e-try-ok",
-			"source": "softTry",
-			"target": "mapIds",
-			"sourceHandle": "ok"
+			"id": "e-if-true",
+			"source": "ifSoft",
+			"target": "guardTry",
+			"sourceHandle": "true"
 		},
 		{
-			"id": "e-try-catch",
-			"source": "softTry",
+			"id": "e-if-false",
+			"source": "ifSoft",
 			"target": "catchLog",
-			"sourceHandle": "catch"
+			"sourceHandle": "false"
+		},
+		{
+			"id": "e-try-entry",
+			"source": "guardTry",
+			"target": "tryBody",
+			"sourceHandle": "entry"
+		},
+		{
+			"id": "e-try-exit",
+			"source": "tryBody",
+			"target": "guardTry",
+			"targetHandle": "exit"
+		},
+		{
+			"id": "e-try-success",
+			"source": "guardTry",
+			"target": "mapIds",
+			"sourceHandle": "success"
+		},
+		{
+			"id": "e-try-failed",
+			"source": "guardTry",
+			"target": "tryFailedLog",
+			"sourceHandle": "failed"
+		},
+		{
+			"id": "e-fe-entry",
+			"source": "mapIds",
+			"target": "foreachRow",
+			"sourceHandle": "entry"
+		},
+		{
+			"id": "e-fe-exit",
+			"source": "foreachRow",
+			"target": "mapIds",
+			"targetHandle": "exit"
 		},
 		{
 			"id": "e-foreach-subflow",
 			"source": "mapIds",
 			"target": "callEcho",
-			"sourceHandle": null
+			"sourceHandle": "complete"
 		},
 		{
 			"id": "e-subflow-if",

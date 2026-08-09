@@ -29,7 +29,7 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 - [x] B10 — Safe flow / env / secrets path ids (no `..` escape)  
 - [x] B11 — Cookie jar final URL + Secure / Path  
 - [x] B12 — CLI `environmentsDir` + shared cookie jar parity with desktop  
-- [x] B13 — `try` catch semantics — docs/UX clarified (soft-check only); full exception boundary → framed containers (§6 / plan 09)  
+- [x] B13 — `try` catch semantics — framed containers (plan 09); soft branching on `if`
 - [x] B14 — Exclude `*.secrets.json` from desktop sample sync  
 - [x] B15 — Template: document eta-as-code + `mode: "eta" \| "safe"` (default eta; safe = `{{…}}` only)  
 - [x] B17 — Web roadmap / Try / Guide / checksum / import-collection docs drift  
@@ -119,13 +119,13 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 
 **Control**
 
-- [ ] Framed `try` / `foreach` — subgraph containers (no dual mode; body required)  
-  - [ ] Schema — `parentId` (+ optional `extent`) on flow nodes; children only under `try` / `foreach`; forbid edges leaving the frame except via container handles  
-  - [ ] Engine — `try` runs body once; throw → `failed`, else `success` (real error boundary; closes B13)  
-  - [ ] Engine — `foreach` runs body per item (`item` / `index`); single `complete` exit with collected `results`  
-  - [ ] Desktop canvas — resizable frame nodes; drag into / out of parent; handles: try `success`/`failed`, foreach `complete`  
-  - [ ] Inspector — container fields only (`items`, caps, label, …); drop soft-guard condition/checks on `try` and map-only empty `foreach`  
-  - [ ] Migrate samples + docs; validate errors on legacy soft-`try` / map-only `foreach`; soft branching stays on `if`  
+- [x] Framed `try` / `foreach` — subgraph containers (no dual mode; body required)
+  - [x] Schema — `parentId` (+ optional `extent`) on flow nodes; children only under `try` / `foreach`; forbid edges leaving the frame except via container handles
+  - [x] Engine — `try` runs body once; throw → `failed`, else `success` (real error boundary; closes B13)
+  - [x] Engine — `foreach` runs body per item (`item` / `index`); single `complete` exit with collected `results`
+  - [x] Desktop canvas — resizable frame nodes; drag into / out of parent; handles: try `success`/`failed`, foreach `complete`
+  - [x] Inspector — container fields only (`items`, caps, label, …); drop soft-guard condition/checks on `try` and map-only empty `foreach`
+  - [x] Migrate samples + docs; validate errors on legacy soft-`try` / map-only `foreach`; soft branching stays on `if`
 - [ ] `parallel`  
 - [ ] `loop` / `while` (max-iteration / timeout limits per SECURITY.md)  
 
