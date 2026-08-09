@@ -1,7 +1,7 @@
 # Plan 09 — Framed try / foreach
 
 **Priority:** 9  
-**Status:** code complete (await user X/Y/Z)  
+**Status:** complete (user confirmed X/Y/Z)  
 **ROADMAP:** §6 Control — Framed `try` / `foreach`  
 **BUGS:** closes B13  
 
@@ -34,11 +34,9 @@ Sample uses framed containers; a thrown HTTP/assert inside `try` takes `failed` 
 
 When this plan’s work is done and automated tests/lint pass, **ask the user** to manually verify:
 
-- [ ] **X** — Desktop: draw/resize frames; drag nodes into/out of `try` / `foreach`; handles match (`success`/`failed`, `complete`).
-- [ ] **Y** — Throw/fail inside `try` body follows `failed`; success follows `success`.
-- [ ] **Z** — `foreach` runs body per item and exposes collected `results`; samples validate; legacy soft-try / map-only fail with clear errors.
-
-Do not treat the plan as fully closed until the user confirms (or explicitly skips) these checks.
+- [x] **X** — Desktop: draw/resize frames; drag nodes into/out of `try` / `foreach`; handles match (`success`/`failed`, `complete`).
+- [x] **Y** — Throw/fail inside `try` body follows `failed`; success follows `success`.
+- [x] **Z** — `foreach` runs body per item and exposes collected `results`; samples validate; legacy soft-try / map-only fail with clear errors.
 
 ## Skills
 
