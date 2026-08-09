@@ -321,13 +321,15 @@ function validateFrames(
 		}
 	}
 
-	// Outer exit handle validation when source is container (not entry)
+	// Outer exit handle validation when source is container (not entry / body exit)
 	for (const edge of flow.edges) {
 		const source = nodeById.get(edge.source);
 		const target = nodeById.get(edge.target);
 		if (!source || !target) continue;
 		if (!isFrameContainerType(source.type)) continue;
 		if (target.parentId === source.id) continue;
+		// Nested frame as body child: plain child→parent exit needs no outer handle
+		if (isExitEdge(edge, source, target)) continue;
 		const allowed = OUTER_EXIT_HANDLES[source.type];
 		if (!allowed) continue;
 		const h = edge.sourceHandle;

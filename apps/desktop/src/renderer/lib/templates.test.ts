@@ -9,6 +9,7 @@ import {
 	inputKeysFromJson,
 	jmesPathSnippetSuggestions,
 	jmesPathSuggestions,
+	loopKeysForNode,
 	resolveTemplateHover,
 	templateSuggestions,
 	varKeysFromNodes,
@@ -68,6 +69,7 @@ const ctx = {
 	nodeOutputs: {
 		login: { status: 200, body: { id: 42, token: "t" } },
 	},
+	loopKeys: [] as string[],
 };
 
 describe("templateSuggestions", () => {
@@ -180,6 +182,53 @@ describe("classifyTemplatePath", () => {
 
 	test("skips empty", () => {
 		expect(classifyTemplatePath("  ", ctx)).toBe("skip");
+	});
+
+	test("knows foreach item/index scopes", () => {
+		const loopCtx = { ...ctx, loopKeys: ["item", "index"] };
+		expect(classifyTemplatePath("item", loopCtx)).toBe("known");
+		expect(classifyTemplatePath("index", loopCtx)).toBe("known");
+		expect(classifyTemplatePath("item.name", loopCtx)).toBe("known");
+		expect(classifyTemplatePath("item", ctx)).toBe("unknown");
+	});
+});
+
+describe("loopKeysForNode", () => {
+	test("walks nested try inside foreach", () => {
+		const keys = loopKeysForNode(
+			[
+				{ id: "loop", type: "foreach", data: { items: "ids" } },
+				{
+					id: "guard",
+					type: "try",
+					parentId: "loop",
+					data: {},
+				},
+				{
+					id: "row",
+					type: "template",
+					parentId: "guard",
+					data: {},
+				},
+			],
+			"row",
+		);
+		expect(keys.sort()).toEqual(["index", "item"]);
+	});
+
+	test("includes custom itemVar", () => {
+		const keys = loopKeysForNode(
+			[
+				{
+					id: "loop",
+					type: "foreach",
+					data: { items: "ids", itemVar: "row" },
+				},
+				{ id: "body", type: "template", parentId: "loop", data: {} },
+			],
+			"body",
+		);
+		expect(keys.sort()).toEqual(["index", "item", "row"]);
 	});
 });
 

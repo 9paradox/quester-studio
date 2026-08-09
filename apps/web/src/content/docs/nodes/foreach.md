@@ -16,6 +16,12 @@ Same entry/exit model as [`try`](../try/) — **one** body entry and **one** bod
 | Body → frame | `targetHandle: "exit"` |
 | Frame → outside | `sourceHandle: "complete"` |
 
+## Nesting
+
+Same rules as [`try`](../try/): nest `foreach` inside `try` (or the reverse) with no max depth; reject parent cycles. Canvas hit-test picks the deepest frame. When a nested frame is the body child, wires use parent `entry` → child `in` and child outer handle (`success` / `failed` / `complete`) → parent `exit` — body `entry`/`exit` stay inside the nested frame.
+
+Example sample: `examples/sample-workspace/flows/nested-frames.flow.json` (`foreach` → `try` → template).
+
 ## Fields
 
 | Field | Required | Notes |

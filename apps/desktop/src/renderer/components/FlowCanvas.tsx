@@ -299,6 +299,8 @@ function FlowCanvasInner({
 
 	const flowIdRef = useRef(flow.id);
 	const lastEmittedJsonRef = useRef<string | null>(null);
+	/** Node ids currently being resized by NodeResizer (ignore RF's post-layout measure events). */
+	const userResizingIdsRef = useRef(new Set<string>());
 
 	useEffect(() => {
 		if (flow.id !== flowIdRef.current) {
@@ -341,20 +343,37 @@ function FlowCanvasInner({
 
 	const emitGraphChange = useCallback(
 		(nextNodes: Node[], nextEdges: Edge[]) => {
-			const nextFlow = reactFlowToFlow(flow, nextNodes, nextEdges);
-			lastEmittedJsonRef.current = JSON.stringify(nextFlow);
+			const nextFlow = reactFlowToFlow(flowRef.current, nextNodes, nextEdges);
+			const json = JSON.stringify(nextFlow);
+			// Skip no-op emits (e.g. RF dimension noise after connect/layout).
+			if (json === lastEmittedJsonRef.current) return;
+			lastEmittedJsonRef.current = json;
 			onGraphChange?.(nextNodes, nextEdges);
 		},
-		[flow, onGraphChange],
+		[onGraphChange],
 	);
 
 	const handleNodesChange = useCallback(
 		(changes: NodeChange[]) => {
-			const resizeEnded = changes.some(
-				(change) => change.type === "dimensions" && change.resizing === false,
+			for (const change of changes) {
+				if (change.type !== "dimensions") continue;
+				if (change.resizing === true) {
+					userResizingIdsRef.current.add(change.id);
+				}
+			}
+			const userResizeEnded = changes.some(
+				(change) =>
+					change.type === "dimensions" &&
+					change.resizing === false &&
+					userResizingIdsRef.current.has(change.id),
 			);
+			for (const change of changes) {
+				if (change.type === "dimensions" && change.resizing === false) {
+					userResizingIdsRef.current.delete(change.id);
+				}
+			}
 			const graphEdit =
-				resizeEnded ||
+				userResizeEnded ||
 				changes.some(
 					(change) => change.type !== "select" && change.type !== "dimensions",
 				);
@@ -400,6 +419,30 @@ function FlowCanvasInner({
 			setEdges((current) => {
 				const src = nodesRef.current.find((n) => n.id === connection.source);
 				const tgt = nodesRef.current.find((n) => n.id === connection.target);
+				const replacingNestedExit = Boolean(
+					connection.source &&
+						connection.target &&
+						src &&
+						tgt &&
+						isFrameContainerType(src.type) &&
+						isFrameContainerType(tgt.type) &&
+						src.parentId === tgt.id &&
+						(connection.targetHandle === "exit" ||
+							connection.targetHandle == null ||
+							connection.targetHandle === ""),
+				);
+				const base = replacingNestedExit
+					? current.filter(
+							(e) =>
+								!(
+									e.source === connection.source &&
+									e.target === connection.target &&
+									(e.targetHandle === "exit" ||
+										e.targetHandle == null ||
+										e.targetHandle === "")
+								),
+						)
+					: current;
 				const inFrame = Boolean(
 					src?.parentId ||
 						tgt?.parentId ||
@@ -414,7 +457,7 @@ function FlowCanvasInner({
 						reconnectable: true,
 						...(inFrame ? { zIndex: 1002 } : {}),
 					},
-					current,
+					base,
 				);
 				if (connection.source && connection.target) {
 					const provisional = reactFlowToFlow(
@@ -513,7 +556,7 @@ function FlowCanvasInner({
 	const onNodeDragStop = useCallback(
 		(_: React.MouseEvent, node: Node) => {
 			if (!flow) return;
-			if (node.type === "start" || isFrameContainerType(node.type)) return;
+			if (node.type === "start") return;
 			const abs = absoluteNodePosition(node);
 			const w = typeof node.width === "number" ? node.width : 120;
 			const h = typeof node.height === "number" ? node.height : 48;
