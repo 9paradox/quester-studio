@@ -29,7 +29,7 @@ After fan-out (`A→B`, `A→C`, then `B/C→D`), `D` can run when the first par
 
 **Where:** `packages/engine/src/execute.ts`, `packages/engine/src/graph.ts` (`selectNextEdges`).
 
-**Fix:** AND-join readiness (`isNodeReady`) waits for all live predecessors. Diamond regression in `execute.test.ts`.
+**Fix:** AND-join readiness (`isNodeReady`) waits for all live predecessors. Multi-in is now forbidden for ordinary nodes; use a `join` node (collect-map of predecessor outputs) for diamonds / post-branch reconvergence.
 
 ---
 

@@ -33,6 +33,7 @@ export const NODE_OUTPUT_CONTRACTS: Record<BuiltinNodeType, readonly string[]> =
 		assert: ["ok", "failures"],
 		transform: [],
 		merge: [],
+		join: [],
 		json: [],
 		note: [],
 		delay: [],

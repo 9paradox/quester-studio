@@ -109,6 +109,29 @@ function mergeFetchSignal(
 	}) as typeof fetch;
 }
 
+/** Wire input for the next node; `join` gets a collect-map of predecessor outputs. */
+function resolveExecuteInput(options: {
+	nodeType: string;
+	fallback: unknown;
+	incomingSources: readonly string[];
+	completedPreds: readonly string[];
+	nodeOutputs: Record<string, unknown>;
+}): unknown {
+	const { nodeType, fallback, incomingSources, completedPreds, nodeOutputs } =
+		options;
+	if (incomingSources.length === 0) return fallback;
+	if (nodeType === "join") {
+		const map: Record<string, unknown> = {};
+		for (const id of incomingSources) {
+			if (nodeOutputs[id] !== undefined) map[id] = nodeOutputs[id];
+		}
+		return map;
+	}
+	const src = completedPreds.at(-1) ?? incomingSources[0];
+	if (src && nodeOutputs[src] !== undefined) return nodeOutputs[src];
+	return fallback;
+}
+
 function buildPartialResult(
 	flow: FlowV1,
 	nodeOutputs: Record<string, unknown>,
@@ -243,13 +266,15 @@ async function runBodyOnce(
 		} else {
 			const incoming = bodyFlow.edges.filter((e) => e.target === nodeId);
 			if (incoming.length > 0) {
-				const completedPreds = incoming
-					.map((e) => e.source)
-					.filter((id) => executed.has(id));
-				const src = completedPreds.at(-1) ?? incoming[0]?.source;
-				if (src && rt.nodeOutputs[src] !== undefined) {
-					input = rt.nodeOutputs[src];
-				}
+				const incomingSources = incoming.map((e) => e.source);
+				const completedPreds = incomingSources.filter((id) => executed.has(id));
+				input = resolveExecuteInput({
+					nodeType: node.type,
+					fallback: bodyLastOutput,
+					incomingSources,
+					completedPreds,
+					nodeOutputs: rt.nodeOutputs,
+				});
 			}
 		}
 
@@ -631,11 +656,17 @@ export async function executeFlow(
 		});
 		let input: unknown = rt.lastOutput;
 		if (incoming.length > 0) {
+			const incomingSources = incoming.map((e) => e.source);
 			const completedPreds = rt.steps
 				.map((s) => s.nodeId)
-				.filter((id) => incoming.some((e) => e.source === id));
-			const src = completedPreds.at(-1) ?? incoming[0]?.source;
-			if (src && rt.nodeOutputs[src] !== undefined) input = rt.nodeOutputs[src];
+				.filter((id) => incomingSources.includes(id));
+			input = resolveExecuteInput({
+				nodeType: node.type,
+				fallback: rt.lastOutput,
+				incomingSources,
+				completedPreds,
+				nodeOutputs: rt.nodeOutputs,
+			});
 		}
 		if (node.type === "input") input = flowInput;
 

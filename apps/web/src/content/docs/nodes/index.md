@@ -48,6 +48,7 @@ Read [How flows work](../concepts/) for connection rules, fan-out vs branches, a
 | [assert](./assert/) | 1 | 1 | `{ ok: true }` or throws |
 | [transform](./transform/) | 1 | 1 | Mapped object |
 | [merge](./merge/) | 1 | 1 | Merged object |
+| [join](./join/) | N | 1 · fan-out ok | `{ [predId]: output, … }` |
 | [json](./json/) | 1 | 1 | Subset / passthrough |
 | [log](./log/) | 1 | 1 | Input + `{ logged }` |
 | [inspect](./inspect/) | 1 | 1 | Selected JSON |
@@ -60,7 +61,7 @@ Read [How flows work](../concepts/) for connection rules, fan-out vs branches, a
 3. Each node receives the previous output as execute input (the wire). JMESPath roots there: `body.id`, not a template.
 4. Run panel / `--input` is `{{input.*}}`. An [`input`](./input/) node places that object on the wire.
 5. `set` updates `vars`.
-6. Linear nodes may **fan-out** to several children (same output). Prefer a single incoming edge per node.
+6. Linear nodes may **fan-out** to several children (same output). Each node (except [`join`](./join/)) may have **at most one** incoming edge.
 
 ## Shared conventions
 

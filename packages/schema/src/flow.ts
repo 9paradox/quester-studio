@@ -8,6 +8,7 @@ import { httpNodeDataSchema } from "./nodes/http.js";
 import { ifNodeDataSchema } from "./nodes/if.js";
 import { inputNodeDataSchema } from "./nodes/input.js";
 import { inspectNodeDataSchema } from "./nodes/inspect.js";
+import { joinNodeDataSchema } from "./nodes/join.js";
 import { jsonNodeDataSchema } from "./nodes/json.js";
 import { logNodeDataSchema } from "./nodes/log.js";
 import { mergeNodeDataSchema } from "./nodes/merge.js";
@@ -39,6 +40,7 @@ export const builtinNodeTypes = [
 	"assert",
 	"transform",
 	"merge",
+	"join",
 	"json",
 	"note",
 	"log",
@@ -64,6 +66,7 @@ const nodeDataByType: Record<BuiltinNodeType, z.ZodTypeAny> = {
 	assert: assertNodeDataSchema,
 	transform: transformNodeDataSchema,
 	merge: mergeNodeDataSchema,
+	join: joinNodeDataSchema,
 	json: jsonNodeDataSchema,
 	note: noteNodeDataSchema,
 	log: logNodeDataSchema,

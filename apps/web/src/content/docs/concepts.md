@@ -335,7 +335,7 @@ Desktop shows **target** (in) and **source** (out) ports. Branch nodes expose **
 
 <div class="qs-callout qs-callout-warn">
 
-Prefer **one incoming edge** per node. If several edges target the same node, the engine uses the **first** listed edge’s source as execute input.
+**One incoming edge** per node, except [`join`](../nodes/join/) which accepts N. For diamonds or reconvergence after branches, insert a `join` (collect-map of predecessor outputs). Deep-merge named bags with [`merge`](../nodes/merge/) (still one wire in).
 
 </div>
 

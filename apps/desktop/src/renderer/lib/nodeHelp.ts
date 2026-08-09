@@ -327,6 +327,29 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 			output: "Merged plain object",
 		},
 	},
+	join: {
+		summary:
+			"AND/XOR barrier with N incoming edges. Waits for every live predecessor, then emits their outputs keyed by node id. Use for diamonds and reconvergence after if/switch/try; keep other nodes at one incoming edge.",
+		fields: [
+			{
+				name: "label",
+				type: "string",
+				description: "Optional UI label",
+			},
+		],
+		syntax: [
+			"Wire multiple arms into join",
+			"Output shape: { armNodeId: <output>, … }",
+			"XOR unused if-arms are ignored (not waited on)",
+		],
+		example: {
+			label: "Rejoin",
+		},
+		io: {
+			input: "Ignored as a bag — engine builds the collect map",
+			output: "Object of predecessor outputs by node id",
+		},
+	},
 	if: {
 		summary:
 			"Branches the flow on a templated condition and/or JMESPath checks. Connect edges with sourceHandle true or false.",

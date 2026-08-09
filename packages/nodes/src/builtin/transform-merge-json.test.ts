@@ -95,3 +95,13 @@ describe("notePlugin", () => {
 		expect(result.output).toEqual({ hello: "world" });
 	});
 });
+
+describe("joinPlugin", () => {
+	test("passes through collect-map input", async () => {
+		const { joinPlugin } = await import("./join.js");
+		const result = await joinPlugin.execute(
+			base("join", {}, { b: "from-b", c: "from-c" }),
+		);
+		expect(result.output).toEqual({ b: "from-b", c: "from-c" });
+	});
+});

@@ -26,6 +26,7 @@ import {
 	flowToReactFlow,
 	isFrameContainerType,
 	isValidFlowConnection,
+	pruneRedundantFrameWiring,
 	reactFlowToFlow,
 	reparentNodeInFlow,
 } from "@/lib/flowEditor.js";
@@ -290,9 +291,11 @@ function FlowCanvasInner({
 	});
 	const nodesRef = useRef(nodes);
 	const edgesRef = useRef(edges);
+	const flowRef = useRef(flow);
 	const reconnectingEdgeIdRef = useRef<string | null>(null);
 	nodesRef.current = nodes;
 	edgesRef.current = edges;
+	flowRef.current = flow;
 
 	const flowIdRef = useRef(flow.id);
 	const lastEmittedJsonRef = useRef<string | null>(null);
@@ -403,7 +406,7 @@ function FlowCanvasInner({
 						isFrameContainerType(src?.type) ||
 						isFrameContainerType(tgt?.type),
 				);
-				const next = addEdge(
+				let next = addEdge(
 					{
 						...connection,
 						id: `e-${connection.source}-${connection.target}-${crypto.randomUUID().slice(0, 6)}`,
@@ -413,6 +416,21 @@ function FlowCanvasInner({
 					},
 					current,
 				);
+				if (connection.source && connection.target) {
+					const provisional = reactFlowToFlow(
+						flowRef.current,
+						nodesRef.current,
+						next,
+					);
+					const pruned = pruneRedundantFrameWiring(
+						provisional,
+						connection.source,
+						connection.target,
+					);
+					if (pruned !== provisional) {
+						next = flowToReactFlow(pruned).edges;
+					}
+				}
 				emitGraphChange(nodesRef.current, next);
 				return next;
 			});

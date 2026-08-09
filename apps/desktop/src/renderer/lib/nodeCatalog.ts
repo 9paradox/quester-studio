@@ -175,6 +175,14 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 		accentTone: "border-l-chart-4",
 		badgeTone: "bg-chart-4/15 text-foreground",
 	}),
+	join: withHelp({
+		type: "join",
+		label: "Join",
+		description: "Wait for arms; collect outputs",
+		icon: IconGitMerge,
+		accentTone: "border-l-chart-3",
+		badgeTone: "bg-chart-3/15 text-chart-3",
+	}),
 	if: withHelp({
 		type: "if",
 		label: "If",
@@ -244,7 +252,7 @@ const catalogGroupOrder: { title: string; types: BuiltinNodeType[] }[] = [
 	{ title: "HTTP", types: ["http"] },
 	{
 		title: "Transform",
-		types: ["extract", "template", "set", "transform", "merge"],
+		types: ["extract", "template", "set", "transform", "merge", "join"],
 	},
 	{
 		title: "Logic",
@@ -330,6 +338,8 @@ export function defaultNodeData(
 			return { label: "Transform", map: {} };
 		case "merge":
 			return { label: "Merge", sources: ["previous"] };
+		case "join":
+			return { label: "Join" };
 		case "json":
 			return { label: "JSON" };
 		case "inspect":

@@ -467,6 +467,19 @@
 			"height": 87
 		},
 		{
+			"id": "rejoin",
+			"type": "join",
+			"data": {
+				"label": "Rejoin arms"
+			},
+			"position": {
+				"x": 6660,
+				"y": 1880
+			},
+			"width": 180,
+			"height": 72
+		},
+		{
 			"id": "branch",
 			"type": "if",
 			"data": {
@@ -1008,18 +1021,24 @@
 		{
 			"id": "e-subflow-if",
 			"source": "callEcho",
-			"target": "branch",
+			"target": "rejoin",
 			"sourceHandle": null
 		},
 		{
 			"id": "e-catch-summary",
 			"source": "catchLog",
-			"target": "branch",
+			"target": "rejoin",
 			"sourceHandle": null
 		},
 		{
 			"id": "e-other-summary",
 			"source": "switchOther",
+			"target": "rejoin",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-rejoin-branch",
+			"source": "rejoin",
 			"target": "branch",
 			"sourceHandle": null
 		}
