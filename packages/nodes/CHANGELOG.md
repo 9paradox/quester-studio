@@ -1,5 +1,24 @@
 # @quester-studio/nodes
 
+## 0.6.2
+
+### Patch Changes
+
+- d597645: Desktop Run UX: live Response summary + step timeline (click to focus on canvas), assert per-check outcomes, node run durations/animation, and cancelled/success rollup.
+- cbf5369: Breaking: framed `try` / `foreach` containers with `parentId`, entry/exit edges, and outer `success`/`failed` / `complete` handles. Soft-try and map-only foreach are rejected; soft branching stays on `if`.
+- 205ff52: Enforce at most one incoming edge for ordinary nodes (docs `in ×1`). New `join` node accepts N inputs and emits a collect-map of predecessor outputs for diamonds and post-branch reconvergence. Frame auto-wiring no longer adds redundant entry edges.
+- f4ddc5e: Stability: cookie jar uses final response URL and honors Secure/Path; CLI shares jar with subflows and loads secrets from `environmentsDir`.
+- f4ddc5e: Stability: template `mode` (`eta` | `safe`), document eta-as-code in SECURITY, and clarify try soft-check + web Try/Guide/roadmap drift.
+- f4ddc5e: Stability: abortable capped `delay`, reject unsafe flow/env/secrets path ids, and exclude secrets/runs from desktop sample sync.
+- Updated dependencies [f2c407e]
+- Updated dependencies [cbf5369]
+- Updated dependencies [205ff52]
+- Updated dependencies [bdb408f]
+- Updated dependencies [bba12dc]
+- Updated dependencies [f4ddc5e]
+- Updated dependencies [f4ddc5e]
+  - @quester-studio/schema@0.6.2
+
 ## 0.6.0
 
 ### Patch Changes

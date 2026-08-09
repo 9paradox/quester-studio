@@ -4,7 +4,7 @@
 > Known bugs: [BUGS.md](BUGS.md).  
 > Last updated: 2026-08-09
 
-**Now:** v0.6.0 — stay on **0.6.x** / slow **0.x.x**. No jumps to 0.7 / 0.8 / 0.9 until polished end-to-end (desktop → web → docs).
+**Now:** v0.6.2 — stay on **0.6.x** / slow **0.x.x**. No jumps to 0.7 / 0.8 / 0.9 until polished end-to-end (desktop → web → docs).
 
 **Build plans:** open one at a time by priority — [.cursor/plans/](./.cursor/plans/README.md) (starts with `01-stability-critical`).
 
@@ -179,6 +179,14 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 - Node candidates — generic `group`/`frame` (beyond `try`/`foreach` containers), `gate`/`breakpoint`, `csv`/`table`, `hash`/`sign`, `diff`, `mock`, `websocket`, `metric`/`chart`  
 
 ## Done
+
+### v0.6.2
+
+- Framed `try` / `foreach` containers (`parentId`, entry/exit, outer handles); nested frames on canvas  
+- `join` node + max-one-in for ordinary nodes; frame header ports / wiring polish  
+- Desktop: JSON viewers, run UX timeline, Runs browser, canvas DnD / subflow drop, if/switch header outs  
+- Stability wave (B4–B17): fan-in, long runs, cookies, delay abort, path ids, template `mode`, docs drift  
+- Note `fontSize`; sample `nested-frames.flow.json`
 
 ### v0.6.0
 

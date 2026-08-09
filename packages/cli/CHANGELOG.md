@@ -1,5 +1,24 @@
 # @quester-studio/cli
 
+## 0.6.2
+
+### Patch Changes
+
+- f4ddc5e: Stability: cookie jar uses final response URL and honors Secure/Path; CLI shares jar with subflows and loads secrets from `environmentsDir`.
+- Updated dependencies [b091c84]
+- Updated dependencies [d597645]
+- Updated dependencies [f2c407e]
+- Updated dependencies [cbf5369]
+- Updated dependencies [205ff52]
+- Updated dependencies [bdb408f]
+- Updated dependencies [bba12dc]
+- Updated dependencies [e74aeba]
+- Updated dependencies [f4ddc5e]
+- Updated dependencies [f4ddc5e]
+- Updated dependencies [f4ddc5e]
+  - @quester-studio/engine@0.6.2
+  - @quester-studio/schema@0.6.2
+
 ## 0.6.0
 
 ### Minor Changes

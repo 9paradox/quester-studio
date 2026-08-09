@@ -7,20 +7,25 @@ High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox
 
 ## Current — v0.6.x polish
 
-Work follows the repo roadmap on the **current minor line** (no version jumps). Priorities:
+Work follows the repo roadmap on the **current minor line** (no version jumps). Latest public preview: **[v0.6.2](https://github.com/9paradox/quester-studio/releases/tag/v0.6.2)**. Priorities:
 
-1. **Stability** — correctness and trust gaps from the audit (delay cancel, path ids, cookies, CLI parity, template trust mode, docs).
-2. **Performance** — desktop canvas, large JSON, engine/IPC.
-3. **Desktop UX** — JSON viewers, run UX, canvas nodes, logs viewer.
-4. **Web + docs** — site/guide/Try alignment with the product.
-5. **Framed `try` / `foreach`** — real exception-boundary containers (see ROADMAP §6 Control).
-6. Later tracks: auth/HTTP nodes, data helpers, forms, `code` node, AI options, MCP.
+1. **Performance** — desktop canvas, large JSON, engine/IPC.
+2. **Desktop UX** — remaining polish after viewers / run UX / canvas.
+3. **Web + docs** — site/guide/Try stay aligned with the product ([plan 16](https://github.com/9paradox/quester-studio/blob/main/.cursor/plans/16-web-and-docs.md)).
+4. Later tracks: auth/HTTP nodes, data helpers, forms, `code` node, AI options, MCP.
 
 Source of truth: [ROADMAP.md](https://github.com/9paradox/quester-studio/blob/main/ROADMAP.md). Plan files: `.cursor/plans/` in the repo.
 
-## Shipped — v0.5–v0.6 thin slice
+## Shipped — v0.6.2
 
-- Flow nodes: `note`, `delay` / `wait`, `switch`, `foreach`, soft-check `try`, `subflow`, `log`, `inspect` / `preview`
+- Framed `try` / `foreach` with nesting; `join` + max-one-in; header ports
+- Desktop: JSON CodeMirror viewers, run timeline, Runs browser, canvas DnD / subflow drop
+- Stability: fan-in, cookies, delay abort, path ids, template `mode`, secret redaction
+- Sample: `nested-frames.flow.json`
+
+## Shipped — v0.5–v0.6.0 thin slice
+
+- Flow nodes: `note`, `delay` / `wait`, `switch`, `foreach`, `try`, `subflow`, `log`, `inspect` / `preview`
 - Desktop polish: per-flow runs, Stop, command palette, tab reorder, run summary, JMESPath assist
 - Observability: local run history / replay, disk cookie jar
 - Stable path: flow format `v1` freeze note, unsigned macOS desktop artifact, thin Postman Collection import (`quester import-collection`)

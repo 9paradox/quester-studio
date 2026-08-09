@@ -1,5 +1,18 @@
 # @quester-studio/schema
 
+## 0.6.2
+
+### Patch Changes
+
+- bba12dc: Add optional `fontSize` (px) on note sticky nodes for canvas body text.
+
+- f2c407e: Frame polish: put `success`/`failed`/`complete` on the header-right, allow only one entry and one exit per frame, reattach exit when chaining body nodes, and reject body sibling cycles on the canvas.
+- cbf5369: Breaking: framed `try` / `foreach` containers with `parentId`, entry/exit edges, and outer `success`/`failed` / `complete` handles. Soft-try and map-only foreach are rejected; soft branching stays on `if`.
+- 205ff52: Enforce at most one incoming edge for ordinary nodes (docs `in ×1`). New `join` node accepts N inputs and emits a collect-map of predecessor outputs for diamonds and post-branch reconvergence. Frame auto-wiring no longer adds redundant entry edges.
+- bdb408f: Allow nesting `try` / `foreach` frames on the canvas (deepest-frame drop target). Nested frames wire parent `entry`→child `in` and child `success`/`complete`→parent `exit`. Template lint recognizes `{{item}}`/`{{index}}` inside nested foreach bodies.
+- f4ddc5e: Stability: template `mode` (`eta` | `safe`), document eta-as-code in SECURITY, and clarify try soft-check + web Try/Guide/roadmap drift.
+- f4ddc5e: Stability: abortable capped `delay`, reject unsafe flow/env/secrets path ids, and exclude secrets/runs from desktop sample sync.
+
 ## 0.6.0
 
 ### Minor Changes

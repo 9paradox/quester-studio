@@ -1,7 +1,7 @@
 # Plan 09b — Nested frames
 
 **Priority:** 9b (immediately after plan 09)  
-**Status:** code complete (await user X/Y/Z)  
+**Status:** complete  
 **ROADMAP:** §6 Control — Nested frames (follow-up to framed `try` / `foreach`)  
 **Depends on:** plan 09 (framed try/foreach) code complete  
 
@@ -41,11 +41,9 @@ User can drag `try` into `foreach` (and the reverse) on the canvas; nested flows
 
 When this plan’s work is done and automated tests/lint pass, **ask the user** to manually verify:
 
-- [ ] **X** — Desktop: drag `try` into `foreach` and `foreach` into `try`; drag out; deepest-frame drop target feels right.
-- [ ] **Y** — Run foreach→try→http: per-item success and a thrown error inside try behave as expected (`complete` / collected results; try `failed` when wired).
-- [ ] **Z** — Validate rejects parent cycles; docs/sample match UI.
-
-Do not treat the plan as fully closed until the user confirms (or explicitly skips) these checks.
+- [x] **X** — Desktop: drag `try` into `foreach` and `foreach` into `try`; drag out; deepest-frame drop target feels right.
+- [x] **Y** — Run foreach→try→http: per-item success and a thrown error inside try behave as expected (`complete` / collected results; try `failed` when wired).
+- [x] **Z** — Validate rejects parent cycles; docs/sample match UI.
 
 ## Skills
 
