@@ -105,7 +105,7 @@ export function buildAppCommands(): AppCommand[] {
 			when: () => Boolean(useQuesterStore.getState().activeTabId),
 			run: () => {
 				const { activeTabId, closeTab } = useQuesterStore.getState();
-				if (activeTabId) closeTab(activeTabId);
+				if (activeTabId) void closeTab(activeTabId);
 			},
 		},
 		{
@@ -114,6 +114,14 @@ export function buildAppCommands(): AppCommand[] {
 			keywords: ["settings", "options"],
 			run: () => {
 				useQuesterStore.getState().openAppPreferences();
+			},
+		},
+		{
+			id: "runs.open",
+			label: "Open Runs",
+			keywords: ["logs", "history", "folder", "run logs"],
+			run: () => {
+				useQuesterStore.getState().handleActivityView("runs");
 			},
 		},
 		{

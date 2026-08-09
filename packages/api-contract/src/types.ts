@@ -26,6 +26,34 @@ export type RequestMeta = {
 
 export type SecretFileMeta = { envName: string; fileName: string };
 
+/** Summary from a run dir's meta.json (may be partial if file is incomplete). */
+export type RunMetaSummary = {
+	status?: "running" | "success" | "failed" | "cancelled";
+	startedAt?: string;
+	finishedAt?: string;
+	flowName?: string;
+	env?: string;
+	error?: string;
+};
+
+export type RunFileEntry = {
+	name: string;
+	/** Posix path relative to the workspace runs root. */
+	relativePath: string;
+};
+
+export type RunDirEntry = {
+	name: string;
+	relativePath: string;
+	meta: RunMetaSummary | null;
+	files: RunFileEntry[];
+};
+
+export type RunFlowEntry = {
+	flowId: string;
+	runs: RunDirEntry[];
+};
+
 export type ExecutionLogEntry = {
 	ts: number;
 	level: "info" | "error";
@@ -168,6 +196,15 @@ export type QuesterApiMethods = {
 	getAppTlsVerify: () => Promise<{ verifyTls: boolean }>;
 	/** Desktop: reveal a path in the OS file manager. HTTP/API may return ok: false. */
 	openPathInOs: (path: string) => Promise<{ ok: boolean; error?: string }>;
+	/** Browse workspace run logs under runs/ (empty if missing). */
+	listRunTree: (workspace: string) => Promise<RunFlowEntry[]>;
+	/** Read a JSON file under the workspace runs directory (path-safe). */
+	readRunJson: (workspace: string, relativePath: string) => Promise<unknown>;
+	/** Delete a file or run/flow directory under runs/ (path-safe, recursive). */
+	deleteRunPath: (
+		workspace: string,
+		relativePath: string,
+	) => Promise<{ ok: true }>;
 };
 
 export type QuesterClient = QuesterApiMethods & {

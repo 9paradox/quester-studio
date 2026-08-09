@@ -59,7 +59,7 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 - [x] Collections — proper, performant JSON viewer/editor (e.g. `@monaco-editor/react` or equivalent): syntax highlight, fold, search, large-body safe  
 - [ ] Forms — first-class workspace section (alongside collections / flows): create & edit in a form builder; store as workspace files; drag onto canvas as a node that can replace / stand in for `input` (structured fields → run payload)  
 - [x] Response viewer — open in a new app tab (full-bleed JSON / pretty / headers; keep current panel for quick peek)  
-- [ ] Folder logs viewer — browse `runs/` (and related log folders): JSON raw **or** structured UI; multi-tab for multiple files/runs  
+- [x] Folder logs viewer — browse `runs/` (and related log folders): JSON raw **or** structured UI; multi-tab for multiple files/runs  
 - [x] Flow drag-and-drop onto canvas — drag a flow from the sidebar/list to open or nest/`subflow` placement (define UX: open tab vs drop as `subflow` node)  
 - [x] Form / code drag-and-drop onto canvas — same sidebar → canvas DnD pattern as flows/collections  
 - [x] Nodes UI enhance — clearer chrome, status, handles, and type identity on canvas; better selected / running / error states  

@@ -1,3 +1,4 @@
+import { promptConfirm } from "@/lib/confirmPrompt.js";
 import {
 	type EditorTab,
 	type ResponseViewerSnapshot,
@@ -6,12 +7,14 @@ import {
 	createFlowEditorTab,
 	createRequestEditorTab,
 	createResponseViewerTab,
+	createRunLogEditorTab,
 	createSecretsEditorTab,
 	createWorkspaceSettingsEditorTab,
 	editorTabLabel,
 	envTabId,
 	flowTabId,
 	requestTabId,
+	runLogTabId,
 	secretsTabId,
 } from "@/lib/editorTabs.js";
 import {
@@ -81,17 +84,6 @@ import {
 	reconcileNodeStatuses,
 } from "../lib/nodeRunStatus.js";
 import { slugifyName } from "./slugify.js";
-
-function confirmDialog(message: string): boolean {
-	const confirmFn =
-		typeof globalThis.confirm === "function"
-			? globalThis.confirm.bind(globalThis)
-			: typeof window !== "undefined" && typeof confirmDialog === "function"
-				? confirmDialog.bind(window)
-				: null;
-	if (!confirmFn) return true;
-	return confirmFn(message);
-}
 
 export type RightPanelTab = "inspector" | "response";
 export type PanelTab = "console" | "logs" | "history";
@@ -402,6 +394,7 @@ export type QuesterState = {
 		snapshot: ResponseViewerSnapshot,
 		sourceKey: string,
 	) => void;
+	openRunLogTab: (relativePath: string, title?: string) => Promise<void>;
 	applyNodeRunStatusEvent: (event: NodeRunStatusEvent) => void;
 	refreshWorkspaceLists: (path: string) => Promise<{
 		flowList: FlowMeta[];
@@ -449,10 +442,10 @@ export type QuesterState = {
 	duplicateNode: (nodeId: string) => void;
 	alignSelectedNodes: (mode: AlignNodesMode) => void;
 	distributeSelectedNodes: (axis: "horizontal" | "vertical") => void;
-	closeTab: (tabId: string) => void;
+	closeTab: (tabId: string) => Promise<void>;
 	reorderTabs: (fromIndex: number, toIndex: number) => void;
-	closeTabsToLeft: (tabId: string) => void;
-	closeTabsToRight: (tabId: string) => void;
+	closeTabsToLeft: (tabId: string) => Promise<void>;
+	closeTabsToRight: (tabId: string) => Promise<void>;
 	saveActiveTab: (tabId?: string | null) => Promise<void>;
 	createFlow: () => Promise<void>;
 	createEnv: () => Promise<void>;
@@ -766,6 +759,46 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 
 	openResponseViewerTab: (snapshot, sourceKey) => {
 		get().openTab(createResponseViewerTab(snapshot, sourceKey));
+	},
+
+	openRunLogTab: async (relativePath, title) => {
+		const { workspacePath, openTab, showError } = get();
+		if (!workspacePath) {
+			showError("Open a workspace first");
+			return;
+		}
+		const tabId = runLogTabId(relativePath);
+		const existing = get().openTabs.find((t) => t.id === tabId);
+		if (existing) {
+			set({ activeTabId: tabId });
+			return;
+		}
+		const fileName = relativePath.split("/").pop() ?? relativePath;
+		const label = title ?? fileName;
+		openTab(createRunLogEditorTab(relativePath, label));
+		try {
+			const data = await getQuesterClient().readRunJson(
+				workspacePath,
+				relativePath,
+			);
+			set((s) => ({
+				openTabs: s.openTabs.map((t) =>
+					t.kind === "runLog" && t.id === tabId
+						? { ...t, data, loading: false, error: null }
+						: t,
+				),
+			}));
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : "Failed to load run log";
+			set((s) => ({
+				openTabs: s.openTabs.map((t) =>
+					t.kind === "runLog" && t.id === tabId
+						? { ...t, loading: false, error: message }
+						: t,
+				),
+			}));
+		}
 	},
 
 	applyNodeRunStatusEvent: (event) => {
@@ -1292,13 +1325,16 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		set({ canvasDirty: true });
 	},
 
-	closeTab: (tabId) => {
+	closeTab: async (tabId) => {
 		const { openTabs, activeTabId } = get();
 		const tab = openTabs.find((t) => t.id === tabId);
 		if (tab?.dirty) {
-			const ok = confirmDialog(
-				`Close ${editorTabLabel(tab)} with unsaved changes?`,
-			);
+			const ok = await promptConfirm({
+				title: "Unsaved changes",
+				description: `Close ${editorTabLabel(tab)} with unsaved changes?`,
+				confirmLabel: "Close",
+				destructive: true,
+			});
 			if (!ok) return;
 		}
 		const remaining = openTabs.filter((t) => t.id !== tabId);
@@ -1342,24 +1378,24 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		set({ openTabs: next });
 	},
 
-	closeTabsToLeft: (tabId) => {
+	closeTabsToLeft: async (tabId) => {
 		const { openTabs, closeTab } = get();
 		const idx = openTabs.findIndex((t) => t.id === tabId);
 		if (idx <= 0) return;
 		for (const tab of openTabs.slice(0, idx)) {
 			const before = get().openTabs.length;
-			closeTab(tab.id);
+			await closeTab(tab.id);
 			if (get().openTabs.length === before) return;
 		}
 	},
 
-	closeTabsToRight: (tabId) => {
+	closeTabsToRight: async (tabId) => {
 		const { openTabs, closeTab } = get();
 		const idx = openTabs.findIndex((t) => t.id === tabId);
 		if (idx < 0 || idx >= openTabs.length - 1) return;
 		for (const tab of openTabs.slice(idx + 1)) {
 			const before = get().openTabs.length;
-			closeTab(tab.id);
+			await closeTab(tab.id);
 			if (get().openTabs.length === before) return;
 		}
 	},
@@ -1699,12 +1735,19 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const tabId = flowTabId(flowId);
 		const tab = openTabs.find((t) => t.id === tabId);
 		if (tab?.dirty) {
-			const saveFirst = confirmDialog(
-				`${meta?.name ?? flowId} has unsaved changes. Save before deleting?`,
-			);
+			const saveFirst = await promptConfirm({
+				title: "Unsaved changes",
+				description: `${meta?.name ?? flowId} has unsaved changes. Save before deleting?`,
+				confirmLabel: "Save and delete",
+			});
 			if (saveFirst) await saveActiveTab(tabId);
 		}
-		const ok = confirmDialog(`Delete ${meta?.name ?? flowId}?`);
+		const ok = await promptConfirm({
+			title: "Delete flow",
+			description: `Delete ${meta?.name ?? flowId}? This cannot be undone.`,
+			confirmLabel: "Delete",
+			destructive: true,
+		});
 		if (!ok) return;
 		try {
 			await getQuesterClient().deleteFlow(workspacePath, flowId);
@@ -2014,7 +2057,12 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			showError,
 		} = get();
 		if (!workspacePath) return;
-		const ok = confirmDialog(`Delete request ${requestPath}?`);
+		const ok = await promptConfirm({
+			title: "Delete request",
+			description: `Delete request ${requestPath}? This cannot be undone.`,
+			confirmLabel: "Delete",
+			destructive: true,
+		});
 		if (!ok) return;
 		try {
 			await getQuesterClient().deleteRequest(workspacePath, requestPath);

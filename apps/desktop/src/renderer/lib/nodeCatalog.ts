@@ -36,6 +36,7 @@ export type ActivityView =
 	| "collections"
 	| "envs"
 	| "secrets"
+	| "runs"
 	| "nodes"
 	| "settings";
 

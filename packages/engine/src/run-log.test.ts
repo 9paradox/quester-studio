@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { FLOW_VERSION } from "@quester-studio/schema";
+import { EngineEventEmitter } from "./events.js";
 import { executeFlow } from "./execute.js";
 import {
 	RunFileLogger,
@@ -130,5 +131,67 @@ describe("run file logging", () => {
 		const dumped = JSON.stringify(setStep);
 		expect(dumped).not.toContain("sekrit");
 		expect(dumped).toContain("***");
+	});
+
+	test("cancel between nodes marks meta status cancelled", async () => {
+		const root = await mkdtemp(join(tmpdir(), "quester-runlog-cancel-"));
+		const runDir = join(root, "abort", createRunDirName());
+		await mkdir(runDir, { recursive: true });
+		const logger = new RunFileLogger({
+			runDir,
+			meta: {
+				flowId: "abort",
+				startedAt: new Date().toISOString(),
+				status: "running",
+			},
+		});
+		await logger.init();
+
+		const flow = {
+			id: "abort",
+			version: FLOW_VERSION,
+			nodes: [
+				{ id: "start", type: "start", data: {}, position: { x: 0, y: 0 } },
+				{
+					id: "a",
+					type: "set",
+					data: { variables: { step: "a" } },
+					position: { x: 100, y: 0 },
+				},
+				{
+					id: "b",
+					type: "set",
+					data: { variables: { step: "b" } },
+					position: { x: 200, y: 0 },
+				},
+				{ id: "out", type: "output", data: {}, position: { x: 300, y: 0 } },
+			],
+			edges: [
+				{ id: "e0", source: "start", target: "a", sourceHandle: null },
+				{ id: "e1", source: "a", target: "b", sourceHandle: null },
+				{ id: "e2", source: "b", target: "out", sourceHandle: null },
+			],
+		};
+
+		const controller = new AbortController();
+		const events = new EngineEventEmitter();
+		events.on("node:after", ({ nodeId }) => {
+			if (nodeId === "a") controller.abort();
+		});
+
+		try {
+			await executeFlow(flow as never, {
+				events,
+				signal: controller.signal,
+				runLogger: logger,
+			});
+			expect.unreachable("should throw");
+		} catch {
+			// expected cancel
+		}
+
+		const meta = JSON.parse(await readFile(join(runDir, "meta.json"), "utf8"));
+		expect(meta.status).toBe("cancelled");
+		expect(meta.finishedAt).toBeDefined();
 	});
 });

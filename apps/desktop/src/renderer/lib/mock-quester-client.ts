@@ -436,6 +436,9 @@ export function createMockQuesterClient(): QuesterClient {
 		},
 		getAppTlsVerify: async () => ({ verifyTls }),
 		openPathInOs: async () => ({ ok: true }),
+		listRunTree: async () => [],
+		readRunJson: async () => ({}),
+		deleteRunPath: async () => ({ ok: true as const }),
 	};
 }
 

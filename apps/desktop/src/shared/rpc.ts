@@ -6,6 +6,7 @@ import type {
 	NodeRunStatus,
 	NodeRunStatusEvent,
 	RequestMeta,
+	RunFlowEntry,
 	SecretFileMeta,
 	WorkspaceSummary,
 } from "@quester-studio/api-contract";
@@ -27,6 +28,7 @@ export type {
 	NodeRunStatus,
 	NodeRunStatusEvent,
 	RequestMeta,
+	RunFlowEntry,
 	SecretFileMeta,
 	WorkspaceSummary,
 };
@@ -215,6 +217,18 @@ export type DesktopRPC = {
 			openPathInOs: {
 				params: { path: string };
 				response: { ok: boolean; error?: string };
+			};
+			listRunTree: {
+				params: { workspace: string };
+				response: RunFlowEntry[];
+			};
+			readRunJson: {
+				params: { workspace: string; relativePath: string };
+				response: unknown;
+			};
+			deleteRunPath: {
+				params: { workspace: string; relativePath: string };
+				response: { ok: true };
 			};
 			setNativeChromeTheme: {
 				params: { theme: ThemePreference };

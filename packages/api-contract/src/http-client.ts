@@ -206,5 +206,10 @@ export function createHttpQuesterClient(
 			ok: false,
 			error: "Opening folders is only supported in the desktop app",
 		}),
+		listRunTree: (workspace) => post("/v1/runs/list", { workspace }),
+		readRunJson: (workspace, relativePath) =>
+			post("/v1/runs/read", { workspace, relativePath }),
+		deleteRunPath: (workspace, relativePath) =>
+			post("/v1/runs/delete", { workspace, relativePath }),
 	};
 }

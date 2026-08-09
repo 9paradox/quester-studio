@@ -176,6 +176,12 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 			},
 			openPathInOs: async ({ path }) =>
 				(await import("./handlers.js")).openPathInOs(path),
+			listRunTree: async ({ workspace }) =>
+				(await import("./handlers.js")).listRunTree(workspace),
+			readRunJson: async ({ workspace, relativePath }) =>
+				(await import("./handlers.js")).readRunJson(workspace, relativePath),
+			deleteRunPath: async ({ workspace, relativePath }) =>
+				(await import("./handlers.js")).deleteRunPath(workspace, relativePath),
 			setNativeChromeTheme: async ({ theme }) => {
 				const dark = setThemePreference(theme);
 				setAttachedTitleBarDarkMode(dark);

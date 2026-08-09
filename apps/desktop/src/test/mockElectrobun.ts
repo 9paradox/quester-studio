@@ -137,6 +137,9 @@ const rpc = {
 		logs: [],
 		httpOutput: null,
 	}),
+	listRunTree: async () => [],
+	readRunJson: async () => ({}),
+	deleteRunPath: async () => ({ ok: true }),
 	onNodeRunStatus: () => () => {},
 };
 

@@ -1,5 +1,10 @@
 import { Button } from "@/components/ui/button.js";
 import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible.js";
+import {
 	ContextMenu,
 	ContextMenuContent,
 	ContextMenuItem,
@@ -9,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { Separator } from "@/components/ui/separator.js";
+import { promptConfirm } from "@/lib/confirmPrompt.js";
 import {
 	setFlowDragData,
 	setNodeDragData,
@@ -18,10 +24,12 @@ import {
 	envTabId,
 	flowTabId,
 	requestTabId,
+	runLogTabId,
 	secretsTabId,
 } from "@/lib/editorTabs.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
 import { nodeCatalogGroups } from "@/lib/nodeCatalog.js";
+import { getQuesterClient } from "@/lib/quester-client.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
@@ -29,7 +37,9 @@ import {
 	selectActiveTab,
 	selectDirtyTabIds,
 } from "@/stores/selectors.js";
+import type { RunFlowEntry } from "@quester-studio/api-contract";
 import {
+	IconChevronRight,
 	IconDeviceFloppy,
 	IconFile,
 	IconFolder,
@@ -37,13 +47,14 @@ import {
 	IconKey,
 	IconPencil,
 	IconPlus,
+	IconRefresh,
 	IconTopologyRing2,
 	IconTrash,
 	IconUpload,
 	IconWorld,
 } from "@tabler/icons-react";
 import type { ComponentType, DragEvent, ReactNode, SVGProps } from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { RequestMeta } from "../../shared/rpc.js";
 import { FlowSettingsDialog } from "./FlowSettingsDialog.js";
@@ -98,9 +109,75 @@ export function PrimarySidebar() {
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const handleAddNode = useQuesterStore((s) => s.handleAddNode);
 	const updateActiveFlowMeta = useQuesterStore((s) => s.updateActiveFlowMeta);
+	const openRunLogTab = useQuesterStore((s) => s.openRunLogTab);
+	const showError = useQuesterStore((s) => s.showError);
+	const closeTab = useQuesterStore((s) => s.closeTab);
 
 	const [flowDetailsId, setFlowDetailsId] = useState<string | null>(null);
 	const flowDetailsTarget = flows.find((f) => f.id === flowDetailsId);
+
+	const [runTree, setRunTree] = useState<RunFlowEntry[]>([]);
+	const [runsLoading, setRunsLoading] = useState(false);
+	const [runsError, setRunsError] = useState<string | null>(null);
+
+	const refreshRuns = useCallback(async () => {
+		if (!workspacePath) {
+			setRunTree([]);
+			return;
+		}
+		setRunsLoading(true);
+		setRunsError(null);
+		try {
+			setRunTree(await getQuesterClient().listRunTree(workspacePath));
+		} catch (err: unknown) {
+			setRunTree([]);
+			setRunsError(err instanceof Error ? err.message : "Failed to load runs");
+		} finally {
+			setRunsLoading(false);
+		}
+	}, [workspacePath]);
+
+	const deleteRunEntry = useCallback(
+		async (relativePath: string, label: string, kind: "file" | "folder") => {
+			if (!workspacePath) return;
+			const ok = await promptConfirm({
+				title: kind === "folder" ? "Delete folder" : "Delete file",
+				description:
+					kind === "folder"
+						? `Delete "${label}" and everything inside? This cannot be undone.`
+						: `Delete "${label}"? This cannot be undone.`,
+				confirmLabel: "Delete",
+				destructive: true,
+			});
+			if (!ok) return;
+			try {
+				await getQuesterClient().deleteRunPath(workspacePath, relativePath);
+				const prefix = `${relativePath}/`;
+				for (const tab of useQuesterStore.getState().openTabs) {
+					if (
+						tab.kind === "runLog" &&
+						(tab.relativePath === relativePath ||
+							tab.relativePath.startsWith(prefix))
+					) {
+						void closeTab(tab.id);
+					}
+				}
+				await refreshRuns();
+			} catch (err: unknown) {
+				showError(
+					err instanceof Error ? err.message : "Failed to delete run path",
+				);
+			}
+		},
+		[workspacePath, closeTab, refreshRuns, showError],
+	);
+
+	useEffect(() => {
+		if (view !== "runs") {
+			return;
+		}
+		void refreshRuns();
+	}, [view, refreshRuns]);
 
 	const filteredFlows = flows.filter((f) => {
 		const q = search.trim().toLowerCase();
@@ -137,6 +214,35 @@ export function PrimarySidebar() {
 		() => groupRequestsByCollection(filteredRequests, collections),
 		[filteredRequests, collections],
 	);
+
+	const filteredRunTree = useMemo(() => {
+		const q = search.trim().toLowerCase();
+		if (!q) return runTree;
+		return runTree
+			.map((flow) => {
+				const runs = flow.runs
+					.map((run) => {
+						const files = run.files.filter(
+							(f) =>
+								f.name.toLowerCase().includes(q) ||
+								f.relativePath.toLowerCase().includes(q),
+						);
+						const runMatch =
+							run.name.toLowerCase().includes(q) ||
+							(run.meta?.status?.toLowerCase().includes(q) ?? false) ||
+							(run.meta?.flowName?.toLowerCase().includes(q) ?? false);
+						if (runMatch) return run;
+						if (files.length === 0) return null;
+						return { ...run, files };
+					})
+					.filter((r): r is NonNullable<typeof r> => r !== null);
+				const flowMatch = flow.flowId.toLowerCase().includes(q);
+				if (flowMatch) return flow;
+				if (runs.length === 0) return null;
+				return { ...flow, runs };
+			})
+			.filter((f): f is NonNullable<typeof f> => f !== null);
+	}, [runTree, search]);
 
 	return (
 		<aside
@@ -403,6 +509,166 @@ export function PrimarySidebar() {
 				</div>
 			) : null}
 
+			{view === "runs" ? (
+				<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+					<div className="flex shrink-0 flex-col gap-2 p-2">
+						<div className="flex gap-1 px-1">
+							<Button
+								type="button"
+								variant="outline"
+								size="xs"
+								className="flex-1"
+								onClick={() => void refreshRuns()}
+								disabled={runsLoading || !workspacePath}
+							>
+								<IconRefresh />
+								Refresh
+							</Button>
+						</div>
+						<Input
+							value={search}
+							onChange={(e) => setSidebarSearch(e.target.value)}
+							placeholder="Search runs…"
+							className="h-8 bg-background"
+						/>
+					</div>
+					<ScrollArea className="min-h-0 flex-1">
+						<div className="flex flex-col gap-2 px-2 pb-2">
+							{!workspacePath ? (
+								<p className="px-2 py-4 text-xs text-muted-foreground">
+									Open a workspace to browse run logs.
+								</p>
+							) : null}
+							{workspacePath && runsLoading ? (
+								<p className="px-2 py-4 text-xs text-muted-foreground">
+									Loading runs…
+								</p>
+							) : null}
+							{runsError ? (
+								<p className="px-2 py-4 text-xs text-destructive">
+									{runsError}
+								</p>
+							) : null}
+							{workspacePath &&
+							!runsLoading &&
+							!runsError &&
+							filteredRunTree.length === 0 ? (
+								<p className="px-2 py-4 text-xs text-muted-foreground">
+									No run logs yet. Enable runs in workspace settings and execute
+									a flow.
+								</p>
+							) : null}
+							{filteredRunTree.map((flow) => (
+								<Collapsible
+									key={flow.flowId}
+									defaultOpen
+									className="group/flow flex flex-col gap-0.5"
+								>
+									<div className="group flex items-center rounded-md hover:bg-sidebar-accent/70">
+										<CollapsibleTrigger className="flex h-8 min-w-0 flex-1 items-center gap-1.5 px-1 text-left text-sm">
+											<IconChevronRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-data-open/flow:rotate-90" />
+											<IconFolder className="size-3.5 shrink-0 opacity-70" />
+											<span className="truncate font-medium">
+												{flow.flowId}
+											</span>
+											<span className="shrink-0 text-[10px] text-muted-foreground">
+												{flow.runs.length}
+											</span>
+										</CollapsibleTrigger>
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon-xs"
+											className="mr-1 shrink-0 opacity-0 group-hover:opacity-100"
+											aria-label={`Delete flow runs ${flow.flowId}`}
+											onClick={() =>
+												void deleteRunEntry(flow.flowId, flow.flowId, "folder")
+											}
+										>
+											<IconTrash />
+										</Button>
+									</div>
+									<CollapsibleContent className="flex flex-col gap-0.5 pl-3">
+										{flow.runs.map((run) => (
+											<Collapsible
+												key={run.relativePath}
+												defaultOpen={false}
+												className="group/run flex flex-col gap-0.5"
+											>
+												<div className="group flex items-center rounded-md hover:bg-sidebar-accent/70">
+													<CollapsibleTrigger className="flex h-8 min-w-0 flex-1 items-center gap-1.5 px-1 text-left text-xs">
+														<IconChevronRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-data-open/run:rotate-90" />
+														<span className="truncate font-mono text-[11px]">
+															{run.name}
+														</span>
+														{run.meta?.status ? (
+															<span
+																className="shrink-0 text-[10px] text-muted-foreground"
+																title={
+																	run.meta.status === "running"
+																		? "Run did not finish writing a terminal status (interrupted or cancelled between steps)"
+																		: undefined
+																}
+															>
+																{run.meta.status === "running"
+																	? "incomplete"
+																	: run.meta.status}
+															</span>
+														) : null}
+													</CollapsibleTrigger>
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon-xs"
+														className="mr-1 shrink-0 opacity-0 group-hover:opacity-100"
+														aria-label={`Delete run ${run.name}`}
+														onClick={() =>
+															void deleteRunEntry(
+																run.relativePath,
+																run.name,
+																"folder",
+															)
+														}
+													>
+														<IconTrash />
+													</Button>
+												</div>
+												<CollapsibleContent className="flex flex-col gap-0.5 pl-3">
+													{run.files.map((file) => (
+														<FileListItem
+															key={file.relativePath}
+															icon={IconFile}
+															label={file.name}
+															selected={
+																activeTabId === runLogTabId(file.relativePath)
+															}
+															dirty={false}
+															onSelect={() =>
+																void openRunLogTab(
+																	file.relativePath,
+																	`${flow.flowId} · ${file.name}`,
+																)
+															}
+															onDelete={() =>
+																void deleteRunEntry(
+																	file.relativePath,
+																	file.name,
+																	"file",
+																)
+															}
+														/>
+													))}
+												</CollapsibleContent>
+											</Collapsible>
+										))}
+									</CollapsibleContent>
+								</Collapsible>
+							))}
+						</div>
+					</ScrollArea>
+				</div>
+			) : null}
+
 			{view === "settings" ? <SettingsSidebar /> : null}
 
 			<FlowSettingsDialog
@@ -521,7 +787,7 @@ function FileListItem({
 	const item = (
 		<div
 			className={cn(
-				"group flex items-center rounded-md",
+				"group flex items-center rounded-md hover:bg-sidebar-accent/70",
 				selected && "bg-sidebar-accent text-sidebar-accent-foreground",
 			)}
 		>
@@ -691,6 +957,8 @@ function viewTitle(view: ActivityView): string {
 			return "Environments";
 		case "secrets":
 			return "Secrets";
+		case "runs":
+			return "Runs";
 		case "nodes":
 			return "Add node";
 		case "settings":

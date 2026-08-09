@@ -1,5 +1,9 @@
 import { beforeAll, describe, expect, mock, test } from "bun:test";
 import {
+	getConfirmPromptRequest,
+	resolveConfirmPrompt,
+} from "@/lib/confirmPrompt.js";
+import {
 	createEnvEditorTab,
 	createFlowEditorTab,
 	createRequestEditorTab,
@@ -117,6 +121,9 @@ mock.module("@/lib/quester-client.js", () => {
 			listSecretNames: async () => ["username", "password"],
 			readPathShapes: async () => null,
 			writePathShapes: async () => ({ ok: true }),
+			listRunTree: async () => [],
+			readRunJson: async () => ({}),
+			deleteRunPath: async () => ({ ok: true }),
 			onNodeRunStatus: () => () => {},
 			__cancelledRunIds: cancelledRunIds,
 			__requestDelaysMs: requestDelaysMs,
@@ -213,13 +220,13 @@ describe("useQuesterStore", () => {
 		expect(state.selectedNodeId).toBeNull();
 	});
 
-	test("closeTab removes tab and picks next active tab", () => {
+	test("closeTab removes tab and picks next active tab", async () => {
 		resetStore();
 		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
 		const tabB = createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" });
 		useQuesterStore.getState().openTab(tabA);
 		useQuesterStore.getState().openTab(tabB);
-		useQuesterStore.getState().closeTab(flowTabId("b"));
+		await useQuesterStore.getState().closeTab(flowTabId("b"));
 
 		const state = useQuesterStore.getState();
 		expect(state.openTabs).toHaveLength(1);
@@ -253,7 +260,7 @@ describe("useQuesterStore", () => {
 		expect(useQuesterStore.getState().openTabs[0]?.id).toBe(tab.id);
 	});
 
-	test("closeTabsToLeft closes tabs before target", () => {
+	test("closeTabsToLeft closes tabs before target", async () => {
 		resetStore();
 		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
 		const tabB = createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" });
@@ -262,14 +269,14 @@ describe("useQuesterStore", () => {
 		useQuesterStore.getState().openTab(tabB);
 		useQuesterStore.getState().openTab(tabC);
 
-		useQuesterStore.getState().closeTabsToLeft(flowTabId("c"));
+		await useQuesterStore.getState().closeTabsToLeft(flowTabId("c"));
 
 		const state = useQuesterStore.getState();
 		expect(state.openTabs).toHaveLength(1);
 		expect(state.activeTabId).toBe(flowTabId("c"));
 	});
 
-	test("closeTabsToRight closes tabs after target", () => {
+	test("closeTabsToRight closes tabs after target", async () => {
 		resetStore();
 		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
 		const tabB = createFlowEditorTab({ ...sampleFlow, id: "b", name: "B" });
@@ -278,14 +285,14 @@ describe("useQuesterStore", () => {
 		useQuesterStore.getState().openTab(tabB);
 		useQuesterStore.getState().openTab(tabC);
 
-		useQuesterStore.getState().closeTabsToRight(flowTabId("a"));
+		await useQuesterStore.getState().closeTabsToRight(flowTabId("a"));
 
 		const state = useQuesterStore.getState();
 		expect(state.openTabs).toHaveLength(1);
 		expect(state.activeTabId).toBe(flowTabId("a"));
 	});
 
-	test("closeTabsToLeft stops when dirty tab close is cancelled", () => {
+	test("closeTabsToLeft stops when dirty tab close is cancelled", async () => {
 		resetStore();
 		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
 		const dirtyB = {
@@ -298,23 +305,21 @@ describe("useQuesterStore", () => {
 			activeTabId: flowTabId("c"),
 		});
 
-		const confirm = globalThis.confirm;
-		globalThis.confirm = () => false;
+		const pending = useQuesterStore.getState().closeTabsToLeft(flowTabId("c"));
+		await Promise.resolve();
+		expect(getConfirmPromptRequest()?.title).toBe("Unsaved changes");
+		resolveConfirmPrompt(false);
+		await pending;
 
-		try {
-			useQuesterStore.getState().closeTabsToLeft(flowTabId("c"));
-			const state = useQuesterStore.getState();
-			expect(state.openTabs).toHaveLength(2);
-			expect(state.openTabs.map((t) => t.id)).toEqual([
-				flowTabId("b"),
-				flowTabId("c"),
-			]);
-		} finally {
-			globalThis.confirm = confirm;
-		}
+		const state = useQuesterStore.getState();
+		expect(state.openTabs).toHaveLength(2);
+		expect(state.openTabs.map((t) => t.id)).toEqual([
+			flowTabId("b"),
+			flowTabId("c"),
+		]);
 	});
 
-	test("closeTabsToRight respects dirty tab confirm", () => {
+	test("closeTabsToRight respects dirty tab confirm", async () => {
 		resetStore();
 		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
 		const dirtyB = {
@@ -327,17 +332,15 @@ describe("useQuesterStore", () => {
 			activeTabId: flowTabId("a"),
 		});
 
-		const confirm = globalThis.confirm;
-		globalThis.confirm = () => true;
+		const pending = useQuesterStore.getState().closeTabsToRight(flowTabId("a"));
+		await Promise.resolve();
+		expect(getConfirmPromptRequest()).not.toBeNull();
+		resolveConfirmPrompt(true);
+		await pending;
 
-		try {
-			useQuesterStore.getState().closeTabsToRight(flowTabId("a"));
-			const state = useQuesterStore.getState();
-			expect(state.openTabs).toHaveLength(1);
-			expect(state.activeTabId).toBe(flowTabId("a"));
-		} finally {
-			globalThis.confirm = confirm;
-		}
+		const state = useQuesterStore.getState();
+		expect(state.openTabs).toHaveLength(1);
+		expect(state.activeTabId).toBe(flowTabId("a"));
 	});
 
 	test("setZoom skips update when value unchanged", () => {
@@ -1028,6 +1031,27 @@ describe("selectors", () => {
 		expect(state.openTabs.some((t) => t.kind === "response")).toBe(true);
 	});
 
+	test("openRunLogTab opens or focuses a runLog tab", async () => {
+		resetStore();
+		useQuesterStore.setState({
+			workspacePath: "/ws",
+			openTabs: [],
+			activeTabId: null,
+		});
+		await useQuesterStore
+			.getState()
+			.openRunLogTab("login/ts/001-login.json", "login · 001-login.json");
+		const tab = selectActiveTab(useQuesterStore.getState());
+		expect(tab?.kind).toBe("runLog");
+		if (tab?.kind !== "runLog") throw new Error("expected runLog tab");
+		expect(tab.loading).toBe(false);
+		expect(tab.error).toBeNull();
+		expect(tab.title).toBe("login · 001-login.json");
+		expect(tab.relativePath).toBe("login/ts/001-login.json");
+		await useQuesterStore.getState().openRunLogTab("login/ts/001-login.json");
+		expect(useQuesterStore.getState().openTabs).toHaveLength(1);
+	});
+
 	test("setActiveTabId clears selectedNodeId when switching flows", () => {
 		resetStore();
 		const tabA = createFlowEditorTab({ ...sampleFlow, id: "a", name: "A" });
@@ -1111,7 +1135,7 @@ describe("selectors", () => {
 		delays["collections/demo/d.json"] = 20;
 	});
 
-	test("closeTab drops request send slot for that path", () => {
+	test("closeTab drops request send slot for that path", async () => {
 		resetStore();
 		const req: RequestV1 = {
 			version: "v1",
@@ -1139,7 +1163,7 @@ describe("selectors", () => {
 				},
 			},
 		});
-		useQuesterStore.getState().closeTab(requestTabId(tab.requestPath));
+		await useQuesterStore.getState().closeTab(requestTabId(tab.requestPath));
 		expect(useQuesterStore.getState().requestByPath).toEqual({});
 	});
 

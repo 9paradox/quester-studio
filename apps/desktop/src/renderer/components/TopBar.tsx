@@ -24,6 +24,7 @@ import {
 	IconChevronDown,
 	IconFile,
 	IconFolderOpen,
+	IconHistory,
 	IconJson,
 	IconKey,
 	IconSettings,
@@ -40,6 +41,7 @@ function TabIcon({ tab }: { tab: EditorTab }) {
 	if (kind === "env") return <IconFile className={className} />;
 	if (kind === "request") return <IconWorld className={className} />;
 	if (kind === "response") return <IconJson className={className} />;
+	if (kind === "runLog") return <IconHistory className={className} />;
 	if (kind === "appSettings" || kind === "workspaceSettings") {
 		return <IconSettings className={className} />;
 	}
@@ -236,7 +238,7 @@ export function TopBar() {
 									<button
 										type="button"
 										className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm opacity-0 hover:bg-muted group-hover:opacity-100"
-										onClick={() => closeTab(tab.id)}
+										onClick={() => void closeTab(tab.id)}
 										aria-label={`Close ${label}`}
 									>
 										<IconX className="size-3" />
@@ -266,18 +268,18 @@ export function TopBar() {
 									<ContextMenuSeparator />
 									<ContextMenuItem
 										disabled={index === 0}
-										onClick={() => closeTabsToLeft(tab.id)}
+										onClick={() => void closeTabsToLeft(tab.id)}
 									>
 										Close to the Left
 									</ContextMenuItem>
 									<ContextMenuItem
 										disabled={index === openTabs.length - 1}
-										onClick={() => closeTabsToRight(tab.id)}
+										onClick={() => void closeTabsToRight(tab.id)}
 									>
 										Close to the Right
 									</ContextMenuItem>
 									<ContextMenuSeparator />
-									<ContextMenuItem onClick={() => closeTab(tab.id)}>
+									<ContextMenuItem onClick={() => void closeTab(tab.id)}>
 										Close
 									</ContextMenuItem>
 								</ContextMenuContent>
