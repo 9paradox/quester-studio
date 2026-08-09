@@ -8,8 +8,10 @@ import {
 	deleteNodesFromFlow,
 	distributeNodes,
 	duplicateNodeInFlow,
+	ensureFrameBodyWiring,
 	flowToReactFlow,
 	isValidFlowConnection,
+	pruneRedundantFrameWiring,
 	reactFlowToFlow,
 } from "./flowEditor.js";
 
@@ -151,6 +153,27 @@ describe("isValidFlowConnection", () => {
 		).toBe(false);
 	});
 
+	test("rejects a second incoming edge except on join", () => {
+		expect(
+			isValidFlowConnection({
+				source: "b",
+				target: "a",
+				nodes,
+				edges: [{ id: "e0", source: "start", target: "a" }],
+			}),
+		).toBe(false);
+
+		const withJoin = [...nodes, { id: "j", type: "join" }];
+		expect(
+			isValidFlowConnection({
+				source: "b",
+				target: "j",
+				nodes: withJoin,
+				edges: [{ id: "e0", source: "a", target: "j" }],
+			}),
+		).toBe(true);
+	});
+
 	test("allows frame exit when outer wire already exists", () => {
 		const framed = [
 			{ id: "start", type: "start" },
@@ -166,6 +189,71 @@ describe("isValidFlowConnection", () => {
 				edges: [{ id: "e0", source: "start", target: "guard" }],
 			}),
 		).toBe(true);
+	});
+});
+
+describe("ensureFrameBodyWiring", () => {
+	test("skips entry when child already has sibling predecessor", () => {
+		const flow: FlowV1 = {
+			version: "v1",
+			id: "f",
+			nodes: [
+				{ id: "guard", type: "try", data: {}, position: { x: 0, y: 0 } },
+				{
+					id: "http",
+					type: "http",
+					data: {},
+					parentId: "guard",
+					extent: "parent",
+					position: { x: 20, y: 40 },
+				},
+				{
+					id: "ex",
+					type: "extract",
+					data: {},
+					parentId: "guard",
+					extent: "parent",
+					position: { x: 20, y: 120 },
+				},
+			],
+			edges: [
+				{
+					id: "e-http-ex",
+					source: "http",
+					target: "ex",
+				},
+			],
+		};
+		const wired = ensureFrameBodyWiring(flow, "guard", "ex");
+		expect(
+			wired.edges.some((e) => e.source === "guard" && e.target === "ex"),
+		).toBe(false);
+		expect(
+			wired.edges.some((e) => e.source === "ex" && e.target === "guard"),
+		).toBe(true);
+
+		const withBoth = {
+			...flow,
+			edges: [
+				...flow.edges,
+				{
+					id: "e-entry-ex",
+					source: "guard",
+					target: "ex",
+					sourceHandle: "entry",
+				},
+				{
+					id: "e-http-exit",
+					source: "http",
+					target: "guard",
+					targetHandle: "exit",
+				},
+			],
+		};
+		const pruned = pruneRedundantFrameWiring(withBoth, "http", "ex");
+		expect(pruned.edges.some((e) => e.id === "e-entry-ex")).toBe(false);
+		expect(pruned.edges.some((e) => e.id === "e-http-exit")).toBe(false);
+		expect(pruned.edges.some((e) => e.id === "e-http-ex")).toBe(true);
 	});
 });
 

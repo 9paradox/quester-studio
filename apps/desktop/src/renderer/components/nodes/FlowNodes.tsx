@@ -657,6 +657,24 @@ export function MergeFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	);
 }
 
+export function JoinFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
+	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
+	const ins = edges.filter((e) => e.target === id).length;
+	return (
+		<BaseFlowNode
+			type="join"
+			nodeId={id}
+			title={data.label ?? "Join"}
+			subtitle={`${ins} arm${ins === 1 ? "" : "s"}`}
+			selected={selected}
+			runStatus={runStatus}
+			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+		/>
+	);
+}
+
 export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
 	const runStatus = useNodeRunStatus(id);
@@ -817,6 +835,7 @@ export const flowNodeTypes = {
 	assert: AssertFlowNode,
 	transform: TransformFlowNode,
 	merge: MergeFlowNode,
+	join: JoinFlowNode,
 	json: JsonFlowNode,
 	inspect: InspectFlowNode,
 	preview: InspectFlowNode,

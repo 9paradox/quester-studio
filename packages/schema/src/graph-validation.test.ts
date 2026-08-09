@@ -344,4 +344,98 @@ describe("validateFlowGraph", () => {
 		);
 		expect(result.valid).toBe(true);
 	});
+
+	test("rejects extract with two incoming edges", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "a", type: "set", data: { variables: { x: "1" } } },
+					{ id: "b", type: "set", data: { variables: { y: "2" } } },
+					{ id: "ex", type: "extract", data: { expression: "x" } },
+					{ id: "out", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "a" },
+					{ id: "e1", source: "a", target: "b" },
+					{ id: "e2", source: "a", target: "ex" },
+					{ id: "e3", source: "b", target: "ex" },
+					{ id: "e4", source: "ex", target: "out" },
+				],
+			}),
+		);
+		expect(result.valid).toBe(false);
+		expect(
+			result.issues.some(
+				(i) =>
+					i.message.includes("at most one incoming") &&
+					i.suggestion?.includes("join"),
+			),
+		).toBe(true);
+	});
+
+	test("allows join with multiple incoming edges", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "a", type: "set", data: { variables: { x: "1" } } },
+					{ id: "b", type: "template", data: { template: "from-b" } },
+					{ id: "c", type: "template", data: { template: "from-c" } },
+					{ id: "j", type: "join", data: {} },
+					{ id: "out", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "a" },
+					{ id: "e1", source: "a", target: "b" },
+					{ id: "e2", source: "a", target: "c" },
+					{ id: "e3", source: "b", target: "j" },
+					{ id: "e4", source: "c", target: "j" },
+					{ id: "e5", source: "j", target: "out" },
+				],
+			}),
+		);
+		expect(result.valid).toBe(true);
+	});
+
+	test("try outer+exit edges do not trip max-one-in", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "guard", type: "try", data: {} },
+					{
+						id: "body",
+						type: "set",
+						data: {},
+						parentId: "guard",
+						extent: "parent",
+					},
+					{ id: "out", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "guard" },
+					{
+						id: "e1",
+						source: "guard",
+						target: "body",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e2",
+						source: "body",
+						target: "guard",
+						targetHandle: "exit",
+					},
+					{
+						id: "e3",
+						source: "guard",
+						target: "out",
+						sourceHandle: "success",
+					},
+				],
+			}),
+		);
+		expect(result.valid).toBe(true);
+	});
 });

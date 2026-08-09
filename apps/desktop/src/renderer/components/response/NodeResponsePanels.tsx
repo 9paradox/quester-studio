@@ -385,12 +385,13 @@ export function NodeResponsePanels({
 			);
 		case "transform":
 		case "merge":
+		case "join":
 			return (
 				<ResultWithInput
 					result={step.output}
 					input={step.input}
 					error={step.error}
-					resultLabel="Merged / mapped result"
+					resultLabel="Joined / merged / mapped result"
 					pathCopyNodeId={step.nodeId}
 				/>
 			);

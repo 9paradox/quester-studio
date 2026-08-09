@@ -137,25 +137,25 @@ describe("executeFlow", () => {
 		expect(inactive.vars.path).toBe("no");
 	});
 
-	test("waits for both diamond arms before merge join", async () => {
+	test("waits for both diamond arms before join", async () => {
 		const flow: FlowV1 = {
 			id: "diamond",
 			version: "v1",
 			nodes: [
 				{ id: "start", type: "start", data: {} },
-				{ id: "a", type: "note", data: { text: "fan-out" } },
+				{ id: "a", type: "set", data: { variables: { fan: "out" } } },
 				{ id: "b", type: "template", data: { template: "from-b" } },
 				{ id: "c", type: "template", data: { template: "from-c" } },
-				{ id: "d", type: "merge", data: { sources: ["b", "c"] } },
+				{ id: "j", type: "join", data: {} },
 				{ id: "out", type: "output", data: {} },
 			],
 			edges: [
 				{ id: "e0", source: "start", target: "a" },
 				{ id: "e1", source: "a", target: "b" },
 				{ id: "e2", source: "a", target: "c" },
-				{ id: "e3", source: "b", target: "d" },
-				{ id: "e4", source: "c", target: "d" },
-				{ id: "e5", source: "d", target: "out" },
+				{ id: "e3", source: "b", target: "j" },
+				{ id: "e4", source: "c", target: "j" },
+				{ id: "e5", source: "j", target: "out" },
 			],
 		};
 
@@ -163,11 +163,11 @@ describe("executeFlow", () => {
 			fetch: mock(async () => new Response("{}")) as unknown as typeof fetch,
 		});
 		const order = result.steps.map((s) => s.nodeId);
-		expect(order.indexOf("b")).toBeLessThan(order.indexOf("d"));
-		expect(order.indexOf("c")).toBeLessThan(order.indexOf("d"));
+		expect(order.indexOf("b")).toBeLessThan(order.indexOf("j"));
+		expect(order.indexOf("c")).toBeLessThan(order.indexOf("j"));
 		expect(result.nodeOutputs.b).toBe("from-b");
 		expect(result.nodeOutputs.c).toBe("from-c");
-		expect(result.nodeOutputs.d).toEqual({ b: "from-b", c: "from-c" });
+		expect(result.nodeOutputs.j).toEqual({ b: "from-b", c: "from-c" });
 		expect(result.output).toEqual({ b: "from-b", c: "from-c" });
 	});
 

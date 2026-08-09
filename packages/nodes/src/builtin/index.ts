@@ -16,6 +16,7 @@ export * from "./output.js";
 export * from "./assert.js";
 export * from "./transform.js";
 export * from "./merge.js";
+export * from "./join.js";
 export * from "./json.js";
 export * from "./note.js";
 export * from "./log.js";

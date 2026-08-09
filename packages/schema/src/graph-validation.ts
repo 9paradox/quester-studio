@@ -420,6 +420,30 @@ export function validateFlowGraph(flow: FlowV1): FlowGraphValidationResult {
 		}
 	}
 
+	// Max one incoming edge (docs `in x1`), except join (N) and frame body exits.
+	for (const node of flow.nodes) {
+		if (node.type === "start" || node.type === "note" || node.type === "join") {
+			continue;
+		}
+		const counted = flow.edges.filter((e) => {
+			if (e.target !== node.id) return false;
+			const source = nodeById.get(e.source);
+			if (!source) return true;
+			if (isFrameContainerType(node.type) && source.parentId === node.id) {
+				return false; // body → frame exit
+			}
+			return true;
+		});
+		if (counted.length > 1) {
+			issues.push({
+				path: `nodes/${node.id}`,
+				message: `${node.type} node "${node.id}" can have at most one incoming edge (found ${counted.length})`,
+				suggestion:
+					"Keep a single wire in, or insert a join node to combine multiple predecessors",
+			});
+		}
+	}
+
 	validateFrames(flow, nodeById, issues);
 
 	// Cycle detection — ignore frame entry/exit edges (they intentionally loop)
