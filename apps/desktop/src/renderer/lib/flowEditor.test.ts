@@ -9,10 +9,12 @@ import {
 	distributeNodes,
 	duplicateNodeInFlow,
 	ensureFrameBodyWiring,
+	findFrameAtPoint,
 	flowToReactFlow,
 	isValidFlowConnection,
 	pruneRedundantFrameWiring,
 	reactFlowToFlow,
+	reparentNodeInFlow,
 } from "./flowEditor.js";
 
 const sampleFlow: FlowV1 = {
@@ -386,6 +388,106 @@ describe("ensureFrameBodyWiring", () => {
 				(e) => e.target === "guard" && e.targetHandle === "exit",
 			),
 		).toHaveLength(1);
+	});
+});
+
+describe("reparentNodeInFlow / findFrameAtPoint", () => {
+	const framedBase: FlowV1 = {
+		version: "v1",
+		id: "f",
+		nodes: [
+			{ id: "start", type: "start", data: {}, position: { x: 0, y: 0 } },
+			{
+				id: "guard",
+				type: "try",
+				data: {},
+				position: { x: 100, y: 100 },
+				width: 320,
+				height: 240,
+			},
+			{
+				id: "http",
+				type: "http",
+				data: {},
+				position: { x: 500, y: 120 },
+			},
+		],
+		edges: [{ id: "e0", source: "start", target: "guard" }],
+	};
+
+	test("reparents into a frame with relative position and entry/exit", () => {
+		const next = reparentNodeInFlow(framedBase, "http", "guard", {
+			x: 140,
+			y: 160,
+		});
+		const child = next.nodes.find((n) => n.id === "http");
+		expect(child?.parentId).toBe("guard");
+		expect(child?.extent).toBe("parent");
+		expect(child?.position).toEqual({ x: 40, y: 60 });
+		expect(
+			next.edges.some(
+				(e) =>
+					e.source === "guard" &&
+					e.target === "http" &&
+					e.sourceHandle === "entry",
+			),
+		).toBe(true);
+		expect(
+			next.edges.some(
+				(e) =>
+					e.source === "http" &&
+					e.target === "guard" &&
+					e.targetHandle === "exit",
+			),
+		).toBe(true);
+	});
+
+	test("clears parent and drops entry/exit edges", () => {
+		const inside = reparentNodeInFlow(framedBase, "http", "guard", {
+			x: 140,
+			y: 160,
+		});
+		const out = reparentNodeInFlow(inside, "http", null, { x: 700, y: 300 });
+		const child = out.nodes.find((n) => n.id === "http");
+		expect(child?.parentId).toBeUndefined();
+		expect(child?.position).toEqual({ x: 700, y: 300 });
+		expect(
+			out.edges.some(
+				(e) =>
+					(e.source === "guard" && e.target === "http") ||
+					(e.source === "http" && e.target === "guard"),
+			),
+		).toBe(false);
+	});
+
+	test("findFrameAtPoint prefers the smallest containing frame", () => {
+		const flow: FlowV1 = {
+			version: "v1",
+			id: "f",
+			nodes: [
+				{
+					id: "big",
+					type: "foreach",
+					data: { items: "[]" },
+					position: { x: 0, y: 0 },
+					width: 600,
+					height: 400,
+				},
+				{
+					id: "small",
+					type: "try",
+					data: {},
+					position: { x: 50, y: 50 },
+					width: 200,
+					height: 160,
+				},
+			],
+			edges: [],
+		};
+		expect(findFrameAtPoint(flow, { x: 100, y: 100 })).toBe("small");
+		expect(findFrameAtPoint(flow, { x: 500, y: 300 })).toBe("big");
+		expect(findFrameAtPoint(flow, { x: 900, y: 900 })).toBeNull();
+		expect(findFrameAtPoint(flow, { x: 100, y: 100 }, "small")).toBe("big");
 	});
 });
 
