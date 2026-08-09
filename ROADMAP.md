@@ -126,12 +126,12 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
   - [x] Desktop canvas — resizable frame nodes; drag into / out of parent; handles: try `success`/`failed`, foreach `complete`
   - [x] Inspector — container fields only (`items`, caps, label, …); drop soft-guard condition/checks on `try` and map-only empty `foreach`
   - [x] Migrate samples + docs; validate errors on legacy soft-`try` / map-only `foreach`; soft branching stays on `if`
-- [ ] Nested frames — drag `try`/`foreach` into another frame; deepest-frame hit-test; engine + schema regression; docs (plan 09b)
-  - [ ] Desktop — reparent frames into frames (block self/descendant cycles); palette drop parents into target frame; drag out clears parent
-  - [ ] Desktop — `findFrameAtPoint` / drop targets include nested frames; prefer deepest / smallest container
-  - [ ] Desktop — entry/exit + outer-handle wiring when body child is a frame
-  - [ ] Schema/engine — nested try↔foreach tests (depth ≥ 2, failed path, concurrency); explicit cycle rejection coverage
-  - [ ] Docs (+ optional sample) — nesting rules aligned with UI and runtime
+- [x] Nested frames — drag `try`/`foreach` into another frame; deepest-frame hit-test; engine + schema regression; docs (plan 09b)
+  - [x] Desktop — reparent frames into frames (block self/descendant cycles); palette drop parents into target frame; drag out clears parent
+  - [x] Desktop — `findFrameAtPoint` / drop targets include nested frames; prefer deepest / smallest container
+  - [x] Desktop — entry/exit + outer-handle wiring when body child is a frame
+  - [x] Schema/engine — nested try↔foreach tests (depth ≥ 2, failed path, concurrency); explicit cycle rejection coverage
+  - [x] Docs (+ optional sample) — nesting rules aligned with UI and runtime
 - [ ] `parallel`  
 - [ ] `loop` / `while` (max-iteration / timeout limits per SECURITY.md)  
 

@@ -40,6 +40,11 @@ export type TemplateCompletionContext = {
 	varValues: Record<string, unknown>;
 	/** Last-run node outputs (for `nodes.*` hover). */
 	nodeOutputs: Record<string, unknown>;
+	/**
+	 * Foreach body scopes available at the selected node (`item` / custom
+	 * `itemVar`, plus `index`). Walks ancestor frames so nested try/foreach work.
+	 */
+	loopKeys: string[];
 };
 
 export const TEMPLATE_ROOTS = [
@@ -70,6 +75,42 @@ export function varKeysFromNodes(
 	nodes: ReadonlyArray<{ type: string; data?: Record<string, unknown> }>,
 ): string[] {
 	return Object.keys(varValuesFromNodes(nodes));
+}
+
+/**
+ * Foreach body template keys (`item` / custom `itemVar`, `index`) for a node
+ * inside one or more framed foreach ancestors (including through nested tries).
+ */
+export function loopKeysForNode(
+	nodes: ReadonlyArray<{
+		id: string;
+		type: string;
+		parentId?: string;
+		data?: Record<string, unknown>;
+	}>,
+	nodeId: string | null | undefined,
+): string[] {
+	if (!nodeId) return [];
+	const byId = new Map(nodes.map((n) => [n.id, n]));
+	const keys = new Set<string>();
+	let cur = byId.get(nodeId)?.parentId;
+	const seen = new Set<string>();
+	while (cur && !seen.has(cur)) {
+		seen.add(cur);
+		const parent = byId.get(cur);
+		if (!parent) break;
+		if (parent.type === "foreach") {
+			const raw = parent.data?.itemVar;
+			const itemVar =
+				typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : "item";
+			keys.add(itemVar);
+			keys.add("index");
+			// Engine always exposes `item` alongside a custom itemVar.
+			keys.add("item");
+		}
+		cur = parent.parentId;
+	}
+	return [...keys].sort();
 }
 
 /** Collect declared `set` variable values (last write wins per key). */
@@ -163,7 +204,17 @@ export function resolveTemplateHover(
 	if (!trimmed) return null;
 	const dot = trimmed.indexOf(".");
 	if (dot === -1) {
-		if (!(TEMPLATE_ROOTS as readonly string[]).includes(trimmed)) return null;
+		if (!(TEMPLATE_ROOTS as readonly string[]).includes(trimmed)) {
+			if (ctx.loopKeys.includes(trimmed)) {
+				return {
+					path: trimmed,
+					source: "foreach",
+					display: "foreach body scope",
+					found: true,
+				};
+			}
+			return null;
+		}
 		return {
 			path: trimmed,
 			source: "template source",
@@ -255,6 +306,14 @@ export function resolveTemplateHover(
 			};
 		}
 		default:
+			if (ctx.loopKeys.includes(root)) {
+				return {
+					path: trimmed,
+					source: "foreach",
+					display: "foreach body scope path",
+					found: true,
+				};
+			}
 			return null;
 	}
 }
@@ -284,7 +343,10 @@ export function templateSuggestions(
 	const dot = trimmed.indexOf(".");
 
 	if (dot === -1) {
-		return filterByPrefix(TEMPLATE_ROOTS, trimmed, "template source");
+		return [
+			...filterByPrefix(TEMPLATE_ROOTS, trimmed, "template source"),
+			...filterByPrefix(ctx.loopKeys, trimmed, "foreach body"),
+		];
 	}
 
 	const root = trimmed.slice(0, dot);
@@ -500,9 +562,10 @@ export function classifyTemplatePath(
 	}
 	const dot = trimmed.indexOf(".");
 	if (dot === -1) {
-		return (TEMPLATE_ROOTS as readonly string[]).includes(trimmed)
-			? "known"
-			: "unknown";
+		if ((TEMPLATE_ROOTS as readonly string[]).includes(trimmed)) {
+			return "known";
+		}
+		return ctx.loopKeys.includes(trimmed) ? "known" : "unknown";
 	}
 	const root = trimmed.slice(0, dot);
 	const rest = trimmed.slice(dot + 1);
@@ -554,7 +617,8 @@ export function classifyTemplatePath(
 			return "unknown";
 		}
 		default:
-			return "unknown";
+			// Foreach body: `{{item.foo}}` — accept nested paths under itemVar/index
+			return ctx.loopKeys.includes(root) ? "known" : "unknown";
 	}
 }
 

@@ -25,7 +25,9 @@ import {
 	deleteNodesFromFlow,
 	distributeNodes,
 	duplicateNodeInFlow,
+	findFrameAtPoint,
 	reactFlowToFlow,
+	reparentNodeInFlow,
 } from "@/lib/flowEditor.js";
 import { promptName } from "@/lib/namePrompt.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
@@ -1119,7 +1121,15 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	handleAddNode: (type, position) => {
-		get().updateActiveFlow((flow) => addNodeToFlow(flow, type, position));
+		get().updateActiveFlow((flow) => {
+			const next = addNodeToFlow(flow, type, position);
+			if (type === "start" || !position) return next;
+			const last = next.nodes[next.nodes.length - 1];
+			if (!last) return next;
+			const frameId = findFrameAtPoint(next, position, last.id);
+			if (!frameId) return next;
+			return reparentNodeInFlow(next, last.id, frameId, position);
+		});
 		set({
 			rightPanelOpen: true,
 			rightPanelTab: "inspector",
@@ -1139,7 +1149,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				const next = addNodeToFlow(flow, "http", position);
 				const last = next.nodes[next.nodes.length - 1];
 				if (!last) return next;
-				return {
+				const withData: typeof next = {
 					...next,
 					nodes: next.nodes.map((n) =>
 						n.id === last.id
@@ -1158,6 +1168,10 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 							: n,
 					),
 				};
+				if (!position) return withData;
+				const frameId = findFrameAtPoint(withData, position, last.id);
+				if (!frameId) return withData;
+				return reparentNodeInFlow(withData, last.id, frameId, position);
 			});
 			set({
 				rightPanelOpen: true,
@@ -1194,7 +1208,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			const last = next.nodes[next.nodes.length - 1];
 			if (!last || last.type !== "subflow") return next;
 			createdId = last.id;
-			return {
+			const withData: typeof next = {
 				...next,
 				nodes: next.nodes.map((n) =>
 					n.id === last.id
@@ -1209,6 +1223,10 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 						: n,
 				),
 			};
+			if (!position) return withData;
+			const frameId = findFrameAtPoint(withData, position, last.id);
+			if (!frameId) return withData;
+			return reparentNodeInFlow(withData, last.id, frameId, position);
 		});
 		set({
 			selectedNodeId: createdId,

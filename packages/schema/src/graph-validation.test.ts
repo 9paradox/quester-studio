@@ -660,4 +660,184 @@ describe("validateFlowGraph", () => {
 			true,
 		);
 	});
+
+	test("accepts try nested inside foreach with plain body exit", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{
+						id: "loop",
+						type: "foreach",
+						data: { items: "[1]" },
+					},
+					{
+						id: "guard",
+						type: "try",
+						data: {},
+						parentId: "loop",
+						extent: "parent",
+					},
+					{
+						id: "body",
+						type: "set",
+						data: { map: { x: "1" } },
+						parentId: "guard",
+						extent: "parent",
+					},
+					{ id: "out", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "loop" },
+					{
+						id: "e1",
+						source: "loop",
+						target: "guard",
+						sourceHandle: "entry",
+						targetHandle: "in",
+					},
+					{
+						id: "e2",
+						source: "guard",
+						target: "loop",
+						sourceHandle: "success",
+						targetHandle: "exit",
+					},
+					{
+						id: "e3",
+						source: "guard",
+						target: "body",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e4",
+						source: "body",
+						target: "guard",
+						targetHandle: "exit",
+					},
+					{
+						id: "e5",
+						source: "loop",
+						target: "out",
+						sourceHandle: "complete",
+					},
+				],
+			}),
+		);
+		expect(result.valid).toBe(true);
+	});
+
+	test("accepts foreach nested inside try", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{ id: "guard", type: "try", data: {} },
+					{
+						id: "loop",
+						type: "foreach",
+						data: { items: "[1]" },
+						parentId: "guard",
+						extent: "parent",
+					},
+					{
+						id: "row",
+						type: "set",
+						data: { map: { x: "1" } },
+						parentId: "loop",
+						extent: "parent",
+					},
+					{ id: "out", type: "output", data: {} },
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "guard" },
+					{
+						id: "e1",
+						source: "guard",
+						target: "loop",
+						sourceHandle: "entry",
+						targetHandle: "in",
+					},
+					{
+						id: "e2",
+						source: "loop",
+						target: "guard",
+						sourceHandle: "complete",
+						targetHandle: "exit",
+					},
+					{
+						id: "e3",
+						source: "loop",
+						target: "row",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e4",
+						source: "row",
+						target: "loop",
+						targetHandle: "exit",
+					},
+					{
+						id: "e5",
+						source: "guard",
+						target: "out",
+						sourceHandle: "success",
+					},
+				],
+			}),
+		);
+		expect(result.valid).toBe(true);
+	});
+
+	test("rejects parentId chain cycles", () => {
+		const result = validateFlowGraph(
+			flow({
+				nodes: [
+					{ id: "start", type: "start", data: {} },
+					{
+						id: "a",
+						type: "try",
+						data: {},
+						parentId: "b",
+						extent: "parent",
+					},
+					{
+						id: "b",
+						type: "foreach",
+						data: { items: "[]" },
+						parentId: "a",
+						extent: "parent",
+					},
+					{
+						id: "body",
+						type: "set",
+						data: {},
+						parentId: "a",
+						extent: "parent",
+					},
+				],
+				edges: [
+					{ id: "e0", source: "start", target: "a" },
+					{
+						id: "e1",
+						source: "a",
+						target: "body",
+						sourceHandle: "entry",
+					},
+					{
+						id: "e2",
+						source: "body",
+						target: "a",
+						targetHandle: "exit",
+					},
+				],
+			}),
+		);
+		expect(result.valid).toBe(false);
+		expect(
+			result.issues.some((i) =>
+				i.message.includes("parentId chain contains a cycle"),
+			),
+		).toBe(true);
+	});
 });

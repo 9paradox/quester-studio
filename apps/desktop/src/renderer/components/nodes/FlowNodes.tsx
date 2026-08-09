@@ -67,6 +67,7 @@ function FrameContainerShell({
 	selected,
 	runStatus,
 	outerSources,
+	parentId,
 }: {
 	id: string;
 	type: "try" | "foreach";
@@ -75,10 +76,13 @@ function FrameContainerShell({
 	selected?: boolean;
 	runStatus?: ReturnType<typeof useNodeRunStatus>;
 	outerSources: { id: string; label: string }[];
+	/** When set, this frame is a body child — expose outer `out` for parent exit wiring. */
+	parentId?: string;
 }) {
 	const edges = useEdges();
 	const presentation = getNodePresentation(type);
 	const TypeIcon = presentation.icon;
+	const isNested = Boolean(parentId);
 
 	const outerInConnected = edges.some(
 		(e) =>
@@ -87,6 +91,7 @@ function FrameContainerShell({
 				e.targetHandle === "" ||
 				e.targetHandle === "in"),
 	);
+	const outerOutConnected = isHandleConnected(edges, id, "source", "out");
 	const entryConnected = isHandleConnected(edges, id, "source", "entry");
 	const exitConnected = isHandleConnected(edges, id, "target", "exit");
 
@@ -125,9 +130,10 @@ function FrameContainerShell({
 				)}
 				data-run-status={runStatus ?? "none"}
 			>
-				{/* Outside → frame (outer left, header) */}
+				{/* Outside → frame (outer left, header). Nested parents land here, not on body entry. */}
 				<Handle
 					type="target"
+					id="in"
 					position={Position.Left}
 					style={{ top: "2.125rem" }}
 					className={handleClass(outerInConnected)}
@@ -191,6 +197,21 @@ function FrameContainerShell({
 						</FramePortLabel>
 					);
 				})}
+
+				{/*
+				 * Nested frame as body child: outer `out` on the right body mid so
+				 * parent exit wires leave here — not from body EXIT or SUCCESS.
+				 */}
+				{isNested ? (
+					<Handle
+						type="source"
+						id="out"
+						position={Position.Right}
+						style={{ top: innerPortTop }}
+						className={handleClass(outerOutConnected)}
+						title="out"
+					/>
+				) : null}
 
 				{/*
 				 * Single EXIT on INNER right border, facing LEFT into the body
@@ -518,7 +539,8 @@ export function ForeachFlowNode({
 	id,
 	data,
 	selected,
-}: NodeProps<FlowNodeData>) {
+	parentId,
+}: NodeProps<FlowNodeData> & { parentId?: string }) {
 	const runStatus = useNodeRunStatus(id);
 	const items =
 		typeof data.items === "string" && data.items.length > 0
@@ -536,12 +558,18 @@ export function ForeachFlowNode({
 			subtitle={`${items}${conc}`}
 			selected={selected}
 			runStatus={runStatus}
+			parentId={parentId}
 			outerSources={[{ id: "complete", label: "complete" }]}
 		/>
 	);
 }
 
-export function TryFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
+export function TryFlowNode({
+	id,
+	data,
+	selected,
+	parentId,
+}: NodeProps<FlowNodeData> & { parentId?: string }) {
 	const runStatus = useNodeRunStatus(id);
 	return (
 		<FrameContainerShell
@@ -551,6 +579,7 @@ export function TryFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 			subtitle="Exception boundary"
 			selected={selected}
 			runStatus={runStatus}
+			parentId={parentId}
 			outerSources={[
 				{ id: "success", label: "success" },
 				{ id: "failed", label: "failed" },

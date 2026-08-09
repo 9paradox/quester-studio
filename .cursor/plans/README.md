@@ -11,7 +11,7 @@ Open **one plan at a time**, in priority order. Source of truth for checkboxes: 
 | 06 | [Desktop — canvas, DnD, nodes UI](./06-desktop-canvas-nodes.md) | After 01 — **code complete** (await user X/Y/Z) |
 | 07 | [Desktop — folder logs viewer](./07-desktop-logs-viewer.md) | After 04 (reuse viewer) — **code complete** (await user X/Y/Z) |
 | 09 | [Framed try / foreach](./09-framed-try-foreach.md) | After B4 (fan-in) — **complete** |
-| 09b | [Nested frames](./09b-nested-frames.md) | After 09 — UI nesting + engine/docs polish |
+| 09b | [Nested frames](./09b-nested-frames.md) | After 09 — **code complete** (await user X/Y/Z) |
 | 10 | [Nodes — auth + HTTP](./10-nodes-auth-http.md) | After stability wave |
 | 11 | [Nodes — data helpers](./11-nodes-data.md) | After stability wave |
 | 12 | [Forms](./12-forms.md) | After 04/06 patterns (editor + DnD) |

@@ -13,6 +13,7 @@ import {
 import {
 	type TemplateCompletionContext,
 	inputKeysFromJson,
+	loopKeysForNode,
 	varKeysFromNodes,
 	varValuesFromNodes,
 } from "@/lib/templates.js";
@@ -215,6 +216,7 @@ export function selectTemplateContext(
 		inputValue,
 		varValues: varValuesFromNodes(nodes),
 		nodeOutputs: selectActiveFlowRun(state).runResult?.nodeOutputs ?? {},
+		loopKeys: loopKeysForNode(nodes, selectedId),
 	};
 }
 

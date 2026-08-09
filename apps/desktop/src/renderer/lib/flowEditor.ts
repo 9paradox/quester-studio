@@ -32,6 +32,23 @@ export function isFrameContainerType(type: string | null | undefined): boolean {
 	return type === "try" || type === "foreach";
 }
 
+/** Preferred outer handle when a nested frame is the body exit source. */
+export function nestedFrameExitSourceHandle(
+	type: string | null | undefined,
+): "success" | "complete" {
+	return type === "foreach" ? "complete" : "success";
+}
+
+function isNestedFrameExitSourceHandle(
+	type: string | null | undefined,
+	sh: string | null,
+): boolean {
+	if (sh === null || sh === "" || sh === "out") return true;
+	if (type === "try") return sh === "success" || sh === "failed";
+	if (type === "foreach") return sh === "complete";
+	return false;
+}
+
 /** Wider hit target so edges are easier to select, delete, and reconnect. */
 export const EDGE_INTERACTION_WIDTH = 24;
 
@@ -70,14 +87,75 @@ export function sortParentsBeforeChildren<
 	return [...nodes].sort((a, b) => depth(a.id) - depth(b.id));
 }
 
+/**
+ * Nested frames as body children use header `in` and outer success/complete
+ * (or failed) so wires do not share body ENTRY/EXIT ports. Rewrite legacy
+ * null/`out` handles on load/save.
+ */
+export function normalizeNestedFrameBodyHandles(flow: FlowV1): FlowV1 {
+	const byId = new Map(flow.nodes.map((n) => [n.id, n]));
+	let changed = false;
+	const edges = flow.edges.map((e) => {
+		const source = byId.get(e.source);
+		const target = byId.get(e.target);
+		if (!source || !target) return e;
+
+		const parentEntryToNestedFrame =
+			isFrameContainerType(source.type) &&
+			target.parentId === source.id &&
+			isFrameContainerType(target.type) &&
+			(e.sourceHandle === "entry" ||
+				e.sourceHandle == null ||
+				e.sourceHandle === "") &&
+			e.targetHandle !== "in";
+		if (parentEntryToNestedFrame) {
+			changed = true;
+			return {
+				...e,
+				sourceHandle: "entry" as const,
+				targetHandle: "in" as const,
+			};
+		}
+
+		const isNestedBodyExit =
+			isFrameContainerType(target.type) &&
+			source.parentId === target.id &&
+			isFrameContainerType(source.type) &&
+			(e.targetHandle === "exit" ||
+				e.targetHandle == null ||
+				e.targetHandle === "");
+		if (isNestedBodyExit) {
+			const sh = e.sourceHandle ?? null;
+			// Keep explicit failed→exit if the author chose that path.
+			if (source.type === "try" && sh === "failed") {
+				if (e.targetHandle === "exit") return e;
+				changed = true;
+				return { ...e, targetHandle: "exit" as const };
+			}
+			const desired = nestedFrameExitSourceHandle(source.type);
+			if (sh === desired && e.targetHandle === "exit") return e;
+			changed = true;
+			return {
+				...e,
+				sourceHandle: desired,
+				targetHandle: "exit" as const,
+			};
+		}
+
+		return e;
+	});
+	return changed ? { ...flow, edges } : flow;
+}
+
 export function flowToReactFlow(flow: FlowV1): {
 	nodes: Node[];
 	edges: Edge[];
 } {
+	const normalized = normalizeNestedFrameBodyHandles(flow);
 	const parentIds = new Set(
-		flow.nodes.filter((n) => n.parentId).map((n) => n.parentId as string),
+		normalized.nodes.filter((n) => n.parentId).map((n) => n.parentId as string),
 	);
-	const ordered = sortParentsBeforeChildren(flow.nodes);
+	const ordered = sortParentsBeforeChildren(normalized.nodes);
 	const nodes = ordered.map((n) => {
 		const defaults = defaultSizeForType(n.type);
 		const width = n.width ?? defaults?.width;
@@ -106,11 +184,15 @@ export function flowToReactFlow(flow: FlowV1): {
 			},
 		};
 	});
-	const edges = flow.edges.map((e) => {
+	const edges = normalized.edges.map((e) => {
 		const sourceIsFrame = parentIds.has(e.source);
 		const targetIsFrame = parentIds.has(e.target);
-		const sourceChild = flow.nodes.find((n) => n.id === e.source)?.parentId;
-		const targetChild = flow.nodes.find((n) => n.id === e.target)?.parentId;
+		const sourceChild = normalized.nodes.find(
+			(n) => n.id === e.source,
+		)?.parentId;
+		const targetChild = normalized.nodes.find(
+			(n) => n.id === e.target,
+		)?.parentId;
 		const inFrame =
 			Boolean(sourceChild) ||
 			Boolean(targetChild) ||
@@ -198,10 +280,20 @@ export function isValidFlowConnection(options: {
 		});
 		if (hasEntry) return false;
 	} else if (isFrameContainerType(targetNode.type) && sp === target) {
-		// Frame exit: child → container (at most one exit edge per frame)
+		// Frame exit: child → container (at most one exit edge per frame).
+		// Nested-frame children may leave via out / success / failed / complete.
 		if (!(th === "exit" || th === null)) return false;
+		if (
+			isFrameContainerType(sourceNode.type) &&
+			!isNestedFrameExitSourceHandle(sourceNode.type, sh)
+		) {
+			return false;
+		}
 		const hasExit = edges.some((e) => {
 			if (e.id === ignoreEdgeId || e.target !== target) return false;
+			// Same child rewiring exit handle (e.g. out → success) is fine —
+			// onConnect drops the previous exit from this source.
+			if (e.source === source) return false;
 			const pred = nodes.find((n) => n.id === e.source);
 			if (pred?.parentId !== target) return false;
 			return (
@@ -317,7 +409,7 @@ export function reactFlowToFlow(
 			...(n.extent === "parent" ? { extent: "parent" as const } : {}),
 		};
 	});
-	return {
+	return normalizeNestedFrameBodyHandles({
 		...baseFlow,
 		nodes: sortParentsBeforeChildren(mapped),
 		edges: edges.map((e) => ({
@@ -327,7 +419,7 @@ export function reactFlowToFlow(
 			sourceHandle: e.sourceHandle ?? null,
 			targetHandle: e.targetHandle ?? null,
 		})),
-	};
+	});
 }
 
 function readNodeSize(
@@ -340,7 +432,7 @@ function readNodeSize(
 		Number.isFinite(fromNode) &&
 		fromNode > 0
 	) {
-		return fromNode;
+		return Math.round(fromNode);
 	}
 	const fromStyle = node.style?.[axis];
 	if (
@@ -348,11 +440,11 @@ function readNodeSize(
 		Number.isFinite(fromStyle) &&
 		fromStyle > 0
 	) {
-		return fromStyle;
+		return Math.round(fromStyle);
 	}
 	if (typeof fromStyle === "string") {
 		const parsed = Number.parseFloat(fromStyle);
-		if (Number.isFinite(parsed) && parsed > 0) return parsed;
+		if (Number.isFinite(parsed) && parsed > 0) return Math.round(parsed);
 	}
 	return undefined;
 }
@@ -489,6 +581,9 @@ export function ensureFrameBodyWiring(
 		!frameHasExit && !hasInFrameSuccessor(flow, containerId, childId);
 	if (!needsEntry && !needsExit) return flow;
 
+	const child = flow.nodes.find((n) => n.id === childId);
+	const childIsFrame = Boolean(child && isFrameContainerType(child.type));
+
 	const edges = [...flow.edges];
 	if (needsEntry) {
 		edges.push({
@@ -496,6 +591,8 @@ export function ensureFrameBodyWiring(
 			source: containerId,
 			target: childId,
 			sourceHandle: "entry",
+			// Nested frame: land on header `in`, not body ENTRY.
+			...(childIsFrame ? { targetHandle: "in" } : {}),
 		});
 	}
 	if (needsExit) {
@@ -504,6 +601,10 @@ export function ensureFrameBodyWiring(
 			source: childId,
 			target: containerId,
 			targetHandle: "exit",
+			// Nested frame: leave from success/complete (or allow failed / out).
+			...(childIsFrame
+				? { sourceHandle: nestedFrameExitSourceHandle(child?.type) }
+				: {}),
 		});
 	}
 	return { ...flow, edges };
@@ -548,6 +649,10 @@ export function pruneRedundantFrameWiring(
 			flow.nodes.find((n) => n.id === e.source)?.parentId === frameId,
 	);
 	if (!hasExit) {
+		const exitChild = flow.nodes.find((n) => n.id === bodyTargetId);
+		const exitIsFrame = Boolean(
+			exitChild && isFrameContainerType(exitChild.type),
+		);
 		return {
 			...flow,
 			edges: [
@@ -557,12 +662,67 @@ export function pruneRedundantFrameWiring(
 					source: bodyTargetId,
 					target: frameId,
 					targetHandle: "exit",
+					...(exitIsFrame
+						? { sourceHandle: nestedFrameExitSourceHandle(exitChild?.type) }
+						: {}),
 				},
 			],
 		};
 	}
 	if (filtered.length === flow.edges.length) return flow;
 	return { ...flow, edges: filtered };
+}
+
+/**
+ * Absolute canvas origin of a node (sums parent chain positions).
+ */
+export function absoluteNodeOrigin(
+	flow: FlowV1,
+	nodeId: string,
+): { x: number; y: number } {
+	const byId = new Map(flow.nodes.map((n) => [n.id, n]));
+	let x = 0;
+	let y = 0;
+	let cur: string | undefined = nodeId;
+	const seen = new Set<string>();
+	while (cur && !seen.has(cur)) {
+		seen.add(cur);
+		const node = byId.get(cur);
+		if (!node) break;
+		x += node.position?.x ?? 0;
+		y += node.position?.y ?? 0;
+		cur = node.parentId;
+	}
+	return { x, y };
+}
+
+function parentDepth(flow: FlowV1, nodeId: string): number {
+	const byId = new Map(flow.nodes.map((n) => [n.id, n]));
+	let d = 0;
+	let cur = byId.get(nodeId)?.parentId;
+	const seen = new Set<string>();
+	while (cur && !seen.has(cur)) {
+		seen.add(cur);
+		d += 1;
+		cur = byId.get(cur)?.parentId;
+	}
+	return d;
+}
+
+function isDescendantOf(
+	flow: FlowV1,
+	nodeId: string,
+	ancestorId: string,
+): boolean {
+	const byId = new Map(flow.nodes.map((n) => [n.id, n]));
+	let walk = byId.get(nodeId)?.parentId;
+	const seen = new Set<string>();
+	while (walk && !seen.has(walk)) {
+		if (walk === ancestorId) return true;
+		seen.add(walk);
+		walk = byId.get(walk)?.parentId;
+	}
+	return false;
 }
 
 /**
@@ -577,7 +737,7 @@ export function reparentNodeInFlow(
 	absolutePosition: { x: number; y: number },
 ): FlowV1 {
 	const node = flow.nodes.find((n) => n.id === nodeId);
-	if (!node || node.type === "start" || isFrameContainerType(node.type)) {
+	if (!node || node.type === "start") {
 		return flow;
 	}
 	if (frameId === nodeId) return flow;
@@ -585,16 +745,11 @@ export function reparentNodeInFlow(
 		const frame = flow.nodes.find((n) => n.id === frameId);
 		if (!frame || !isFrameContainerType(frame.type)) return flow;
 		// No parenting onto own descendant
-		let walk: string | undefined = frame.parentId;
-		while (walk) {
-			if (walk === nodeId) return flow;
-			walk = flow.nodes.find((n) => n.id === walk)?.parentId;
-		}
-		const fx = frame.position?.x ?? 0;
-		const fy = frame.position?.y ?? 0;
+		if (isDescendantOf(flow, frameId, nodeId)) return flow;
+		const origin = absoluteNodeOrigin(flow, frameId);
 		const relative = {
-			x: absolutePosition.x - fx,
-			y: Math.max(40, absolutePosition.y - fy),
+			x: absolutePosition.x - origin.x,
+			y: Math.max(40, absolutePosition.y - origin.y),
 		};
 		let next: FlowV1 = {
 			...flow,
@@ -647,20 +802,35 @@ export function findFrameAtPoint(
 	point: { x: number; y: number },
 	excludeNodeId?: string,
 ): string | null {
-	const frames = flow.nodes.filter(
-		(n) =>
-			isFrameContainerType(n.type) && n.id !== excludeNodeId && !n.parentId, // top-level frames for hit-test; nested ok later
-	);
-	// Prefer smallest containing frame (most specific)
-	let best: { id: string; area: number } | null = null;
+	const frames = flow.nodes.filter((n) => {
+		if (!isFrameContainerType(n.type)) return false;
+		if (excludeNodeId && n.id === excludeNodeId) return false;
+		if (excludeNodeId && isDescendantOf(flow, n.id, excludeNodeId)) {
+			return false;
+		}
+		return true;
+	});
+	// Prefer deepest nest, then smallest area
+	let best: { id: string; depth: number; area: number } | null = null;
 	for (const frame of frames) {
-		const x = frame.position?.x ?? 0;
-		const y = frame.position?.y ?? 0;
+		const origin = absoluteNodeOrigin(flow, frame.id);
 		const w = frame.width ?? FRAME_NODE_DEFAULT_WIDTH;
 		const h = frame.height ?? FRAME_NODE_DEFAULT_HEIGHT;
-		if (point.x >= x && point.x <= x + w && point.y >= y && point.y <= y + h) {
+		if (
+			point.x >= origin.x &&
+			point.x <= origin.x + w &&
+			point.y >= origin.y &&
+			point.y <= origin.y + h
+		) {
+			const depth = parentDepth(flow, frame.id);
 			const area = w * h;
-			if (!best || area < best.area) best = { id: frame.id, area };
+			if (
+				!best ||
+				depth > best.depth ||
+				(depth === best.depth && area < best.area)
+			) {
+				best = { id: frame.id, depth, area };
+			}
 		}
 	}
 	return best?.id ?? null;

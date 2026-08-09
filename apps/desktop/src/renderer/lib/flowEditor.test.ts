@@ -264,6 +264,50 @@ describe("isValidFlowConnection", () => {
 			}),
 		).toBe(true);
 	});
+
+	test("allows nested try success → parent foreach exit", () => {
+		const nodes = [
+			{ id: "loop", type: "foreach" },
+			{ id: "guard", type: "try", parentId: "loop" },
+			{ id: "row", type: "template", parentId: "guard" },
+		];
+		expect(
+			isValidFlowConnection({
+				source: "guard",
+				target: "loop",
+				sourceHandle: "success",
+				targetHandle: "exit",
+				nodes,
+				edges: [
+					{
+						id: "e-entry",
+						source: "loop",
+						target: "guard",
+						sourceHandle: "entry",
+						targetHandle: "in",
+					},
+				],
+			}),
+		).toBe(true);
+		expect(
+			isValidFlowConnection({
+				source: "guard",
+				target: "loop",
+				sourceHandle: "failed",
+				targetHandle: "exit",
+				nodes,
+				edges: [
+					{
+						id: "e-entry",
+						source: "loop",
+						target: "guard",
+						sourceHandle: "entry",
+						targetHandle: "in",
+					},
+				],
+			}),
+		).toBe(true);
+	});
 });
 
 describe("ensureFrameBodyWiring", () => {
@@ -488,6 +532,228 @@ describe("reparentNodeInFlow / findFrameAtPoint", () => {
 		expect(findFrameAtPoint(flow, { x: 500, y: 300 })).toBe("big");
 		expect(findFrameAtPoint(flow, { x: 900, y: 900 })).toBeNull();
 		expect(findFrameAtPoint(flow, { x: 100, y: 100 }, "small")).toBe("big");
+	});
+
+	test("reparents try into foreach and foreach into try", () => {
+		const flow: FlowV1 = {
+			version: "v1",
+			id: "f",
+			nodes: [
+				{ id: "start", type: "start", data: {}, position: { x: 0, y: 0 } },
+				{
+					id: "loop",
+					type: "foreach",
+					data: { items: "[]" },
+					position: { x: 100, y: 100 },
+					width: 480,
+					height: 360,
+				},
+				{
+					id: "guard",
+					type: "try",
+					data: {},
+					position: { x: 700, y: 120 },
+					width: 280,
+					height: 200,
+				},
+			],
+			edges: [{ id: "e0", source: "start", target: "loop" }],
+		};
+		const nested = reparentNodeInFlow(flow, "guard", "loop", {
+			x: 160,
+			y: 180,
+		});
+		const guard = nested.nodes.find((n) => n.id === "guard");
+		expect(guard?.parentId).toBe("loop");
+		expect(guard?.extent).toBe("parent");
+		expect(guard?.position).toEqual({ x: 60, y: 80 });
+		expect(
+			nested.edges.some(
+				(e) =>
+					e.source === "loop" &&
+					e.target === "guard" &&
+					e.sourceHandle === "entry" &&
+					e.targetHandle === "in",
+			),
+		).toBe(true);
+		expect(
+			nested.edges.some(
+				(e) =>
+					e.source === "guard" &&
+					e.target === "loop" &&
+					e.sourceHandle === "success" &&
+					e.targetHandle === "exit",
+			),
+		).toBe(true);
+
+		const empty: FlowV1 = {
+			version: "v1",
+			id: "f2",
+			nodes: [
+				{ id: "start", type: "start", data: {}, position: { x: 0, y: 0 } },
+				{
+					id: "outer",
+					type: "try",
+					data: {},
+					position: { x: 40, y: 40 },
+					width: 500,
+					height: 400,
+				},
+				{
+					id: "inner",
+					type: "foreach",
+					data: { items: "[]" },
+					position: { x: 600, y: 80 },
+					width: 260,
+					height: 200,
+				},
+			],
+			edges: [{ id: "e0", source: "start", target: "outer" }],
+		};
+		const nestedLoop = reparentNodeInFlow(empty, "inner", "outer", {
+			x: 100,
+			y: 120,
+		});
+		expect(nestedLoop.nodes.find((n) => n.id === "inner")?.parentId).toBe(
+			"outer",
+		);
+	});
+
+	test("refuses reparenting a frame onto its descendant", () => {
+		const flow: FlowV1 = {
+			version: "v1",
+			id: "f",
+			nodes: [
+				{
+					id: "outer",
+					type: "foreach",
+					data: { items: "[]" },
+					position: { x: 0, y: 0 },
+					width: 500,
+					height: 400,
+				},
+				{
+					id: "inner",
+					type: "try",
+					data: {},
+					parentId: "outer",
+					extent: "parent",
+					position: { x: 40, y: 40 },
+					width: 240,
+					height: 180,
+				},
+			],
+			edges: [],
+		};
+		const next = reparentNodeInFlow(flow, "outer", "inner", { x: 50, y: 50 });
+		expect(next.nodes.find((n) => n.id === "outer")?.parentId).toBeUndefined();
+	});
+
+	test("findFrameAtPoint prefers deepest nested frame", () => {
+		const flow: FlowV1 = {
+			version: "v1",
+			id: "f",
+			nodes: [
+				{
+					id: "outer",
+					type: "foreach",
+					data: { items: "[]" },
+					position: { x: 0, y: 0 },
+					width: 600,
+					height: 400,
+				},
+				{
+					id: "inner",
+					type: "try",
+					data: {},
+					parentId: "outer",
+					extent: "parent",
+					position: { x: 50, y: 50 },
+					width: 220,
+					height: 180,
+				},
+			],
+			edges: [],
+		};
+		expect(findFrameAtPoint(flow, { x: 100, y: 100 })).toBe("inner");
+		expect(findFrameAtPoint(flow, { x: 500, y: 300 })).toBe("outer");
+		expect(findFrameAtPoint(flow, { x: 100, y: 100 }, "inner")).toBe("outer");
+		expect(findFrameAtPoint(flow, { x: 100, y: 100 }, "outer")).toBeNull();
+	});
+
+	test("clears nested frame parent and drops body wiring", () => {
+		const flow: FlowV1 = {
+			version: "v1",
+			id: "f",
+			nodes: [
+				{
+					id: "loop",
+					type: "foreach",
+					data: { items: "[]" },
+					position: { x: 0, y: 0 },
+					width: 500,
+					height: 400,
+				},
+				{
+					id: "guard",
+					type: "try",
+					data: {},
+					position: { x: 600, y: 40 },
+					width: 280,
+					height: 200,
+				},
+			],
+			edges: [],
+		};
+		const inside = reparentNodeInFlow(flow, "guard", "loop", {
+			x: 80,
+			y: 100,
+		});
+		const out = reparentNodeInFlow(inside, "guard", null, { x: 700, y: 80 });
+		const guard = out.nodes.find((n) => n.id === "guard");
+		expect(guard?.parentId).toBeUndefined();
+		expect(guard?.position).toEqual({ x: 700, y: 80 });
+		expect(
+			out.edges.some(
+				(e) =>
+					(e.source === "loop" && e.target === "guard") ||
+					(e.source === "guard" && e.target === "loop"),
+			),
+		).toBe(false);
+	});
+
+	test("addNodeToFlow + reparent drop parents into frame", () => {
+		const base: FlowV1 = {
+			version: "v1",
+			id: "f",
+			nodes: [
+				{ id: "start", type: "start", data: {}, position: { x: 0, y: 0 } },
+				{
+					id: "loop",
+					type: "foreach",
+					data: { items: "[]" },
+					position: { x: 100, y: 100 },
+					width: 400,
+					height: 300,
+				},
+			],
+			edges: [{ id: "e0", source: "start", target: "loop" }],
+		};
+		const dropAt = { x: 180, y: 180 };
+		const withTry = addNodeToFlow(base, "try", dropAt);
+		const created = withTry.nodes[withTry.nodes.length - 1];
+		expect(created?.type).toBe("try");
+		const frameId = findFrameAtPoint(withTry, dropAt, created?.id);
+		expect(frameId).toBe("loop");
+		const nested = reparentNodeInFlow(
+			withTry,
+			created?.id ?? "",
+			frameId,
+			dropAt,
+		);
+		expect(nested.nodes.find((n) => n.id === created?.id)?.parentId).toBe(
+			"loop",
+		);
 	});
 });
 

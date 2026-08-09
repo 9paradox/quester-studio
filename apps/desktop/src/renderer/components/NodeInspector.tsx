@@ -29,8 +29,10 @@ import {
 } from "@/lib/httpBodyType.js";
 import { getNodePresentation } from "@/lib/nodeCatalog.js";
 import { getNodeFieldErrors } from "@/lib/nodeFieldErrors.js";
+import { loopKeysForNode } from "@/lib/templates.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
+import { selectActiveFlowTab } from "@/stores/selectors.js";
 import {
 	type BuiltinNodeType,
 	DELAY_MS_CEILING,
@@ -43,6 +45,7 @@ import {
 	builtinNodeTypes,
 } from "@quester-studio/schema";
 import type { ReactNode } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 type NodeInspectorProps = {
 	node: FlowNodeV1;
@@ -76,6 +79,13 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 	const inputJson = useQuesterStore((s) => s.inputJson);
 	const setInputJson = useQuesterStore((s) => s.setInputJson);
 	const flows = useQuesterStore((s) => s.flows);
+	const loopKeys = useQuesterStore(
+		useShallow((s) => {
+			const tab = selectActiveFlowTab(s);
+			if (!tab) return [] as string[];
+			return loopKeysForNode(tab.flow.nodes, s.selectedNodeId);
+		}),
+	);
 	const fieldErrors = getNodeFieldErrors(node.type, data);
 
 	const setField = (key: string, value: unknown) => {
@@ -287,6 +297,18 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 										{"{{nodes.id}}"}
 									</code>
 									, <code className="font-mono text-[10px]">{"{{env.*}}"}</code>
+									{loopKeys.includes("item") ? (
+										<>
+											,{" "}
+											<code className="font-mono text-[10px]">
+												{"{{item}}"}
+											</code>
+											,{" "}
+											<code className="font-mono text-[10px]">
+												{"{{index}}"}
+											</code>
+										</>
+									) : null}
 								</>
 							) : (
 								<>
@@ -297,6 +319,18 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 										{"{{nodes.id}}"}
 									</code>
 									, <code className="font-mono text-[10px]">{"{{env.*}}"}</code>
+									{loopKeys.includes("item") ? (
+										<>
+											,{" "}
+											<code className="font-mono text-[10px]">
+												{"{{item}}"}
+											</code>
+											/
+											<code className="font-mono text-[10px]">
+												{"{{index}}"}
+											</code>
+										</>
+									) : null}
 									, or Eta{" "}
 									<code className="font-mono text-[10px]">{"<%= it.* %>"}</code>{" "}
 									(in-process JS — see{" "}

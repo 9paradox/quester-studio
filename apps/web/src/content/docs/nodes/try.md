@@ -22,6 +22,20 @@ Outside wires attach only to the frame (left **in**, header-right **`success`** 
 
 Children use `parentId` pointing at the try node (and usually `extent: "parent"`).
 
+## Nesting
+
+`try` and `foreach` may nest inside each other with no max depth. Parenting must stay a tree (`parentId` cycles are rejected).
+
+On the canvas:
+
+- Drag a frame into another frame (or drop from the palette onto a frame) to set `parentId`
+- Drag out clears the parent
+- Drop / hit-test prefers the **deepest** containing frame, then the smallest
+
+Body wiring when the body child is itself a frame: parent `entry` → nested frame `in`; nested frame `success` / `failed` (or foreach `complete`) → parent `exit`. Body `entry` / `exit` on the nested frame stay for **its** children only.
+
+A nested `try` does not rethrow into an outer frame: failed runs return a `{ failed: true, ... }` payload and the outer body exit still completes unless something else throws.
+
 ## Fields
 
 | Field | Required | Notes |
