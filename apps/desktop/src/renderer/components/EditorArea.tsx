@@ -33,9 +33,10 @@ export function EditorArea() {
 		(s) => s.handleSecretRowsChange,
 	);
 	const handleGraphChange = useQuesterStore((s) => s.handleGraphChange);
-	const handleSelectNode = useQuesterStore((s) => s.handleSelectNode);
+	const handleSelectNodes = useQuesterStore((s) => s.handleSelectNodes);
 	const handleAddNode = useQuesterStore((s) => s.handleAddNode);
 	const handleDropRequest = useQuesterStore((s) => s.handleDropRequest);
+	const handleDropFlow = useQuesterStore((s) => s.handleDropFlow);
 	const handleRequestChange = useQuesterStore((s) => s.handleRequestChange);
 	const sendRequest = useQuesterStore((s) => s.sendRequest);
 	const {
@@ -46,6 +47,10 @@ export function EditorArea() {
 	const deleteNodes = useQuesterStore((s) => s.deleteNodes);
 	const deleteEdges = useQuesterStore((s) => s.deleteEdges);
 	const duplicateNode = useQuesterStore((s) => s.duplicateNode);
+	const alignSelectedNodes = useQuesterStore((s) => s.alignSelectedNodes);
+	const distributeSelectedNodes = useQuesterStore(
+		(s) => s.distributeSelectedNodes,
+	);
 	const updateWorkspaceSettingsManifest = useQuesterStore(
 		(s) => s.updateWorkspaceSettingsManifest,
 	);
@@ -223,15 +228,18 @@ export function EditorArea() {
 				flow={flow}
 				workspacePath={workspacePath}
 				onGraphChange={handleGraphChange}
-				onSelectNode={handleSelectNode}
+				onSelectNodes={handleSelectNodes}
 				onZoomChange={setZoom}
 				onDeleteNodes={deleteNodes}
 				onDeleteEdges={deleteEdges}
 				onDuplicateNode={duplicateNode}
+				onAlignNodes={alignSelectedNodes}
+				onDistributeNodes={distributeSelectedNodes}
 				onAddNode={handleAddNode}
 				onDropRequest={(path, position) =>
 					void handleDropRequest(path, position)
 				}
+				onDropFlow={handleDropFlow}
 				onSave={onSave}
 				canSave={canSaveFlow}
 			/>

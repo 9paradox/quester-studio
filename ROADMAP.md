@@ -60,9 +60,9 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 - [ ] Forms — first-class workspace section (alongside collections / flows): create & edit in a form builder; store as workspace files; drag onto canvas as a node that can replace / stand in for `input` (structured fields → run payload)  
 - [x] Response viewer — open in a new app tab (full-bleed JSON / pretty / headers; keep current panel for quick peek)  
 - [ ] Folder logs viewer — browse `runs/` (and related log folders): JSON raw **or** structured UI; multi-tab for multiple files/runs  
-- [ ] Flow drag-and-drop onto canvas — drag a flow from the sidebar/list to open or nest/`subflow` placement (define UX: open tab vs drop as `subflow` node)  
-- [ ] Form / code drag-and-drop onto canvas — same sidebar → canvas DnD pattern as flows/collections  
-- [ ] Nodes UI enhance — clearer chrome, status, handles, and type identity on canvas; better selected / running / error states  
+- [x] Flow drag-and-drop onto canvas — drag a flow from the sidebar/list to open or nest/`subflow` placement (define UX: open tab vs drop as `subflow` node)  
+- [x] Form / code drag-and-drop onto canvas — same sidebar → canvas DnD pattern as flows/collections  
+- [x] Nodes UI enhance — clearer chrome, status, handles, and type identity on canvas; better selected / running / error states  
 - [ ] Later: optional Monaco (or shared Monaco-class editor from collections) for large `template` / code-like inspector fields — after JSON viewers; keep CodeMirror for compact fields; pairs with `code` node editor  
 
 **Run UX**
@@ -74,10 +74,10 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 
 **Canvas & editor**
 
-- [ ] Canvas ergonomics — selection, multi-select, alignment, edge editing feel solid  
-- [ ] Inspector depth — clear forms per node; fewer dead ends / empty states  
+- [x] Canvas ergonomics — selection, multi-select, alignment, edge editing feel solid  
+- [x] Inspector depth — clear forms per node; fewer dead ends / empty states  
 - [ ] Run / debug clarity — status, errors, stop, replay easy to follow (depends on B5/B8; ties to Run UX above)  
-- [ ] Per-flow console lines (global `consoleLines` isolation gap after B3)  
+- [x] Per-flow console lines (global `consoleLines` isolation gap after B3)  
 - [ ] Template / JMESPath assist polish beyond v1  
 - [ ] Command palette + shortcuts coverage for everyday actions  
 - [ ] Preferences / settings discoverability and consistency  

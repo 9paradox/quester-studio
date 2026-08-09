@@ -9,7 +9,11 @@ import {
 import { Input } from "@/components/ui/input.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
 import { Separator } from "@/components/ui/separator.js";
-import { setNodeDragData, setRequestDragData } from "@/lib/dnd.js";
+import {
+	setFlowDragData,
+	setNodeDragData,
+	setRequestDragData,
+} from "@/lib/dnd.js";
 import {
 	envTabId,
 	flowTabId,
@@ -29,6 +33,7 @@ import {
 	IconDeviceFloppy,
 	IconFile,
 	IconFolder,
+	IconGripVertical,
 	IconKey,
 	IconPencil,
 	IconPlus,
@@ -37,7 +42,7 @@ import {
 	IconUpload,
 	IconWorld,
 } from "@tabler/icons-react";
-import type { ComponentType, ReactNode, SVGProps } from "react";
+import type { ComponentType, DragEvent, ReactNode, SVGProps } from "react";
 import { useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { RequestMeta } from "../../shared/rpc.js";
@@ -45,6 +50,18 @@ import { FlowSettingsDialog } from "./FlowSettingsDialog.js";
 import { SettingsSidebar } from "./SettingsSidebar.js";
 
 type ListIcon = ComponentType<SVGProps<SVGSVGElement> & { className?: string }>;
+
+function DragGrip({ className }: { className?: string }) {
+	return (
+		<IconGripVertical
+			className={cn(
+				"size-3.5 shrink-0 text-muted-foreground/50 group-hover:text-muted-foreground",
+				className,
+			)}
+			aria-hidden
+		/>
+	);
+}
 
 export function PrimarySidebar() {
 	const width = useQuesterStore((s) => s.sidebarWidth);
@@ -75,6 +92,7 @@ export function PrimarySidebar() {
 	const createRequest = useQuesterStore((s) => s.createRequest);
 	const deleteRequest = useQuesterStore((s) => s.deleteRequest);
 	const addRequestToCanvas = useQuesterStore((s) => s.addRequestToCanvas);
+	const handleDropFlow = useQuesterStore((s) => s.handleDropFlow);
 	const renameFlow = useQuesterStore((s) => s.renameFlow);
 	const deleteFlow = useQuesterStore((s) => s.deleteFlow);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
@@ -147,7 +165,13 @@ export function PrimarySidebar() {
 							label={flow.name}
 							selected={activeTabId === flowTabId(flow.id)}
 							dirty={dirtyTabIds.includes(flowTabId(flow.id))}
+							draggable
+							onDragStart={(event) => {
+								setFlowDragData(event.dataTransfer, flow.id);
+							}}
 							onSelect={() => void loadFlow(flow.id, workspacePath)}
+							onAddToCanvas={() => handleDropFlow(flow.id)}
+							addToCanvasLabel="Add as subflow"
 							onRename={() => void renameFlow(flow.id)}
 							onEditDetails={() => {
 								void (async () => {
@@ -241,12 +265,13 @@ export function PrimarySidebar() {
 											type="button"
 											variant="ghost"
 											draggable
-											className="h-auto cursor-grab items-start justify-start gap-2 px-2 py-1.5 text-left font-normal active:cursor-grabbing"
+											className="group h-auto cursor-grab items-start justify-start gap-2 px-2 py-1.5 text-left font-normal active:cursor-grabbing"
 											onClick={() => handleAddNode(node.type)}
 											onDragStart={(event) => {
 												setNodeDragData(event.dataTransfer, node.type);
 											}}
 										>
+											<DragGrip className="mt-0.5" />
 											<NodeIcon className="mt-0.5 size-4 shrink-0 opacity-70" />
 											<span className="flex min-w-0 flex-col gap-0">
 												<span className="text-sm">{node.label}</span>
@@ -475,6 +500,10 @@ function FileListItem({
 	onRename,
 	onEditDetails,
 	onDelete,
+	draggable,
+	onDragStart,
+	onAddToCanvas,
+	addToCanvasLabel = "Add to canvas",
 }: {
 	icon: ListIcon;
 	label: string;
@@ -484,6 +513,10 @@ function FileListItem({
 	onRename?: () => void;
 	onEditDetails?: () => void;
 	onDelete?: () => void;
+	draggable?: boolean;
+	onDragStart?: (event: DragEvent) => void;
+	onAddToCanvas?: () => void;
+	addToCanvasLabel?: string;
 }) {
 	const item = (
 		<div
@@ -494,9 +527,21 @@ function FileListItem({
 		>
 			<button
 				type="button"
-				className="flex h-8 min-w-0 flex-1 items-center gap-1.5 px-2 text-left text-sm font-normal"
+				draggable={draggable}
+				className={cn(
+					"flex h-8 min-w-0 flex-1 items-center gap-1.5 px-2 text-left text-sm font-normal",
+					draggable && "cursor-grab active:cursor-grabbing",
+				)}
 				onClick={onSelect}
+				onDragStart={
+					draggable
+						? (event) => {
+								onDragStart?.(event);
+							}
+						: undefined
+				}
 			>
+				{draggable ? <DragGrip /> : null}
 				<Icon className="size-3.5 shrink-0 opacity-70" />
 				<span className="truncate">{label}</span>
 				{dirty ? (
@@ -537,6 +582,11 @@ function FileListItem({
 			<ContextMenuTrigger className="block w-full">{item}</ContextMenuTrigger>
 			<ContextMenuContent>
 				<ContextMenuItem onClick={onSelect}>Open</ContextMenuItem>
+				{onAddToCanvas ? (
+					<ContextMenuItem onClick={onAddToCanvas}>
+						{addToCanvasLabel}
+					</ContextMenuItem>
+				) : null}
 				{onEditDetails ? (
 					<ContextMenuItem onClick={onEditDetails}>
 						Flow settings…
@@ -589,6 +639,7 @@ function RequestListItem({
 					setRequestDragData(event.dataTransfer, request.path);
 				}}
 			>
+				<DragGrip />
 				<IconWorld className="size-3.5 shrink-0 opacity-70" />
 				<span className="truncate">{request.name}</span>
 				{dirty ? (

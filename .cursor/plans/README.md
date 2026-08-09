@@ -9,7 +9,7 @@ Open **one plan at a time**, in priority order. Source of truth for checkboxes: 
 | 03 | [Performance](./03-performance.md) | After core run correctness (01 B4/B5) |
 | 04 | [Desktop — JSON / response viewers](./04-desktop-json-viewers.md) | After 01; pairs with 03 |
 | 05 | [Desktop — Run UX](./05-desktop-run-ux.md) | After B5/B8 (plan 01) |
-| 06 | [Desktop — canvas, DnD, nodes UI](./06-desktop-canvas-nodes.md) | After 01 |
+| 06 | [Desktop — canvas, DnD, nodes UI](./06-desktop-canvas-nodes.md) | After 01 — **code complete** (await user X/Y/Z) |
 | 07 | [Desktop — folder logs viewer](./07-desktop-logs-viewer.md) | After 04 (reuse viewer) |
 | 08 | [Web + docs](./08-web-and-docs.md) | Can parallel with 01 if touching B6/B17 |
 | 09 | [Framed try / foreach](./09-framed-try-foreach.md) | After B4 (fan-in) |

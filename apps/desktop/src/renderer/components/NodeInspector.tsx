@@ -74,6 +74,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 	const data = node.data as Record<string, unknown>;
 	const inputJson = useQuesterStore((s) => s.inputJson);
 	const setInputJson = useQuesterStore((s) => s.setInputJson);
+	const flows = useQuesterStore((s) => s.flows);
 	const fieldErrors = getNodeFieldErrors(node.type, data);
 
 	const setField = (key: string, value: unknown) => {
@@ -556,14 +557,48 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "subflow" ? (
 				<>
 					<InspectorField
-						label="Flow id"
-						hint="Target flow in the workspace (without .flow.json)."
+						label="Target flow"
+						hint="Flow in this workspace (without .flow.json). Pick from the list or type a custom id."
 					>
-						<Input
-							value={String(data.flowId ?? "")}
-							onChange={(e) => setField("flowId", e.target.value)}
-							placeholder="login-and-profile"
-						/>
+						<div className="flex flex-col gap-2">
+							{flows.length > 0 ? (
+								<Select
+									value={String(data.flowId ?? "") || undefined}
+									onValueChange={(flowId) => {
+										if (typeof flowId === "string" && flowId) {
+											setField("flowId", flowId);
+										}
+									}}
+								>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="Select a flow…" />
+									</SelectTrigger>
+									<SelectContent>
+										{(() => {
+											const current = String(data.flowId ?? "");
+											const known = flows.some((f) => f.id === current);
+											return (
+												<>
+													{!known && current ? (
+														<SelectItem value={current}>{current}</SelectItem>
+													) : null}
+													{flows.map((f) => (
+														<SelectItem key={f.id} value={f.id}>
+															{f.name === f.id ? f.id : `${f.name} (${f.id})`}
+														</SelectItem>
+													))}
+												</>
+											);
+										})()}
+									</SelectContent>
+								</Select>
+							) : null}
+							<Input
+								value={String(data.flowId ?? "")}
+								onChange={(e) => setField("flowId", e.target.value)}
+								placeholder="echo-subflow"
+							/>
+						</div>
 					</InspectorField>
 					<InspectorField
 						label="Input"

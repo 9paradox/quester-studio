@@ -30,6 +30,7 @@ function resetShellState() {
 		openTabs: [],
 		activeTabId: null,
 		selectedNodeId: null,
+		selectedNodeIds: [],
 		loadError: null,
 		isLoading: false,
 		runByFlowId: {},

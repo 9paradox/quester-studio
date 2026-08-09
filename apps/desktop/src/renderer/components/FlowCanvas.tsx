@@ -12,8 +12,15 @@ import {
 	readCanvasViewport,
 	writeCanvasViewport,
 } from "@/lib/canvasViewport.js";
-import { readNodeDragData, readRequestDragData } from "@/lib/dnd.js";
 import {
+	readCodeDragData,
+	readFlowDragData,
+	readFormDragData,
+	readNodeDragData,
+	readRequestDragData,
+} from "@/lib/dnd.js";
+import {
+	type AlignNodesMode,
 	EDGE_INTERACTION_WIDTH,
 	flowToReactFlow,
 	isValidFlowConnection,
@@ -44,17 +51,20 @@ import {
 	useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
+import { toast } from "sonner";
 import { flowNodeTypes } from "./nodes/FlowNodes.js";
 
 type FlowCanvasProps = {
 	flow: FlowV1 | null;
 	workspacePath?: string;
 	onGraphChange?: (nodes: Node[], edges: Edge[]) => void;
-	onSelectNode?: (nodeId: string | null) => void;
+	onSelectNodes?: (nodeIds: string[]) => void;
 	onZoomChange?: (zoom: number) => void;
 	onDeleteNodes?: (nodeIds: string[]) => void;
 	onDeleteEdges?: (edgeIds: string[]) => void;
 	onDuplicateNode?: (nodeId: string) => void;
+	onAlignNodes?: (mode: AlignNodesMode) => void;
+	onDistributeNodes?: (axis: "horizontal" | "vertical") => void;
 	onAddNode?: (
 		type: BuiltinNodeType,
 		position: { x: number; y: number },
@@ -63,6 +73,7 @@ type FlowCanvasProps = {
 		requestPath: string,
 		position: { x: number; y: number },
 	) => void;
+	onDropFlow?: (flowId: string, position: { x: number; y: number }) => void;
 	onSave?: () => void;
 	canSave?: boolean;
 };
@@ -73,16 +84,16 @@ type ContextTarget =
 	| { kind: "pane" };
 
 function SelectionBridge({
-	onSelectNode,
+	onSelectNodes,
 }: {
-	onSelectNode?: (nodeId: string | null) => void;
+	onSelectNodes?: (nodeIds: string[]) => void;
 }) {
-	const onSelectNodeRef = useRef(onSelectNode);
-	onSelectNodeRef.current = onSelectNode;
+	const onSelectNodesRef = useRef(onSelectNodes);
+	onSelectNodesRef.current = onSelectNodes;
 
 	useOnSelectionChange({
 		onChange: useCallback(({ nodes }) => {
-			onSelectNodeRef.current?.(nodes[0]?.id ?? null);
+			onSelectNodesRef.current?.(nodes.map((n) => n.id));
 		}, []),
 	});
 	return null;
@@ -219,24 +230,29 @@ function FlowCanvasInner({
 	flow,
 	workspacePath,
 	onGraphChange,
-	onSelectNode,
+	onSelectNodes,
 	onZoomChange,
 	onDeleteNodes,
 	onDeleteEdges,
 	onDuplicateNode,
+	onAlignNodes,
+	onDistributeNodes,
 	onAddNode,
 	onDropRequest,
+	onDropFlow,
 	onSave,
 	canSave,
 }: {
 	flow: FlowV1;
 	workspacePath: string;
 	onGraphChange?: (nodes: Node[], edges: Edge[]) => void;
-	onSelectNode?: (nodeId: string | null) => void;
+	onSelectNodes?: (nodeIds: string[]) => void;
 	onZoomChange?: (zoom: number) => void;
 	onDeleteNodes?: (nodeIds: string[]) => void;
 	onDeleteEdges?: (edgeIds: string[]) => void;
 	onDuplicateNode?: (nodeId: string) => void;
+	onAlignNodes?: (mode: AlignNodesMode) => void;
+	onDistributeNodes?: (axis: "horizontal" | "vertical") => void;
 	onAddNode?: (
 		type: BuiltinNodeType,
 		position: { x: number; y: number },
@@ -245,6 +261,7 @@ function FlowCanvasInner({
 		requestPath: string,
 		position: { x: number; y: number },
 	) => void;
+	onDropFlow?: (flowId: string, position: { x: number; y: number }) => void;
 	onSave?: () => void;
 	canSave?: boolean;
 }) {
@@ -479,9 +496,22 @@ function FlowCanvasInner({
 			const requestPath = readRequestDragData(event.dataTransfer);
 			if (requestPath) {
 				onDropRequest?.(requestPath, position);
+				return;
+			}
+			const droppedFlowId = readFlowDragData(event.dataTransfer);
+			if (droppedFlowId) {
+				onDropFlow?.(droppedFlowId, position);
+				return;
+			}
+			if (readFormDragData(event.dataTransfer)) {
+				toast.info("Forms coming soon");
+				return;
+			}
+			if (readCodeDragData(event.dataTransfer)) {
+				toast.info("Code node coming soon");
 			}
 		},
-		[onAddNode, onDropRequest, screenToFlowPosition],
+		[onAddNode, onDropFlow, onDropRequest, screenToFlowPosition],
 	);
 
 	return (
@@ -579,7 +609,7 @@ function FlowCanvasInner({
 						workspacePath={workspacePath}
 						onZoomChange={onZoomChange}
 					/>
-					<SelectionBridge onSelectNode={onSelectNode} />
+					<SelectionBridge onSelectNodes={onSelectNodes} />
 					<CanvasFocusBridge />
 					<ViewportBridge onZoomChange={onZoomChange} />
 				</ReactFlow>
@@ -594,10 +624,55 @@ function FlowCanvasInner({
 						</ContextMenuItem>
 						<ContextMenuItem
 							variant="destructive"
-							onClick={() => onDeleteNodes?.([contextTarget.id])}
+							onClick={() => {
+								const selected = nodes
+									.filter((n) => n.selected)
+									.map((n) => n.id);
+								const ids =
+									selected.length > 1 && selected.includes(contextTarget.id)
+										? selected
+										: [contextTarget.id];
+								onDeleteNodes?.(ids);
+							}}
 						>
 							Delete
 						</ContextMenuItem>
+						{nodes.filter((n) => n.selected).length >= 2 ? (
+							<>
+								<ContextMenuItem onClick={() => onAlignNodes?.("left")}>
+									Align left
+								</ContextMenuItem>
+								<ContextMenuItem onClick={() => onAlignNodes?.("right")}>
+									Align right
+								</ContextMenuItem>
+								<ContextMenuItem onClick={() => onAlignNodes?.("top")}>
+									Align top
+								</ContextMenuItem>
+								<ContextMenuItem onClick={() => onAlignNodes?.("bottom")}>
+									Align bottom
+								</ContextMenuItem>
+								<ContextMenuItem onClick={() => onAlignNodes?.("centerX")}>
+									Align center X
+								</ContextMenuItem>
+								<ContextMenuItem onClick={() => onAlignNodes?.("centerY")}>
+									Align center Y
+								</ContextMenuItem>
+							</>
+						) : null}
+						{nodes.filter((n) => n.selected).length >= 3 ? (
+							<>
+								<ContextMenuItem
+									onClick={() => onDistributeNodes?.("horizontal")}
+								>
+									Distribute horizontally
+								</ContextMenuItem>
+								<ContextMenuItem
+									onClick={() => onDistributeNodes?.("vertical")}
+								>
+									Distribute vertically
+								</ContextMenuItem>
+							</>
+						) : null}
 					</>
 				) : null}
 				{contextTarget.kind === "edge" ? (
@@ -629,13 +704,16 @@ export function FlowCanvas({
 	flow,
 	workspacePath = "",
 	onGraphChange,
-	onSelectNode,
+	onSelectNodes,
 	onZoomChange,
 	onDeleteNodes,
 	onDeleteEdges,
 	onDuplicateNode,
+	onAlignNodes,
+	onDistributeNodes,
 	onAddNode,
 	onDropRequest,
+	onDropFlow,
 	onSave,
 	canSave,
 }: FlowCanvasProps) {
@@ -655,13 +733,16 @@ export function FlowCanvas({
 					flow={flow}
 					workspacePath={workspacePath}
 					onGraphChange={onGraphChange}
-					onSelectNode={onSelectNode}
+					onSelectNodes={onSelectNodes}
 					onZoomChange={onZoomChange}
 					onDeleteNodes={onDeleteNodes}
 					onDeleteEdges={onDeleteEdges}
 					onDuplicateNode={onDuplicateNode}
+					onAlignNodes={onAlignNodes}
+					onDistributeNodes={onDistributeNodes}
 					onAddNode={onAddNode}
 					onDropRequest={onDropRequest}
+					onDropFlow={onDropFlow}
 					onSave={onSave}
 					canSave={canSave}
 				/>
