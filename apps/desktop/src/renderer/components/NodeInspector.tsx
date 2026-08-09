@@ -7,6 +7,7 @@ import { HeadersEditor } from "@/components/HeadersEditor.js";
 import { JmesPathField } from "@/components/JmesPathField.js";
 import { JsonDraftField } from "@/components/JsonDraftField.js";
 import { NodeHelpDialog } from "@/components/NodeHelpDialog.js";
+import { SwitchCasesEditor } from "@/components/SwitchCasesEditor.js";
 import { TemplateField } from "@/components/TemplateField.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
@@ -601,12 +602,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Cases"
-						hint='JSON array of { "value": "...", "handle": "..." }. Connect outgoing edges using sourceHandle = handle.'
+						hint="Each case matches the resolved expression/path value and exposes a named out handle on the node. Canvas ports update as you add or edit cases."
 					>
-						<JsonDraftField
-							value={data.cases ?? [{ value: "ok", handle: "success" }]}
-							onCommit={(cases) => setField("cases", cases)}
-							minHeight="7rem"
+						<SwitchCasesEditor
+							cases={data.cases}
+							onChange={(cases) => setField("cases", cases)}
 						/>
 					</InspectorField>
 					<InspectorField

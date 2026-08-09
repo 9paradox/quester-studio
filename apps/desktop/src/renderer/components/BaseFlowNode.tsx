@@ -14,7 +14,8 @@ import {
 	IconLoader2,
 } from "@tabler/icons-react";
 import type { ReactNode } from "react";
-import { Handle, Position } from "reactflow";
+import { useEffect } from "react";
+import { Handle, Position, useUpdateNodeInternals } from "reactflow";
 import type { NodeRunStatus } from "../../shared/rpc.js";
 
 export type FlowNodeData = {
@@ -30,7 +31,22 @@ const statusLabel: Record<NodeRunStatus, string> = {
 	skipped: "Skipped",
 };
 
-type PortSpec = { id?: string; connected?: boolean };
+type PortSpec = { id?: string; label?: string; connected?: boolean };
+
+/** First stacked out / step between outs (rem) — matches try success/failed spacing. */
+const HEADER_OUT_START_REM = 1.1;
+const HEADER_OUT_STEP_REM = 1.05;
+/** Padding below the last stacked out so the handle sits inside the border. */
+const HEADER_OUT_BOTTOM_PAD_REM = 1.25;
+
+function headerOutTopRem(index: number): number {
+	return HEADER_OUT_START_REM + index * HEADER_OUT_STEP_REM;
+}
+
+function headerOutMinHeightRem(portCount: number): number | undefined {
+	if (portCount <= 1) return undefined;
+	return headerOutTopRem(portCount - 1) + HEADER_OUT_BOTTOM_PAD_REM;
+}
 
 type BaseFlowNodeProps = {
 	type: BuiltinNodeType;
@@ -41,6 +57,12 @@ type BaseFlowNodeProps = {
 	children?: ReactNode;
 	targetPorts?: PortSpec[];
 	sourcePorts?: PortSpec[];
+	/**
+	 * Where to place multiple source handles on the right edge.
+	 * `header` matches framed try (stacked in the title row); `spread`
+	 * distributes along the full node height.
+	 */
+	sourcePortPlacement?: "header" | "spread";
 	selected?: boolean;
 	runStatus?: NodeRunStatus;
 	/** Fill the React Flow node box (for resizable nodes). */
@@ -56,6 +78,7 @@ export function BaseFlowNode({
 	children,
 	targetPorts = [{}],
 	sourcePorts = [{}],
+	sourcePortPlacement = "spread",
 	selected,
 	runStatus,
 	fill = false,
@@ -63,11 +86,46 @@ export function BaseFlowNode({
 }: BaseFlowNodeProps) {
 	const presentation = getNodePresentation(type);
 	const TypeIcon = presentation.icon;
+	const updateNodeInternals = useUpdateNodeInternals();
+	const labeledSources = sourcePorts.some((p) => Boolean(p.label ?? p.id));
+	const headerPad =
+		sourcePortPlacement === "header" && sourcePorts.length > 0
+			? sourcePorts.length > 1
+				? "pr-16"
+				: "pr-14"
+			: labeledSources
+				? "pr-12"
+				: undefined;
+	const autoMinHeightRem =
+		sourcePortPlacement === "header"
+			? headerOutMinHeightRem(sourcePorts.length)
+			: undefined;
+	const sourcePortKey = sourcePorts.map((p) => p.id ?? "").join("\0");
+	const handleLayoutKey = [
+		sourcePortKey,
+		String(sourcePorts.length),
+		String(autoMinHeightRem ?? ""),
+		sourcePortPlacement,
+	].join("|");
+
+	// Dynamic outs (switch cases) move/resize the node — refresh RF handle
+	// geometry so edges attach to the labeled port, not a stale slot.
+	useEffect(() => {
+		void handleLayoutKey;
+		updateNodeInternals(nodeId);
+		const raf = requestAnimationFrame(() => {
+			updateNodeInternals(nodeId);
+		});
+		return () => cancelAnimationFrame(raf);
+	}, [nodeId, handleLayoutKey, updateNodeInternals]);
 
 	return (
 		<div
 			className={cn(
-				"relative overflow-hidden rounded-lg border bg-card text-card-foreground transition-[box-shadow,opacity,transform] duration-200",
+				"relative rounded-lg border bg-card text-card-foreground transition-[box-shadow,opacity,transform] duration-200",
+				sourcePortPlacement === "header"
+					? "overflow-visible"
+					: "overflow-hidden",
 				fill
 					? "flex h-full min-h-0 w-full min-w-0 flex-col"
 					: "min-w-[210px] max-w-[300px]",
@@ -81,6 +139,11 @@ export function BaseFlowNode({
 				runStatus === "skipped" && "opacity-70",
 				className,
 			)}
+			style={
+				autoMinHeightRem != null
+					? { minHeight: `${autoMinHeightRem}rem` }
+					: undefined
+			}
 			data-run-status={runStatus ?? "none"}
 		>
 			{targetPorts.map((port, index) => (
@@ -91,6 +154,7 @@ export function BaseFlowNode({
 					index={index}
 					total={targetPorts.length}
 					connected={port.connected}
+					placement="spread"
 				/>
 			))}
 			{sourcePorts.map((port, index) => (
@@ -101,10 +165,17 @@ export function BaseFlowNode({
 					index={index}
 					total={sourcePorts.length}
 					connected={port.connected}
+					placement={sourcePortPlacement}
+					label={port.label ?? port.id}
 				/>
 			))}
 
-			<div className="flex shrink-0 items-center gap-2 border-b border-border/60 bg-muted/20 px-2.5 py-2">
+			<div
+				className={cn(
+					"flex shrink-0 items-center gap-2 overflow-hidden rounded-t-[inherit] border-b border-border/60 bg-muted/20 px-2.5 py-2",
+					headerPad,
+				)}
+			>
 				<Badge
 					variant="secondary"
 					className={cn(
@@ -193,29 +264,53 @@ function FlowHandle({
 	index,
 	total,
 	connected,
+	placement,
+	label,
 }: {
 	kind: "source" | "target";
 	id?: string;
 	index: number;
 	total: number;
 	connected?: boolean;
+	placement: "header" | "spread";
+	label?: string;
 }) {
 	// Single ports align to the header row (not 50% of body+header), so nodes
 	// with a summary section (e.g. Assert) match Extract/HTTP handle placement.
-	const top =
-		total <= 1 ? "2.125rem" : `${20 + (index / Math.max(total - 1, 1)) * 60}%`;
+	// Header placement stacks outs from the title row downward; the node
+	// min-height grows with port count so nothing overflows the box.
+	const top = (() => {
+		if (total <= 1) return "2.125rem";
+		if (placement === "header") {
+			return `${headerOutTopRem(index)}rem`;
+		}
+		return `${20 + (index / Math.max(total - 1, 1)) * 60}%`;
+	})();
+
+	const showLabel = kind === "source" && Boolean(label);
 
 	return (
-		<Handle
-			type={kind}
-			id={id}
-			position={kind === "target" ? Position.Left : Position.Right}
-			style={{ top }}
-			className={cn(
-				"size-2.5! border-2! border-background!",
-				connected ? "bg-primary!" : "bg-muted-foreground!",
-			)}
-		/>
+		<>
+			<Handle
+				type={kind}
+				id={id}
+				position={kind === "target" ? Position.Left : Position.Right}
+				style={{ top }}
+				className={cn(
+					"size-2.5! border-2! border-background!",
+					connected ? "bg-primary!" : "bg-muted-foreground!",
+				)}
+				title={label}
+			/>
+			{showLabel ? (
+				<span
+					className="pointer-events-none absolute z-10 -translate-y-1/2 text-[9px] font-medium uppercase tracking-wide text-muted-foreground"
+					style={{ top, right: 12 }}
+				>
+					{label}
+				</span>
+			) : null}
+		</>
 	);
 }
 
