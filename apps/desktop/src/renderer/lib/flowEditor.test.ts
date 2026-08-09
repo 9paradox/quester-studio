@@ -190,6 +190,78 @@ describe("isValidFlowConnection", () => {
 			}),
 		).toBe(true);
 	});
+
+	test("rejects a second frame entry or exit edge", () => {
+		const framed = [
+			{ id: "guard", type: "try" },
+			{ id: "a", type: "http", parentId: "guard" },
+			{ id: "b", type: "extract", parentId: "guard" },
+		];
+		expect(
+			isValidFlowConnection({
+				source: "guard",
+				target: "b",
+				sourceHandle: "entry",
+				nodes: framed,
+				edges: [
+					{
+						id: "e-entry",
+						source: "guard",
+						target: "a",
+						sourceHandle: "entry",
+					},
+				],
+			}),
+		).toBe(false);
+		expect(
+			isValidFlowConnection({
+				source: "b",
+				target: "guard",
+				targetHandle: "exit",
+				nodes: framed,
+				edges: [
+					{
+						id: "e-exit",
+						source: "a",
+						target: "guard",
+						targetHandle: "exit",
+					},
+				],
+			}),
+		).toBe(false);
+	});
+
+	test("rejects body sibling cycles", () => {
+		const framed = [
+			{ id: "guard", type: "try" },
+			{ id: "http", type: "http", parentId: "guard" },
+			{ id: "ex", type: "extract", parentId: "guard" },
+		];
+		expect(
+			isValidFlowConnection({
+				source: "ex",
+				target: "http",
+				nodes: framed,
+				edges: [{ id: "e-http-ex", source: "http", target: "ex" }],
+			}),
+		).toBe(false);
+		// Linear chain still allowed
+		expect(
+			isValidFlowConnection({
+				source: "http",
+				target: "ex",
+				nodes: framed,
+				edges: [
+					{
+						id: "e-entry",
+						source: "guard",
+						target: "http",
+						sourceHandle: "entry",
+					},
+				],
+			}),
+		).toBe(true);
+	});
 });
 
 describe("ensureFrameBodyWiring", () => {
@@ -254,6 +326,66 @@ describe("ensureFrameBodyWiring", () => {
 		expect(pruned.edges.some((e) => e.id === "e-entry-ex")).toBe(false);
 		expect(pruned.edges.some((e) => e.id === "e-http-exit")).toBe(false);
 		expect(pruned.edges.some((e) => e.id === "e-http-ex")).toBe(true);
+		// Exit moved from http → frame onto ex → frame
+		expect(
+			pruned.edges.some(
+				(e) =>
+					e.source === "ex" &&
+					e.target === "guard" &&
+					e.targetHandle === "exit",
+			),
+		).toBe(true);
+	});
+
+	test("does not add a second entry when the frame already has one", () => {
+		const flow: FlowV1 = {
+			version: "v1",
+			id: "f",
+			nodes: [
+				{ id: "guard", type: "try", data: {}, position: { x: 0, y: 0 } },
+				{
+					id: "http",
+					type: "http",
+					data: {},
+					parentId: "guard",
+					extent: "parent",
+					position: { x: 20, y: 40 },
+				},
+				{
+					id: "ex",
+					type: "extract",
+					data: {},
+					parentId: "guard",
+					extent: "parent",
+					position: { x: 20, y: 120 },
+				},
+			],
+			edges: [
+				{
+					id: "e-entry-http",
+					source: "guard",
+					target: "http",
+					sourceHandle: "entry",
+				},
+				{
+					id: "e-http-exit",
+					source: "http",
+					target: "guard",
+					targetHandle: "exit",
+				},
+			],
+		};
+		const wired = ensureFrameBodyWiring(flow, "guard", "ex");
+		expect(
+			wired.edges.filter(
+				(e) => e.source === "guard" && e.sourceHandle === "entry",
+			),
+		).toHaveLength(1);
+		expect(
+			wired.edges.filter(
+				(e) => e.target === "guard" && e.targetHandle === "exit",
+			),
+		).toHaveLength(1);
 	});
 });
 

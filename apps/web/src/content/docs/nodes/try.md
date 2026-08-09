@@ -9,7 +9,7 @@ Soft condition branching belongs on [`if`](../if/), not `try`.
 
 ## Canvas shape
 
-Outside wires attach only to the frame (left in, right `success` / `failed`). Inside the frame, wire `entry → body → exit`.
+Outside wires attach only to the frame (left **in**, header-right **`success`** / **`failed`**). Inside the frame, wire a **single** `entry → body → exit` path (one entry edge and one exit edge).
 
 ## Wiring
 

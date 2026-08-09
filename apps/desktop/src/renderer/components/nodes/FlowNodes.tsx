@@ -41,7 +41,7 @@ function FramePortLabel({
 	children,
 }: {
 	side: "left" | "right";
-	top: string;
+	top?: string;
 	/** Distance from that outer side (px). Higher = further inward. */
 	insetPx: number;
 	children: string;
@@ -50,7 +50,7 @@ function FramePortLabel({
 		<span
 			className="pointer-events-none absolute z-10 -translate-y-1/2 text-[9px] font-medium uppercase tracking-wide text-muted-foreground"
 			style={{
-				top,
+				top: top ?? "50%",
 				...(side === "left" ? { left: insetPx } : { right: insetPx }),
 			}}
 		>
@@ -90,10 +90,12 @@ function FrameContainerShell({
 	const entryConnected = isHandleConnected(edges, id, "source", "entry");
 	const exitConnected = isHandleConnected(edges, id, "target", "exit");
 
-	// Body mid of the inner frame (below header).
+	// Body mid of the inner frame (below header) — single entry / single exit.
 	const innerPortTop = "62%";
-	// Outer outs stay on the outer right edge (success / failed / complete).
-	const outerOutTops = outerSources.length <= 1 ? ["34%"] : ["28%", "82%"];
+	// Outer outs live on the header's right edge (not body mid).
+	// Single: header vertical center. Two: SUCCESS above FAILED within header.
+	const outerOutTops =
+		outerSources.length <= 1 ? ["2.125rem"] : ["1.1rem", "2.9rem"];
 
 	const handleClass = (connected: boolean) =>
 		cn(
@@ -133,8 +135,8 @@ function FrameContainerShell({
 				/>
 
 				{/*
-				 * 1/3 — entry on INNER left border, facing RIGHT into the body
-				 * so edges (7) leave inward instead of looping outside.
+				 * Single ENTRY on INNER left border, facing RIGHT into the body
+				 * so edges leave inward instead of looping outside.
 				 */}
 				<Handle
 					type="source"
@@ -159,9 +161,9 @@ function FrameContainerShell({
 					entry
 				</FramePortLabel>
 
-				{/* 5/6 — success / failed (and foreach complete) on OUTER right */}
+				{/* Outer outs on HEADER right: success / failed / complete */}
 				{outerSources.map((port, index) => {
-					const top = outerOutTops[index] ?? "34%";
+					const top = outerOutTops[index] ?? "2.125rem";
 					return (
 						<Handle
 							key={port.id}
@@ -177,13 +179,13 @@ function FrameContainerShell({
 					);
 				})}
 				{outerSources.map((port, index) => {
-					const top = outerOutTops[index] ?? "34%";
+					const top = outerOutTops[index] ?? "2.125rem";
 					return (
 						<FramePortLabel
 							key={`label-${port.id}`}
 							side="right"
 							top={top}
-							insetPx={10}
+							insetPx={12}
 						>
 							{port.label}
 						</FramePortLabel>
@@ -191,7 +193,7 @@ function FrameContainerShell({
 				})}
 
 				{/*
-				 * 2/4 — exit on INNER right border, facing LEFT into the body
+				 * Single EXIT on INNER right border, facing LEFT into the body
 				 * so edges approach from inside instead of looping outside.
 				 */}
 				<Handle
@@ -217,7 +219,12 @@ function FrameContainerShell({
 					exit
 				</FramePortLabel>
 
-				<div className="flex shrink-0 items-center gap-2 overflow-hidden rounded-t-[inherit] border-b border-border/60 bg-muted/40 px-2.5 py-2">
+				<div
+					className={cn(
+						"flex shrink-0 items-center gap-2 overflow-hidden rounded-t-[inherit] border-b border-border/60 bg-muted/40 px-2.5 py-2",
+						outerSources.length > 1 ? "pr-16" : "pr-14",
+					)}
+				>
 					<span
 						className={cn(
 							"inline-flex h-5 items-center gap-1 rounded-sm px-1.5 text-[10px]",

@@ -1,4 +1,4 @@
-﻿import {
+import {
 	type FlowEdgeV1,
 	type FlowNodeV1,
 	type FlowV1,
@@ -189,12 +189,26 @@ function validateFrames(
 				message: `${node.type} frame "${node.id}" requires an entry edge to a body child`,
 				suggestion: `Connect ${node.id} → child with sourceHandle "entry"`,
 			});
+		} else if (entryTargets.size > 1) {
+			issues.push({
+				path: `nodes/${node.id}`,
+				message: `${node.type} frame "${node.id}" can have only one entry edge (found ${entryTargets.size})`,
+				suggestion:
+					"Keep a single entry → body root; wire other body nodes from that root",
+			});
 		}
 		if (exitSources.size === 0) {
 			issues.push({
 				path: `nodes/${node.id}`,
 				message: `${node.type} frame "${node.id}" requires an exit edge from a body child`,
 				suggestion: `Connect child → ${node.id} with targetHandle "exit"`,
+			});
+		} else if (exitSources.size > 1) {
+			issues.push({
+				path: `nodes/${node.id}`,
+				message: `${node.type} frame "${node.id}" can have only one exit edge (found ${exitSources.size})`,
+				suggestion:
+					"Keep a single body sink → exit; wire other body nodes into that sink",
 			});
 		}
 
