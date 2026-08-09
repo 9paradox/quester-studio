@@ -79,6 +79,18 @@ export type ResponseViewerTab = {
 	snapshot: ResponseViewerSnapshot;
 };
 
+/** Disk run log (meta.json or step file) opened from the Runs browser. */
+export type RunLogEditorTab = {
+	kind: "runLog";
+	id: string;
+	relativePath: string;
+	title: string;
+	dirty: boolean;
+	data: unknown | null;
+	error?: string | null;
+	loading: boolean;
+};
+
 export type EditorTab =
 	| FlowEditorTab
 	| EnvEditorTab
@@ -86,7 +98,8 @@ export type EditorTab =
 	| RequestEditorTab
 	| AppSettingsEditorTab
 	| WorkspaceSettingsEditorTab
-	| ResponseViewerTab;
+	| ResponseViewerTab
+	| RunLogEditorTab;
 
 export function flowTabId(flowId: string): string {
 	return `flow:${flowId}`;
@@ -114,6 +127,10 @@ export function workspaceSettingsTabId(): string {
 
 export function responseTabId(sourceKey: string, stamp: number): string {
 	return `response:${sourceKey}:${stamp}`;
+}
+
+export function runLogTabId(relativePath: string): string {
+	return `runLog:${relativePath}`;
 }
 
 export function createFlowEditorTab(flow: FlowV1): FlowEditorTab {
@@ -197,6 +214,22 @@ export function createResponseViewerTab(
 	};
 }
 
+export function createRunLogEditorTab(
+	relativePath: string,
+	title: string,
+): RunLogEditorTab {
+	return {
+		kind: "runLog",
+		id: runLogTabId(relativePath),
+		relativePath,
+		title,
+		dirty: false,
+		data: null,
+		error: null,
+		loading: true,
+	};
+}
+
 export function editorTabLabel(tab: EditorTab): string {
 	switch (tab.kind) {
 		case "flow":
@@ -213,6 +246,8 @@ export function editorTabLabel(tab: EditorTab): string {
 			return "Workspace settings";
 		case "response":
 			return tab.snapshot.title;
+		case "runLog":
+			return tab.title;
 	}
 }
 
@@ -225,6 +260,7 @@ export function editorTabIcon(
 	| "request"
 	| "appSettings"
 	| "workspaceSettings"
-	| "response" {
+	| "response"
+	| "runLog" {
 	return tab.kind;
 }

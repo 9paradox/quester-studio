@@ -126,6 +126,12 @@ export const desktopRpc = {
 		getRpc().request.setAppTlsVerify({ verifyTls }),
 	getAppTlsVerify: () => getRpc().request.getAppTlsVerify({}),
 	openPathInOs: (path: string) => getRpc().request.openPathInOs({ path }),
+	listRunTree: (workspace: string) =>
+		getRpc().request.listRunTree({ workspace }),
+	readRunJson: (workspace: string, relativePath: string) =>
+		getRpc().request.readRunJson({ workspace, relativePath }),
+	deleteRunPath: (workspace: string, relativePath: string) =>
+		getRpc().request.deleteRunPath({ workspace, relativePath }),
 	setNativeChromeTheme: (theme: ThemePreference) =>
 		getRpc().request.setNativeChromeTheme({ theme }),
 };

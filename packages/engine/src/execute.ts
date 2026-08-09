@@ -109,13 +109,17 @@ function buildPartialResult(
 	return { output, nodeOutputs, nodeInputs, steps, vars, runDir };
 }
 
-function throwIfAborted(
+async function abortIfRequested(
 	signal: AbortSignal | undefined,
-	partial: ExecuteFlowResult,
-): void {
-	if (signal?.aborted) {
-		throw new FlowCancelledError("Flow run cancelled", { partial });
+	runLogger: RunFileLogger | undefined,
+	partial: () => ExecuteFlowResult,
+): Promise<void> {
+	if (!signal?.aborted) return;
+	// Cancel between nodes used to leave meta.json stuck at status "running".
+	if (runLogger) {
+		await runLogger.finish({ status: "cancelled" });
 	}
+	throw new FlowCancelledError("Flow run cancelled", { partial: partial() });
 }
 
 export async function executeFlow(
@@ -171,7 +175,7 @@ export async function executeFlow(
 		);
 
 	while (queue.length > 0) {
-		throwIfAborted(options.signal, partial());
+		await abortIfRequested(options.signal, runLogger, partial);
 
 		const nodeId = queue.shift();
 		if (!nodeId || executed.has(nodeId)) continue;
@@ -182,7 +186,7 @@ export async function executeFlow(
 		const node = nodeById.get(nodeId);
 		if (!node) continue;
 
-		throwIfAborted(options.signal, partial());
+		await abortIfRequested(options.signal, runLogger, partial);
 
 		const plugin = getNodePlugin(node.type);
 		if (!plugin) {

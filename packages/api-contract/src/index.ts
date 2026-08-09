@@ -8,6 +8,10 @@ export type {
 	QuesterApiMethods,
 	QuesterClient,
 	RequestMeta,
+	RunDirEntry,
+	RunFileEntry,
+	RunFlowEntry,
+	RunMetaSummary,
 	SecretFileMeta,
 	WorkspaceSummary,
 } from "./types.js";

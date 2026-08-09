@@ -1,7 +1,7 @@
 # Plan 07 — Desktop folder logs viewer
 
 **Priority:** 7  
-**Status:** after plan 04 (reuse JSON viewer)  
+**Status:** code complete (await user X/Y/Z)  
 **ROADMAP:** §3 Builders — folder logs viewer  
 
 ## Goal
@@ -18,11 +18,11 @@ Plan 04 shared viewer; plan 01 B7 so opened logs don’t surprise with secrets (
 
 ## Work
 
-- [ ] Sidebar / command to open runs folder browser  
-- [ ] List run directories + step files  
-- [ ] Tabs — multiple files/runs open at once  
-- [ ] Modes — raw JSON (Monaco) **or** structured UI (step list, I/O sections)  
-- [ ] Safe paths — stay inside workspace runs dir (align with B10 discipline)  
+- [x] Sidebar / command to open runs folder browser  
+- [x] List run directories + step files  
+- [x] Tabs — multiple files/runs open at once  
+- [x] Modes — raw JSON (Monaco) **or** structured UI (step list, I/O sections)  
+- [x] Safe paths — stay inside workspace runs dir (align with B10 discipline)  
 
 ## Done when
 

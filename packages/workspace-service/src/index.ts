@@ -13,6 +13,13 @@ export {
 	setAppTlsVerify,
 } from "./tlsRuntime.js";
 export {
+	deleteRunPath,
+	listRunTree,
+	readRunJson,
+	resolveRunRelativePath,
+	resolveRunsRoot,
+} from "./run-logs.js";
+export {
 	createCollection,
 	createEnvironment,
 	createFlow,

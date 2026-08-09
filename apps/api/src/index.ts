@@ -9,6 +9,7 @@ import {
 	createSecretsFile,
 	deleteFlow,
 	deleteRequest,
+	deleteRunPath,
 	executeFlowRpc,
 	executeRequestRpc,
 	getAppTlsVerify,
@@ -17,6 +18,7 @@ import {
 	listCollections,
 	listEnvs,
 	listFlows,
+	listRunTree,
 	listSecretFiles,
 	listSecretNames,
 	loadEnvironment,
@@ -26,6 +28,7 @@ import {
 	loadWorkspaceManifest,
 	openWorkspaceSummary,
 	readPathShapes,
+	readRunJson,
 	renameFlow,
 	saveEnvironment,
 	saveFlow,
@@ -351,6 +354,22 @@ const postRoutes: Record<string, RouteHandler> = {
 	"/v1/path-shapes/write": async (req) => {
 		const body = await readBody<{ workspace: string; data: unknown }>(req);
 		return json(req, await writePathShapes(body.workspace, body.data));
+	},
+	"/v1/runs/list": async (req) => {
+		const body = await readBody<{ workspace: string }>(req);
+		return json(req, await listRunTree(body.workspace));
+	},
+	"/v1/runs/read": async (req) => {
+		const body = await readBody<{ workspace: string; relativePath: string }>(
+			req,
+		);
+		return json(req, await readRunJson(body.workspace, body.relativePath));
+	},
+	"/v1/runs/delete": async (req) => {
+		const body = await readBody<{ workspace: string; relativePath: string }>(
+			req,
+		);
+		return json(req, await deleteRunPath(body.workspace, body.relativePath));
 	},
 	"/v1/prefs/tls": async (req) => {
 		const body = await readBody<{ verifyTls: boolean }>(req);

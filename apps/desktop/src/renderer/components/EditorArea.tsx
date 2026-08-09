@@ -14,6 +14,7 @@ import { FlowCanvas } from "./FlowCanvas.js";
 import { KeyValueEditor } from "./KeyValueEditor.js";
 import { RequestEditor } from "./RequestEditor.js";
 import { ResponseViewerPage } from "./ResponseViewerPage.js";
+import { RunLogViewerPage } from "./RunLogViewerPage.js";
 import { WorkspaceSettingsEditor } from "./WorkspaceSettingsEditor.js";
 import { WorkspaceWelcome } from "./WorkspaceWelcome.js";
 
@@ -209,6 +210,14 @@ export function EditorArea() {
 		return (
 			<div className="relative h-full min-h-0 min-w-0 flex-1">
 				<ResponseViewerPage snapshot={activeTab.snapshot} />
+			</div>
+		);
+	}
+
+	if (activeTab.kind === "runLog") {
+		return (
+			<div className="relative h-full min-h-0 min-w-0 flex-1">
+				<RunLogViewerPage tab={activeTab} />
 			</div>
 		);
 	}
