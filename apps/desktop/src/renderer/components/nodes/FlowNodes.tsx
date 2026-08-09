@@ -408,13 +408,16 @@ export function IfFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 			selected={selected}
 			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePortPlacement="header"
 			sourcePorts={[
 				{
 					id: "true",
+					label: "true",
 					connected: isHandleConnected(edges, id, "source", "true"),
 				},
 				{
 					id: "false",
+					label: "false",
 					connected: isHandleConnected(edges, id, "source", "false"),
 				},
 			]}
@@ -435,16 +438,22 @@ function switchSourcePorts(
 	const cases = Array.isArray(data.cases)
 		? (data.cases as Array<{ value?: string; handle?: string }>)
 		: [];
-	const handles = cases
-		.map((c) => (typeof c.handle === "string" ? c.handle : null))
-		.filter((h): h is string => h !== null && h.length > 0);
+	const handles: string[] = [];
+	const seen = new Set<string>();
+	for (const c of cases) {
+		if (typeof c.handle !== "string" || c.handle.length === 0) continue;
+		if (seen.has(c.handle)) continue;
+		seen.add(c.handle);
+		handles.push(c.handle);
+	}
 	const defaultHandle =
 		typeof data.defaultHandle === "string" && data.defaultHandle.length > 0
 			? data.defaultHandle
 			: "default";
-	if (!handles.includes(defaultHandle)) handles.push(defaultHandle);
+	if (!seen.has(defaultHandle)) handles.push(defaultHandle);
 	return handles.map((handleId) => ({
 		id: handleId,
+		label: handleId,
 		connected: isHandleConnected(edges, nodeId, "source", handleId),
 	}));
 }
@@ -474,6 +483,7 @@ export function SwitchFlowNode({
 			selected={selected}
 			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePortPlacement="header"
 			sourcePorts={switchSourcePorts(data, edges, id)}
 		>
 			<span className="font-mono">{subtitle}</span>
