@@ -540,7 +540,7 @@ export function ForeachFlowNode({
 	data,
 	selected,
 	parentId,
-}: NodeProps<FlowNodeData>) {
+}: NodeProps<FlowNodeData> & { parentId?: string }) {
 	const runStatus = useNodeRunStatus(id);
 	const items =
 		typeof data.items === "string" && data.items.length > 0
@@ -569,7 +569,7 @@ export function TryFlowNode({
 	data,
 	selected,
 	parentId,
-}: NodeProps<FlowNodeData>) {
+}: NodeProps<FlowNodeData> & { parentId?: string }) {
 	const runStatus = useNodeRunStatus(id);
 	return (
 		<FrameContainerShell
