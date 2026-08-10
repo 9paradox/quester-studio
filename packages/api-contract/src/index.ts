@@ -3,6 +3,8 @@ export type {
 	ExecuteRequestRpcResult,
 	ExecutionLogEntry,
 	FlowMeta,
+	FormAwaitEvent,
+	FormMeta,
 	NodeRunStatus,
 	NodeRunStatusEvent,
 	QuesterApiMethods,

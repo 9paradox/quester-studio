@@ -78,6 +78,7 @@ type FlowCanvasProps = {
 		position: { x: number; y: number },
 	) => void;
 	onDropFlow?: (flowId: string, position: { x: number; y: number }) => void;
+	onDropForm?: (formId: string, position: { x: number; y: number }) => void;
 	onSave?: () => void;
 	canSave?: boolean;
 };
@@ -244,6 +245,7 @@ function FlowCanvasInner({
 	onAddNode,
 	onDropRequest,
 	onDropFlow,
+	onDropForm,
 	onSave,
 	canSave,
 }: {
@@ -266,6 +268,7 @@ function FlowCanvasInner({
 		position: { x: number; y: number },
 	) => void;
 	onDropFlow?: (flowId: string, position: { x: number; y: number }) => void;
+	onDropForm?: (formId: string, position: { x: number; y: number }) => void;
 	onSave?: () => void;
 	canSave?: boolean;
 }) {
@@ -625,15 +628,16 @@ function FlowCanvasInner({
 				onDropFlow?.(droppedFlowId, position);
 				return;
 			}
-			if (readFormDragData(event.dataTransfer)) {
-				toast.info("Forms coming soon");
+			const droppedFormId = readFormDragData(event.dataTransfer);
+			if (droppedFormId) {
+				onDropForm?.(droppedFormId, position);
 				return;
 			}
 			if (readCodeDragData(event.dataTransfer)) {
 				toast.info("Code node coming soon");
 			}
 		},
-		[onAddNode, onDropFlow, onDropRequest, screenToFlowPosition],
+		[onAddNode, onDropFlow, onDropForm, onDropRequest, screenToFlowPosition],
 	);
 
 	return (
@@ -837,6 +841,7 @@ export function FlowCanvas({
 	onAddNode,
 	onDropRequest,
 	onDropFlow,
+	onDropForm,
 	onSave,
 	canSave,
 }: FlowCanvasProps) {
@@ -866,6 +871,7 @@ export function FlowCanvas({
 					onAddNode={onAddNode}
 					onDropRequest={onDropRequest}
 					onDropFlow={onDropFlow}
+					onDropForm={onDropForm}
 					onSave={onSave}
 					canSave={canSave}
 				/>

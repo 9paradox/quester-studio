@@ -79,6 +79,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 	const inputJson = useQuesterStore((s) => s.inputJson);
 	const setInputJson = useQuesterStore((s) => s.setInputJson);
 	const flows = useQuesterStore((s) => s.flows);
+	const forms = useQuesterStore((s) => s.forms);
 	const loopKeys = useQuesterStore(
 		useShallow((s) => {
 			const tab = selectActiveFlowTab(s);
@@ -592,6 +593,66 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						<JsonDraftField
 							value={data.input ?? {}}
 							onCommit={(input) => setField("input", input)}
+							minHeight="7rem"
+						/>
+					</InspectorField>
+				</>
+			) : null}
+
+			{node.type === "form" ? (
+				<>
+					<InspectorField
+						label="Form"
+						hint="Workspace form id (without .form.json). Pick from the list or type a custom id."
+						error={fieldErrors.formId}
+					>
+						<div className="flex flex-col gap-2">
+							{forms.length > 0 ? (
+								<Select
+									value={String(data.formId ?? "") || undefined}
+									onValueChange={(formId) => {
+										if (typeof formId === "string" && formId) {
+											setField("formId", formId);
+										}
+									}}
+								>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="Select a form…" />
+									</SelectTrigger>
+									<SelectContent>
+										{(() => {
+											const current = String(data.formId ?? "");
+											const known = forms.some((f) => f.id === current);
+											return (
+												<>
+													{!known && current ? (
+														<SelectItem value={current}>{current}</SelectItem>
+													) : null}
+													{forms.map((f) => (
+														<SelectItem key={f.id} value={f.id}>
+															{f.name === f.id ? f.id : `${f.name} (${f.id})`}
+														</SelectItem>
+													))}
+												</>
+											);
+										})()}
+									</SelectContent>
+								</Select>
+							) : null}
+							<Input
+								value={String(data.formId ?? "")}
+								onChange={(e) => setField("formId", e.target.value)}
+								placeholder="product-search"
+							/>
+						</div>
+					</InspectorField>
+					<InspectorField
+						label="Prefill overrides"
+						hint="Optional field id → value map (strings may be templates)."
+					>
+						<JsonDraftField
+							value={data.value ?? {}}
+							onCommit={(value) => setField("value", value)}
 							minHeight="7rem"
 						/>
 					</InspectorField>

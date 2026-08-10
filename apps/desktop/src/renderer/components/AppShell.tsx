@@ -12,6 +12,7 @@ import { AuxiliarySidebar } from "./AuxiliarySidebar.js";
 import { CommandPalette } from "./CommandPalette.js";
 import { ConfirmDialog } from "./ConfirmDialog.js";
 import { EditorArea } from "./EditorArea.js";
+import { FormAwaitDialog } from "./FormAwaitDialog.js";
 import { NamePromptDialog } from "./NamePromptDialog.js";
 import { Panel } from "./Panel.js";
 import { PlaygroundSheet } from "./PlaygroundSheet.js";
@@ -67,6 +68,7 @@ export function AppShell() {
 				<PlaygroundSheet />
 				<NamePromptDialog />
 				<ConfirmDialog />
+				<FormAwaitDialog />
 				<CommandPalette />
 				<Toaster position="top-center" richColors closeButton />
 			</div>

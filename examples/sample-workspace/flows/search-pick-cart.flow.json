@@ -1,0 +1,84 @@
+{
+	"id": "search-pick-cart",
+	"version": "v1",
+	"name": "Search → pick → cart",
+	"description": "Interactive forms demo: search products, pick one from results, review detail, add to DummyJSON cart.",
+	"nodes": [
+		{
+			"id": "start",
+			"type": "start",
+			"data": { "label": "Start" },
+			"position": { "x": 0, "y": 120 }
+		},
+		{
+			"id": "searchForm",
+			"type": "form",
+			"data": { "formId": "search-products", "label": "Search" },
+			"position": { "x": 220, "y": 120 }
+		},
+		{
+			"id": "search",
+			"type": "http",
+			"data": {
+				"label": "Search products",
+				"method": "GET",
+				"url": "{{env.API_BASE}}/products/search?q={{nodes.searchForm.q}}&limit=10",
+				"headers": { "Accept": "application/json" }
+			},
+			"position": { "x": 440, "y": 120 }
+		},
+		{
+			"id": "pickForm",
+			"type": "form",
+			"data": { "formId": "pick-product", "label": "Pick product" },
+			"position": { "x": 660, "y": 120 }
+		},
+		{
+			"id": "detail",
+			"type": "http",
+			"data": {
+				"label": "Product detail",
+				"method": "GET",
+				"url": "{{env.API_BASE}}/products/{{nodes.pickForm.productId}}",
+				"headers": { "Accept": "application/json" }
+			},
+			"position": { "x": 880, "y": 120 }
+		},
+		{
+			"id": "detailForm",
+			"type": "form",
+			"data": { "formId": "product-detail", "label": "Add to cart" },
+			"position": { "x": 1100, "y": 120 }
+		},
+		{
+			"id": "cart",
+			"type": "http",
+			"data": {
+				"label": "Add to cart",
+				"method": "POST",
+				"url": "{{env.API_BASE}}/carts/add",
+				"headers": {
+					"Content-Type": "application/json",
+					"Accept": "application/json"
+				},
+				"body": "{\n  \"userId\": 1,\n  \"products\": [\n    {\n      \"id\": {{nodes.pickForm.productId}},\n      \"quantity\": {{nodes.detailForm.quantity}}\n    }\n  ]\n}"
+			},
+			"position": { "x": 1320, "y": 120 }
+		},
+		{
+			"id": "out",
+			"type": "output",
+			"data": { "label": "Cart result" },
+			"position": { "x": 1540, "y": 120 }
+		}
+	],
+	"edges": [
+		{ "id": "e1", "source": "start", "target": "searchForm" },
+		{ "id": "e2", "source": "searchForm", "target": "search" },
+		{ "id": "e3", "source": "search", "target": "pickForm" },
+		{ "id": "e4", "source": "pickForm", "target": "detail" },
+		{ "id": "e5", "source": "detail", "target": "detailForm" },
+		{ "id": "e6", "source": "detailForm", "target": "cart" },
+		{ "id": "e7", "source": "cart", "target": "out" }
+	]
+}

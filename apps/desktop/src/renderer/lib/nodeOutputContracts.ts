@@ -41,6 +41,7 @@ export const NODE_OUTPUT_CONTRACTS: Record<BuiltinNodeType, readonly string[]> =
 		foreach: ["results", "count", "truncated"],
 		try: ["ok", "input"],
 		subflow: [],
+		form: [],
 		log: ["logged"],
 		inspect: [],
 	};

@@ -17,12 +17,14 @@ import { Separator } from "@/components/ui/separator.js";
 import { promptConfirm } from "@/lib/confirmPrompt.js";
 import {
 	setFlowDragData,
+	setFormDragData,
 	setNodeDragData,
 	setRequestDragData,
 } from "@/lib/dnd.js";
 import {
 	envTabId,
 	flowTabId,
+	formTabId,
 	requestTabId,
 	runLogTabId,
 	secretsTabId,
@@ -43,6 +45,7 @@ import {
 	IconDeviceFloppy,
 	IconFile,
 	IconFolder,
+	IconForms,
 	IconGripVertical,
 	IconKey,
 	IconPencil,
@@ -79,6 +82,7 @@ export function PrimarySidebar() {
 	const view = useQuesterStore((s) => s.activityView);
 	const workspacePath = useQuesterStore((s) => s.workspacePath);
 	const flows = useQuesterStore((s) => s.flows);
+	const forms = useQuesterStore((s) => s.forms);
 	const requests = useQuesterStore((s) => s.requests);
 	const collections = useQuesterStore((s) => s.collections);
 	const activeTabId = useQuesterStore((s) => s.activeTabId);
@@ -92,10 +96,12 @@ export function PrimarySidebar() {
 
 	const setSidebarSearch = useQuesterStore((s) => s.setSidebarSearch);
 	const loadFlow = useQuesterStore((s) => s.loadFlow);
+	const loadForm = useQuesterStore((s) => s.loadForm);
 	const loadEnvironment = useQuesterStore((s) => s.loadEnvironment);
 	const loadSecretsFile = useQuesterStore((s) => s.loadSecretsFile);
 	const loadRequest = useQuesterStore((s) => s.loadRequest);
 	const createFlow = useQuesterStore((s) => s.createFlow);
+	const createForm = useQuesterStore((s) => s.createForm);
 	const createEnv = useQuesterStore((s) => s.createEnv);
 	const createSecretsFile = useQuesterStore((s) => s.createSecretsFile);
 	const createCollection = useQuesterStore((s) => s.createCollection);
@@ -104,8 +110,11 @@ export function PrimarySidebar() {
 	const deleteRequest = useQuesterStore((s) => s.deleteRequest);
 	const addRequestToCanvas = useQuesterStore((s) => s.addRequestToCanvas);
 	const handleDropFlow = useQuesterStore((s) => s.handleDropFlow);
+	const handleDropForm = useQuesterStore((s) => s.handleDropForm);
 	const renameFlow = useQuesterStore((s) => s.renameFlow);
 	const deleteFlow = useQuesterStore((s) => s.deleteFlow);
+	const renameForm = useQuesterStore((s) => s.renameForm);
+	const deleteForm = useQuesterStore((s) => s.deleteForm);
 	const saveActiveTab = useQuesterStore((s) => s.saveActiveTab);
 	const handleAddNode = useQuesterStore((s) => s.handleAddNode);
 	const updateActiveFlowMeta = useQuesterStore((s) => s.updateActiveFlowMeta);
@@ -180,6 +189,12 @@ export function PrimarySidebar() {
 	}, [view, refreshRuns]);
 
 	const filteredFlows = flows.filter((f) => {
+		const q = search.trim().toLowerCase();
+		if (!q) return true;
+		return f.name.toLowerCase().includes(q) || f.id.toLowerCase().includes(q);
+	});
+
+	const filteredForms = forms.filter((f) => {
 		const q = search.trim().toLowerCase();
 		if (!q) return true;
 		return f.name.toLowerCase().includes(q) || f.id.toLowerCase().includes(q);
@@ -291,6 +306,45 @@ export function PrimarySidebar() {
 					{filteredFlows.length === 0 ? (
 						<p className="px-2 py-4 text-xs text-muted-foreground">
 							No flows found
+						</p>
+					) : null}
+				</SidebarFileList>
+			) : null}
+
+			{view === "forms" ? (
+				<SidebarFileList
+					search={search}
+					onSearchChange={setSidebarSearch}
+					onCreate={() => void createForm()}
+					onSave={() => void saveActiveTab()}
+					canSave={canSave}
+					createLabel="New"
+					searchPlaceholder="Search forms…"
+				>
+					{filteredForms.map((form) => (
+						<FileListItem
+							key={form.id}
+							icon={IconForms}
+							label={form.name}
+							selected={activeTabId === formTabId(form.id)}
+							dirty={dirtyTabIds.includes(formTabId(form.id))}
+							draggable
+							onDragStart={(event) => {
+								setFormDragData(event.dataTransfer, {
+									formId: form.id,
+									name: form.name,
+								});
+							}}
+							onSelect={() => void loadForm(form.id, workspacePath)}
+							onAddToCanvas={() => handleDropForm(form.id)}
+							addToCanvasLabel="Add as form node"
+							onRename={() => void renameForm(form.id)}
+							onDelete={() => void deleteForm(form.id)}
+						/>
+					))}
+					{filteredForms.length === 0 ? (
+						<p className="px-2 py-4 text-xs text-muted-foreground">
+							No forms found
 						</p>
 					) : null}
 				</SidebarFileList>
@@ -951,6 +1005,8 @@ function viewTitle(view: ActivityView): string {
 	switch (view) {
 		case "flows":
 			return "Workspace";
+		case "forms":
+			return "Forms";
 		case "collections":
 			return "Collections";
 		case "envs":

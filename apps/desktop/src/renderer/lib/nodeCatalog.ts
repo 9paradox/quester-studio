@@ -14,6 +14,7 @@ import {
 	IconCode,
 	IconEye,
 	IconFlag,
+	IconForms,
 	IconGitBranch,
 	IconGitMerge,
 	IconJson,
@@ -33,6 +34,7 @@ export { getNodeHelp } from "@/lib/nodeHelp.js";
 
 export type ActivityView =
 	| "flows"
+	| "forms"
 	| "collections"
 	| "envs"
 	| "secrets"
@@ -231,6 +233,14 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 		accentTone: "border-l-primary",
 		badgeTone: "bg-primary/15 text-primary",
 	}),
+	form: withHelp({
+		type: "form",
+		label: "Form",
+		description: "Pause for user input",
+		icon: IconForms,
+		accentTone: "border-l-chart-2",
+		badgeTone: "bg-chart-2/15 text-chart-2",
+	}),
 	assert: withHelp({
 		type: "assert",
 		label: "Assert",
@@ -256,7 +266,16 @@ const catalogGroupOrder: { title: string; types: BuiltinNodeType[] }[] = [
 	},
 	{
 		title: "Logic",
-		types: ["if", "switch", "try", "assert", "delay", "foreach", "subflow"],
+		types: [
+			"if",
+			"switch",
+			"try",
+			"assert",
+			"delay",
+			"foreach",
+			"subflow",
+			"form",
+		],
 	},
 ];
 
@@ -327,6 +346,8 @@ export function defaultNodeData(
 			};
 		case "subflow":
 			return { label: "Subflow", flowId: "my-flow", input: {} };
+		case "form":
+			return { formId: "my-form", label: "Form" };
 		case "output":
 			return { label: "Output" };
 		case "assert":

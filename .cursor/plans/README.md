@@ -14,7 +14,7 @@ Open **one plan at a time**, in priority order. Source of truth for checkboxes: 
 | 09b | [Nested frames](./09b-nested-frames.md) | After 09 — **complete** |
 | 10 | [Nodes — auth + HTTP](./10-nodes-auth-http.md) | After stability wave |
 | 11 | [Nodes — data helpers](./11-nodes-data.md) | After stability wave |
-| 12 | [Forms](./12-forms.md) | After 04/06 patterns (editor + DnD) |
+| 12 | [Forms](./12-forms.md) | After 04/06 — **code complete** (await user X/Y/Z) |
 | 13 | [Code node](./13-code-node.md) | After 04 + SECURITY discipline; do not rush |
 | 14 | [AI options](./14-ai-options.md) | Later — after polish track |
 | 15 | [MCP integration](./15-mcp.md) | Later — after polish track |

@@ -1,6 +1,7 @@
 import type {
 	EnvironmentV1,
 	FlowV1,
+	FormV1,
 	RequestV1,
 	SecretsV1,
 	WorkspaceV1,
@@ -8,6 +9,7 @@ import type {
 import type {
 	ExecuteFlowRpcResult,
 	ExecuteRequestRpcResult,
+	FormAwaitEvent,
 	NodeRunStatusEvent,
 	QuesterClient,
 } from "./types.js";
@@ -56,6 +58,7 @@ export function createHttpQuesterClient(
 	const baseUrl = options.baseUrl.replace(/\/$/, "");
 	const fetchFn = options.fetch ?? fetch;
 	const listeners = new Set<(event: NodeRunStatusEvent) => void>();
+	const formAwaitListeners = new Set<(event: FormAwaitEvent) => void>();
 	const eventSources = new Map<string, EventSource>();
 
 	const ensureRunEvents = (runId: string) => {
@@ -70,6 +73,18 @@ export function createHttpQuesterClient(
 					(msg as MessageEvent).data as string,
 				) as NodeRunStatusEvent;
 				for (const listener of listeners) {
+					listener(event);
+				}
+			} catch {
+				// ignore malformed events
+			}
+		});
+		es.addEventListener("formAwait", (msg) => {
+			try {
+				const event = JSON.parse(
+					(msg as MessageEvent).data as string,
+				) as FormAwaitEvent;
+				for (const listener of formAwaitListeners) {
 					listener(event);
 				}
 			} catch {
@@ -117,6 +132,12 @@ export function createHttpQuesterClient(
 				listeners.delete(listener);
 			};
 		},
+		onFormAwait: (listener) => {
+			formAwaitListeners.add(listener);
+			return () => {
+				formAwaitListeners.delete(listener);
+			};
+		},
 		getDefaultWorkspace: () =>
 			get<{ path: string }>("/v1/workspace/default").then((r) => r.path),
 		pickWorkspaceFolder: async () => null,
@@ -129,9 +150,12 @@ export function createHttpQuesterClient(
 		saveWorkspaceManifest: (workspace, manifest) =>
 			post("/v1/workspace/manifest/save", { workspace, manifest }),
 		listFlows: (workspace) => post("/v1/flows/list", { workspace }),
+		listForms: (workspace) => post("/v1/forms/list", { workspace }),
 		listEnvs: (workspace) => post("/v1/envs/list", { workspace }),
 		loadFlow: (flowId, workspace) =>
 			post("/v1/flows/load", { flowId, workspace }),
+		loadForm: (formId, workspace) =>
+			post("/v1/forms/load", { formId, workspace }),
 		executeFlowRpc: async (params) => {
 			ensureRunEvents(params.runId);
 			try {
@@ -144,18 +168,28 @@ export function createHttpQuesterClient(
 				}
 			}
 		},
+		submitFormRun: (params) =>
+			post<{ ok: boolean; error?: string }>("/v1/forms/submit", params),
 		cancelFlowRun: (params) =>
 			post<{ ok: boolean }>("/v1/flows/cancel", params),
 		saveFlow: (flow: FlowV1, workspace: string) =>
 			post("/v1/flows/save", { flow, workspace }),
+		saveForm: (form: FormV1, workspace: string) =>
+			post("/v1/forms/save", { form, workspace }),
 		listSecretNames: (workspace, env) =>
 			post("/v1/secrets/names", { workspace, env }),
 		createFlow: (workspace, flowId, name) =>
 			post("/v1/flows/create", { workspace, flowId, name }),
+		createForm: (workspace, formId, name) =>
+			post("/v1/forms/create", { workspace, formId, name }),
 		deleteFlow: (workspace, flowId) =>
 			post("/v1/flows/delete", { workspace, flowId }),
+		deleteForm: (workspace, formId) =>
+			post("/v1/forms/delete", { workspace, formId }),
 		renameFlow: (workspace, flowId, newId, name) =>
 			post("/v1/flows/rename", { workspace, flowId, newId, name }),
+		renameForm: (workspace, formId, newId, name) =>
+			post("/v1/forms/rename", { workspace, formId, newId, name }),
 		loadEnvironment: (workspace, envName) =>
 			post("/v1/envs/load", { workspace, envName }),
 		saveEnvironment: (workspace, environment: EnvironmentV1) =>

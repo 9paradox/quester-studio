@@ -7,6 +7,7 @@ import {
 	createExecuteSubflow,
 	createHttpFetch,
 	importPostmanCollectionFile,
+	loadForm,
 	loadSecrets,
 	loadWorkspace,
 } from "@quester-studio/engine";
@@ -128,6 +129,19 @@ program
 	.argument("<flow>", "flow file path or flow id in workspace")
 	.option("--env <name>", "environment name", "local")
 	.option("--input <json>", "flow input JSON", "{}")
+	.option(
+		"--forms <path>",
+		"JSON file map of form node id → field values (for form nodes)",
+	)
+	.option(
+		"--form-input <nodeId=path>",
+		"form submission JSON file for one form node id (repeatable)",
+		(value: string, prev: string[]) => {
+			prev.push(value);
+			return prev;
+		},
+		[] as string[],
+	)
 	.option("--workspace <path>", "workspace root", ".")
 	.option(
 		"--runs-dir <path>",
@@ -144,6 +158,8 @@ program
 			opts: {
 				env: string;
 				input: string;
+				forms?: string;
+				formInput: string[];
 				workspace: string;
 				runsDir?: string;
 				report?: string;
@@ -170,6 +186,29 @@ program
 				ws?.manifest.environmentsDir,
 			);
 			const input = JSON.parse(opts.input) as unknown;
+
+			const formInputs: Record<string, unknown> = {};
+			if (opts.forms) {
+				const map = JSON.parse(
+					await readFile(resolve(opts.forms), "utf8"),
+				) as unknown;
+				if (!map || typeof map !== "object" || Array.isArray(map)) {
+					throw new Error(
+						"--forms must be a JSON object keyed by form node id",
+					);
+				}
+				Object.assign(formInputs, map as Record<string, unknown>);
+			}
+			for (const entry of opts.formInput ?? []) {
+				const eq = entry.indexOf("=");
+				if (eq <= 0) {
+					throw new Error(`--form-input expected nodeId=path, got: ${entry}`);
+				}
+				const nodeId = entry.slice(0, eq);
+				const filePath = resolve(entry.slice(eq + 1));
+				formInputs[nodeId] = JSON.parse(await readFile(filePath, "utf8"));
+			}
+
 			const httpDefaults = mergeHttpSettings(
 				ws?.manifest.settings?.http,
 				validated.data.settings?.http,
@@ -205,6 +244,11 @@ program
 				runsDirFlag: opts.runsDir,
 			});
 
+			const getForm =
+				ws === null
+					? undefined
+					: async (formId: string) => loadForm(wsPath, ws.manifest, formId);
+
 			const { result, report } = await executeFlowWithLogging(
 				validated.data,
 				{
@@ -215,6 +259,9 @@ program
 					fetch: fetchImpl,
 					cookieJar,
 					executeSubflow,
+					formInputs:
+						Object.keys(formInputs).length > 0 ? formInputs : undefined,
+					getForm,
 				},
 				runLogger,
 			);

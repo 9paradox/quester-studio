@@ -60,20 +60,49 @@ function resolvePath(
 
 const TOKEN_RE = /\{\{([^}]+)\}\}/g;
 
+function resolveToken(trimmed: string, ctx: ResolverContext): unknown {
+	const dot = trimmed.indexOf(".");
+	if (dot === -1) {
+		return resolvePath(ctx, trimmed, "");
+	}
+	const scope = trimmed.slice(0, dot);
+	const path = trimmed.slice(dot + 1);
+	return resolvePath(ctx, scope, path);
+}
+
+function stringifyResolved(v: unknown): string {
+	if (v === undefined || v === null) return "";
+	if (typeof v === "string") return v;
+	if (typeof v === "number" || typeof v === "boolean") return String(v);
+	try {
+		return JSON.stringify(v);
+	} catch {
+		return String(v);
+	}
+}
+
+/**
+ * Resolve a template that is exactly one `{{path}}` token to the raw value
+ * (arrays/objects preserved). Otherwise returns the stringified template result.
+ */
+export function resolveTemplateValue(
+	template: string,
+	ctx: ResolverContext,
+): unknown {
+	const trimmed = template.trim();
+	const single = /^\{\{\s*([^}]+?)\s*\}\}$/.exec(trimmed);
+	if (single?.[1]) {
+		return resolveToken(single[1].trim(), ctx);
+	}
+	return resolveTemplate(template, ctx);
+}
+
 export function resolveTemplate(
 	template: string,
 	ctx: ResolverContext,
 ): string {
 	return template.replace(TOKEN_RE, (_match, inner: string) => {
-		const trimmed = inner.trim();
-		const dot = trimmed.indexOf(".");
-		if (dot === -1) {
-			const v = resolvePath(ctx, trimmed, "");
-			return v === undefined || v === null ? "" : String(v);
-		}
-		const scope = trimmed.slice(0, dot);
-		const path = trimmed.slice(dot + 1);
-		const v = resolvePath(ctx, scope, path);
-		return v === undefined || v === null ? "" : String(v);
+		const v = resolveToken(inner.trim(), ctx);
+		return stringifyResolved(v);
 	});
 }

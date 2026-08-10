@@ -8,10 +8,17 @@ export function useAppInit() {
 	const loadWorkspace = useQuesterStore((s) => s.loadWorkspace);
 
 	useEffect(() => {
-		const unsubscribe = getQuesterClient().onNodeRunStatus((event) => {
+		const client = getQuesterClient();
+		const unsubStatus = client.onNodeRunStatus((event) => {
 			useQuesterStore.getState().applyNodeRunStatusEvent(event);
 		});
-		return unsubscribe;
+		const unsubForm = client.onFormAwait((event) => {
+			useQuesterStore.getState().applyFormAwaitEvent(event);
+		});
+		return () => {
+			unsubStatus();
+			unsubForm();
+		};
 	}, []);
 
 	useEffect(() => {

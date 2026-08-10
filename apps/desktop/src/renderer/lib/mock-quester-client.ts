@@ -1,16 +1,19 @@
 import type {
 	ExecuteFlowRpcResult,
 	ExecuteRequestRpcResult,
+	FormAwaitEvent,
 	NodeRunStatusEvent,
 	QuesterClient,
 } from "@quester-studio/api-contract";
 import type {
 	EnvironmentV1,
 	FlowV1,
+	FormV1,
 	RequestV1,
 	SecretsV1,
 	WorkspaceV1,
 } from "@quester-studio/schema";
+import { FORM_VERSION } from "@quester-studio/schema";
 
 export const MOCK_WORKSPACE = "/mock/workspace";
 
@@ -21,6 +24,7 @@ const mockManifest: WorkspaceV1 = {
 	flowsDir: "flows",
 	environmentsDir: "environments",
 	collectionsDir: "collections",
+	formsDir: "forms",
 	settings: {
 		http: {
 			defaultHeaders: {},
@@ -71,15 +75,28 @@ function emptyFlow(id: string, name?: string): FlowV1 {
 	};
 }
 
+function emptyForm(id: string, name?: string): FormV1 {
+	return {
+		version: FORM_VERSION,
+		id,
+		name: name ?? id,
+		fields: [],
+	};
+}
+
 /**
  * In-memory QuesterClient for UI-only development (no apps/api).
  * Enable with `VITE_QUESTER_CLIENT=mock` or `dev:web:mock`.
  */
 export function createMockQuesterClient(): QuesterClient {
 	const listeners = new Set<(event: NodeRunStatusEvent) => void>();
+	const formAwaitListeners = new Set<(event: FormAwaitEvent) => void>();
 	let manifest = structuredClone(mockManifest);
 	const flows = new Map<string, FlowV1>([
 		["mock-flow", emptyFlow("mock-flow", "Mock Flow")],
+	]);
+	const forms = new Map<string, FormV1>([
+		["mock-form", emptyForm("mock-form", "Mock Form")],
 	]);
 	const environments = new Map<string, EnvironmentV1>([
 		[
@@ -140,6 +157,12 @@ export function createMockQuesterClient(): QuesterClient {
 				listeners.delete(listener);
 			};
 		},
+		onFormAwait: (listener) => {
+			formAwaitListeners.add(listener);
+			return () => {
+				formAwaitListeners.delete(listener);
+			};
+		},
 		getDefaultWorkspace: async () => MOCK_WORKSPACE,
 		pickWorkspaceFolder: async () => MOCK_WORKSPACE,
 		pickCollectionFile: async () => null,
@@ -169,11 +192,21 @@ export function createMockQuesterClient(): QuesterClient {
 				id: f.id,
 				name: f.name ?? f.id,
 			})),
+		listForms: async () =>
+			[...forms.values()].map((f) => ({
+				id: f.id,
+				name: f.name ?? f.id,
+			})),
 		listEnvs: async () => [...environments.keys()],
 		loadFlow: async (flowId) => {
 			const flow = flows.get(flowId);
 			if (!flow) throw new Error(`Flow not found: ${flowId}`);
 			return structuredClone(flow);
+		},
+		loadForm: async (formId) => {
+			const form = forms.get(formId);
+			if (!form) throw new Error(`Form not found: ${formId}`);
+			return structuredClone(form);
 		},
 		executeFlowRpc: async ({ flowId, runId }) => {
 			const flow = flows.get(flowId);
@@ -284,9 +317,14 @@ export function createMockQuesterClient(): QuesterClient {
 			controller.abort();
 			return { ok: true };
 		},
+		submitFormRun: async () => ({ ok: true }),
 		saveFlow: async (flow) => {
 			flows.set(flow.id, structuredClone(flow));
 			return structuredClone(flow);
+		},
+		saveForm: async (form) => {
+			forms.set(form.id, structuredClone(form));
+			return structuredClone(form);
 		},
 		listSecretNames: async (_workspace, env) => {
 			const file = secrets.get(env);
@@ -298,8 +336,18 @@ export function createMockQuesterClient(): QuesterClient {
 			flows.set(flowId, flow);
 			return structuredClone(flow);
 		},
+		createForm: async (_workspace, formId, name) => {
+			if (forms.has(formId)) throw new Error(`Form already exists: ${formId}`);
+			const form = emptyForm(formId, name);
+			forms.set(formId, form);
+			return structuredClone(form);
+		},
 		deleteFlow: async (_workspace, flowId) => {
 			if (!flows.delete(flowId)) throw new Error(`Flow not found: ${flowId}`);
+			return { ok: true as const };
+		},
+		deleteForm: async (_workspace, formId) => {
+			if (!forms.delete(formId)) throw new Error(`Form not found: ${formId}`);
 			return { ok: true as const };
 		},
 		renameFlow: async (_workspace, flowId, newId, name) => {
@@ -312,6 +360,18 @@ export function createMockQuesterClient(): QuesterClient {
 			};
 			flows.delete(flowId);
 			flows.set(newId, updated);
+			return structuredClone(updated);
+		},
+		renameForm: async (_workspace, formId, newId, name) => {
+			const form = forms.get(formId);
+			if (!form) throw new Error(`Form not found: ${formId}`);
+			const updated = {
+				...form,
+				id: newId,
+				name: name ?? form.name,
+			};
+			forms.delete(formId);
+			forms.set(newId, updated);
 			return structuredClone(updated);
 		},
 		loadEnvironment: async (_workspace, envName) => {

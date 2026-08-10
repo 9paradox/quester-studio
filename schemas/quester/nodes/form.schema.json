@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "label": {
+      "type": "string"
+    },
+    "formId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "value": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "formId"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

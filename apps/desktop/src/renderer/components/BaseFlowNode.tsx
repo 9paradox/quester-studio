@@ -11,6 +11,7 @@ import {
 	IconCircleCheck,
 	IconCircleDashed,
 	IconCircleX,
+	IconForms,
 	IconLoader2,
 } from "@tabler/icons-react";
 import type { ReactNode } from "react";
@@ -29,6 +30,7 @@ const statusLabel: Record<NodeRunStatus, string> = {
 	success: "Succeeded",
 	error: "Failed",
 	skipped: "Skipped",
+	awaiting_form: "Awaiting form",
 };
 
 type PortSpec = { id?: string; label?: string; connected?: boolean };
@@ -228,6 +230,7 @@ function NodeStatusIndicator({ status }: { status: NodeRunStatus }) {
 					status === "success" && "text-chart-2",
 					status === "error" && "text-destructive",
 					status === "running" && "text-primary",
+					status === "awaiting_form" && "text-chart-2",
 					status === "skipped" && "text-muted-foreground",
 					status === "idle" && "text-muted-foreground/60",
 				)}
@@ -236,6 +239,9 @@ function NodeStatusIndicator({ status }: { status: NodeRunStatus }) {
 			>
 				{status === "running" ? (
 					<IconLoader2 className="size-3.5 animate-spin" aria-hidden />
+				) : null}
+				{status === "awaiting_form" ? (
+					<IconForms className="size-3.5" aria-hidden />
 				) : null}
 				{status === "success" ? (
 					<IconCircleCheck className="size-3.5" aria-hidden />

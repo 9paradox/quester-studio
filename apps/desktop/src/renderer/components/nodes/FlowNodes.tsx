@@ -615,6 +615,29 @@ export function SubflowFlowNode({
 	);
 }
 
+export function FormFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
+	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
+	const formId =
+		typeof data.formId === "string" && data.formId.length > 0
+			? data.formId
+			: "form-id";
+	return (
+		<BaseFlowNode
+			type="form"
+			nodeId={id}
+			title={data.label ?? "Form"}
+			subtitle={formId}
+			selected={selected}
+			runStatus={runStatus}
+			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+		>
+			<span className="font-mono">{formId}</span>
+		</BaseFlowNode>
+	);
+}
+
 export function OutputFlowNode({
 	id,
 	data,
@@ -877,6 +900,7 @@ export const flowNodeTypes = {
 	foreach: ForeachFlowNode,
 	try: TryFlowNode,
 	subflow: SubflowFlowNode,
+	form: FormFlowNode,
 	output: OutputFlowNode,
 	assert: AssertFlowNode,
 	transform: TransformFlowNode,

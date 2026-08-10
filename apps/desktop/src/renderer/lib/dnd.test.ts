@@ -11,6 +11,7 @@ import {
 	readNodeDragData,
 	readRequestDragData,
 	setFlowDragData,
+	setFormDragData,
 	setNodeDragData,
 	setRequestDragData,
 } from "./dnd.js";
@@ -49,6 +50,17 @@ describe("dnd mime helpers", () => {
 		expect(dt.getData(QUESTER_FLOW_MIME)).toBe("echo-subflow");
 		expect(readFlowDragData(dt as DataTransfer)).toBe("echo-subflow");
 		expect(dt.getData("text/plain")).toBe("flow:echo-subflow");
+	});
+
+	test("form round-trip", () => {
+		const dt = mockDataTransfer();
+		setFormDragData(dt as DataTransfer, {
+			formId: "contact",
+			name: "Contact",
+		});
+		expect(dt.getData(QUESTER_FORM_MIME)).toBe("contact");
+		expect(readFormDragData(dt as DataTransfer)).toBe("contact");
+		expect(dt.getData("text/plain")).toBe("form:contact");
 	});
 
 	test("form and code stubs read plain and custom mime", () => {

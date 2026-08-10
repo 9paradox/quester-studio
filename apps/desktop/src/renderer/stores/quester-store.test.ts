@@ -125,6 +125,8 @@ mock.module("@/lib/quester-client.js", () => {
 			readRunJson: async () => ({}),
 			deleteRunPath: async () => ({ ok: true }),
 			onNodeRunStatus: () => () => {},
+			onFormAwait: () => () => {},
+			listForms: async () => [],
 			__cancelledRunIds: cancelledRunIds,
 			__requestDelaysMs: requestDelaysMs,
 		}),
@@ -136,6 +138,7 @@ mock.module("@/lib/quester-client.js", () => {
 mock.module("@/lib/electrobun.js", () => ({
 	desktopRpc: {},
 	onNodeRunStatus: () => () => {},
+	onFormAwait: () => () => {},
 }));
 
 const sampleFlow: FlowV1 = {
@@ -157,6 +160,8 @@ function resetStore() {
 		workspacePath: "",
 		workspaceName: "",
 		flows: [],
+		forms: [],
+		pendingFormAwait: null,
 		envs: [],
 		secretFiles: [],
 		selectedEnv: "local",
@@ -1279,5 +1284,28 @@ describe("selectors", () => {
 		const flow = selectActiveFlowTab(useQuesterStore.getState())?.flow;
 		expect(flow?.nodes).toHaveLength(beforeCount);
 		expect(flow?.nodes.some((n) => n.type === "subflow")).toBe(false);
+	});
+
+	test("handleDropForm inserts a form node", () => {
+		resetStore();
+		const tab = createFlowEditorTab({
+			...sampleFlow,
+			id: "main",
+			name: "Main",
+		});
+		useQuesterStore.setState({
+			forms: [{ id: "contact", name: "Contact" }],
+			openTabs: [tab],
+			activeTabId: tab.id,
+		});
+		useQuesterStore.getState().handleDropForm("contact", { x: 10, y: 20 });
+		const flow = selectActiveFlowTab(useQuesterStore.getState())?.flow;
+		const formNode = flow?.nodes.find((n) => n.type === "form");
+		expect(formNode?.data).toMatchObject({
+			formId: "contact",
+			label: "Contact",
+		});
+		expect(formNode?.position).toEqual({ x: 10, y: 20 });
+		expect(useQuesterStore.getState().selectedNodeId).toBe(formNode?.id);
 	});
 });

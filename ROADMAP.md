@@ -57,7 +57,7 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 **Builders & viewers**
 
 - [x] Collections — proper, performant JSON viewer/editor (e.g. `@monaco-editor/react` or equivalent): syntax highlight, fold, search, large-body safe  
-- [ ] Forms — first-class workspace section (alongside collections / flows): create & edit in a form builder; store as workspace files; drag onto canvas as a node that can replace / stand in for `input` (structured fields → run payload)  
+- [x] Forms — first-class workspace section (alongside collections / flows): create & edit in a form builder; store as workspace files; drag onto canvas as a node that can replace / stand in for `input` (structured fields → run payload)
 - [x] Response viewer — open in a new app tab (full-bleed JSON / pretty / headers; keep current panel for quick peek)  
 - [x] Folder logs viewer — browse `runs/` (and related log folders): JSON raw **or** structured UI; multi-tab for multiple files/runs  
 - [x] Flow drag-and-drop onto canvas — drag a flow from the sidebar/list to open or nest/`subflow` placement (define UX: open tab vs drop as `subflow` node)  
@@ -144,8 +144,8 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 
 **Forms & custom code**
 
-- [ ] `form` node — references a workspace form; at run time collects / supplies structured input (replacement path for plain `input` where a UI form is preferred)  
-- [ ] Form schema + editor — field types, validation, defaults; CLI/`quester run` can still supply JSON that matches the form  
+- [x] `form` node — references a workspace form; at run time collects / supplies structured input (replacement path for plain `input` where a UI form is preferred)
+- [x] Form schema + editor — field types, validation, defaults; CLI/`quester run` can still supply JSON that matches the form
 - [ ] `code` node — custom function (JS first; other languages only if isolation story is solid)  
   - [ ] Secure isolated runtime (no ambient FS/network unless explicitly gated); timeouts + memory caps; document in SECURITY.md  
   - [ ] Monaco-class editor with syntax highlighting when editing the node / opened as a tab  

@@ -2,6 +2,7 @@ import type { ExecuteFlowResult } from "@quester-studio/engine";
 import type {
 	EnvironmentV1,
 	FlowV1,
+	FormV1,
 	RequestV1,
 	SecretsV1,
 	WorkspaceV1,
@@ -16,6 +17,8 @@ export type WorkspaceSummary = {
 };
 
 export type FlowMeta = { id: string; name: string };
+
+export type FormMeta = { id: string; name: string };
 
 export type RequestMeta = {
 	path: string;
@@ -70,7 +73,8 @@ export type NodeRunStatus =
 	| "running"
 	| "success"
 	| "error"
-	| "skipped";
+	| "skipped"
+	| "awaiting_form";
 
 /** Live lifecycle update during executeFlow. */
 export type NodeRunStatusEvent = {
@@ -78,8 +82,33 @@ export type NodeRunStatusEvent = {
 	flowId: string;
 	nodeId: string;
 	nodeType: string;
-	status: Extract<NodeRunStatus, "running" | "success" | "error">;
+	status: Extract<
+		NodeRunStatus,
+		"running" | "success" | "error" | "awaiting_form"
+	>;
 	ts: number;
+};
+
+/** Payload when a form node pauses for user input. */
+export type FormAwaitEvent = {
+	runId: string;
+	flowId: string;
+	nodeId: string;
+	formId: string;
+	form: FormV1;
+	resolved: {
+		fields: Array<{
+			id: string;
+			type: string;
+			label?: string;
+			description?: string;
+			placeholder?: string;
+			required: boolean;
+			readonly: boolean;
+			value: unknown;
+			options?: Array<{ value: string | number | boolean; label: string }>;
+		}>;
+	};
 };
 
 export type ExecuteFlowRpcResult = ExecuteFlowResult & {
@@ -114,8 +143,10 @@ export type QuesterApiMethods = {
 		manifest: WorkspaceV1,
 	) => Promise<WorkspaceV1>;
 	listFlows: (workspace: string) => Promise<FlowMeta[]>;
+	listForms: (workspace: string) => Promise<FormMeta[]>;
 	listEnvs: (workspace: string) => Promise<string[]>;
 	loadFlow: (flowId: string, workspace: string) => Promise<FlowV1>;
+	loadForm: (formId: string, workspace: string) => Promise<FormV1>;
 	executeFlowRpc: (params: {
 		flowId: string;
 		workspace: string;
@@ -123,21 +154,39 @@ export type QuesterApiMethods = {
 		env?: string;
 		input?: unknown;
 	}) => Promise<ExecuteFlowRpcResult>;
+	submitFormRun: (params: {
+		runId: string;
+		nodeId: string;
+		values: unknown;
+	}) => Promise<{ ok: boolean; error?: string }>;
 	cancelFlowRun: (params: { runId: string }) => Promise<{ ok: boolean }>;
 	saveFlow: (flow: FlowV1, workspace: string) => Promise<FlowV1>;
+	saveForm: (form: FormV1, workspace: string) => Promise<FormV1>;
 	listSecretNames: (workspace: string, env: string) => Promise<string[]>;
 	createFlow: (
 		workspace: string,
 		flowId: string,
 		name?: string,
 	) => Promise<FlowV1>;
+	createForm: (
+		workspace: string,
+		formId: string,
+		name?: string,
+	) => Promise<FormV1>;
 	deleteFlow: (workspace: string, flowId: string) => Promise<{ ok: true }>;
+	deleteForm: (workspace: string, formId: string) => Promise<{ ok: true }>;
 	renameFlow: (
 		workspace: string,
 		flowId: string,
 		newId: string,
 		name?: string,
 	) => Promise<FlowV1>;
+	renameForm: (
+		workspace: string,
+		formId: string,
+		newId: string,
+		name?: string,
+	) => Promise<FormV1>;
 	loadEnvironment: (
 		workspace: string,
 		envName: string,
@@ -211,4 +260,5 @@ export type QuesterClient = QuesterApiMethods & {
 	onNodeRunStatus: (
 		listener: (event: NodeRunStatusEvent) => void,
 	) => () => void;
+	onFormAwait: (listener: (event: FormAwaitEvent) => void) => () => void;
 };

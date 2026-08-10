@@ -554,6 +554,32 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 			output: "Subflow output node result",
 		},
 	},
+	form: {
+		summary:
+			"Pauses the run and shows a workspace form for user input. Resume with submitted field values.",
+		fields: [
+			{ name: "label", type: "string", description: "Optional UI label" },
+			{
+				name: "formId",
+				type: "string",
+				description: "Workspace form id (without .form.json)",
+			},
+			{
+				name: "value",
+				type: "object",
+				description:
+					"Optional field id → default/prefill overrides (strings may be templates)",
+			},
+		],
+		example: {
+			label: "Search filters",
+			formId: "product-search",
+		},
+		io: {
+			input: "Previous node output (context for default templates)",
+			output: "Object of submitted field values keyed by field id",
+		},
+	},
 	assert: {
 		summary:
 			"Fails the flow when JMESPath checks on the previous output do not pass.",

@@ -9,6 +9,7 @@ import {
 import {
 	type FlowNodeV1,
 	type FlowV1,
+	type FormV1,
 	type HttpSettingsV1,
 	foreachNodeDataSchema,
 	isCookieJarEnabled,
@@ -24,7 +25,15 @@ import {
 	topologicalSort,
 } from "./graph.js";
 import { type RunFileLogger, resolveTemplateDeep } from "./run-log.js";
-import { type ResolverContext, resolveTemplate } from "./variables.js";
+import {
+	type ResolverContext,
+	resolveTemplate,
+	resolveTemplateValue,
+} from "./variables.js";
+
+export type AwaitFormFn = NonNullable<
+	import("@quester-studio/nodes").NodeExecutionContext["awaitForm"]
+>;
 
 export type ExecuteFlowOptions = {
 	input?: unknown;
@@ -43,6 +52,15 @@ export type ExecuteFlowOptions = {
 	executeSubflow?: (flowId: string, input: unknown) => Promise<unknown>;
 	/** When set, write incremental per-step JSON under this logger's runDir. */
 	runLogger?: RunFileLogger;
+	/**
+	 * Pre-supplied form submissions keyed by form **node id** (CLI / automation).
+	 * Used when `awaitForm` is not provided.
+	 */
+	formInputs?: Record<string, unknown>;
+	/** Desktop / custom host: pause until the user submits the form. */
+	awaitForm?: AwaitFormFn;
+	/** Load a workspace form by id (required for form nodes). */
+	getForm?: (formId: string) => Promise<FormV1>;
 };
 
 export type NodeStepResult = {
@@ -196,6 +214,35 @@ function makeResolveTpl(rt: Runtime): (t: string) => string {
 		loop: rt.loop,
 	};
 	return (t: string) => resolveTemplate(t, ctx);
+}
+
+function makeResolveValue(rt: Runtime): (t: string) => unknown {
+	const ctx: ResolverContext = {
+		env: rt.options.env ?? {},
+		secrets: rt.options.secrets ?? {},
+		input: rt.flowInput,
+		vars: rt.vars,
+		nodeOutputs: rt.nodeOutputs,
+		loop: rt.loop,
+	};
+	return (t: string) => resolveTemplateValue(t, ctx);
+}
+
+function defaultAwaitForm(
+	formInputs: Record<string, unknown> | undefined,
+	signal: AbortSignal | undefined,
+): AwaitFormFn {
+	return async (req) => {
+		if (signal?.aborted) {
+			throw new DOMException("Flow run cancelled", "AbortError");
+		}
+		if (!formInputs || !Object.hasOwn(formInputs, req.nodeId)) {
+			throw new Error(
+				`Form "${req.formId}" at node "${req.nodeId}" requires --forms / formInputs["${req.nodeId}"]`,
+			);
+		}
+		return formInputs[req.nodeId];
+	};
 }
 
 function stepId(rt: Runtime, nodeId: string): string {
@@ -430,6 +477,10 @@ async function executeOneNode(
 			if (!plugin) {
 				throw new Error(`No plugin registered for node type: ${node.type}`);
 			}
+			const resolveValue = makeResolveValue(rt);
+			const awaitForm =
+				rt.options.awaitForm ??
+				defaultAwaitForm(rt.options.formInputs, rt.options.signal);
 			const result = await plugin.execute({
 				node,
 				input,
@@ -437,11 +488,22 @@ async function executeOneNode(
 				vars: rt.vars,
 				nodeOutputs: rt.nodeOutputs,
 				resolveTemplate: resolveTpl,
+				resolveValue,
 				fetch: rt.fetchFn,
 				httpDefaults: rt.options.httpDefaults,
 				cookieJar: rt.cookieJar,
 				signal: rt.options.signal,
 				executeSubflow: rt.options.executeSubflow,
+				getForm: rt.options.getForm,
+				awaitForm: async (req) => {
+					rt.events.emit("form:await", {
+						nodeId: req.nodeId,
+						formId: req.formId,
+						form: req.form,
+						resolved: req.resolved,
+					});
+					return awaitForm(req);
+				},
 			});
 			if (result.vars) rt.vars = { ...rt.vars, ...result.vars };
 			output = result.output;

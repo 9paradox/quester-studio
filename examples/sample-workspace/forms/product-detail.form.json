@@ -1,0 +1,36 @@
+{
+	"version": "v1",
+	"id": "product-detail",
+	"name": "Product detail",
+	"description": "Review product details and set quantity before adding to cart.",
+	"fields": [
+		{
+			"id": "title",
+			"type": "string",
+			"label": "Title",
+			"readonly": true,
+			"default": "{{nodes.detail.body.title}}"
+		},
+		{
+			"id": "price",
+			"type": "number",
+			"label": "Price",
+			"readonly": true,
+			"default": "{{nodes.detail.body.price}}"
+		},
+		{
+			"id": "description",
+			"type": "string",
+			"label": "Description",
+			"readonly": true,
+			"default": "{{nodes.detail.body.description}}"
+		},
+		{
+			"id": "quantity",
+			"type": "number",
+			"label": "Quantity",
+			"required": true,
+			"default": 1
+		}
+	]
+}

@@ -1,0 +1,19 @@
+{
+	"version": "v1",
+	"id": "pick-product",
+	"name": "Pick product",
+	"description": "Choose one product from the search results.",
+	"fields": [
+		{
+			"id": "productId",
+			"type": "select",
+			"label": "Product",
+			"required": true,
+			"optionsFrom": {
+				"items": "{{nodes.search.body.products}}",
+				"value": "id",
+				"label": "title"
+			}
+		}
+	]
+}

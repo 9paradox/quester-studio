@@ -62,9 +62,11 @@ export async function scaffoldWorkspace(
 	const flowsDir = join(root, "flows");
 	const environmentsDir = join(root, "environments");
 	const collectionsDir = join(root, "collections");
+	const formsDir = join(root, "forms");
 	await mkdir(flowsDir, { recursive: true });
 	await mkdir(environmentsDir, { recursive: true });
 	await mkdir(collectionsDir, { recursive: true });
+	await mkdir(formsDir, { recursive: true });
 
 	const flowId = "hello";
 	const manifest = {
@@ -74,6 +76,7 @@ export async function scaffoldWorkspace(
 		flowsDir: "flows",
 		environmentsDir: "environments",
 		collectionsDir: "collections",
+		formsDir: "forms",
 	};
 
 	const flow = {
@@ -133,6 +136,7 @@ export async function scaffoldWorkspace(
 	);
 	await writeFile(join(root, ".gitignore"), "*.secrets.json\nruns/\n", "utf8");
 	await writeFile(join(collectionsDir, ".gitkeep"), "", "utf8");
+	await writeFile(join(formsDir, ".gitkeep"), "", "utf8");
 
 	return { root, name, flowId };
 }
