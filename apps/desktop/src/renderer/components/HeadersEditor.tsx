@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/tabs.js";
 import { parseRawHeaders, stringifyRawHeaders } from "@/lib/rawHeaders.js";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type HeadersEditorProps = {
 	headers: Record<string, string>;
@@ -26,6 +26,23 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 	const [rawText, setRawText] = useState(() => stringifyRawHeaders(headers));
 	const [rawError, setRawError] = useState<string | null>(null);
 	const [mode, setMode] = useState<"pairs" | "raw">("pairs");
+
+	const headersJson = JSON.stringify(headers);
+	useEffect(() => {
+		let next: Record<string, string>;
+		try {
+			next = JSON.parse(headersJson) as Record<string, string>;
+		} catch {
+			return;
+		}
+		setRows((current) => {
+			const currentRecord = rowsToStringRecord(current);
+			if (JSON.stringify(currentRecord) === headersJson) return current;
+			return recordToRows(next);
+		});
+		setRawText(stringifyRawHeaders(next));
+		setRawError(null);
+	}, [headersJson]);
 
 	const commitRows = (next: KeyValueRow[]) => {
 		const normalized = next.length === 0 ? recordToRows({}) : next;

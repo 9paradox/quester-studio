@@ -196,6 +196,13 @@ program
 							validated.data.id,
 						);
 
+			const { createCallMcpTool, mcpServersFromSettings } = await import(
+				"@quester-studio/mcp"
+			);
+			const callMcpTool = ws
+				? createCallMcpTool(mcpServersFromSettings(ws.manifest.settings?.mcp))
+				: undefined;
+
 			const runLogger = await resolveRunLogger({
 				workspaceRoot: wsPath,
 				manifest: ws?.manifest,
@@ -215,6 +222,7 @@ program
 					fetch: fetchImpl,
 					cookieJar,
 					executeSubflow,
+					callMcpTool,
 				},
 				runLogger,
 			);
@@ -409,6 +417,24 @@ program
 		console.log(
 			`Imported ${result.imported.length} request(s) into ${resolve(opts.workspace)}`,
 		);
+	});
+
+const mcp = program.command("mcp").description("MCP server for AI agents");
+
+mcp
+	.command("serve")
+	.description(
+		"Start a stdio MCP server scoped to a workspace (list/read/validate/run/patch flows)",
+	)
+	.option(
+		"--workspace <path>",
+		"workspace root (or QUESTER_WORKSPACE)",
+		process.env.QUESTER_WORKSPACE ?? ".",
+	)
+	.action(async (opts: { workspace: string }) => {
+		const { startStdioServer } = await import("@quester-studio/mcp");
+		const workspaceRoot = resolve(opts.workspace);
+		await startStdioServer({ workspaceRoot, version });
 	});
 
 async function writeReport(path: string, report: unknown): Promise<void> {

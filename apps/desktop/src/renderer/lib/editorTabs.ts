@@ -17,6 +17,11 @@ export type FlowEditorTab = {
 	/** Draft / committed run input for this flow (synced from input node `value`). */
 	inputJson: string;
 	dirty: boolean;
+	/**
+	 * Bumped when the tab is replaced from disk (MCP / file watch).
+	 * Forces FlowCanvas remount so RF local positions stay in sync.
+	 */
+	externalRevision: number;
 };
 
 export type EnvEditorTab = {
@@ -53,11 +58,15 @@ export type AppSettingsEditorTab = {
 	dirty: boolean;
 };
 
+export type WorkspaceSettingsCategory = "details" | "http" | "runs" | "mcp";
+
 export type WorkspaceSettingsEditorTab = {
 	kind: "workspaceSettings";
 	id: string;
 	manifest: WorkspaceV1;
 	dirty: boolean;
+	/** Active sidebar category (deep-link from status bar, etc.). */
+	category: WorkspaceSettingsCategory;
 };
 
 /** Frozen HTTP / node output for a full-bleed response viewer tab. */
@@ -141,6 +150,7 @@ export function createFlowEditorTab(flow: FlowV1): FlowEditorTab {
 		flow,
 		inputJson: runInputJsonFromFlow(flow),
 		dirty: false,
+		externalRevision: 0,
 	};
 }
 
@@ -192,12 +202,14 @@ export function createAppSettingsEditorTab(): AppSettingsEditorTab {
 
 export function createWorkspaceSettingsEditorTab(
 	manifest: WorkspaceV1,
+	category: WorkspaceSettingsCategory = "details",
 ): WorkspaceSettingsEditorTab {
 	return {
 		kind: "workspaceSettings",
 		id: workspaceSettingsTabId(),
 		manifest,
 		dirty: false,
+		category,
 	};
 }
 

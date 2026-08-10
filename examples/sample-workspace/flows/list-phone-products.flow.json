@@ -1,0 +1,288 @@
+{
+	"id": "list-phone-products",
+	"version": "v1",
+	"name": "List phone products",
+	"description": "GET DummyJSON smartphones, assert success, summarize cheapest/expensive titles and brands/SKUs, log a short summary, and preview JSON panels.",
+	"nodes": [
+		{
+			"id": "note-tip",
+			"type": "note",
+			"data": {
+				"text": "Lists smartphone products, then summarizes cheapest/expensive titles, brands, and SKUs.\n\nUses {{env.API_BASE}} — typically https://dummyjson.com.",
+				"label": "Scenario"
+			},
+			"position": {
+				"x": 0,
+				"y": -200
+			},
+			"width": 320,
+			"height": 140
+		},
+		{
+			"id": "start",
+			"type": "start",
+			"data": {
+				"label": "Start"
+			},
+			"position": {
+				"x": 0,
+				"y": 160
+			},
+			"width": 180,
+			"height": 72
+		},
+		{
+			"id": "listPhones",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/products/category/smartphones",
+				"headers": {
+					"Accept": "application/json"
+				},
+				"label": "GET phones"
+			},
+			"position": {
+				"x": 260,
+				"y": 152
+			},
+			"width": 200,
+			"height": 87
+		},
+		{
+			"id": "assertOk",
+			"type": "assert",
+			"data": {
+				"checks": [
+					{
+						"path": "status",
+						"equals": 200
+					},
+					{
+						"path": "body.products"
+					}
+				],
+				"label": "Assert 200"
+			},
+			"position": {
+				"x": 540,
+				"y": 0
+			},
+			"width": 200,
+			"height": 87
+		},
+		{
+			"id": "summarize",
+			"type": "transform",
+			"data": {
+				"map": {
+					"total": "body.total",
+					"cheapest": "min_by(body.products, &price).title",
+					"expensive": "max_by(body.products, &price).title",
+					"avgPrice": "avg(body.products[*].price)",
+					"brands": "body.products[*].brand",
+					"products": "body.products"
+				},
+				"label": "Summarize prices"
+			},
+			"position": {
+				"x": 540,
+				"y": 168
+			},
+			"width": 210,
+			"height": 53
+		},
+		{
+			"id": "saveRange",
+			"type": "set",
+			"data": {
+				"variables": {
+					"cheapestTitle": "{{nodes.summarize.cheapest}}",
+					"expensiveTitle": "{{nodes.summarize.expensive}}",
+					"phoneCount": "{{nodes.summarize.total}}"
+				},
+				"label": "Save range vars"
+			},
+			"position": {
+				"x": 860,
+				"y": 16
+			},
+			"width": 210,
+			"height": 53
+		},
+		{
+			"id": "headline",
+			"type": "template",
+			"data": {
+				"template": "{{nodes.summarize.total}} smartphones — cheapest {{nodes.summarize.cheapest}}, most expensive {{nodes.summarize.expensive}} (avg {{nodes.summarize.avgPrice}})",
+				"mode": "safe",
+				"label": "Headline"
+			},
+			"position": {
+				"x": 860,
+				"y": 160
+			},
+			"width": 280,
+			"height": 72
+		},
+		{
+			"id": "inspectSummary",
+			"type": "inspect",
+			"data": {
+				"expression": "{total: total, cheapest: cheapest, expensive: expensive, avgPrice: avgPrice}",
+				"label": "Inspect summary"
+			},
+			"position": {
+				"x": 1220,
+				"y": 0
+			},
+			"width": 240,
+			"height": 87
+		},
+		{
+			"id": "logSummary",
+			"type": "log",
+			"data": {
+				"message": "Phone catalog: {{nodes.summarize.total}} items; range {{nodes.summarize.cheapest}} → {{nodes.summarize.expensive}}",
+				"label": "Log summary"
+			},
+			"position": {
+				"x": 1220,
+				"y": 152
+			},
+			"width": 240,
+			"height": 87
+		},
+		{
+			"id": "output",
+			"type": "output",
+			"data": {
+				"map": {
+					"headline": "{{nodes.headline}}",
+					"total": "{{nodes.summarize.total}}",
+					"cheapest": "{{nodes.summarize.cheapest}}",
+					"expensive": "{{nodes.summarize.expensive}}",
+					"avgPrice": "{{nodes.summarize.avgPrice}}",
+					"logged": "{{nodes.logSummary.logged}}"
+				},
+				"label": "Result"
+			},
+			"position": {
+				"x": 1540,
+				"y": 168
+			},
+			"width": 160,
+			"height": 53
+		},
+		{
+			"id": "preview",
+			"type": "json",
+			"data": {
+				"expression": "{cheapest: cheapest, expensive: expensive}",
+				"label": "JSON — names"
+			},
+			"position": {
+				"x": 540,
+				"y": 400
+			},
+			"width": 280,
+			"height": 180
+		},
+		{
+			"id": "previewSkus",
+			"type": "json",
+			"data": {
+				"expression": "{skus: products[*].sku}",
+				"label": "JSON — skus"
+			},
+			"position": {
+				"x": 900,
+				"y": 400
+			},
+			"width": 280,
+			"height": 220
+		},
+		{
+			"id": "previewBrands",
+			"type": "json",
+			"data": {
+				"expression": "{brands: brands}",
+				"label": "JSON — brands"
+			},
+			"position": {
+				"x": 1260,
+				"y": 400
+			},
+			"width": 280,
+			"height": 220
+		}
+	],
+	"edges": [
+		{
+			"id": "e-start-list",
+			"source": "start",
+			"target": "listPhones",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-list-assert",
+			"source": "listPhones",
+			"target": "assertOk",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-list-summarize",
+			"source": "listPhones",
+			"target": "summarize",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-summarize-set",
+			"source": "summarize",
+			"target": "saveRange",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-summarize-headline",
+			"source": "summarize",
+			"target": "headline",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-headline-log",
+			"source": "headline",
+			"target": "logSummary",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-summarize-inspect",
+			"source": "summarize",
+			"target": "inspectSummary",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-log-out",
+			"source": "logSummary",
+			"target": "output",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-summarize-preview",
+			"source": "summarize",
+			"target": "preview",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-summarize-preview-skus",
+			"source": "summarize",
+			"target": "previewSkus",
+			"sourceHandle": null
+		},
+		{
+			"id": "e-summarize-preview-brands",
+			"source": "summarize",
+			"target": "previewBrands",
+			"sourceHandle": null
+		}
+	]
+}

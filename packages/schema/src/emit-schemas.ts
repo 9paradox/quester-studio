@@ -16,6 +16,7 @@ import {
 	joinNodeDataSchema,
 	jsonNodeDataSchema,
 	logNodeDataSchema,
+	mcpNodeDataSchema,
 	mergeNodeDataSchema,
 	noteNodeDataSchema,
 	outputNodeDataSchema,
@@ -67,6 +68,7 @@ const specs: [string, unknown][] = [
 	["quester/nodes/note.schema.json", noteNodeDataSchema],
 	["quester/nodes/log.schema.json", logNodeDataSchema],
 	["quester/nodes/inspect.schema.json", inspectNodeDataSchema],
+	["quester/nodes/mcp.schema.json", mcpNodeDataSchema],
 ];
 
 for (const [rel, schema] of specs) {

@@ -1,6 +1,15 @@
 import type { FlowNodeV1, HttpSettingsV1 } from "@quester-studio/schema";
 import type { CookieJar } from "./cookie-jar.js";
 
+/** Optional MCP tool invocation (workspace `settings.mcp.servers`). */
+export type CallMcpToolRequest = {
+	serverId: string;
+	tool: string;
+	arguments?: Record<string, unknown>;
+	timeoutMs?: number;
+	signal?: AbortSignal;
+};
+
 export type NodeExecutionContext = {
 	node: FlowNodeV1;
 	input: unknown;
@@ -13,6 +22,8 @@ export type NodeExecutionContext = {
 	signal?: AbortSignal;
 	/** Run another workspace flow by id (workspace execution only). */
 	executeSubflow?: (flowId: string, input: unknown) => Promise<unknown>;
+	/** Call an external MCP tool by workspace server id. */
+	callMcpTool?: (request: CallMcpToolRequest) => Promise<unknown>;
 	/** Resolved workspace→flow HTTP defaults (headers merged; timeout inherited). */
 	httpDefaults?: HttpSettingsV1;
 	/** In-run cookie jar shared across HTTP hops (when enabled). */

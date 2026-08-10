@@ -11,6 +11,7 @@ import { inspectNodeDataSchema } from "./nodes/inspect.js";
 import { joinNodeDataSchema } from "./nodes/join.js";
 import { jsonNodeDataSchema } from "./nodes/json.js";
 import { logNodeDataSchema } from "./nodes/log.js";
+import { mcpNodeDataSchema } from "./nodes/mcp.js";
 import { mergeNodeDataSchema } from "./nodes/merge.js";
 import { noteNodeDataSchema } from "./nodes/note.js";
 import { outputNodeDataSchema } from "./nodes/output.js";
@@ -45,6 +46,7 @@ export const builtinNodeTypes = [
 	"note",
 	"log",
 	"inspect",
+	"mcp",
 ] as const;
 
 export type BuiltinNodeType = (typeof builtinNodeTypes)[number];
@@ -71,6 +73,7 @@ const nodeDataByType: Record<BuiltinNodeType, z.ZodTypeAny> = {
 	note: noteNodeDataSchema,
 	log: logNodeDataSchema,
 	inspect: inspectNodeDataSchema,
+	mcp: mcpNodeDataSchema,
 };
 
 export function nodeDataSchemaForType(type: string): z.ZodTypeAny | undefined {

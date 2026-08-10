@@ -162,12 +162,12 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 
 ### 8. MCP integration
 
-- [ ] MCP server — shared tools + CLI `mcp serve` (list / read / validate / run / last-run inspect, scoped)  
-- [ ] MCP write/patch flow tools for agent authoring (validate + path scoping)  
-- [ ] Desktop discovery/config + “AI following” canvas UX (reload on file edits)  
-- [ ] MCP client — call MCP tools from a flow (or dedicated node)  
-- [ ] Auth / trust boundaries documented (local-first)  
-- [ ] Sample + docs for agent + Quester workflows (Cursor / VS Code / Claude)  
+- [x] MCP server — shared tools + CLI `mcp serve` (list / read / validate / run / last-run inspect, scoped)  
+- [x] MCP write/patch flow tools for agent authoring (validate + path scoping)  
+- [x] Desktop discovery/config + “AI following” canvas UX (reload on file edits)  
+- [x] MCP client — call MCP tools from a flow (or dedicated node)  
+- [x] Auth / trust boundaries documented (local-first)  
+- [x] Sample + docs for agent + Quester workflows (Cursor / VS Code / Claude)  
 
 ## Later
 

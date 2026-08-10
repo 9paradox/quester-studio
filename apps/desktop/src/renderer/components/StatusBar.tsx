@@ -8,7 +8,11 @@ import {
 	selectSendingRequestCount,
 	selectStatusLabel,
 } from "@/stores/selectors.js";
-import { IconLoader2, IconPlayerStop } from "@tabler/icons-react";
+import {
+	IconLoader2,
+	IconPlayerStop,
+	IconPlugConnected,
+} from "@tabler/icons-react";
 
 function formatActivityLabel(
 	runningFlows: number,
@@ -50,6 +54,8 @@ export function StatusBar() {
 	const pathIndexStatus = useQuesterStore((s) => s.pathIndexStatus);
 	const zoom = useQuesterStore((s) => s.zoom);
 	const dirty = useQuesterStore(selectAnyDirty);
+	const mcpRunning = useQuesterStore((s) => s.mcpServerStatus.running);
+	const openWorkspaceSettings = useQuesterStore((s) => s.openWorkspaceSettings);
 
 	const nodeCount = activeFlowTab?.flow.nodes.length ?? 0;
 	const edgeCount = activeFlowTab?.flow.edges.length ?? 0;
@@ -67,6 +73,32 @@ export function StatusBar() {
 				</span>
 				<span className="text-border">|</span>
 				<span>{env}</span>
+				<span className="text-border">|</span>
+				<button
+					type="button"
+					className={
+						mcpRunning
+							? "inline-flex items-center gap-1 truncate rounded px-1 font-medium text-emerald-700 ring-1 ring-emerald-500/50 hover:underline dark:text-emerald-400"
+							: "inline-flex items-center gap-1 truncate hover:underline"
+					}
+					title={
+						mcpRunning
+							? "MCP server running — open Workspace settings → MCP"
+							: "MCP server off — open Workspace settings → MCP"
+					}
+					onClick={() => void openWorkspaceSettings("mcp")}
+				>
+					<span
+						className={
+							mcpRunning
+								? "inline-block size-1.5 shrink-0 rounded-full bg-emerald-500"
+								: "inline-block size-1.5 shrink-0 rounded-full bg-muted-foreground/50"
+						}
+						aria-hidden
+					/>
+					<IconPlugConnected className="size-3 shrink-0" aria-hidden />
+					MCP {mcpRunning ? "on" : "off"}
+				</button>
 				{activityLabel ? (
 					<>
 						<span className="text-border">|</span>

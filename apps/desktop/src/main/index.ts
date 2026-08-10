@@ -187,10 +187,73 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				setAttachedTitleBarDarkMode(dark);
 				return { ok: true as const, dark, theme };
 			},
+			getMcpConfigSnippet: async ({ workspace }) => {
+				const { buildMcpConfigSnippet } = await import("./flow-watch.js");
+				return buildMcpConfigSnippet(workspace);
+			},
+			watchFlows: async ({ workspace }) => {
+				const { watchFlows } = await import("./flow-watch.js");
+				return watchFlows(workspace, (event) => {
+					try {
+						rpc.send.flowFileChanged(event);
+					} catch (err) {
+						console.error("Failed to send flowFileChanged", err);
+					}
+				});
+			},
+			stopWatchFlows: async ({ workspace }) => {
+				const { stopWatchFlows } = await import("./flow-watch.js");
+				return stopWatchFlows(workspace);
+			},
+			watchMcpActivity: async ({ workspace }) => {
+				const { watchMcpActivity } = await import("./mcp-activity-watch.js");
+				return watchMcpActivity(workspace, (event) => {
+					try {
+						rpc.send.mcpActivity(event);
+					} catch (err) {
+						console.error("Failed to send mcpActivity", err);
+					}
+				});
+			},
+			stopWatchMcpActivity: async ({ workspace }) => {
+				const { stopWatchMcpActivity } = await import(
+					"./mcp-activity-watch.js"
+				);
+				return stopWatchMcpActivity(workspace);
+			},
+			startMcpServer: async ({ workspace }) => {
+				const { startMcpServer } = await import("./mcp-process.js");
+				ensureMcpStatusForwarding();
+				return startMcpServer(workspace);
+			},
+			stopMcpServer: async () => {
+				const { stopMcpServer } = await import("./mcp-process.js");
+				ensureMcpStatusForwarding();
+				return stopMcpServer();
+			},
+			getMcpServerStatus: async () => {
+				const { getMcpServerStatus } = await import("./mcp-process.js");
+				return getMcpServerStatus();
+			},
 		},
 		messages: {},
 	},
 });
+
+let mcpStatusForwarding = false;
+function ensureMcpStatusForwarding() {
+	if (mcpStatusForwarding) return;
+	mcpStatusForwarding = true;
+	void import("./mcp-process.js").then(({ onMcpServerStatus }) => {
+		onMcpServerStatus((status) => {
+			try {
+				rpc.send.mcpServerStatus(status);
+			} catch (err) {
+				console.error("Failed to send mcpServerStatus", err);
+			}
+		});
+	});
+}
 
 const bootDark = resolvePreferredDark();
 

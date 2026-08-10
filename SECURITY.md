@@ -33,6 +33,7 @@ These limits reduce accidental or malicious resource exhaustion from flow graphs
 - **`subflow`**: maximum call depth is `5`. Cycles in the call stack (A → B → A) are rejected.
 - There is **no** separate per-foreach wall-clock timeout; cancel a run with Stop / `AbortSignal` instead.
 - Cookie jars persist under `.quester/` in the workspace; treat that directory as workspace-local state (may hold session cookies).
+- MCP tool activity is appended to `.quester/mcp-activity.jsonl` (summaries only — tool name, flow/node ids, ok/error). Do not put secrets in tool argument summaries.
 
 ## TLS certificate verification
 
@@ -63,6 +64,22 @@ Desktop release artifacts are **unsigned development builds**. Verify checksums 
 - **CORS** allows loopback browser origins only (not reflective remote `Origin`).
 - When `QUESTER_WORKSPACE_ROOT` is set, request `workspace` / `path` values outside that directory are rejected.
 - Do not expose this API on a network, reverse proxy, or tunnel until auth and isolation exist.
+
+## MCP server (`quester mcp serve`)
+
+The MCP server speaks **stdio** to a local agent host (Cursor, VS Code, Claude Desktop). It is workspace-scoped (`--workspace` / `QUESTER_WORKSPACE`).
+
+- Flow ids and run paths are confined to the workspace root (no path escape).
+- Tools include read, validate, run, write/patch, and authoring helpers (`suggest_jmespath`, `patch_node`, …).
+- **`run_flow` has the same trust class as CLI `quester run`**: it loads secrets and may perform network I/O configured by the flow.
+- **Agent-visible privacy:** MCP tools must **not** return secret store values or env/secret file contents. Run/HTTP bodies are returned as **TypeScript types / JSON Schema / path lists** by default. Opt-in `includeValues=true` returns **redacted** samples only (sensitive keys + known secret strings scrubbed).
+- Desktop tails `.quester/mcp-activity.jsonl` for the MCP panel; keep that file free of secret values and response bodies.
+- Write tools validate against the flow schema before writing under `flowsDir` only.
+- Do not expose MCP over an unauthenticated network transport.
+
+## MCP client (flow `mcp` node)
+
+Flows may call **external** MCP servers configured in workspace `settings.mcp.servers` (stdio command or HTTP URL). Treat that like HTTP egress: tool arguments and results may leave the machine, and third-party servers are not sandboxed by Quester.
 
 ## Supported versions
 

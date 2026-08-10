@@ -20,6 +20,7 @@
 	"dependencies": {
 		"@quester-studio/api-contract": "workspace:*",
 		"@quester-studio/engine": "workspace:*",
+		"@quester-studio/mcp": "workspace:*",
 		"@quester-studio/schema": "workspace:*"
 	},
 	"devDependencies": {

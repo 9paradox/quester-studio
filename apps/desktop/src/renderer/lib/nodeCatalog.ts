@@ -19,6 +19,7 @@ import {
 	IconJson,
 	IconLogs,
 	IconNote,
+	IconPlugConnected,
 	IconRepeat,
 	IconShieldCheck,
 	IconSubtask,
@@ -118,6 +119,14 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 		icon: IconLogs,
 		accentTone: "border-l-muted-foreground",
 		badgeTone: "bg-muted text-muted-foreground",
+	}),
+	mcp: withHelp({
+		type: "mcp",
+		label: "MCP",
+		description: "Call external MCP tool",
+		icon: IconPlugConnected,
+		accentTone: "border-l-primary",
+		badgeTone: "bg-primary/15 text-primary",
 	}),
 	note: withHelp({
 		type: "note",
@@ -249,6 +258,7 @@ const catalogGroupOrder: { title: string; types: BuiltinNodeType[] }[] = [
 	},
 	{ title: "Canvas", types: ["note"] },
 	{ title: "Observability", types: ["log"] },
+	{ title: "Integrations", types: ["mcp"] },
 	{ title: "HTTP", types: ["http"] },
 	{
 		title: "Transform",
@@ -346,6 +356,13 @@ export function defaultNodeData(
 			return { label: "Inspect" };
 		case "log":
 			return { label: "Log", message: "{{input}}" };
+		case "mcp":
+			return {
+				label: "MCP",
+				server: "local",
+				tool: "example",
+				arguments: {},
+			};
 		case "note":
 			return { label: "Note", text: "", fontSize: NOTE_FONT_SIZE_DEFAULT };
 		default: {

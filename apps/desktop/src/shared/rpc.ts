@@ -234,6 +234,57 @@ export type DesktopRPC = {
 				params: { theme: ThemePreference };
 				response: { ok: true; dark: boolean; theme: ThemePreference };
 			};
+			getMcpConfigSnippet: {
+				params: { workspace: string };
+				response: {
+					cursor: string;
+					vscode: string;
+					claudeDesktop: string;
+				};
+			};
+			watchFlows: {
+				params: { workspace: string };
+				response: { ok: true };
+			};
+			stopWatchFlows: {
+				params: { workspace?: string };
+				response: { ok: true };
+			};
+			watchMcpActivity: {
+				params: { workspace: string };
+				response: { ok: true };
+			};
+			stopWatchMcpActivity: {
+				params: { workspace?: string };
+				response: { ok: true };
+			};
+			startMcpServer: {
+				params: { workspace: string };
+				response: {
+					running: boolean;
+					workspace: string | null;
+					pid: number | null;
+					error: string | null;
+				};
+			};
+			stopMcpServer: {
+				params: Record<string, never>;
+				response: {
+					running: boolean;
+					workspace: string | null;
+					pid: number | null;
+					error: string | null;
+				};
+			};
+			getMcpServerStatus: {
+				params: Record<string, never>;
+				response: {
+					running: boolean;
+					workspace: string | null;
+					pid: number | null;
+					error: string | null;
+				};
+			};
 		};
 		messages: Record<string, never>;
 	}>;
@@ -241,6 +292,28 @@ export type DesktopRPC = {
 		requests: Record<string, never>;
 		messages: {
 			nodeRunStatus: NodeRunStatusEvent;
+			flowFileChanged: {
+				workspace: string;
+				flowId: string;
+				filename: string;
+				kind: "change" | "rename";
+			};
+			mcpServerStatus: {
+				running: boolean;
+				workspace: string | null;
+				pid: number | null;
+				error: string | null;
+			};
+			mcpActivity: {
+				ts: string;
+				tool: string;
+				ok: boolean;
+				summary: string;
+				flowId?: string;
+				nodeId?: string;
+				durationMs?: number;
+				error?: string;
+			};
 		};
 	}>;
 };

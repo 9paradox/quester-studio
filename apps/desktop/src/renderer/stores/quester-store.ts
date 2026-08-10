@@ -2,6 +2,7 @@ import { promptConfirm } from "@/lib/confirmPrompt.js";
 import {
 	type EditorTab,
 	type ResponseViewerSnapshot,
+	type WorkspaceSettingsCategory,
 	createAppSettingsEditorTab,
 	createEnvEditorTab,
 	createFlowEditorTab,
@@ -16,7 +17,12 @@ import {
 	requestTabId,
 	runLogTabId,
 	secretsTabId,
+	workspaceSettingsTabId,
 } from "@/lib/editorTabs.js";
+import {
+	markExternalFlowApply,
+	shouldSuppressCanvasEmit,
+} from "@/lib/externalApplyGuard.js";
 import {
 	type AlignNodesMode,
 	addNodeToFlow,
@@ -41,7 +47,11 @@ import {
 	serializePathShapes,
 } from "@/lib/pathShapes.js";
 import { getQuesterClient } from "@/lib/quester-client.js";
-import { DEFAULT_INPUT, withInputNodeValue } from "@/lib/runDefaults.js";
+import {
+	DEFAULT_INPUT,
+	runInputJsonFromFlow,
+	withInputNodeValue,
+} from "@/lib/runDefaults.js";
 import {
 	appendRunHistory,
 	findRunHistoryEntry,
@@ -88,8 +98,75 @@ import {
 import { slugifyName } from "./slugify.js";
 
 export type RightPanelTab = "inspector" | "response";
-export type PanelTab = "console" | "logs" | "history";
+export type PanelTab = "console" | "logs" | "history" | "mcp";
 export type PathIndexStatus = "idle" | "updating";
+
+export type McpActivityEntry = {
+	ts: string;
+	tool: string;
+	ok: boolean;
+	summary: string;
+	flowId?: string;
+	nodeId?: string;
+	durationMs?: number;
+	error?: string;
+};
+
+export type ExternalFlowChangeOptions = {
+	/** Prefer focusing this node after a successful apply (e.g. MCP patch_node). */
+	preferNodeId?: string;
+	/** When true, open the flow tab if it is not already open. */
+	openIfClosed?: boolean;
+};
+
+const MCP_MUTATING_TOOLS = new Set(["save_flow", "patch_flow", "patch_node"]);
+
+const MCP_ACTIVITY_CAP = 500;
+
+/** Coalesce Rapid MCP + fs.watch notifications per flow. */
+const EXTERNAL_RELOAD_DEBOUNCE_MS = 120;
+const externalReloadTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const externalReloadPrefs = new Map<string, ExternalFlowChangeOptions>();
+const externalReloadGenerationByFlow = new Map<string, number>();
+
+function scheduleExternalFlowReload(
+	apply: (flowId: string, opts: ExternalFlowChangeOptions, gen: number) => void,
+	flowId: string,
+	opts: ExternalFlowChangeOptions = {},
+): void {
+	const prev = externalReloadPrefs.get(flowId) ?? {};
+	externalReloadPrefs.set(flowId, {
+		openIfClosed: Boolean(prev.openIfClosed || opts.openIfClosed),
+		preferNodeId: opts.preferNodeId ?? prev.preferNodeId,
+	});
+	const existing = externalReloadTimers.get(flowId);
+	if (existing) clearTimeout(existing);
+	const gen = (externalReloadGenerationByFlow.get(flowId) ?? 0) + 1;
+	externalReloadGenerationByFlow.set(flowId, gen);
+	externalReloadTimers.set(
+		flowId,
+		setTimeout(() => {
+			externalReloadTimers.delete(flowId);
+			const merged = externalReloadPrefs.get(flowId) ?? {};
+			externalReloadPrefs.delete(flowId);
+			apply(flowId, merged, gen);
+		}, EXTERNAL_RELOAD_DEBOUNCE_MS),
+	);
+}
+
+function pickFollowSelection(
+	flow: FlowV1,
+	preferNodeId: string | null | undefined,
+	currentSelected: string | null,
+): string | null {
+	if (preferNodeId && flow.nodes.some((n) => n.id === preferNodeId)) {
+		return preferNodeId;
+	}
+	if (currentSelected && flow.nodes.some((n) => n.id === currentSelected)) {
+		return currentSelected;
+	}
+	return null;
+}
 
 /** Per-flow run slot (Response / Logs / canvas status). */
 export type FlowRunState = {
@@ -357,6 +434,24 @@ export type QuesterState = {
 	requestByPath: Record<string, RequestSendState>;
 	/** Console transcript keyed by flow id (or {@link APP_CONSOLE_KEY}). */
 	consoleByFlowId: Record<string, string[]>;
+	/** Live MCP tool feed for the open workspace (this app session). */
+	mcpActivityLog: McpActivityEntry[];
+
+	/** Soft lock / banner when external agent edits are being followed. */
+	aiFollowing: boolean;
+	aiFollowMessage: string | null;
+	/** Pending external edit while the open flow tab is dirty. */
+	pendingExternalFlow: {
+		flowId: string;
+		flow: FlowV1;
+	} | null;
+	/** Desktop-managed local MCP serve process status. */
+	mcpServerStatus: {
+		running: boolean;
+		workspace: string | null;
+		pid: number | null;
+		error: string | null;
+	};
 
 	setActiveTabId: (tabId: string | null) => void;
 	setSelectedEnv: (env: string) => void;
@@ -381,10 +476,16 @@ export type QuesterState = {
 	appendConsole: (line: string, flowId?: string) => void;
 	clearConsole: () => void;
 	clearLogs: () => void;
+	clearMcpActivity: () => void;
+	/** Append MCP tool activity; may auto-reload mutating flow edits. */
+	handleMcpActivity: (event: McpActivityEntry) => void;
 	showError: (message: string) => void;
 	handleActivityView: (view: ActivityView) => void;
 	openAppPreferences: () => void;
-	openWorkspaceSettings: () => Promise<void>;
+	openWorkspaceSettings: (
+		category?: WorkspaceSettingsCategory,
+	) => Promise<void>;
+	setWorkspaceSettingsCategory: (category: WorkspaceSettingsCategory) => void;
 	updateWorkspaceSettingsManifest: (manifest: WorkspaceV1) => void;
 	updateActiveFlowMeta: (meta: {
 		name?: string;
@@ -406,6 +507,24 @@ export type QuesterState = {
 		collectionList: string[];
 	}>;
 	loadFlow: (flowId: string, workspace: string) => Promise<void>;
+	/** Reload a flow from disk; when dirty, queue accept/discard instead of overwriting. */
+	handleExternalFlowChange: (
+		flowId: string,
+		opts?: ExternalFlowChangeOptions,
+	) => void;
+	acceptExternalFlowChange: () => void;
+	discardExternalFlowChange: () => void;
+	setAiFollowing: (enabled: boolean, message?: string | null) => void;
+	copyMcpConfig: () => Promise<void>;
+	applyMcpServerStatus: (status: {
+		running: boolean;
+		workspace: string | null;
+		pid: number | null;
+		error: string | null;
+	}) => void;
+	refreshMcpServerStatus: () => Promise<void>;
+	startMcpServer: () => Promise<void>;
+	stopMcpServer: () => Promise<void>;
 	loadEnvironment: (envName: string, workspace: string) => Promise<void>;
 	loadSecretsFile: (envName: string, workspace: string) => Promise<void>;
 	loadRequest: (requestPath: string, workspace: string) => Promise<void>;
@@ -465,6 +584,136 @@ export type QuesterState = {
 	sendRequest: () => Promise<void>;
 };
 
+async function loadFlowWithRetry(
+	workspacePath: string,
+	flowId: string,
+	attempts = 4,
+): Promise<FlowV1> {
+	let lastErr: unknown;
+	for (let i = 0; i < attempts; i++) {
+		try {
+			return await getQuesterClient().loadFlow(flowId, workspacePath);
+		} catch (err) {
+			lastErr = err;
+			// Mid-write from MCP often fails once; back off briefly.
+			await new Promise((r) => setTimeout(r, 40 + i * 60));
+		}
+	}
+	throw lastErr instanceof Error
+		? lastErr
+		: new Error(`Failed to reload ${flowId}`);
+}
+
+async function applyExternalFlowChange(
+	get: () => QuesterState,
+	set: (
+		partial:
+			| Partial<QuesterState>
+			| ((s: QuesterState) => Partial<QuesterState> | QuesterState),
+	) => void,
+	flowId: string,
+	opts: ExternalFlowChangeOptions,
+	gen: number,
+): Promise<void> {
+	const { workspacePath, refreshWorkspaceLists } = get();
+	if (!workspacePath) return;
+
+	await refreshWorkspaceLists(workspacePath).catch(() => undefined);
+	if (externalReloadGenerationByFlow.get(flowId) !== gen) return;
+
+	const tabId = flowTabId(flowId);
+	let flow: FlowV1;
+	try {
+		flow = await loadFlowWithRetry(workspacePath, flowId);
+	} catch (err) {
+		if (externalReloadGenerationByFlow.get(flowId) !== gen) return;
+		const message =
+			err instanceof Error ? err.message : `Failed to reload ${flowId}`;
+		// Never close tabs on a failed reload — mid-write races are common with MCP.
+		set({
+			aiFollowing: true,
+			aiFollowMessage: message,
+		});
+		return;
+	}
+	if (externalReloadGenerationByFlow.get(flowId) !== gen) return;
+
+	const state = get();
+	const existing = state.openTabs.find((t) => t.id === tabId);
+
+	if (!existing || existing.kind !== "flow") {
+		if (opts.openIfClosed) {
+			markExternalFlowApply();
+			set({
+				aiFollowing: true,
+				aiFollowMessage: `Following agent edits · ${flowId}`,
+			});
+			get().openTab(createFlowEditorTab(flow));
+			const next = pickFollowSelection(flow, opts.preferNodeId, null);
+			if (next) {
+				set({
+					selectedNodeId: next,
+					selectedNodeIds: [next],
+				});
+			}
+			return;
+		}
+		set({
+			aiFollowing: true,
+			aiFollowMessage: `Agent updated ${flowId} on disk`,
+		});
+		return;
+	}
+
+	// Only the edited tab's dirty flag blocks auto-apply (not global canvasDirty).
+	if (existing.dirty) {
+		set({
+			aiFollowing: true,
+			aiFollowMessage: `External edit to ${flowId} — accept or keep your draft`,
+			pendingExternalFlow: { flowId, flow },
+		});
+		return;
+	}
+
+	const isActive = state.activeTabId === tabId;
+	const nextSelected = pickFollowSelection(
+		flow,
+		opts.preferNodeId,
+		isActive ? state.selectedNodeId : null,
+	);
+	const inputJson = runInputJsonFromFlow(flow);
+
+	// Block canvas→store overwrite while RF applies the disk graph.
+	markExternalFlowApply();
+
+	set((s) => ({
+		aiFollowing: true,
+		aiFollowMessage: `Following agent edits · ${flowId}`,
+		pendingExternalFlow:
+			s.pendingExternalFlow?.flowId === flowId ? null : s.pendingExternalFlow,
+		openTabs: s.openTabs.map((t) =>
+			t.id === tabId && t.kind === "flow"
+				? {
+						...t,
+						flow,
+						dirty: false,
+						inputJson,
+						// Keep revision stable — remounting RF resets viewport and fights positions.
+						externalRevision: t.externalRevision ?? 0,
+					}
+				: t,
+		),
+		...(isActive
+			? {
+					canvasDirty: false,
+					inputJson,
+					selectedNodeId: nextSelected,
+					selectedNodeIds: nextSelected ? [nextSelected] : [],
+				}
+			: {}),
+	}));
+}
+
 export const useQuesterStore = create<QuesterState>((set, get) => ({
 	workspacePath: "",
 	workspaceName: "",
@@ -509,6 +758,16 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	runByFlowId: {},
 	requestByPath: {},
 	consoleByFlowId: { [APP_CONSOLE_KEY]: [...DEFAULT_CONSOLE_LINES] },
+	mcpActivityLog: [],
+	aiFollowing: false,
+	aiFollowMessage: null,
+	pendingExternalFlow: null,
+	mcpServerStatus: {
+		running: false,
+		workspace: null,
+		pid: null,
+		error: null,
+	},
 
 	setActiveTabId: (tabId) =>
 		set((s) => {
@@ -659,6 +918,36 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				}),
 			};
 		}),
+	clearMcpActivity: () => set({ mcpActivityLog: [] }),
+	handleMcpActivity: (event) => {
+		set((s) => {
+			const last = s.mcpActivityLog[s.mcpActivityLog.length - 1];
+			// Drop exact duplicates from overlapping bridges/polls.
+			if (
+				last &&
+				last.ts === event.ts &&
+				last.tool === event.tool &&
+				last.summary === event.summary &&
+				last.durationMs === event.durationMs
+			) {
+				return s;
+			}
+			return {
+				mcpActivityLog: [...s.mcpActivityLog, event].slice(-MCP_ACTIVITY_CAP),
+				panelOpen: true,
+				panelTab: "mcp" as const,
+				aiFollowing: true,
+				aiFollowMessage: event.ok
+					? event.summary
+					: `MCP · ${event.tool} failed`,
+			};
+		});
+		if (event.ok && event.flowId && MCP_MUTATING_TOOLS.has(event.tool)) {
+			get().handleExternalFlowChange(event.flowId, {
+				preferNodeId: event.nodeId,
+			});
+		}
+	},
 	showError: (message) => {
 		toast.error(message);
 		set((s) => {
@@ -694,7 +983,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		get().openTab(createAppSettingsEditorTab());
 	},
 
-	openWorkspaceSettings: async () => {
+	openWorkspaceSettings: async (category = "details") => {
 		const { workspacePath, showError, openTab } = get();
 		if (!workspacePath) {
 			showError("Open a workspace first");
@@ -703,7 +992,23 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		try {
 			const manifest =
 				await getQuesterClient().loadWorkspaceManifest(workspacePath);
-			openTab(createWorkspaceSettingsEditorTab(manifest));
+			const tabId = workspaceSettingsTabId();
+			const existing = get().openTabs.find((t) => t.id === tabId);
+			if (existing?.kind === "workspaceSettings") {
+				set((s) => ({
+					activeTabId: tabId,
+					openTabs: s.openTabs.map((t) => {
+						if (t.kind !== "workspaceSettings") return t;
+						return {
+							...t,
+							category,
+							...(t.dirty ? {} : { manifest, dirty: false }),
+						};
+					}),
+				}));
+				return;
+			}
+			openTab(createWorkspaceSettingsEditorTab(manifest, category));
 		} catch (err) {
 			showError(
 				err instanceof Error
@@ -711,6 +1016,14 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					: "Failed to load workspace settings",
 			);
 		}
+	},
+
+	setWorkspaceSettingsCategory: (category) => {
+		set((s) => ({
+			openTabs: s.openTabs.map((t) =>
+				t.kind === "workspaceSettings" ? { ...t, category } : t,
+			),
+		}));
 	},
 
 	updateWorkspaceSettingsManifest: (manifest) => {
@@ -858,6 +1171,135 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		get().openTab(createFlowEditorTab(flow));
 	},
 
+	handleExternalFlowChange: (flowId, opts = {}) => {
+		scheduleExternalFlowReload(
+			(id, merged, gen) => {
+				void applyExternalFlowChange(get, set, id, merged, gen);
+			},
+			flowId,
+			opts,
+		);
+	},
+
+	acceptExternalFlowChange: () => {
+		const pending = get().pendingExternalFlow;
+		if (!pending) return;
+		const tabId = flowTabId(pending.flowId);
+		markExternalFlowApply();
+		set((s) => {
+			const isActive = s.activeTabId === tabId;
+			const nextSelected = pickFollowSelection(
+				pending.flow,
+				undefined,
+				isActive ? s.selectedNodeId : null,
+			);
+			const inputJson = runInputJsonFromFlow(pending.flow);
+			return {
+				pendingExternalFlow: null,
+				aiFollowing: true,
+				aiFollowMessage: `Accepted agent edit · ${pending.flowId}`,
+				openTabs: s.openTabs.map((t) =>
+					t.id === tabId && t.kind === "flow"
+						? {
+								...t,
+								flow: pending.flow,
+								dirty: false,
+								inputJson,
+								externalRevision: t.externalRevision ?? 0,
+							}
+						: t,
+				),
+				...(isActive
+					? {
+							canvasDirty: false,
+							inputJson,
+							selectedNodeId: nextSelected,
+							selectedNodeIds: nextSelected ? [nextSelected] : [],
+						}
+					: {}),
+			};
+		});
+	},
+
+	discardExternalFlowChange: () => {
+		set({
+			pendingExternalFlow: null,
+			aiFollowMessage: "Kept local draft",
+		});
+	},
+
+	setAiFollowing: (enabled, message = null) =>
+		set({
+			aiFollowing: enabled,
+			aiFollowMessage: message ?? null,
+			...(enabled ? {} : { pendingExternalFlow: null }),
+		}),
+
+	copyMcpConfig: async () => {
+		const path = get().workspacePath;
+		if (!path) {
+			toast.warning("Open a workspace first");
+			return;
+		}
+		try {
+			const { desktopRpc } = await import("../lib/electrobun.js");
+			const snippet = await desktopRpc.getMcpConfigSnippet(path);
+			await navigator.clipboard.writeText(snippet.cursor);
+			toast.success("MCP config copied (Cursor format)");
+		} catch (err) {
+			toast.error(
+				err instanceof Error ? err.message : "Failed to copy MCP config",
+			);
+		}
+	},
+
+	applyMcpServerStatus: (status) => set({ mcpServerStatus: status }),
+
+	refreshMcpServerStatus: async () => {
+		try {
+			const { desktopRpc } = await import("../lib/electrobun.js");
+			const status = await desktopRpc.getMcpServerStatus();
+			set({ mcpServerStatus: status });
+		} catch {
+			/* ignore — status sync is best-effort */
+		}
+	},
+
+	startMcpServer: async () => {
+		const path = get().workspacePath;
+		if (!path) {
+			toast.warning("Open a workspace first");
+			return;
+		}
+		try {
+			const { desktopRpc } = await import("../lib/electrobun.js");
+			const status = await desktopRpc.startMcpServer(path);
+			set({ mcpServerStatus: status });
+			if (status.running) {
+				toast.success("MCP server started");
+			} else {
+				toast.error(status.error ?? "MCP server failed to start");
+			}
+		} catch (err) {
+			toast.error(
+				err instanceof Error ? err.message : "Failed to start MCP server",
+			);
+		}
+	},
+
+	stopMcpServer: async () => {
+		try {
+			const { desktopRpc } = await import("../lib/electrobun.js");
+			const status = await desktopRpc.stopMcpServer();
+			set({ mcpServerStatus: status });
+			toast.success("MCP server stopped");
+		} catch (err) {
+			toast.error(
+				err instanceof Error ? err.message : "Failed to stop MCP server",
+			);
+		}
+	},
+
 	loadEnvironment: async (envName, workspace) => {
 		const tabId = envTabId(envName);
 		const existing = get().openTabs.find((t) => t.id === tabId);
@@ -914,6 +1356,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			runByFlowId: {},
 			requestByPath: {},
 			consoleByFlowId: { [APP_CONSOLE_KEY]: [...DEFAULT_CONSOLE_LINES] },
+			mcpActivityLog: [],
 			openTabs: [],
 			activeTabId: null,
 			selectedNodeId: null,
@@ -935,6 +1378,18 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			hydratePathShapes(path);
 			await get().refreshTemplateKeys();
 			appendConsole(`Workspace loaded: ${summary.name}`);
+			void import("../lib/electrobun.js").then(async ({ desktopRpc }) => {
+				try {
+					await desktopRpc.watchFlows(path);
+				} catch (err) {
+					console.error("[desktop] watchFlows failed", err);
+				}
+				try {
+					await desktopRpc.watchMcpActivity(path);
+				} catch (err) {
+					console.error("[desktop] watchMcpActivity failed", err);
+				}
+			});
 
 			const firstFlow = flowList[0];
 			if (firstFlow) {
@@ -965,6 +1420,11 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	closeWorkspace: () => {
 		cancelInFlightRuns(get().runByFlowId);
 		clearLastWorkspacePath();
+		void import("../lib/electrobun.js").then(({ desktopRpc }) => {
+			void desktopRpc.stopWatchFlows().catch(() => undefined);
+			void desktopRpc.stopWatchMcpActivity().catch(() => undefined);
+			void desktopRpc.stopMcpServer().catch(() => undefined);
+		});
 		set({
 			workspacePath: "",
 			workspaceName: "",
@@ -977,6 +1437,16 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			activeTabId: null,
 			selectedNodeId: null,
 			selectedNodeIds: [],
+			aiFollowing: false,
+			aiFollowMessage: null,
+			pendingExternalFlow: null,
+			mcpServerStatus: {
+				running: false,
+				workspace: null,
+				pid: null,
+				error: null,
+			},
+			mcpActivityLog: [],
 			canvasDirty: false,
 			pathShapeIndex: emptyPathShapeIndex(),
 			pathIndexStatus: "idle",
@@ -1037,6 +1507,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	handleGraphChange: (nodes, edges) => {
+		if (shouldSuppressCanvasEmit()) return;
 		const { activeTabId } = get();
 		if (!activeTabId) return;
 		set((s) => {

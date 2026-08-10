@@ -8,9 +8,11 @@ import {
 	findRunHistoryEntry,
 	listRunHistory,
 	truncateResultForHistory,
+	writeAllEntries,
 } from "./runHistory.js";
 
 const memory = new Map<string, string>();
+let maxBytes = Number.POSITIVE_INFINITY;
 
 Object.defineProperty(globalThis, "localStorage", {
 	value: {
@@ -18,6 +20,12 @@ Object.defineProperty(globalThis, "localStorage", {
 			return memory.has(key) ? (memory.get(key) ?? null) : null;
 		},
 		setItem(key: string, value: string) {
+			if (value.length > maxBytes) {
+				throw new DOMException(
+					"Setting the value exceeded the quota.",
+					"QuotaExceededError",
+				);
+			}
 			memory.set(key, value);
 		},
 		removeItem(key: string) {
@@ -32,6 +40,7 @@ Object.defineProperty(globalThis, "localStorage", {
 
 afterEach(() => {
 	memory.clear();
+	maxBytes = Number.POSITIVE_INFINITY;
 });
 
 function sampleResult(overrides: Partial<ExecuteFlowRpcResult> = {}) {
@@ -54,8 +63,9 @@ describe("runHistory", () => {
 			}),
 		);
 		const body = (truncated.nodeOutputs.n1 as { body: string }).body;
-		expect(body.length).toBeLessThan(600);
+		expect(body.length).toBeLessThan(250);
 		expect(body.endsWith("…")).toBe(true);
+		expect(truncated.nodeInputs).toEqual({});
 	});
 
 	test("appendRunHistory keeps last N per flow", () => {
@@ -104,5 +114,41 @@ describe("runHistory", () => {
 		expect(listRunHistory("b")).toHaveLength(1);
 		clearRunHistory();
 		expect(memory.has(RUN_HISTORY_STORAGE_KEY)).toBe(false);
+	});
+
+	test("writeAllEntries prunes oldest when quota exceeded", () => {
+		const bulky = sampleResult({
+			nodeOutputs: {
+				n1: { body: "y".repeat(400) },
+				n2: {
+					items: Array.from({ length: 30 }, (_, i) => ({
+						i,
+						t: "z".repeat(80),
+					})),
+				},
+			},
+		});
+		for (let i = 0; i < 8; i += 1) {
+			appendRunHistory({
+				flowId: "big",
+				runId: `run-${i}`,
+				ts: i,
+				ok: true,
+				result: truncateResultForHistory(bulky),
+			});
+		}
+		const before = memory.get(RUN_HISTORY_STORAGE_KEY)?.length ?? 0;
+		expect(before).toBeGreaterThan(1000);
+		maxBytes = Math.floor(before * 0.4);
+		writeAllEntries(
+			JSON.parse(memory.get(RUN_HISTORY_STORAGE_KEY) ?? "[]") as ReturnType<
+				typeof listRunHistory
+			>,
+		);
+		const after = memory.get(RUN_HISTORY_STORAGE_KEY);
+		expect(after).toBeTruthy();
+		expect((after ?? "").length).toBeLessThanOrEqual(maxBytes);
+		expect(listRunHistory("big").length).toBeGreaterThan(0);
+		expect(listRunHistory("big").length).toBeLessThan(8);
 	});
 });

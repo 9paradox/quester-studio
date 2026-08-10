@@ -87,6 +87,12 @@ function WorkspaceChip() {
 				</DropdownMenuItem>
 				{workspacePath ? (
 					<>
+						<DropdownMenuItem
+							onClick={() => void useQuesterStore.getState().copyMcpConfig()}
+						>
+							<IconWorld />
+							Copy MCP config
+						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
 							variant="destructive"

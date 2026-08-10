@@ -659,6 +659,47 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 			output: "Evaluated value (passthrough when expression omitted)",
 		},
 	},
+	mcp: {
+		summary:
+			"Calls a tool on an external MCP server named in workspace settings.mcp.servers.",
+		fields: [
+			{
+				name: "label",
+				type: "string",
+				description: "Optional UI label",
+			},
+			{
+				name: "server",
+				type: "string",
+				description: "Server id from settings.mcp.servers",
+			},
+			{
+				name: "tool",
+				type: "string",
+				description: "Remote tool name",
+			},
+			{
+				name: "arguments",
+				type: "object | string",
+				description: "Tool arguments (templates allowed in strings)",
+			},
+			{
+				name: "timeoutMs",
+				type: "number",
+				description: "Optional call timeout (default 60000)",
+			},
+		],
+		example: {
+			label: "Echo",
+			server: "local",
+			tool: "echo",
+			arguments: { text: "{{input.msg}}" },
+		},
+		io: {
+			input: "Previous node output (not sent unless referenced in templates)",
+			output: "MCP tool result payload",
+		},
+	},
 };
 
 export function getNodeHelp(type: BuiltinNodeType): NodeHelp {

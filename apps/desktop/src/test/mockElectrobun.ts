@@ -140,6 +140,33 @@ const rpc = {
 	listRunTree: async () => [],
 	readRunJson: async () => ({}),
 	deleteRunPath: async () => ({ ok: true }),
+	getMcpConfigSnippet: async () => ({
+		cursor: "{}",
+		vscode: "{}",
+		claudeDesktop: "{}",
+	}),
+	watchFlows: async () => ({ ok: true as const }),
+	stopWatchFlows: async () => ({ ok: true as const }),
+	watchMcpActivity: async () => ({ ok: true as const }),
+	stopWatchMcpActivity: async () => ({ ok: true as const }),
+	startMcpServer: async () => ({
+		running: true,
+		workspace: SMOKE_WORKSPACE,
+		pid: 1,
+		error: null,
+	}),
+	stopMcpServer: async () => ({
+		running: false,
+		workspace: null,
+		pid: null,
+		error: null,
+	}),
+	getMcpServerStatus: async () => ({
+		running: false,
+		workspace: null,
+		pid: null,
+		error: null,
+	}),
 	onNodeRunStatus: () => () => {},
 };
 
@@ -153,5 +180,8 @@ export function mockDesktopRpc() {
 	mock.module("@/lib/electrobun.js", () => ({
 		desktopRpc: rpc,
 		onNodeRunStatus: () => () => {},
+		onFlowFileChanged: () => () => {},
+		onMcpServerStatus: () => () => {},
+		onMcpActivity: () => () => {},
 	}));
 }

@@ -70,7 +70,7 @@ Previous-node JSON is the **wire** (execute input). JMESPath on extract/assert/j
 
 ## Builtin node types
 
-`start`, `input`, `http`, `extract`, `template`, `set`, `if`, `switch`, `delay`/`wait`, `foreach`, `try`, `subflow`, `output`, `assert`, `transform`, `merge`, `json`, `log`, `inspect`/`preview`, `note`
+`start`, `input`, `http`, `extract`, `template`, `set`, `if`, `switch`, `delay`/`wait`, `foreach`, `try`, `subflow`, `output`, `assert`, `transform`, `merge`, `json`, `log`, `inspect`/`preview`, `note`, `mcp`
 
 ## Change checklist
 

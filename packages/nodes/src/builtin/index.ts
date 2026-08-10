@@ -21,3 +21,4 @@ export * from "./json.js";
 export * from "./note.js";
 export * from "./log.js";
 export * from "./inspect.js";
+export * from "./mcp.js";

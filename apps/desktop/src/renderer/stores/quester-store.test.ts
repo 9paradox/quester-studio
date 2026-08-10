@@ -11,6 +11,7 @@ import {
 	flowTabId,
 	requestTabId,
 } from "@/lib/editorTabs.js";
+import { clearExternalFlowApplyGuard } from "@/lib/externalApplyGuard.js";
 import { getQuesterClient } from "@/lib/quester-client.js";
 import type {
 	EnvironmentV1,
@@ -118,6 +119,37 @@ mock.module("@/lib/quester-client.js", () => {
 				version: "v1",
 				variables: { API_BASE: "https://example.com" },
 			}),
+			loadWorkspaceManifest: async () => ({
+				version: "v1",
+				name: "Test Workspace",
+				flowsDir: "flows",
+				environmentsDir: "environments",
+			}),
+			loadFlow: async (flowId: string) => ({
+				version: "v1" as const,
+				id: flowId,
+				name: flowId,
+				nodes: [
+					{
+						id: "start",
+						type: "start" as const,
+						position: { x: 0, y: 0 },
+						data: {},
+					},
+					{
+						id: "agent-node",
+						type: "set" as const,
+						position: { x: 200, y: 0 },
+						data: { path: "vars.x", value: "from-agent" },
+					},
+				],
+				edges: [{ id: "e1", source: "start", target: "agent-node" }],
+			}),
+			listFlows: async () => [{ id: "demo-flow", name: "Demo" }],
+			listEnvs: async () => ["local"],
+			listSecretFiles: async () => [],
+			listCollectionRequests: async () => [],
+			listCollections: async () => [],
 			listSecretNames: async () => ["username", "password"],
 			readPathShapes: async () => null,
 			writePathShapes: async () => ({ ok: true }),
@@ -134,8 +166,39 @@ mock.module("@/lib/quester-client.js", () => {
 });
 
 mock.module("@/lib/electrobun.js", () => ({
-	desktopRpc: {},
+	desktopRpc: {
+		watchFlows: async () => ({ ok: true }),
+		stopWatchFlows: async () => ({ ok: true }),
+		watchMcpActivity: async () => ({ ok: true }),
+		stopWatchMcpActivity: async () => ({ ok: true }),
+		getMcpConfigSnippet: async () => ({
+			cursor: "{}",
+			vscode: "{}",
+			claudeDesktop: "{}",
+		}),
+		startMcpServer: async () => ({
+			running: true,
+			workspace: "/tmp",
+			pid: 1,
+			error: null,
+		}),
+		stopMcpServer: async () => ({
+			running: false,
+			workspace: null,
+			pid: null,
+			error: null,
+		}),
+		getMcpServerStatus: async () => ({
+			running: false,
+			workspace: null,
+			pid: null,
+			error: null,
+		}),
+	},
 	onNodeRunStatus: () => () => {},
+	onFlowFileChanged: () => () => {},
+	onMcpServerStatus: () => () => {},
+	onMcpActivity: () => () => {},
 }));
 
 const sampleFlow: FlowV1 = {
@@ -153,6 +216,7 @@ beforeAll(async () => {
 });
 
 function resetStore() {
+	clearExternalFlowApplyGuard();
 	useQuesterStore.setState({
 		workspacePath: "",
 		workspaceName: "",
@@ -177,6 +241,7 @@ function resetStore() {
 		runByFlowId: {},
 		requestByPath: {},
 		consoleByFlowId: { _app: ["> Quester ready"] },
+		mcpActivityLog: [],
 	});
 }
 
@@ -206,6 +271,82 @@ describe("useQuesterStore", () => {
 		expect(s.openTabs).toEqual([]);
 		expect(s.activeTabId).toBeNull();
 		expect(s.flows).toEqual([]);
+	});
+
+	test("handleMcpActivity opens MCP panel and records the action", () => {
+		resetStore();
+		useQuesterStore.getState().handleMcpActivity({
+			ts: new Date().toISOString(),
+			tool: "list_flows",
+			ok: true,
+			summary: "Listed flows",
+			durationMs: 4,
+		});
+		const s = useQuesterStore.getState();
+		expect(s.panelTab).toBe("mcp");
+		expect(s.panelOpen).toBe(true);
+		expect(s.aiFollowing).toBe(true);
+		expect(s.mcpActivityLog).toHaveLength(1);
+		expect(s.mcpActivityLog[0]?.tool).toBe("list_flows");
+	});
+
+	test("openWorkspaceSettings deep-links to MCP category", async () => {
+		resetStore();
+		useQuesterStore.setState({ workspacePath: "/tmp/ws" });
+		await useQuesterStore.getState().openWorkspaceSettings("mcp");
+		const tab = useQuesterStore
+			.getState()
+			.openTabs.find((t) => t.kind === "workspaceSettings");
+		expect(tab?.kind).toBe("workspaceSettings");
+		if (tab?.kind === "workspaceSettings") {
+			expect(tab.category).toBe("mcp");
+		}
+	});
+
+	test("handleExternalFlowChange applies disk flow when clean", async () => {
+		resetStore();
+		const tab = createFlowEditorTab(sampleFlow);
+		useQuesterStore.setState({
+			workspacePath: "/tmp/ws",
+			openTabs: [tab],
+			activeTabId: tab.id,
+			canvasDirty: false,
+		});
+		useQuesterStore.getState().handleExternalFlowChange(sampleFlow.id, {
+			preferNodeId: "agent-node",
+		});
+		await Bun.sleep(200);
+		const next = useQuesterStore
+			.getState()
+			.openTabs.find((t) => t.id === tab.id);
+		expect(next?.kind).toBe("flow");
+		if (next?.kind === "flow") {
+			expect(next.dirty).toBe(false);
+			expect(next.flow.nodes.some((n) => n.id === "agent-node")).toBe(true);
+			expect(
+				next.flow.nodes.find((n) => n.id === "agent-node")?.position,
+			).toEqual({ x: 200, y: 0 });
+		}
+		expect(useQuesterStore.getState().selectedNodeId).toBe("agent-node");
+		expect(useQuesterStore.getState().pendingExternalFlow).toBeNull();
+	});
+
+	test("handleExternalFlowChange queues when tab is dirty (ignores unrelated canvasDirty)", async () => {
+		resetStore();
+		const dirtyTab = { ...createFlowEditorTab(sampleFlow), dirty: true };
+		useQuesterStore.setState({
+			workspacePath: "/tmp/ws",
+			openTabs: [dirtyTab],
+			activeTabId: dirtyTab.id,
+			canvasDirty: true,
+		});
+		useQuesterStore.getState().handleExternalFlowChange(sampleFlow.id);
+		await Bun.sleep(200);
+		const s = useQuesterStore.getState();
+		expect(s.pendingExternalFlow?.flowId).toBe(sampleFlow.id);
+		const tab = s.openTabs.find((t) => t.id === dirtyTab.id);
+		expect(tab?.kind === "flow" && tab.dirty).toBe(true);
+		expect(tab?.kind === "flow" && tab.externalRevision).toBe(0);
 	});
 
 	test("openTab activates tab and clears node selection for flows", () => {

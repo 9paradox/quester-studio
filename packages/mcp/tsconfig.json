@@ -1,0 +1,11 @@
+{
+	"extends": "@quester-studio/tsconfig/base.json",
+	"compilerOptions": {
+		"outDir": "dist",
+		"rootDir": "src",
+		"skipLibCheck": true,
+		"maxNodeModuleJsDepth": 0
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["src/**/*.test.ts"]
+}

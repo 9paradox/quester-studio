@@ -14,6 +14,7 @@ const packages = [
 	"@quester-studio/schema",
 	"@quester-studio/nodes",
 	"@quester-studio/engine",
+	"@quester-studio/mcp",
 	"@quester-studio/cli",
 	"@quester-studio/api-contract",
 	"@quester-studio/workspace-service",

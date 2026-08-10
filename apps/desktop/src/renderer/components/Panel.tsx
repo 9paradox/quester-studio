@@ -129,6 +129,7 @@ export function Panel() {
 	const height = useQuesterStore((s) => s.panelHeight);
 	const activeTab = useQuesterStore((s) => s.panelTab);
 	const consoleLines = useQuesterStore(selectActiveConsoleLines);
+	const mcpActivityLog = useQuesterStore((s) => s.mcpActivityLog);
 	const { runResult, runError } = useQuesterStore(selectActiveFlowRun);
 
 	const setPanelTab = useQuesterStore((s) => s.setPanelTab);
@@ -136,6 +137,7 @@ export function Panel() {
 	const setPanelHeight = useQuesterStore((s) => s.setPanelHeight);
 	const clearConsole = useQuesterStore((s) => s.clearConsole);
 	const clearLogs = useQuesterStore((s) => s.clearLogs);
+	const clearMcpActivity = useQuesterStore((s) => s.clearMcpActivity);
 	const replayRunFromHistory = useQuesterStore((s) => s.replayRunFromHistory);
 	const openTabs = useQuesterStore((s) => s.openTabs);
 	const activeTabId = useQuesterStore((s) => s.activeTabId);
@@ -153,6 +155,7 @@ export function Panel() {
 	const startHeight = useRef(height);
 	const [consoleFilter, setConsoleFilter] = useState("");
 	const [logsFilter, setLogsFilter] = useState("");
+	const [mcpFilter, setMcpFilter] = useState("");
 	const [logLevel, setLogLevel] = useState<"all" | "info" | "error">("all");
 
 	const filteredConsoleLines = useMemo(() => {
@@ -160,6 +163,16 @@ export function Panel() {
 		if (!q) return consoleLines;
 		return consoleLines.filter((line) => line.toLowerCase().includes(q));
 	}, [consoleLines, consoleFilter]);
+
+	const filteredMcpActivity = useMemo(() => {
+		const q = mcpFilter.trim().toLowerCase();
+		if (!q) return mcpActivityLog;
+		return mcpActivityLog.filter((e) => {
+			const hay =
+				`${e.tool} ${e.summary} ${e.flowId ?? ""} ${e.nodeId ?? ""} ${e.error ?? ""}`.toLowerCase();
+			return hay.includes(q);
+		});
+	}, [mcpActivityLog, mcpFilter]);
 
 	const filteredLogs = useMemo(() => {
 		let entries = logs;
@@ -220,6 +233,18 @@ export function Panel() {
 		await navigator.clipboard.writeText(logsText);
 	};
 
+	const copyMcp = async () => {
+		const text = filteredMcpActivity
+			.map((e) => {
+				const time = new Date(e.ts).toLocaleTimeString();
+				const dur = e.durationMs != null ? ` ${e.durationMs}ms` : "";
+				const err = e.error ? ` — ${e.error}` : "";
+				return `[${e.ok ? "ok" : "err"}] ${time} ${e.tool} · ${e.summary}${dur}${err}`;
+			})
+			.join("\n");
+		await navigator.clipboard.writeText(text || "No MCP activity yet.");
+	};
+
 	if (!open) {
 		return (
 			<button
@@ -248,7 +273,9 @@ export function Panel() {
 			</button>
 			<Tabs
 				value={activeTab}
-				onValueChange={(v) => setPanelTab(v as "console" | "logs" | "history")}
+				onValueChange={(v) =>
+					setPanelTab(v as "console" | "logs" | "history" | "mcp")
+				}
 				className="flex min-h-0 flex-1 flex-col"
 			>
 				<div className="flex shrink-0 items-center gap-2 border-b px-2">
@@ -261,6 +288,14 @@ export function Panel() {
 						</TabsTrigger>
 						<TabsTrigger value="history" className="text-xs">
 							History
+						</TabsTrigger>
+						<TabsTrigger value="mcp" className="text-xs">
+							MCP
+							{mcpActivityLog.length > 0 ? (
+								<span className="ml-1 tabular-nums text-muted-foreground">
+									{mcpActivityLog.length}
+								</span>
+							) : null}
 						</TabsTrigger>
 					</TabsList>
 					<div className="flex min-w-0 flex-1 items-center gap-1">
@@ -331,6 +366,33 @@ export function Panel() {
 									size="icon-xs"
 									onClick={clearLogs}
 									aria-label="Clear logs"
+								>
+									<IconTrash />
+								</Button>
+							</>
+						) : activeTab === "mcp" ? (
+							<>
+								<Input
+									value={mcpFilter}
+									onChange={(e) => setMcpFilter(e.target.value)}
+									placeholder="Filter…"
+									className="h-6 max-w-[160px] text-xs"
+								/>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon-xs"
+									onClick={() => void copyMcp()}
+									aria-label="Copy MCP activity"
+								>
+									<IconCopy />
+								</Button>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon-xs"
+									onClick={clearMcpActivity}
+									aria-label="Clear MCP activity"
 								>
 									<IconTrash />
 								</Button>
@@ -433,6 +495,59 @@ export function Panel() {
 									</li>
 								))}
 							</ul>
+						)}
+					</TabsContent>
+					<TabsContent
+						value="mcp"
+						className="m-0 min-h-0 flex-1 overflow-auto p-2"
+					>
+						{filteredMcpActivity.length === 0 ? (
+							<p className="px-1 py-2 text-xs text-muted-foreground">
+								No MCP tool activity yet. When Cursor (or another host) calls
+								quester MCP tools against this workspace, each action appears
+								here. Flow saves/patches auto-reload the canvas when the tab is
+								clean.
+							</p>
+						) : (
+							<div className="flex flex-col gap-1">
+								{filteredMcpActivity.map((entry, i) => (
+									<div
+										key={`${entry.ts}-${entry.tool}-${i}`}
+										className={cn(
+											"rounded-md border border-transparent px-2 py-1.5",
+											!entry.ok && "border-destructive/20 bg-destructive/5",
+										)}
+									>
+										<div className="flex flex-wrap items-center gap-2">
+											<span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+												{new Date(entry.ts).toLocaleTimeString()}
+											</span>
+											<Badge variant={entry.ok ? "secondary" : "destructive"}>
+												{entry.ok ? "ok" : "err"}
+											</Badge>
+											<Badge variant="outline">{entry.tool}</Badge>
+											{entry.durationMs != null ? (
+												<span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+													{entry.durationMs}ms
+												</span>
+											) : null}
+											<span
+												className={cn(
+													"min-w-0 flex-1 truncate font-mono text-xs",
+													entry.ok ? "text-foreground" : "text-destructive",
+												)}
+											>
+												{entry.summary}
+											</span>
+										</div>
+										{entry.error ? (
+											<p className="mt-1 pl-0 font-mono text-[11px] text-destructive break-words whitespace-pre-wrap">
+												{entry.error}
+											</p>
+										) : null}
+									</div>
+								))}
+							</div>
 						)}
 					</TabsContent>
 				</div>

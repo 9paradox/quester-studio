@@ -17,6 +17,7 @@
 	},
 	"dependencies": {
 		"@quester-studio/engine": "workspace:*",
+		"@quester-studio/mcp": "workspace:*",
 		"@quester-studio/schema": "workspace:*",
 		"commander": "^13.1.0"
 	},

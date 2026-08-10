@@ -1,0 +1,34 @@
+{
+	"name": "@quester-studio/mcp",
+	"version": "0.6.2",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test src",
+		"lint": "biome check src"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.29.0",
+		"@quester-studio/engine": "workspace:*",
+		"@quester-studio/schema": "workspace:*",
+		"zod": "^3.24.2",
+		"zod-to-json-schema": "^3.24.5"
+	},
+	"devDependencies": {
+		"@quester-studio/tsconfig": "workspace:*",
+		"typescript": "^5.8.3",
+		"@types/node": "^22.15.3"
+	}
+}

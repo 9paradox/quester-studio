@@ -35,11 +35,33 @@ export const httpSettingsSchemaV1 = z.object({
 	cookieJar: z.boolean().optional(),
 });
 
+/** Named external MCP servers callable from `mcp` flow nodes. */
+export const mcpServerConfigSchemaV1 = z.union([
+	z.object({
+		transport: z.literal("stdio"),
+		command: z.string().min(1),
+		args: z.array(z.string()).optional(),
+		env: z.record(z.string()).optional(),
+	}),
+	z.object({
+		transport: z.literal("http"),
+		url: z.string().url(),
+		headers: z.record(z.string()).optional(),
+	}),
+]);
+
+export const mcpSettingsSchemaV1 = z.object({
+	servers: z.record(mcpServerConfigSchemaV1).default({}),
+});
+
 export const settingsSchemaV1 = z.object({
 	http: httpSettingsSchemaV1.optional(),
+	mcp: mcpSettingsSchemaV1.optional(),
 });
 
 export type HttpSettingsV1 = z.infer<typeof httpSettingsSchemaV1>;
+export type McpServerConfigV1 = z.infer<typeof mcpServerConfigSchemaV1>;
+export type McpSettingsV1 = z.infer<typeof mcpSettingsSchemaV1>;
 export type SettingsV1 = z.infer<typeof settingsSchemaV1>;
 
 function pickInherited<T>(

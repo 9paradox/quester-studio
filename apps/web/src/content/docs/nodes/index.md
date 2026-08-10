@@ -52,6 +52,7 @@ Read [How flows work](../concepts/) for connection rules, fan-out vs branches, a
 | [json](./json/) | 1 | 1 | Subset / passthrough |
 | [log](./log/) | 1 | 1 | Input + `{ logged }` |
 | [inspect](./inspect/) | 1 | 1 | Selected JSON |
+| [mcp](./mcp/) | 1 | 1 | External MCP tool result |
 | [note](./note/) | 0 | 0 | Not executed · no edges |
 
 ## Execution model

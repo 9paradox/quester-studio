@@ -38,31 +38,31 @@ Stable validate/run APIs; `security-review` for tool surface; SECURITY notes if 
 
 ### Stage 1 — MCP server (read + run)
 
-- [ ] Shared tool handlers + stdio server wiring (reusable from CLI / desktop)
-- [ ] Tools: list flows, scoped workspace/flow read, validate, run flow
-- [ ] Tool: inspect last run / node outputs (enough for agent to “see” previous step shape)
-- [ ] CLI: `quester mcp serve` (workspace-scoped)
-- [ ] Sample + docs: connect Cursor / VS Code / Claude to a CLI workspace; run a sample flow
-- [ ] Trust notes: workspace path scoping; `run` can hit network / use secrets
+- [x] Shared tool handlers + stdio server wiring (reusable from CLI / desktop)
+- [x] Tools: list flows, scoped workspace/flow read, validate, run flow
+- [x] Tool: inspect last run / node outputs (enough for agent to “see” previous step shape)
+- [x] CLI: `quester mcp serve` (workspace-scoped)
+- [x] Sample + docs: connect Cursor / VS Code / Claude to a CLI workspace; run a sample flow
+- [x] Trust notes: workspace path scoping; `run` can hit network / use secrets
 
 ### Stage 2 — Agent authoring (write)
 
-- [ ] Safe write / patch flow tools (validate before/after write; no path escape)
-- [ ] Docs/examples: agent builds a small foreach + assert style flow from NL in the host
-- [ ] CLI workspace remains first-class (no desktop required)
+- [x] Safe write / patch flow tools (validate before/after write; no path escape)
+- [x] Docs/examples: agent builds a small foreach + assert style flow from NL in the host
+- [x] CLI workspace remains first-class (no desktop required)
 
 ### Stage 3 — Desktop discovery + “AI following” UX
 
-- [ ] Copy / configure MCP snippet for current workspace (points at CLI serve or embedded same core)
-- [ ] Reload / sync canvas when flow files change under agent edits
-- [ ] Banner / mode: canvas controlled by AI / updating automatically; optional edit lock or accept/discard
-- [ ] Highlight last-touched or running nodes when agent-driven run streams (reuse run UX patterns)
+- [x] Copy / configure MCP snippet for current workspace (points at CLI serve or embedded same core)
+- [x] Reload / sync canvas when flow files change under agent edits
+- [x] Banner / mode: canvas controlled by AI / updating automatically; optional edit lock or accept/discard
+- [x] Highlight last-touched or running nodes when agent-driven run streams (reuse run UX patterns)
 
 ### Stage 4 — MCP client (flows → external tools)
 
-- [ ] Call MCP tools from a flow or dedicated node (`add-flow-node` if new type)
-- [ ] Desktop / CLI config for client endpoints
-- [ ] Docs + trust boundaries for egress to third-party MCP servers
+- [x] Call MCP tools from a flow or dedicated node (`add-flow-node` if new type)
+- [x] Desktop / CLI config for client endpoints
+- [x] Docs + trust boundaries for egress to third-party MCP servers
 
 ### Later (not blocking Stage 1–3)
 

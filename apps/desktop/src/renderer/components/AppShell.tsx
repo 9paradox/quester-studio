@@ -3,10 +3,12 @@ import { Toaster } from "@/components/ui/sonner.js";
 import { TooltipProvider } from "@/components/ui/tooltip.js";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts.js";
 import { useSuppressBrowserContextMenu } from "@/hooks/use-suppress-browser-context-menu.js";
+import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectRightPanelVisible } from "@/stores/selectors.js";
 import { useAppInit } from "@/stores/use-app-init.js";
 import { ActivityBar } from "./ActivityBar.js";
+import { AiFollowingBanner } from "./AiFollowingBanner.js";
 import { AuxiliaryActivityBar } from "./AuxiliaryActivityBar.js";
 import { AuxiliarySidebar } from "./AuxiliarySidebar.js";
 import { CommandPalette } from "./CommandPalette.js";
@@ -30,11 +32,25 @@ export function AppShell() {
 	const rightPanelVisible = useQuesterStore(selectRightPanelVisible);
 	const resizeSidebar = useQuesterStore((s) => s.resizeSidebar);
 	const resizeRightPanel = useQuesterStore((s) => s.resizeRightPanel);
+	const mcpRunning = useQuesterStore((s) => s.mcpServerStatus.running);
+	const aiFollowing = useQuesterStore((s) => s.aiFollowing);
+	const pendingExternal = useQuesterStore((s) => s.pendingExternalFlow);
+	const mcpControlling = aiFollowing || Boolean(pendingExternal);
 
 	return (
 		<TooltipProvider>
-			<div className="flex h-screen w-screen flex-col overflow-hidden">
+			<div
+				className={cn(
+					"flex h-screen w-screen flex-col overflow-hidden",
+					mcpControlling &&
+						"ring-2 ring-inset ring-amber-500/70 dark:ring-amber-400/60",
+					!mcpControlling &&
+						mcpRunning &&
+						"ring-1 ring-inset ring-emerald-500/40",
+				)}
+			>
 				<TopBar />
+				<AiFollowingBanner />
 				{loadError ? (
 					<Alert variant="destructive" className="rounded-none border-x-0">
 						<AlertDescription>{loadError}</AlertDescription>

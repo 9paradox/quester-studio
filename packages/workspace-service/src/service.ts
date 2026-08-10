@@ -40,6 +40,7 @@ import {
 	saveRequest as saveRequestFile,
 } from "@quester-studio/engine";
 import { CookieJar } from "@quester-studio/engine";
+import { createCallMcpTool, mcpServersFromSettings } from "@quester-studio/mcp";
 import type {
 	EnvironmentV1,
 	FlowV1,
@@ -489,6 +490,9 @@ export async function executeFlowRpc(
 			: undefined;
 
 		try {
+			const callMcpTool = createCallMcpTool(
+				mcpServersFromSettings(ws.manifest.settings?.mcp),
+			);
 			const executeSubflow = createExecuteSubflow(
 				{ getFlow: (id) => ws.flows[id] },
 				{
@@ -499,6 +503,7 @@ export async function executeFlowRpc(
 					fetch: createRunFetch(root, httpDefaults, runSignal),
 					httpDefaults,
 					cookieJar,
+					callMcpTool,
 				},
 				flowId,
 			);
@@ -512,6 +517,7 @@ export async function executeFlowRpc(
 				httpDefaults,
 				cookieJar,
 				executeSubflow,
+				callMcpTool,
 				runLogger,
 			});
 			return redactRpc({ ...result, logs });

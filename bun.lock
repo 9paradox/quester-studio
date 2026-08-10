@@ -14,7 +14,7 @@
     },
     "apps/api": {
       "name": "@quester-studio/api",
-      "version": "0.4.6",
+      "version": "0.4.8",
       "dependencies": {
         "@quester-studio/api-contract": "workspace:*",
         "@quester-studio/workspace-service": "workspace:*",
@@ -28,7 +28,7 @@
     },
     "apps/desktop": {
       "name": "@quester-studio/desktop",
-      "version": "0.5.0",
+      "version": "0.6.2",
       "dependencies": {
         "@base-ui/react": "^1.6.0",
         "@codemirror/autocomplete": "^6.20.3",
@@ -84,7 +84,7 @@
     },
     "apps/web": {
       "name": "@quester-studio/web",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@fontsource-variable/geist": "^5.3.0",
         "astro": "^5.7.10",
@@ -96,7 +96,7 @@
     },
     "packages/api-contract": {
       "name": "@quester-studio/api-contract",
-      "version": "0.4.6",
+      "version": "0.4.8",
       "dependencies": {
         "@quester-studio/engine": "workspace:*",
         "@quester-studio/schema": "workspace:*",
@@ -109,12 +109,13 @@
     },
     "packages/cli": {
       "name": "@quester-studio/cli",
-      "version": "0.5.0",
+      "version": "0.6.2",
       "bin": {
         "quester": "./dist/cli.js",
       },
       "dependencies": {
         "@quester-studio/engine": "workspace:*",
+        "@quester-studio/mcp": "workspace:*",
         "@quester-studio/schema": "workspace:*",
         "commander": "^13.1.0",
       },
@@ -126,7 +127,7 @@
     },
     "packages/engine": {
       "name": "@quester-studio/engine",
-      "version": "0.5.0",
+      "version": "0.6.2",
       "dependencies": {
         "@quester-studio/nodes": "workspace:*",
         "@quester-studio/schema": "workspace:*",
@@ -137,9 +138,25 @@
         "typescript": "^5.8.3",
       },
     },
+    "packages/mcp": {
+      "name": "@quester-studio/mcp",
+      "version": "0.6.2",
+      "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.29.0",
+        "@quester-studio/engine": "workspace:*",
+        "@quester-studio/schema": "workspace:*",
+        "zod": "^3.24.2",
+        "zod-to-json-schema": "^3.24.5",
+      },
+      "devDependencies": {
+        "@quester-studio/tsconfig": "workspace:*",
+        "@types/node": "^22.15.3",
+        "typescript": "^5.8.3",
+      },
+    },
     "packages/nodes": {
       "name": "@quester-studio/nodes",
-      "version": "0.5.0",
+      "version": "0.6.2",
       "dependencies": {
         "@quester-studio/schema": "workspace:*",
         "eta": "^3.5.0",
@@ -154,7 +171,7 @@
     },
     "packages/schema": {
       "name": "@quester-studio/schema",
-      "version": "0.5.0",
+      "version": "0.6.2",
       "dependencies": {
         "zod": "^3.24.2",
         "zod-to-json-schema": "^3.24.5",
@@ -171,10 +188,11 @@
     },
     "packages/workspace-service": {
       "name": "@quester-studio/workspace-service",
-      "version": "0.5.0",
+      "version": "0.6.2",
       "dependencies": {
         "@quester-studio/api-contract": "workspace:*",
         "@quester-studio/engine": "workspace:*",
+        "@quester-studio/mcp": "workspace:*",
         "@quester-studio/schema": "workspace:*",
       },
       "devDependencies": {
@@ -525,6 +543,8 @@
     "@quester-studio/desktop": ["@quester-studio/desktop@workspace:apps/desktop"],
 
     "@quester-studio/engine": ["@quester-studio/engine@workspace:packages/engine"],
+
+    "@quester-studio/mcp": ["@quester-studio/mcp@workspace:packages/mcp"],
 
     "@quester-studio/nodes": ["@quester-studio/nodes@workspace:packages/nodes"],
 

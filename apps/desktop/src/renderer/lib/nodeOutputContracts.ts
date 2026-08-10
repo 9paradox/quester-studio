@@ -43,6 +43,7 @@ export const NODE_OUTPUT_CONTRACTS: Record<BuiltinNodeType, readonly string[]> =
 		subflow: [],
 		log: ["logged"],
 		inspect: [],
+		mcp: [],
 	};
 
 export function contractPathsForType(type: string): string[] {

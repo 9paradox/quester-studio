@@ -41,6 +41,14 @@ export type ExecuteFlowOptions = {
 	cookieJar?: CookieJar;
 	/** Run another workspace flow by id (recursive; depth/cycle guarded by caller). */
 	executeSubflow?: (flowId: string, input: unknown) => Promise<unknown>;
+	/** Call an external MCP tool (wired from workspace settings.mcp.servers). */
+	callMcpTool?: (request: {
+		serverId: string;
+		tool: string;
+		arguments?: Record<string, unknown>;
+		timeoutMs?: number;
+		signal?: AbortSignal;
+	}) => Promise<unknown>;
 	/** When set, write incremental per-step JSON under this logger's runDir. */
 	runLogger?: RunFileLogger;
 };
@@ -442,6 +450,7 @@ async function executeOneNode(
 				cookieJar: rt.cookieJar,
 				signal: rt.options.signal,
 				executeSubflow: rt.options.executeSubflow,
+				callMcpTool: rt.options.callMcpTool,
 			});
 			if (result.vars) rt.vars = { ...rt.vars, ...result.vars };
 			output = result.output;

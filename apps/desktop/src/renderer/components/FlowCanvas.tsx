@@ -19,6 +19,7 @@ import {
 	readNodeDragData,
 	readRequestDragData,
 } from "@/lib/dnd.js";
+import { shouldSuppressCanvasEmit } from "@/lib/externalApplyGuard.js";
 import {
 	type AlignNodesMode,
 	EDGE_INTERACTION_WIDTH,
@@ -60,6 +61,8 @@ import { flowNodeTypes } from "./nodes/FlowNodes.js";
 
 type FlowCanvasProps = {
 	flow: FlowV1 | null;
+	/** Bumped on agent/disk reload to remount RF local state. */
+	syncRevision?: number;
 	workspacePath?: string;
 	onGraphChange?: (nodes: Node[], edges: Edge[]) => void;
 	onSelectNodes?: (nodeIds: string[]) => void;
@@ -317,15 +320,24 @@ function FlowCanvasInner({
 		lastEmittedJsonRef.current = flowJson;
 
 		const mapped = flowToReactFlow(flow);
+		// Always take store positions/data (agent disk apply). Only preserve in-progress drag.
 		setNodes((current) =>
 			mapped.nodes.map((mn) => {
 				const existing = current.find((n) => n.id === mn.id);
 				if (!existing) return mn;
+				if (existing.dragging) {
+					return {
+						...mn,
+						position: existing.position,
+						selected: existing.selected,
+						dragging: true,
+						parentId: existing.parentId,
+						extent: existing.extent,
+					};
+				}
 				return {
 					...mn,
-					position: existing.position,
 					selected: existing.selected,
-					dragging: existing.dragging,
 				};
 			}),
 		);
@@ -343,6 +355,13 @@ function FlowCanvasInner({
 
 	const emitGraphChange = useCallback(
 		(nextNodes: Node[], nextEdges: Edge[]) => {
+			if (shouldSuppressCanvasEmit()) {
+				// Keep local baseline aligned with disk so a later emit isn't a huge no-op miss.
+				lastEmittedJsonRef.current = JSON.stringify(
+					reactFlowToFlow(flowRef.current, nextNodes, nextEdges),
+				);
+				return;
+			}
 			const nextFlow = reactFlowToFlow(flowRef.current, nextNodes, nextEdges);
 			const json = JSON.stringify(nextFlow);
 			// Skip no-op emits (e.g. RF dimension noise after connect/layout).
@@ -825,6 +844,7 @@ function FlowCanvasInner({
 
 export function FlowCanvas({
 	flow,
+	syncRevision = 0,
 	workspacePath = "",
 	onGraphChange,
 	onSelectNodes,
@@ -852,7 +872,7 @@ export function FlowCanvas({
 		<ReactFlowProvider>
 			<div className="h-full w-full">
 				<FlowCanvasInner
-					key={`${workspacePath}:${flow.id}`}
+					key={`${workspacePath}:${flow.id}:${syncRevision}`}
 					flow={flow}
 					workspacePath={workspacePath}
 					onGraphChange={onGraphChange}

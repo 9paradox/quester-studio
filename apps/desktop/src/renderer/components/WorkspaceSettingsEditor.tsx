@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/select.js";
 import { Textarea } from "@/components/ui/textarea.js";
 import type { WorkspaceSettingsEditorTab } from "@/lib/editorTabs.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
 import type { WorkspaceV1 } from "@quester-studio/schema";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	SettingsField,
 	SettingsPageLayout,
@@ -26,6 +27,7 @@ const CATEGORIES = [
 	{ id: "details", label: "Details" },
 	{ id: "http", label: "HTTP" },
 	{ id: "runs", label: "Runs" },
+	{ id: "mcp", label: "MCP" },
 ] as const;
 
 type WorkspaceSettingsEditorProps = {
@@ -41,8 +43,19 @@ export function WorkspaceSettingsEditor({
 	onSave,
 	canSave,
 }: WorkspaceSettingsEditorProps) {
-	const [category, setCategory] = useState<string>("details");
+	const [category, setCategory] = useState(tab.category);
+	useEffect(() => {
+		setCategory(tab.category);
+	}, [tab.category]);
+	const setWorkspaceSettingsCategory = useQuesterStore(
+		(s) => s.setWorkspaceSettingsCategory,
+	);
 	const { manifest } = tab;
+
+	const selectCategory = (id: string) => {
+		setCategory(id as typeof tab.category);
+		setWorkspaceSettingsCategory(id as typeof tab.category);
+	};
 
 	const patchManifest = (partial: Partial<WorkspaceV1>) => {
 		onChange({ ...manifest, ...partial });
@@ -60,6 +73,11 @@ export function WorkspaceSettingsEditor({
 
 	const runsEnabled = Boolean(manifest.runs?.enabled);
 	const runsDir = manifest.runs?.dir ?? "runs";
+	const mcpStatus = useQuesterStore((s) => s.mcpServerStatus);
+	const startMcpServer = useQuesterStore((s) => s.startMcpServer);
+	const stopMcpServer = useQuesterStore((s) => s.stopMcpServer);
+	const copyMcpConfig = useQuesterStore((s) => s.copyMcpConfig);
+	const workspacePath = useQuesterStore((s) => s.workspacePath);
 
 	const patchRuns = (partial: { enabled?: boolean; dir?: string }) => {
 		const nextEnabled = partial.enabled ?? runsEnabled;
@@ -78,7 +96,7 @@ export function WorkspaceSettingsEditor({
 			title="Workspace settings"
 			categories={[...CATEGORIES]}
 			activeCategory={category}
-			onCategoryChange={setCategory}
+			onCategoryChange={selectCategory}
 			footer={
 				<Button size="sm" disabled={!canSave} onClick={onSave}>
 					Save
@@ -170,6 +188,74 @@ export function WorkspaceSettingsEditor({
 							placeholder="runs"
 							className="bg-background font-mono"
 						/>
+					</SettingsField>
+				</SettingsSection>
+			) : null}
+
+			{category === "mcp" ? (
+				<SettingsSection title="MCP server">
+					<p className="mb-3 text-xs text-muted-foreground">
+						Start a local workspace-scoped{" "}
+						<code className="rounded bg-muted px-1 py-0.5">mcp serve</code>{" "}
+						process managed by Desktop. Cursor / Claude / VS Code still spawn
+						their own process from the copied config (stdio). Configure{" "}
+						<code className="rounded bg-muted px-1 py-0.5">
+							settings.mcp.servers
+						</code>{" "}
+						in quester.json for the flow <code>mcp</code> node (external tools).
+					</p>
+					<SettingsField
+						label="Status"
+						description={
+							mcpStatus.running
+								? `Running${mcpStatus.pid != null ? ` · pid ${mcpStatus.pid}` : ""}${
+										mcpStatus.workspace
+											? ` · ${mcpStatus.workspace}`
+											: workspacePath
+												? ` · ${workspacePath}`
+												: ""
+									}`
+								: mcpStatus.error
+									? `Off — ${mcpStatus.error}`
+									: "Off"
+						}
+					>
+						<div className="flex flex-wrap items-center gap-2">
+							<span
+								className={
+									mcpStatus.running
+										? "text-sm font-medium text-emerald-600 dark:text-emerald-400"
+										: "text-sm font-medium text-muted-foreground"
+								}
+							>
+								{mcpStatus.running ? "Running" : "Off"}
+							</span>
+							{mcpStatus.running ? (
+								<Button
+									size="sm"
+									variant="outline"
+									onClick={() => void stopMcpServer()}
+								>
+									Stop
+								</Button>
+							) : (
+								<Button
+									size="sm"
+									onClick={() => void startMcpServer()}
+									disabled={!workspacePath}
+								>
+									Start
+								</Button>
+							)}
+							<Button
+								size="sm"
+								variant="ghost"
+								onClick={() => void copyMcpConfig()}
+								disabled={!workspacePath}
+							>
+								Copy config
+							</Button>
+						</div>
 					</SettingsField>
 				</SettingsSection>
 			) : null}

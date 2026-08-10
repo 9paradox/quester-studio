@@ -10,6 +10,7 @@
 	joinPlugin,
 	jsonPlugin,
 	logPlugin,
+	mcpPlugin,
 	mergePlugin,
 	notePlugin,
 	outputPlugin,
@@ -50,6 +51,7 @@ const builtins = [
 	notePlugin,
 	logPlugin,
 	inspectPlugin,
+	mcpPlugin,
 ];
 
 for (const plugin of builtins) {

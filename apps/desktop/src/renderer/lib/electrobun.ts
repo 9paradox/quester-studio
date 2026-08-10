@@ -10,8 +10,33 @@ import type { ThemePreference } from "../../shared/appPreferences.js";
 import type { DesktopRPC, NodeRunStatusEvent } from "../../shared/rpc.js";
 
 type NodeRunStatusListener = (event: NodeRunStatusEvent) => void;
+type FlowFileChangedListener = (event: {
+	workspace: string;
+	flowId: string;
+	filename: string;
+	kind: "change" | "rename";
+}) => void;
+type McpServerStatusListener = (event: {
+	running: boolean;
+	workspace: string | null;
+	pid: number | null;
+	error: string | null;
+}) => void;
+type McpActivityListener = (event: {
+	ts: string;
+	tool: string;
+	ok: boolean;
+	summary: string;
+	flowId?: string;
+	nodeId?: string;
+	durationMs?: number;
+	error?: string;
+}) => void;
 
 const nodeRunStatusListeners = new Set<NodeRunStatusListener>();
+const flowFileChangedListeners = new Set<FlowFileChangedListener>();
+const mcpServerStatusListeners = new Set<McpServerStatusListener>();
+const mcpActivityListeners = new Set<McpActivityListener>();
 
 const rpc = Electroview.defineRPC<DesktopRPC>({
 	/** Keep in sync with main process (B5). */
@@ -21,6 +46,21 @@ const rpc = Electroview.defineRPC<DesktopRPC>({
 		messages: {
 			nodeRunStatus: (event) => {
 				for (const listener of nodeRunStatusListeners) {
+					listener(event);
+				}
+			},
+			flowFileChanged: (event) => {
+				for (const listener of flowFileChangedListeners) {
+					listener(event);
+				}
+			},
+			mcpServerStatus: (event) => {
+				for (const listener of mcpServerStatusListeners) {
+					listener(event);
+				}
+			},
+			mcpActivity: (event) => {
+				for (const listener of mcpActivityListeners) {
 					listener(event);
 				}
 			},
@@ -43,6 +83,44 @@ export function onNodeRunStatus(listener: NodeRunStatusListener): () => void {
 		nodeRunStatusListeners.delete(listener);
 	};
 }
+
+export function onFlowFileChanged(
+	listener: FlowFileChangedListener,
+): () => void {
+	flowFileChangedListeners.add(listener);
+	return () => {
+		flowFileChangedListeners.delete(listener);
+	};
+}
+
+export function onMcpServerStatus(
+	listener: McpServerStatusListener,
+): () => void {
+	mcpServerStatusListeners.add(listener);
+	return () => {
+		mcpServerStatusListeners.delete(listener);
+	};
+}
+
+export function onMcpActivity(listener: McpActivityListener): () => void {
+	mcpActivityListeners.add(listener);
+	return () => {
+		mcpActivityListeners.delete(listener);
+	};
+}
+
+/**
+ * Wire MCP/activity messages into the store as soon as this module loads so
+ * events are not dropped while useAppInit’s effect is still importing.
+ */
+void import("@/stores/quester-store.js").then(({ useQuesterStore }) => {
+	onMcpActivity((event) => {
+		useQuesterStore.getState().handleMcpActivity(event);
+	});
+	onMcpServerStatus((status) => {
+		useQuesterStore.getState().applyMcpServerStatus(status);
+	});
+});
 
 export const desktopRpc = {
 	getDefaultWorkspace: () => getRpc().request.getDefaultWorkspace({}),
@@ -134,4 +212,17 @@ export const desktopRpc = {
 		getRpc().request.deleteRunPath({ workspace, relativePath }),
 	setNativeChromeTheme: (theme: ThemePreference) =>
 		getRpc().request.setNativeChromeTheme({ theme }),
+	getMcpConfigSnippet: (workspace: string) =>
+		getRpc().request.getMcpConfigSnippet({ workspace }),
+	watchFlows: (workspace: string) => getRpc().request.watchFlows({ workspace }),
+	stopWatchFlows: (workspace?: string) =>
+		getRpc().request.stopWatchFlows({ workspace }),
+	watchMcpActivity: (workspace: string) =>
+		getRpc().request.watchMcpActivity({ workspace }),
+	stopWatchMcpActivity: (workspace?: string) =>
+		getRpc().request.stopWatchMcpActivity({ workspace }),
+	startMcpServer: (workspace: string) =>
+		getRpc().request.startMcpServer({ workspace }),
+	stopMcpServer: () => getRpc().request.stopMcpServer({}),
+	getMcpServerStatus: () => getRpc().request.getMcpServerStatus({}),
 };
