@@ -24,25 +24,32 @@ import {
 	RunFileLogger,
 	collectSecretValues,
 	createExecuteSubflow,
+	createForm as createFormFile,
 	createHttpFetch,
 	createRunDirName,
+	deleteForm as deleteFormFile,
 	deleteRequest as deleteRequestFile,
 	ensureCollectionsDir,
 	executeFlow,
 	importPostmanCollectionFile,
 	listCollectionFolders,
+	listForms as listFormsFiles,
 	listRequests,
+	loadForm as loadFormFile,
 	loadRequest as loadRequestFile,
 	loadSecrets,
 	loadWorkspace,
 	redactForRunLog,
+	renameForm as renameFormFile,
 	resolveTlsVerifyActive,
+	saveForm as saveFormFile,
 	saveRequest as saveRequestFile,
 } from "@quester-studio/engine";
 import { CookieJar } from "@quester-studio/engine";
 import type {
 	EnvironmentV1,
 	FlowV1,
+	FormV1,
 	HttpSettingsV1,
 	RequestV1,
 	SecretsV1,
@@ -72,6 +79,7 @@ import {
 	serializeError,
 	tlsCertificateHint,
 } from "./errors.js";
+import { createRunAwaitForm, submitFormRun } from "./form-await.js";
 import {
 	cancelFlowRun,
 	registerRunAbortController,
@@ -83,6 +91,10 @@ export {
 	cancelFlowRun,
 	resetRunAbortControllersForTests,
 } from "./run-cancellation.js";
+export {
+	submitFormRun,
+	resetFormAwaitsForTests,
+} from "./form-await.js";
 
 export { getAppTlsVerify, setAppTlsVerify };
 
@@ -319,6 +331,14 @@ export type ExecuteFlowRpcOptions = {
 			flowId?: string;
 		},
 	) => void;
+	onFormAwait?: (event: {
+		runId?: string;
+		flowId: string;
+		nodeId: string;
+		formId: string;
+		form: FormV1;
+		resolved: unknown;
+	}) => void;
 };
 
 export async function executeFlowRpc(
@@ -366,7 +386,7 @@ export async function executeFlowRpc(
 	const emitStatus = (
 		status: Extract<
 			NodeRunStatusEvent["status"],
-			"running" | "success" | "error"
+			"running" | "success" | "error" | "awaiting_form"
 		>,
 		nodeId: string,
 		type: string,
@@ -502,6 +522,20 @@ export async function executeFlowRpc(
 				},
 				flowId,
 			);
+			const awaitForm =
+				options?.runId !== undefined
+					? createRunAwaitForm(options.runId, runSignal, (req) => {
+							emitStatus("awaiting_form", req.nodeId, "form");
+							options.onFormAwait?.({
+								runId: options.runId,
+								flowId,
+								nodeId: req.nodeId,
+								formId: req.formId,
+								form: req.form,
+								resolved: req.resolved,
+							});
+						})
+					: undefined;
 			const result = await executeFlow(validated.data, {
 				input: options?.input ?? {},
 				env: envVars,
@@ -513,6 +547,8 @@ export async function executeFlowRpc(
 				cookieJar,
 				executeSubflow,
 				runLogger,
+				getForm: (formId) => loadFormFile(root, ws.manifest, formId),
+				awaitForm,
 			});
 			return redactRpc({ ...result, logs });
 		} finally {
@@ -649,6 +685,61 @@ export async function renameFlow(
 	await saveFlow(updated, workspace);
 	await deleteFlow(flowId, workspace);
 	return updated;
+}
+
+export async function listForms(workspace: string) {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	return listFormsFiles(root, ws.manifest);
+}
+
+export async function loadForm(
+	formId: string,
+	workspace: string,
+): Promise<FormV1> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	return loadFormFile(root, ws.manifest, formId);
+}
+
+export async function saveForm(
+	form: FormV1,
+	workspace: string,
+): Promise<FormV1> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	return saveFormFile(root, ws.manifest, form);
+}
+
+export async function createForm(
+	workspace: string,
+	formId: string,
+	name?: string,
+): Promise<FormV1> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	return createFormFile(root, ws.manifest, formId, name);
+}
+
+export async function deleteForm(
+	formId: string,
+	workspace: string,
+): Promise<{ ok: true }> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	await deleteFormFile(root, ws.manifest, formId);
+	return { ok: true };
+}
+
+export async function renameForm(
+	workspace: string,
+	formId: string,
+	newId: string,
+	name?: string,
+): Promise<FormV1> {
+	const root = resolve(workspace);
+	const ws = await loadWorkspace(root);
+	return renameFormFile(root, ws.manifest, formId, newId, name);
 }
 
 export async function listSecretNames(

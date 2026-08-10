@@ -14,6 +14,7 @@ export const workspaceSchemaV1 = z.object({
 	flowsDir: z.string().default("flows"),
 	environmentsDir: z.string().default("environments"),
 	collectionsDir: z.string().default("collections"),
+	formsDir: z.string().default("forms"),
 	/** Optional on-disk per-step run logging (see engine RunFileLogger). */
 	runs: workspaceRunsSchemaV1.optional(),
 	settings: settingsSchemaV1.optional(),

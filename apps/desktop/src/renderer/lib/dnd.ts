@@ -5,7 +5,8 @@ import type { BuiltinNodeType } from "@quester-studio/schema";
  * - Nodes catalog → insert that node type
  * - Collection request → insert HTTP node from request
  * - Flow (click opens tab; drag) → insert `subflow` pointing at that flow
- * - Form / code MIME stubs → toast until plans 12/13
+ * - Form (click opens tab; drag) → insert `form` node with formId
+ * - Code MIME stub → toast until plan 13
  */
 export const QUESTER_NODE_MIME = "application/quester-node";
 export const QUESTER_REQUEST_MIME = "application/quester-request";
@@ -70,6 +71,15 @@ export function readFlowDragData(dataTransfer: DataTransfer): string | null {
 		return plain.slice("flow:".length);
 	}
 	return null;
+}
+
+export function setFormDragData(
+	dataTransfer: DataTransfer,
+	payload: { formId: string; name: string },
+): void {
+	dataTransfer.setData(QUESTER_FORM_MIME, payload.formId);
+	dataTransfer.setData("text/plain", `form:${payload.formId}`);
+	dataTransfer.effectAllowed = "copy";
 }
 
 export function readFormDragData(dataTransfer: DataTransfer): string | null {

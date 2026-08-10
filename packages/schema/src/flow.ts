@@ -4,6 +4,7 @@ import { assertNodeDataSchema } from "./nodes/assert.js";
 import { delayNodeDataSchema } from "./nodes/delay.js";
 import { extractNodeDataSchema } from "./nodes/extract.js";
 import { foreachNodeDataSchema } from "./nodes/foreach.js";
+import { formNodeDataSchema } from "./nodes/form.js";
 import { httpNodeDataSchema } from "./nodes/http.js";
 import { ifNodeDataSchema } from "./nodes/if.js";
 import { inputNodeDataSchema } from "./nodes/input.js";
@@ -26,6 +27,7 @@ import { settingsSchemaV1 } from "./settings.js";
 export const builtinNodeTypes = [
 	"start",
 	"input",
+	"form",
 	"http",
 	"extract",
 	"template",
@@ -52,6 +54,7 @@ export type BuiltinNodeType = (typeof builtinNodeTypes)[number];
 const nodeDataByType: Record<BuiltinNodeType, z.ZodTypeAny> = {
 	start: startNodeDataSchema,
 	input: inputNodeDataSchema,
+	form: formNodeDataSchema,
 	http: httpNodeDataSchema,
 	extract: extractNodeDataSchema,
 	template: templateNodeDataSchema,

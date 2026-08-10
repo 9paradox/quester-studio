@@ -24,6 +24,10 @@
       "type": "string",
       "default": "collections"
     },
+    "formsDir": {
+      "type": "string",
+      "default": "forms"
+    },
     "runs": {
       "type": "object",
       "properties": {

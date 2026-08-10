@@ -3,6 +3,8 @@ import type {
 	ExecuteRequestRpcResult,
 	ExecutionLogEntry,
 	FlowMeta,
+	FormAwaitEvent,
+	FormMeta,
 	NodeRunStatus,
 	NodeRunStatusEvent,
 	RequestMeta,
@@ -13,6 +15,7 @@ import type {
 import type {
 	EnvironmentV1,
 	FlowV1,
+	FormV1,
 	RequestV1,
 	SecretsV1,
 	WorkspaceV1,
@@ -25,6 +28,8 @@ export type {
 	ExecuteRequestRpcResult,
 	ExecutionLogEntry,
 	FlowMeta,
+	FormAwaitEvent,
+	FormMeta,
 	NodeRunStatus,
 	NodeRunStatusEvent,
 	RequestMeta,
@@ -71,6 +76,10 @@ export type DesktopRPC = {
 				params: { workspace: string };
 				response: FlowMeta[];
 			};
+			listForms: {
+				params: { workspace: string };
+				response: FormMeta[];
+			};
 			listEnvs: {
 				params: { workspace: string };
 				response: string[];
@@ -78,6 +87,10 @@ export type DesktopRPC = {
 			loadFlow: {
 				params: { flowId: string; workspace: string };
 				response: FlowV1;
+			};
+			loadForm: {
+				params: { formId: string; workspace: string };
+				response: FormV1;
 			};
 			executeFlowRpc: {
 				params: {
@@ -89,6 +102,10 @@ export type DesktopRPC = {
 				};
 				response: ExecuteFlowRpcResult;
 			};
+			submitFormRun: {
+				params: { runId: string; nodeId: string; values: unknown };
+				response: { ok: boolean; error?: string };
+			};
 			cancelFlowRun: {
 				params: { runId: string };
 				response: { ok: boolean };
@@ -96,6 +113,10 @@ export type DesktopRPC = {
 			saveFlow: {
 				params: { flow: FlowV1; workspace: string };
 				response: FlowV1;
+			};
+			saveForm: {
+				params: { form: FormV1; workspace: string };
+				response: FormV1;
 			};
 			listSecretNames: {
 				params: { workspace: string; env: string };
@@ -105,8 +126,16 @@ export type DesktopRPC = {
 				params: { workspace: string; flowId: string; name?: string };
 				response: FlowV1;
 			};
+			createForm: {
+				params: { workspace: string; formId: string; name?: string };
+				response: FormV1;
+			};
 			deleteFlow: {
 				params: { workspace: string; flowId: string };
+				response: { ok: true };
+			};
+			deleteForm: {
+				params: { workspace: string; formId: string };
 				response: { ok: true };
 			};
 			renameFlow: {
@@ -117,6 +146,15 @@ export type DesktopRPC = {
 					name?: string;
 				};
 				response: FlowV1;
+			};
+			renameForm: {
+				params: {
+					workspace: string;
+					formId: string;
+					newId: string;
+					name?: string;
+				};
+				response: FormV1;
 			};
 			loadEnvironment: {
 				params: { workspace: string; envName: string };
@@ -241,6 +279,7 @@ export type DesktopRPC = {
 		requests: Record<string, never>;
 		messages: {
 			nodeRunStatus: NodeRunStatusEvent;
+			formAwait: FormAwaitEvent;
 		};
 	}>;
 };

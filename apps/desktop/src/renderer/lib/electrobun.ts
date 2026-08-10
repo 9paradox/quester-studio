@@ -1,17 +1,24 @@
 import type {
 	EnvironmentV1,
 	FlowV1,
+	FormV1,
 	RequestV1,
 	SecretsV1,
 	WorkspaceV1,
 } from "@quester-studio/schema";
 import { Electroview } from "electrobun/view";
 import type { ThemePreference } from "../../shared/appPreferences.js";
-import type { DesktopRPC, NodeRunStatusEvent } from "../../shared/rpc.js";
+import type {
+	DesktopRPC,
+	FormAwaitEvent,
+	NodeRunStatusEvent,
+} from "../../shared/rpc.js";
 
 type NodeRunStatusListener = (event: NodeRunStatusEvent) => void;
+type FormAwaitListener = (event: FormAwaitEvent) => void;
 
 const nodeRunStatusListeners = new Set<NodeRunStatusListener>();
+const formAwaitListeners = new Set<FormAwaitListener>();
 
 const rpc = Electroview.defineRPC<DesktopRPC>({
 	/** Keep in sync with main process (B5). */
@@ -21,6 +28,11 @@ const rpc = Electroview.defineRPC<DesktopRPC>({
 		messages: {
 			nodeRunStatus: (event) => {
 				for (const listener of nodeRunStatusListeners) {
+					listener(event);
+				}
+			},
+			formAwait: (event) => {
+				for (const listener of formAwaitListeners) {
 					listener(event);
 				}
 			},
@@ -44,6 +56,13 @@ export function onNodeRunStatus(listener: NodeRunStatusListener): () => void {
 	};
 }
 
+export function onFormAwait(listener: FormAwaitListener): () => void {
+	formAwaitListeners.add(listener);
+	return () => {
+		formAwaitListeners.delete(listener);
+	};
+}
+
 export const desktopRpc = {
 	getDefaultWorkspace: () => getRpc().request.getDefaultWorkspace({}),
 	pickWorkspaceFolder: () => getRpc().request.pickWorkspaceFolder({}),
@@ -57,9 +76,12 @@ export const desktopRpc = {
 	saveWorkspaceManifest: (workspace: string, manifest: WorkspaceV1) =>
 		getRpc().request.saveWorkspaceManifest({ workspace, manifest }),
 	listFlows: (workspace: string) => getRpc().request.listFlows({ workspace }),
+	listForms: (workspace: string) => getRpc().request.listForms({ workspace }),
 	listEnvs: (workspace: string) => getRpc().request.listEnvs({ workspace }),
 	loadFlow: (flowId: string, workspace: string) =>
 		getRpc().request.loadFlow({ flowId, workspace }),
+	loadForm: (formId: string, workspace: string) =>
+		getRpc().request.loadForm({ formId, workspace }),
 	executeFlowRpc: (params: {
 		flowId: string;
 		workspace: string;
@@ -67,22 +89,39 @@ export const desktopRpc = {
 		env?: string;
 		input?: unknown;
 	}) => getRpc().request.executeFlowRpc(params),
+	submitFormRun: (params: {
+		runId: string;
+		nodeId: string;
+		values: unknown;
+	}) => getRpc().request.submitFormRun(params),
 	cancelFlowRun: (params: { runId: string }) =>
 		getRpc().request.cancelFlowRun(params),
 	saveFlow: (flow: FlowV1, workspace: string) =>
 		getRpc().request.saveFlow({ flow, workspace }),
+	saveForm: (form: FormV1, workspace: string) =>
+		getRpc().request.saveForm({ form, workspace }),
 	listSecretNames: (workspace: string, env: string) =>
 		getRpc().request.listSecretNames({ workspace, env }),
 	createFlow: (workspace: string, flowId: string, name?: string) =>
 		getRpc().request.createFlow({ workspace, flowId, name }),
+	createForm: (workspace: string, formId: string, name?: string) =>
+		getRpc().request.createForm({ workspace, formId, name }),
 	deleteFlow: (workspace: string, flowId: string) =>
 		getRpc().request.deleteFlow({ workspace, flowId }),
+	deleteForm: (workspace: string, formId: string) =>
+		getRpc().request.deleteForm({ workspace, formId }),
 	renameFlow: (
 		workspace: string,
 		flowId: string,
 		newId: string,
 		name?: string,
 	) => getRpc().request.renameFlow({ workspace, flowId, newId, name }),
+	renameForm: (
+		workspace: string,
+		formId: string,
+		newId: string,
+		name?: string,
+	) => getRpc().request.renameForm({ workspace, formId, newId, name }),
 	loadEnvironment: (workspace: string, envName: string) =>
 		getRpc().request.loadEnvironment({ workspace, envName }),
 	saveEnvironment: (workspace: string, environment: EnvironmentV1) =>

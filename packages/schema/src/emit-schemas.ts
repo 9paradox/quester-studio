@@ -4,11 +4,13 @@ import { fileURLToPath } from "node:url";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { environmentSchemaV1 } from "./environment.js";
 import { flowSchemaV1 } from "./flow.js";
+import { formDefinitionSchemaV1 } from "./form.js";
 import {
 	assertNodeDataSchema,
 	delayNodeDataSchema,
 	extractNodeDataSchema,
 	foreachNodeDataSchema,
+	formNodeDataSchema,
 	httpNodeDataSchema,
 	ifNodeDataSchema,
 	inputNodeDataSchema,
@@ -46,8 +48,10 @@ const specs: [string, unknown][] = [
 	["quester/flow/v1.schema.json", flowSchemaV1],
 	["quester/request/v1.schema.json", requestSchemaV1],
 	["quester/suite/v1.schema.json", suiteSchemaV1],
+	["quester/form/v1.schema.json", formDefinitionSchemaV1],
 	["quester/nodes/start.schema.json", startNodeDataSchema],
 	["quester/nodes/input.schema.json", inputNodeDataSchema],
+	["quester/nodes/form.schema.json", formNodeDataSchema],
 	["quester/nodes/http.schema.json", httpNodeDataSchema],
 	["quester/nodes/extract.schema.json", extractNodeDataSchema],
 	["quester/nodes/template.schema.json", templateNodeDataSchema],

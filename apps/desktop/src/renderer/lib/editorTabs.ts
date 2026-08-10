@@ -4,6 +4,7 @@ import { runInputJsonFromFlow } from "@/lib/runDefaults.js";
 import type {
 	EnvironmentV1,
 	FlowV1,
+	FormV1,
 	RequestV1,
 	SecretsV1,
 	WorkspaceV1,
@@ -16,6 +17,14 @@ export type FlowEditorTab = {
 	flow: FlowV1;
 	/** Draft / committed run input for this flow (synced from input node `value`). */
 	inputJson: string;
+	dirty: boolean;
+};
+
+export type FormEditorTab = {
+	kind: "form";
+	id: string;
+	formId: string;
+	form: FormV1;
 	dirty: boolean;
 };
 
@@ -93,6 +102,7 @@ export type RunLogEditorTab = {
 
 export type EditorTab =
 	| FlowEditorTab
+	| FormEditorTab
 	| EnvEditorTab
 	| SecretsEditorTab
 	| RequestEditorTab
@@ -103,6 +113,10 @@ export type EditorTab =
 
 export function flowTabId(flowId: string): string {
 	return `flow:${flowId}`;
+}
+
+export function formTabId(formId: string): string {
+	return `form:${formId}`;
 }
 
 export function envTabId(envName: string): string {
@@ -140,6 +154,16 @@ export function createFlowEditorTab(flow: FlowV1): FlowEditorTab {
 		flowId: flow.id,
 		flow,
 		inputJson: runInputJsonFromFlow(flow),
+		dirty: false,
+	};
+}
+
+export function createFormEditorTab(form: FormV1): FormEditorTab {
+	return {
+		kind: "form",
+		id: formTabId(form.id),
+		formId: form.id,
+		form,
 		dirty: false,
 	};
 }
@@ -234,6 +258,8 @@ export function editorTabLabel(tab: EditorTab): string {
 	switch (tab.kind) {
 		case "flow":
 			return tab.flow.name ?? tab.flowId;
+		case "form":
+			return tab.form.name ?? tab.formId;
 		case "env":
 			return `${tab.envName}.json`;
 		case "secrets":
@@ -255,6 +281,7 @@ export function editorTabIcon(
 	tab: EditorTab,
 ):
 	| "flow"
+	| "form"
 	| "env"
 	| "secrets"
 	| "request"

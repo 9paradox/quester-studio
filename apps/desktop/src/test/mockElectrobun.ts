@@ -2,8 +2,10 @@ import { mock } from "bun:test";
 import type {
 	EnvironmentV1,
 	FlowV1,
+	FormV1,
 	WorkspaceV1,
 } from "@quester-studio/schema";
+import { FORM_VERSION } from "@quester-studio/schema";
 
 export const SMOKE_WORKSPACE = "/smoke/workspace";
 
@@ -14,6 +16,7 @@ export const smokeManifest: WorkspaceV1 = {
 	flowsDir: "flows",
 	environmentsDir: "environments",
 	collectionsDir: "collections",
+	formsDir: "forms",
 	settings: {
 		http: {
 			defaultHeaders: {},
@@ -43,6 +46,13 @@ export const smokeFlow: FlowV1 = {
 	edges: [{ id: "e1", source: "start", target: "out" }],
 };
 
+export const smokeForm: FormV1 = {
+	version: FORM_VERSION,
+	id: "smoke-form",
+	name: "Smoke Form",
+	fields: [],
+};
+
 export const smokeEnvironment: EnvironmentV1 = {
 	version: "v1",
 	name: "local",
@@ -69,11 +79,13 @@ const rpc = {
 	saveWorkspaceManifest: async (_workspace: string, manifest: WorkspaceV1) =>
 		manifest,
 	listFlows: async () => [{ id: smokeFlow.id, name: smokeFlow.name }],
+	listForms: async () => [{ id: smokeForm.id, name: smokeForm.name }],
 	listEnvs: async () => ["local"],
 	listSecretFiles: async () => [],
 	listCollectionRequests: async () => [],
 	listCollections: async () => [],
 	loadFlow: async () => smokeFlow,
+	loadForm: async () => smokeForm,
 	loadEnvironment: async () => smokeEnvironment,
 	listSecretNames: async () => [],
 	readPathShapes: async () => null,
@@ -93,11 +105,16 @@ const rpc = {
 		vars: {},
 		logs: [],
 	}),
+	submitFormRun: async () => ({ ok: true }),
 	cancelFlowRun: async () => ({ ok: false }),
 	saveFlow: async (flow: FlowV1) => flow,
+	saveForm: async (form: FormV1) => form,
 	createFlow: async () => smokeFlow,
+	createForm: async () => smokeForm,
 	deleteFlow: async () => ({ ok: true }),
+	deleteForm: async () => ({ ok: true }),
 	renameFlow: async () => smokeFlow,
+	renameForm: async () => smokeForm,
 	saveEnvironment: async (env: EnvironmentV1) => env,
 	createEnvironment: async () => smokeEnvironment,
 	loadSecretsFile: async () => ({ version: "v1" as const, secrets: {} }),
@@ -140,7 +157,9 @@ const rpc = {
 	listRunTree: async () => [],
 	readRunJson: async () => ({}),
 	deleteRunPath: async () => ({ ok: true }),
+	openPathInOs: async () => ({ ok: true }),
 	onNodeRunStatus: () => () => {},
+	onFormAwait: () => () => {},
 };
 
 /** Call before importing AppShell / quester-store in smoke tests. */
@@ -153,5 +172,6 @@ export function mockDesktopRpc() {
 	mock.module("@/lib/electrobun.js", () => ({
 		desktopRpc: rpc,
 		onNodeRunStatus: () => () => {},
+		onFormAwait: () => () => {},
 	}));
 }

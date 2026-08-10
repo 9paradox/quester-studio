@@ -10,6 +10,7 @@ import {
 	IconBox,
 	IconFiles,
 	IconFolder,
+	IconForms,
 	IconHistory,
 	IconKey,
 	IconSettings,
@@ -22,6 +23,7 @@ const topItems: Array<{
 	icon: typeof IconFiles;
 }> = [
 	{ view: "flows", label: "Flows", icon: IconFiles },
+	{ view: "forms", label: "Forms", icon: IconForms },
 	{ view: "collections", label: "Collections", icon: IconFolder },
 	{ view: "envs", label: "Environments", icon: IconStack2 },
 	{ view: "secrets", label: "Secrets", icon: IconKey },

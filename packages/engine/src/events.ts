@@ -14,6 +14,12 @@
 		processedInput?: unknown;
 		error: unknown;
 	};
+	"form:await": {
+		nodeId: string;
+		formId: string;
+		form: unknown;
+		resolved: unknown;
+	};
 	"flow:complete": { output: unknown };
 };
 

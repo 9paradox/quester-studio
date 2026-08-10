@@ -11,6 +11,7 @@ import { useShallow } from "zustand/react/shallow";
 import { AppPreferencesEditor } from "./AppPreferencesEditor.js";
 import { CanvasControls } from "./CanvasControls.js";
 import { FlowCanvas } from "./FlowCanvas.js";
+import { FormEditor } from "./FormEditor.js";
 import { KeyValueEditor } from "./KeyValueEditor.js";
 import { RequestEditor } from "./RequestEditor.js";
 import { ResponseViewerPage } from "./ResponseViewerPage.js";
@@ -38,7 +39,9 @@ export function EditorArea() {
 	const handleAddNode = useQuesterStore((s) => s.handleAddNode);
 	const handleDropRequest = useQuesterStore((s) => s.handleDropRequest);
 	const handleDropFlow = useQuesterStore((s) => s.handleDropFlow);
+	const handleDropForm = useQuesterStore((s) => s.handleDropForm);
 	const handleRequestChange = useQuesterStore((s) => s.handleRequestChange);
+	const handleFormChange = useQuesterStore((s) => s.handleFormChange);
 	const sendRequest = useQuesterStore((s) => s.sendRequest);
 	const {
 		result: requestResult,
@@ -187,6 +190,19 @@ export function EditorArea() {
 		);
 	}
 
+	if (activeTab.kind === "form") {
+		return (
+			<div className="relative h-full min-h-0 min-w-0 flex-1">
+				<FormEditor
+					tab={activeTab}
+					onChange={handleFormChange}
+					onSave={onSave}
+					canSave={canSaveTab}
+				/>
+			</div>
+		);
+	}
+
 	if (activeTab.kind === "request") {
 		return (
 			<div className="relative h-full min-h-0 min-w-0 flex-1">
@@ -249,6 +265,7 @@ export function EditorArea() {
 					void handleDropRequest(path, position)
 				}
 				onDropFlow={handleDropFlow}
+				onDropForm={handleDropForm}
 				onSave={onSave}
 				canSave={canSaveFlow}
 			/>

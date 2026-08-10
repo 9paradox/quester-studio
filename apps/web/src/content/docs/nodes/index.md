@@ -34,6 +34,7 @@ Read [How flows work](../concepts/) for connection rules, fan-out vs branches, a
 | --- | --- | --- | --- |
 | [start](./start/) | 0 | 1 (max 1 edge) | `{}` |
 | [input](./input/) | 1 | 1 | Flow run input object |
+| [form](./form/) | 1 | 1 | Submitted field object (pauses until submit) |
 | [http](./http/) | 1 | 1 · fan-out ok | `{ status, body, headers, … }` |
 | [extract](./extract/) | 1 | 1 | JMESPath result on **wire** |
 | [template](./template/) | 1 | 1 | Rendered string |

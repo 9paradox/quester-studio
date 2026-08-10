@@ -1,5 +1,9 @@
 import { BrowserView, BrowserWindow } from "electrobun/bun";
-import type { DesktopRPC, NodeRunStatusEvent } from "../shared/rpc.js";
+import type {
+	DesktopRPC,
+	FormAwaitEvent,
+	NodeRunStatusEvent,
+} from "../shared/rpc.js";
 import { resolvePreferredDark, setThemePreference } from "./appPreferences.js";
 import {
 	applyWindowChrome,
@@ -40,6 +44,17 @@ function sendNodeRunStatus(
 	}
 }
 
+function sendFormAwait(
+	rpcInstance: ReturnType<typeof BrowserView.defineRPC<DesktopRPC>>,
+	event: FormAwaitEvent,
+) {
+	try {
+		rpcInstance.send.formAwait(event);
+	} catch (err) {
+		console.error("Failed to send formAwait", err);
+	}
+}
+
 const rpc = BrowserView.defineRPC<DesktopRPC>({
 	/** Long ceiling so slow flows / delays aren't cut off at 30s (B5). */
 	maxRequestTime: 3_600_000,
@@ -64,10 +79,14 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 				),
 			listFlows: async ({ workspace }) =>
 				(await import("./handlers.js")).listFlows(workspace),
+			listForms: async ({ workspace }) =>
+				(await import("./handlers.js")).listForms(workspace),
 			listEnvs: async ({ workspace }) =>
 				(await import("./handlers.js")).listEnvs(workspace),
 			loadFlow: async ({ flowId, workspace }) =>
 				(await import("./handlers.js")).loadFlow(flowId, workspace),
+			loadForm: async ({ formId, workspace }) =>
+				(await import("./handlers.js")).loadForm(formId, workspace),
 			executeFlowRpc: async ({ flowId, workspace, env, input, runId }) =>
 				(await import("./handlers.js")).executeFlowRpc(flowId, {
 					workspace,
@@ -84,25 +103,50 @@ const rpc = BrowserView.defineRPC<DesktopRPC>({
 							ts: event.ts,
 						});
 					},
+					onFormAwait: (event) => {
+						sendFormAwait(rpc, {
+							runId,
+							flowId,
+							nodeId: event.nodeId,
+							formId: event.formId,
+							form: event.form,
+							resolved: event.resolved as FormAwaitEvent["resolved"],
+						});
+					},
 				}),
+			submitFormRun: async ({ runId, nodeId, values }) =>
+				(await import("./handlers.js")).submitFormRun(runId, nodeId, values),
 			cancelFlowRun: async ({ runId }) => {
 				const { cancelFlowRun } = await import("./handlers.js");
 				return { ok: cancelFlowRun(runId) };
 			},
 			saveFlow: async ({ flow, workspace }) =>
 				(await import("./handlers.js")).saveFlow(flow, workspace),
+			saveForm: async ({ form, workspace }) =>
+				(await import("./handlers.js")).saveForm(form, workspace),
 			listSecretNames: async ({ workspace, env }) =>
 				(await import("./handlers.js")).listSecretNames(workspace, env),
 			createFlow: async ({ workspace, flowId, name }) =>
 				(await import("./handlers.js")).createFlow(workspace, flowId, name),
+			createForm: async ({ workspace, formId, name }) =>
+				(await import("./handlers.js")).createForm(workspace, formId, name),
 			deleteFlow: async ({ workspace, flowId }) => {
 				await (await import("./handlers.js")).deleteFlow(flowId, workspace);
 				return { ok: true as const };
 			},
+			deleteForm: async ({ workspace, formId }) =>
+				(await import("./handlers.js")).deleteForm(formId, workspace),
 			renameFlow: async ({ workspace, flowId, newId, name }) =>
 				(await import("./handlers.js")).renameFlow(
 					workspace,
 					flowId,
+					newId,
+					name,
+				),
+			renameForm: async ({ workspace, formId, newId, name }) =>
+				(await import("./handlers.js")).renameForm(
+					workspace,
+					formId,
 					newId,
 					name,
 				),

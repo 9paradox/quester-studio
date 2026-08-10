@@ -5,6 +5,7 @@ import {
 	createAppSettingsEditorTab,
 	createEnvEditorTab,
 	createFlowEditorTab,
+	createFormEditorTab,
 	createRequestEditorTab,
 	createResponseViewerTab,
 	createRunLogEditorTab,
@@ -13,6 +14,7 @@ import {
 	editorTabLabel,
 	envTabId,
 	flowTabId,
+	formTabId,
 	requestTabId,
 	runLogTabId,
 	secretsTabId,
@@ -55,6 +57,7 @@ import {
 import type {
 	BuiltinNodeType,
 	FlowV1,
+	FormV1,
 	HttpSettingsV1,
 	RequestV1,
 	WorkspaceV1,
@@ -67,6 +70,8 @@ import type {
 	ExecuteFlowRpcResult,
 	ExecuteRequestRpcResult,
 	FlowMeta,
+	FormAwaitEvent,
+	FormMeta,
 	NodeRunStatus,
 	NodeRunStatusEvent,
 	RequestMeta,
@@ -304,6 +309,7 @@ export type QuesterState = {
 	workspaceName: string;
 	recentWorkspacePaths: string[];
 	flows: FlowMeta[];
+	forms: FormMeta[];
 	requests: RequestMeta[];
 	collections: string[];
 	envs: string[];
@@ -320,6 +326,8 @@ export type QuesterState = {
 	pathIndexStatus: PathIndexStatus;
 	isLoading: boolean;
 	loadError: string | null;
+	/** Active form await prompt for the in-flight flow run (null when idle). */
+	pendingFormAwait: FormAwaitEvent | null;
 
 	openTabs: EditorTab[];
 	activeTabId: string | null;
@@ -398,14 +406,18 @@ export type QuesterState = {
 	) => void;
 	openRunLogTab: (relativePath: string, title?: string) => Promise<void>;
 	applyNodeRunStatusEvent: (event: NodeRunStatusEvent) => void;
+	applyFormAwaitEvent: (event: FormAwaitEvent) => void;
+	clearPendingFormAwait: () => void;
 	refreshWorkspaceLists: (path: string) => Promise<{
 		flowList: FlowMeta[];
+		formList: FormMeta[];
 		envList: string[];
 		secretsList: SecretFileMeta[];
 		requestList: RequestMeta[];
 		collectionList: string[];
 	}>;
 	loadFlow: (flowId: string, workspace: string) => Promise<void>;
+	loadForm: (formId: string, workspace: string) => Promise<void>;
 	loadEnvironment: (envName: string, workspace: string) => Promise<void>;
 	loadSecretsFile: (envName: string, workspace: string) => Promise<void>;
 	loadRequest: (requestPath: string, workspace: string) => Promise<void>;
@@ -423,6 +435,7 @@ export type QuesterState = {
 	handleEnvRowsChange: (rows: KeyValueRow[]) => void;
 	handleSecretRowsChange: (rows: KeyValueRow[]) => void;
 	handleRequestChange: (request: RequestV1) => void;
+	handleFormChange: (form: FormV1) => void;
 	handleAddNode: (
 		type: BuiltinNodeType,
 		position?: { x: number; y: number },
@@ -432,6 +445,7 @@ export type QuesterState = {
 		position?: { x: number; y: number },
 	) => Promise<void>;
 	handleDropFlow: (flowId: string, position?: { x: number; y: number }) => void;
+	handleDropForm: (formId: string, position?: { x: number; y: number }) => void;
 	handleSelectNode: (nodeId: string | null) => void;
 	/** Replace canvas selection (multi-select aware). */
 	handleSelectNodes: (nodeIds: string[]) => void;
@@ -450,6 +464,7 @@ export type QuesterState = {
 	closeTabsToRight: (tabId: string) => Promise<void>;
 	saveActiveTab: (tabId?: string | null) => Promise<void>;
 	createFlow: () => Promise<void>;
+	createForm: () => Promise<void>;
 	createEnv: () => Promise<void>;
 	createSecretsFile: () => Promise<void>;
 	createCollection: () => Promise<void>;
@@ -459,6 +474,8 @@ export type QuesterState = {
 	addRequestToCanvas: (requestPath: string) => Promise<void>;
 	renameFlow: (flowId: string) => Promise<void>;
 	deleteFlow: (flowId: string) => Promise<void>;
+	renameForm: (formId: string) => Promise<void>;
+	deleteForm: (formId: string) => Promise<void>;
 	runFlow: () => Promise<void>;
 	stopFlow: () => void;
 	replayRunFromHistory: (runId: string) => void;
@@ -470,6 +487,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	workspaceName: "",
 	recentWorkspacePaths: readRecentWorkspacePaths(),
 	flows: [],
+	forms: [],
 	requests: [],
 	collections: [],
 	envs: [],
@@ -482,6 +500,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	pathIndexStatus: "idle",
 	isLoading: true,
 	loadError: null,
+	pendingFormAwait: null,
 
 	openTabs: [],
 	activeTabId: null,
@@ -822,23 +841,48 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		}));
 	},
 
+	applyFormAwaitEvent: (event) => {
+		const slot = get().runByFlowId[event.flowId] ?? emptyFlowRunState();
+		if (event.runId !== slot.activeRunId) return;
+		set({ pendingFormAwait: event });
+	},
+
+	clearPendingFormAwait: () => {
+		set({ pendingFormAwait: null });
+	},
+
 	refreshWorkspaceLists: async (path) => {
-		const [flowList, envList, secretsList, requestList, collectionList] =
-			await Promise.all([
-				getQuesterClient().listFlows(path),
-				getQuesterClient().listEnvs(path),
-				getQuesterClient().listSecretFiles(path),
-				getQuesterClient().listCollectionRequests(path),
-				getQuesterClient().listCollections(path),
-			]);
+		const [
+			flowList,
+			formList,
+			envList,
+			secretsList,
+			requestList,
+			collectionList,
+		] = await Promise.all([
+			getQuesterClient().listFlows(path),
+			getQuesterClient().listForms(path),
+			getQuesterClient().listEnvs(path),
+			getQuesterClient().listSecretFiles(path),
+			getQuesterClient().listCollectionRequests(path),
+			getQuesterClient().listCollections(path),
+		]);
 		set({
 			flows: flowList,
+			forms: formList,
 			envs: envList,
 			secretFiles: secretsList,
 			requests: requestList,
 			collections: collectionList,
 		});
-		return { flowList, envList, secretsList, requestList, collectionList };
+		return {
+			flowList,
+			formList,
+			envList,
+			secretsList,
+			requestList,
+			collectionList,
+		};
 	},
 
 	loadFlow: async (flowId, workspace) => {
@@ -856,6 +900,17 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		}
 		const flow = await getQuesterClient().loadFlow(flowId, workspace);
 		get().openTab(createFlowEditorTab(flow));
+	},
+
+	loadForm: async (formId, workspace) => {
+		const tabId = formTabId(formId);
+		const existing = get().openTabs.find((t) => t.id === tabId);
+		if (existing) {
+			set({ activeTabId: tabId });
+			return;
+		}
+		const form = await getQuesterClient().loadForm(formId, workspace);
+		get().openTab(createFormEditorTab(form));
 	},
 
 	loadEnvironment: async (envName, workspace) => {
@@ -969,6 +1024,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			workspacePath: "",
 			workspaceName: "",
 			flows: [],
+			forms: [],
 			requests: [],
 			collections: [],
 			envs: [],
@@ -978,6 +1034,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			selectedNodeId: null,
 			selectedNodeIds: [],
 			canvasDirty: false,
+			pendingFormAwait: null,
 			pathShapeIndex: emptyPathShapeIndex(),
 			pathIndexStatus: "idle",
 			runByFlowId: {},
@@ -1120,6 +1177,18 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		}));
 	},
 
+	handleFormChange: (form) => {
+		const { activeTabId } = get();
+		if (!activeTabId) return;
+		set((s) => ({
+			openTabs: s.openTabs.map((t) =>
+				t.id === activeTabId && t.kind === "form"
+					? { ...t, form, formId: form.id, dirty: true }
+					: t,
+			),
+		}));
+	},
+
 	handleAddNode: (type, position) => {
 		get().updateActiveFlow((flow) => {
 			const next = addNodeToFlow(flow, type, position);
@@ -1218,6 +1287,49 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 									label,
 									flowId: droppedFlowId,
 									input: {},
+								},
+							}
+						: n,
+				),
+			};
+			if (!position) return withData;
+			const frameId = findFrameAtPoint(withData, position, last.id);
+			if (!frameId) return withData;
+			return reparentNodeInFlow(withData, last.id, frameId, position);
+		});
+		set({
+			selectedNodeId: createdId,
+			selectedNodeIds: createdId ? [createdId] : [],
+			rightPanelOpen: true,
+			rightPanelTab: "inspector",
+			canvasDirty: true,
+		});
+	},
+
+	handleDropForm: (droppedFormId, position) => {
+		const { openTabs, activeTabId, forms } = get();
+		const activeTab = openTabs.find((t) => t.id === activeTabId);
+		if (activeTab?.kind !== "flow") {
+			toast.warning("Open a flow before adding a form node");
+			return;
+		}
+		const meta = forms.find((f) => f.id === droppedFormId);
+		const label = meta?.name ?? droppedFormId;
+		let createdId: string | null = null;
+		get().updateActiveFlow((flow) => {
+			const next = addNodeToFlow(flow, "form", position);
+			const last = next.nodes[next.nodes.length - 1];
+			if (!last || last.type !== "form") return next;
+			createdId = last.id;
+			const withData: typeof next = {
+				...next,
+				nodes: next.nodes.map((n) =>
+					n.id === last.id
+						? {
+								...n,
+								data: {
+									label,
+									formId: droppedFormId,
 								},
 							}
 						: n,
@@ -1483,6 +1595,29 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 					};
 				});
 				appendConsole(`Saved flow ${saved.id}`);
+			} else if (tab.kind === "form") {
+				const saved = await getQuesterClient().saveForm(
+					tab.form,
+					workspacePath,
+				);
+				set((s) => {
+					const nextId = formTabId(saved.id);
+					return {
+						openTabs: s.openTabs.map((t) =>
+							t.id === tab.id && t.kind === "form"
+								? {
+										...t,
+										formId: saved.id,
+										form: saved,
+										dirty: false,
+										id: nextId,
+									}
+								: t,
+						),
+						activeTabId: activeTabId === tab.id ? nextId : s.activeTabId,
+					};
+				});
+				appendConsole(`Saved form ${saved.id}`);
 			} else if (tab.kind === "env") {
 				const saved = await getQuesterClient().saveEnvironment(
 					workspacePath,
@@ -1616,6 +1751,36 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 			appendConsole(`Created flow ${flow.id}`);
 		} catch (err) {
 			showError(err instanceof Error ? err.message : "Create flow failed");
+		}
+	},
+
+	createForm: async () => {
+		const {
+			workspacePath,
+			refreshWorkspaceLists,
+			openTab,
+			appendConsole,
+			showError,
+		} = get();
+		if (!workspacePath) return;
+		const name = await promptName({
+			title: "New form",
+			label: "Name",
+			confirmLabel: "Create",
+		});
+		if (!name) return;
+		const formId = slugifyName(name);
+		try {
+			const form = await getQuesterClient().createForm(
+				workspacePath,
+				formId,
+				name.trim(),
+			);
+			await refreshWorkspaceLists(workspacePath);
+			openTab(createFormEditorTab(form));
+			appendConsole(`Created form ${form.id}`);
+		} catch (err) {
+			showError(err instanceof Error ? err.message : "Create form failed");
 		}
 	},
 
@@ -1782,6 +1947,107 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		}
 	},
 
+	renameForm: async (formId) => {
+		const {
+			workspacePath,
+			forms,
+			openTabs,
+			activeTabId,
+			refreshWorkspaceLists,
+			appendConsole,
+			showError,
+		} = get();
+		if (!workspacePath) return;
+		const meta = forms.find((f) => f.id === formId);
+		const tab = openTabs.find((t) => t.kind === "form" && t.formId === formId);
+		const currentName =
+			tab?.kind === "form"
+				? (tab.form.name ?? tab.formId)
+				: (meta?.name ?? formId);
+		const name = await promptName({
+			title: "Rename form",
+			label: "Name",
+			defaultValue: currentName,
+			confirmLabel: "Rename",
+		});
+		if (!name || name === currentName) return;
+
+		const newId = slugifyName(name);
+		try {
+			const saved = await getQuesterClient().renameForm(
+				workspacePath,
+				formId,
+				newId,
+				name.trim(),
+			);
+			await refreshWorkspaceLists(workspacePath);
+			const newTabId = formTabId(saved.id);
+			set((s) => ({
+				openTabs: s.openTabs.map((t) =>
+					t.kind === "form" && t.formId === formId
+						? {
+								...t,
+								formId: saved.id,
+								form: saved,
+								dirty: false,
+								id: newTabId,
+							}
+						: t,
+				),
+				activeTabId:
+					activeTabId === formTabId(formId) ? newTabId : s.activeTabId,
+			}));
+			appendConsole(`Renamed form to ${saved.id}`);
+		} catch (err) {
+			showError(err instanceof Error ? err.message : "Rename failed");
+		}
+	},
+
+	deleteForm: async (formId) => {
+		const {
+			workspacePath,
+			forms,
+			openTabs,
+			activeTabId,
+			refreshWorkspaceLists,
+			saveActiveTab,
+			appendConsole,
+			showError,
+		} = get();
+		if (!workspacePath) return;
+		const meta = forms.find((f) => f.id === formId);
+		const tabId = formTabId(formId);
+		const tab = openTabs.find((t) => t.id === tabId);
+		if (tab?.dirty) {
+			const saveFirst = await promptConfirm({
+				title: "Unsaved changes",
+				description: `${meta?.name ?? formId} has unsaved changes. Save before deleting?`,
+				confirmLabel: "Save and delete",
+			});
+			if (saveFirst) await saveActiveTab(tabId);
+		}
+		const ok = await promptConfirm({
+			title: "Delete form",
+			description: `Delete ${meta?.name ?? formId}? This cannot be undone.`,
+			confirmLabel: "Delete",
+			destructive: true,
+		});
+		if (!ok) return;
+		try {
+			await getQuesterClient().deleteForm(workspacePath, formId);
+			await refreshWorkspaceLists(workspacePath);
+			const remaining = openTabs.filter((t) => t.id !== tabId);
+			set({
+				openTabs: remaining,
+				activeTabId:
+					activeTabId === tabId ? (remaining[0]?.id ?? null) : activeTabId,
+			});
+			appendConsole(`Deleted form ${formId}`);
+		} catch (err) {
+			showError(err instanceof Error ? err.message : "Delete failed");
+		}
+	},
+
 	runFlow: async () => {
 		const {
 			inputJson,
@@ -1829,6 +2095,7 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 		const runId = crypto.randomUUID();
 		const nodeIds = activeFlowTab.flow.nodes.map((n) => n.id);
 		set((s) => ({
+			pendingFormAwait: null,
 			runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
 				isRunning: true,
 				runError: null,
@@ -1937,6 +2204,8 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				const slot = s.runByFlowId[flowId];
 				if (!slot || slot.activeRunId !== runId) return s;
 				return {
+					pendingFormAwait:
+						s.pendingFormAwait?.runId === runId ? null : s.pendingFormAwait,
 					runByFlowId: patchFlowRun(s.runByFlowId, flowId, {
 						isRunning: false,
 					}),
@@ -1946,13 +2215,16 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 	},
 
 	stopFlow: () => {
-		const { openTabs, activeTabId, runByFlowId } = get();
+		const { openTabs, activeTabId, runByFlowId, pendingFormAwait } = get();
 		const activeTab = openTabs.find((t) => t.id === activeTabId);
 		if (activeTab?.kind !== "flow") return;
 		const flowId = activeTab.flowId;
 		const slot = runByFlowId[flowId];
 		if (!slot?.isRunning || !slot.activeRunId) return;
 		void getQuesterClient().cancelFlowRun({ runId: slot.activeRunId });
+		if (pendingFormAwait?.runId === slot.activeRunId) {
+			set({ pendingFormAwait: null });
+		}
 	},
 
 	replayRunFromHistory: (runId) => {

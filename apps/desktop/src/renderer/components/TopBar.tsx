@@ -24,6 +24,7 @@ import {
 	IconChevronDown,
 	IconFile,
 	IconFolderOpen,
+	IconForms,
 	IconHistory,
 	IconJson,
 	IconKey,
@@ -38,6 +39,7 @@ function TabIcon({ tab }: { tab: EditorTab }) {
 	const kind = editorTabIcon(tab);
 	const className = "size-3 shrink-0 opacity-70";
 	if (kind === "flow") return <IconTopologyRing2 className={className} />;
+	if (kind === "form") return <IconForms className={className} />;
 	if (kind === "env") return <IconFile className={className} />;
 	if (kind === "request") return <IconWorld className={className} />;
 	if (kind === "response") return <IconJson className={className} />;

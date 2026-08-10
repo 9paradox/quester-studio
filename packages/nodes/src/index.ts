@@ -3,6 +3,7 @@
 	delayPlugin,
 	extractPlugin,
 	foreachPlugin,
+	formPlugin,
 	httpPlugin,
 	ifPlugin,
 	inputPlugin,
@@ -31,6 +32,7 @@ export { CookieJar, type CookieJarSnapshot } from "./cookie-jar.js";
 const builtins = [
 	startPlugin,
 	inputPlugin,
+	formPlugin,
 	httpPlugin,
 	extractPlugin,
 	templatePlugin,

@@ -1,0 +1,16 @@
+{
+	"version": "v1",
+	"id": "search-products",
+	"name": "Search products",
+	"description": "Enter a query to search DummyJSON products.",
+	"fields": [
+		{
+			"id": "q",
+			"type": "string",
+			"label": "Search query",
+			"placeholder": "phone",
+			"required": true,
+			"default": "phone"
+		}
+	]
+}

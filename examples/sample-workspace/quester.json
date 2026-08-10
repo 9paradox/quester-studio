@@ -1,10 +1,11 @@
 {
 	"name": "sample-workspace",
 	"version": "v1",
-	"description": "Scenario samples for developers, testers, and business analysts — auth chains, asserts, and full node coverage against DummyJSON.",
+	"description": "Scenario samples for developers, testers, and business analysts — auth chains, asserts, forms, and full node coverage against DummyJSON.",
 	"flowsDir": "flows",
 	"environmentsDir": "environments",
 	"collectionsDir": "collections",
+	"formsDir": "forms",
 	"runs": {
 		"enabled": true,
 		"dir": "runs"
