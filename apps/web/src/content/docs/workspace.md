@@ -16,6 +16,7 @@ For how nodes connect and how `{{input.*}}` differs from the `input` node, see [
     <span class="qs-ft-file">demo-main-nodes.flow.json</span>
     <span class="qs-ft-file">login-and-profile.flow.json</span>
     <span class="qs-ft-file">search-pick-cart.flow.json</span>
+    <span class="qs-ft-file">forms-showcase.flow.json</span>
     <span class="qs-ft-file">echo-subflow.flow.json</span>
     <span class="qs-ft-file">kitchen-sink.flow.json</span>
   <span class="qs-ft-dir">forms/</span>
@@ -155,7 +156,14 @@ quester run search-pick-cart --workspace examples/sample-workspace --env local \
 
 Omit fields that should keep resolved defaults; required fields and select membership are still validated. There are no interactive TTY prompts in v1.
 
-Sample flow: `flows/search-pick-cart.flow.json` (search → pick from results → detail → add to cart).
+Sample flows:
+- `flows/search-pick-cart.flow.json` — search → pick from results → detail → add to cart
+- `flows/forms-showcase.flow.json` — full forms tour (string/number/boolean/json, static + dynamic select, readonly prefills, multi-step await)
+
+```bash
+quester run forms-showcase --workspace examples/sample-workspace --env local \
+  --forms examples/sample-workspace/forms/forms-showcase.forms.json
+```
 
 ### Minimal flow
 

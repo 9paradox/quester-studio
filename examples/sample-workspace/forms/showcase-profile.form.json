@@ -1,0 +1,77 @@
+{
+	"version": "v1",
+	"id": "showcase-profile",
+	"name": "Showcase — profile",
+	"description": "Prefill + readonly + string/number/boolean/json + static select.",
+	"fields": [
+		{
+			"id": "id",
+			"type": "number",
+			"label": "User id",
+			"description": "Readonly identity from GET /auth/me.",
+			"readonly": true,
+			"default": "{{nodes.getMe.body.id}}"
+		},
+		{
+			"id": "username",
+			"type": "string",
+			"label": "Username",
+			"readonly": true,
+			"default": "{{nodes.getMe.body.username}}"
+		},
+		{
+			"id": "firstName",
+			"type": "string",
+			"label": "First name",
+			"required": true,
+			"default": "{{nodes.getMe.body.firstName}}"
+		},
+		{
+			"id": "lastName",
+			"type": "string",
+			"label": "Last name",
+			"required": true,
+			"default": "{{nodes.getMe.body.lastName}}"
+		},
+		{
+			"id": "email",
+			"type": "string",
+			"label": "Email",
+			"required": true,
+			"default": "{{nodes.getMe.body.email}}"
+		},
+		{
+			"id": "age",
+			"type": "number",
+			"label": "Age",
+			"default": "{{nodes.getMe.body.age}}"
+		},
+		{
+			"id": "emailOptIn",
+			"type": "boolean",
+			"label": "Email notifications",
+			"description": "Boolean field (default on).",
+			"default": true
+		},
+		{
+			"id": "theme",
+			"type": "select",
+			"label": "Theme",
+			"description": "Static select options.",
+			"required": true,
+			"default": "system",
+			"options": [
+				{ "value": "light", "label": "Light" },
+				{ "value": "dark", "label": "Dark" },
+				{ "value": "system", "label": "System" }
+			]
+		},
+		{
+			"id": "preferences",
+			"type": "json",
+			"label": "Preferences (JSON)",
+			"description": "Free-form JSON payload.",
+			"default": { "locale": "en", "density": "comfortable" }
+		}
+	]
+}

@@ -34,3 +34,4 @@ quester run search-pick-cart --workspace . --env local \
 - [Workspace forms](../../workspace/#forms-formjson)
 - [input](../input/) — initial run payload (not mid-flow wait)
 - Sample: `examples/sample-workspace/flows/search-pick-cart.flow.json`
+- Full tour: `examples/sample-workspace/flows/forms-showcase.flow.json` (all field types + multi-form await)

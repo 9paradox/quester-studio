@@ -1,0 +1,16 @@
+{
+	"version": "v1",
+	"id": "showcase-find-user",
+	"name": "Showcase — find user",
+	"description": "Search query that feeds a later optionsFrom select.",
+	"fields": [
+		{
+			"id": "q",
+			"type": "string",
+			"label": "Search users",
+			"placeholder": "emily",
+			"required": true,
+			"default": "emily"
+		}
+	]
+}
