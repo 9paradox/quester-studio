@@ -1,0 +1,25 @@
+{
+	"loginForm": {
+		"username": "emilys",
+		"password": "emilyspass"
+	},
+	"profileForm": {
+		"firstName": "Emily",
+		"lastName": "Johnson",
+		"email": "emily.johnson@x.dummyjson.com",
+		"age": 28,
+		"emailOptIn": true,
+		"theme": "dark",
+		"preferences": { "locale": "en", "density": "compact" }
+	},
+	"findUserForm": {
+		"q": "emily"
+	},
+	"pickUserForm": {
+		"userId": 1
+	},
+	"confirmForm": {
+		"notifyInDays": 3,
+		"confirmed": true
+	}
+}

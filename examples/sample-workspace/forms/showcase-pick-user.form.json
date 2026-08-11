@@ -1,0 +1,19 @@
+{
+	"version": "v1",
+	"id": "showcase-pick-user",
+	"name": "Showcase — pick user",
+	"description": "Dynamic select via optionsFrom on prior HTTP results.",
+	"fields": [
+		{
+			"id": "userId",
+			"type": "select",
+			"label": "Teammate",
+			"required": true,
+			"optionsFrom": {
+				"items": "{{nodes.searchUsers.body.users}}",
+				"value": "id",
+				"label": "username"
+			}
+		}
+	]
+}

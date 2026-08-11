@@ -1,0 +1,43 @@
+{
+	"version": "v1",
+	"id": "showcase-confirm",
+	"name": "Showcase — confirm",
+	"description": "Readonly summary from prior forms + confirm boolean.",
+	"fields": [
+		{
+			"id": "actor",
+			"type": "string",
+			"label": "Acting as",
+			"readonly": true,
+			"default": "{{nodes.profileForm.username}}"
+		},
+		{
+			"id": "theme",
+			"type": "string",
+			"label": "Chosen theme",
+			"readonly": true,
+			"default": "{{nodes.profileForm.theme}}"
+		},
+		{
+			"id": "assigneeId",
+			"type": "number",
+			"label": "Assignee id",
+			"readonly": true,
+			"default": "{{nodes.pickUserForm.userId}}"
+		},
+		{
+			"id": "notifyInDays",
+			"type": "number",
+			"label": "Remind in (days)",
+			"required": true,
+			"default": 3
+		},
+		{
+			"id": "confirmed",
+			"type": "boolean",
+			"label": "Confirm handoff",
+			"required": true,
+			"default": false
+		}
+	]
+}

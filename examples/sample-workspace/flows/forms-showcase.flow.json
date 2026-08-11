@@ -1,0 +1,134 @@
+{
+	"id": "forms-showcase",
+	"version": "v1",
+	"name": "Forms showcase",
+	"description": "End-to-end forms tour: login strings → profile prefill/readonly/boolean/json/static select → user search → dynamic optionsFrom pick → confirm. Use desktop Wait/Submit or CLI --forms.",
+	"nodes": [
+		{
+			"id": "start",
+			"type": "start",
+			"data": { "label": "Start" },
+			"position": { "x": 0, "y": 140 }
+		},
+		{
+			"id": "loginForm",
+			"type": "form",
+			"data": { "formId": "showcase-login", "label": "Login" },
+			"position": { "x": 220, "y": 140 }
+		},
+		{
+			"id": "login",
+			"type": "http",
+			"data": {
+				"label": "Login",
+				"method": "POST",
+				"url": "{{env.API_BASE}}/auth/login",
+				"headers": { "Content-Type": "application/json" },
+				"body": "{\n  \"username\": \"{{nodes.loginForm.username}}\",\n  \"password\": \"{{nodes.loginForm.password}}\"\n}"
+			},
+			"position": { "x": 440, "y": 140 }
+		},
+		{
+			"id": "accessToken",
+			"type": "extract",
+			"data": {
+				"label": "Access token",
+				"expression": "body.accessToken"
+			},
+			"position": { "x": 660, "y": 140 }
+		},
+		{
+			"id": "getMe",
+			"type": "http",
+			"data": {
+				"label": "Get me",
+				"method": "GET",
+				"url": "{{env.API_BASE}}/auth/me",
+				"headers": {
+					"Authorization": "Bearer {{nodes.accessToken}}"
+				}
+			},
+			"position": { "x": 880, "y": 140 }
+		},
+		{
+			"id": "profileForm",
+			"type": "form",
+			"data": { "formId": "showcase-profile", "label": "Edit profile" },
+			"position": { "x": 1100, "y": 140 }
+		},
+		{
+			"id": "patchUser",
+			"type": "http",
+			"data": {
+				"label": "Patch user",
+				"method": "PUT",
+				"url": "{{env.API_BASE}}/users/{{nodes.profileForm.id}}",
+				"headers": {
+					"Content-Type": "application/json",
+					"Accept": "application/json"
+				},
+				"body": "{\n  \"firstName\": \"{{nodes.profileForm.firstName}}\",\n  \"lastName\": \"{{nodes.profileForm.lastName}}\",\n  \"email\": \"{{nodes.profileForm.email}}\",\n  \"age\": {{nodes.profileForm.age}}\n}"
+			},
+			"position": { "x": 1320, "y": 140 }
+		},
+		{
+			"id": "findUserForm",
+			"type": "form",
+			"data": { "formId": "showcase-find-user", "label": "Find teammate" },
+			"position": { "x": 1540, "y": 140 }
+		},
+		{
+			"id": "searchUsers",
+			"type": "http",
+			"data": {
+				"label": "Search users",
+				"method": "GET",
+				"url": "{{env.API_BASE}}/users/search?q={{nodes.findUserForm.q}}&limit=10",
+				"headers": { "Accept": "application/json" }
+			},
+			"position": { "x": 1760, "y": 140 }
+		},
+		{
+			"id": "pickUserForm",
+			"type": "form",
+			"data": { "formId": "showcase-pick-user", "label": "Pick teammate" },
+			"position": { "x": 1980, "y": 140 }
+		},
+		{
+			"id": "confirmForm",
+			"type": "form",
+			"data": { "formId": "showcase-confirm", "label": "Confirm" },
+			"position": { "x": 2200, "y": 140 }
+		},
+		{
+			"id": "out",
+			"type": "output",
+			"data": {
+				"label": "Showcase result",
+				"map": {
+					"login": "{{nodes.loginForm.username}}",
+					"profileId": "{{nodes.profileForm.id}}",
+					"theme": "{{nodes.profileForm.theme}}",
+					"emailOptIn": "{{nodes.profileForm.emailOptIn}}",
+					"assigneeId": "{{nodes.pickUserForm.userId}}",
+					"confirmed": "{{nodes.confirmForm.confirmed}}",
+					"notifyInDays": "{{nodes.confirmForm.notifyInDays}}"
+				}
+			},
+			"position": { "x": 2420, "y": 140 }
+		}
+	],
+	"edges": [
+		{ "id": "e1", "source": "start", "target": "loginForm" },
+		{ "id": "e2", "source": "loginForm", "target": "login" },
+		{ "id": "e3", "source": "login", "target": "accessToken" },
+		{ "id": "e4", "source": "accessToken", "target": "getMe" },
+		{ "id": "e5", "source": "getMe", "target": "profileForm" },
+		{ "id": "e6", "source": "profileForm", "target": "patchUser" },
+		{ "id": "e7", "source": "patchUser", "target": "findUserForm" },
+		{ "id": "e8", "source": "findUserForm", "target": "searchUsers" },
+		{ "id": "e9", "source": "searchUsers", "target": "pickUserForm" },
+		{ "id": "e10", "source": "pickUserForm", "target": "confirmForm" },
+		{ "id": "e11", "source": "confirmForm", "target": "out" }
+	]
+}

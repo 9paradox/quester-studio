@@ -1,0 +1,25 @@
+{
+	"version": "v1",
+	"id": "showcase-login",
+	"name": "Showcase — login",
+	"description": "String fields with required, placeholder, and description.",
+	"fields": [
+		{
+			"id": "username",
+			"type": "string",
+			"label": "Username",
+			"description": "DummyJSON demo user (e.g. emilys).",
+			"placeholder": "emilys",
+			"required": true,
+			"default": "emilys"
+		},
+		{
+			"id": "password",
+			"type": "string",
+			"label": "Password",
+			"placeholder": "emilyspass",
+			"required": true,
+			"default": "emilyspass"
+		}
+	]
+}
