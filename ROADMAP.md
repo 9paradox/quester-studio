@@ -78,7 +78,7 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 - [x] Inspector depth — clear forms per node; fewer dead ends / empty states  
 - [ ] Run / debug clarity — status, errors, stop, replay easy to follow (depends on B5/B8; ties to Run UX above)  
 - [x] Per-flow console lines (global `consoleLines` isolation gap after B3)  
-- [ ] Template / JMESPath assist polish beyond v1  
+- [x] Template / JMESPath assist polish beyond v1  
 - [ ] Command palette + shortcuts coverage for everyday actions  
 - [ ] Preferences / settings discoverability and consistency  
 - [ ] Welcome / empty / error states that explain the next action  
@@ -146,6 +146,7 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 
 - [x] `form` node — references a workspace form; at run time collects / supplies structured input (replacement path for plain `input` where a UI form is preferred)
 - [x] Form schema + editor — field types, validation, defaults; CLI/`quester run` can still supply JSON that matches the form
+- [x] Form inputs + bindings — reusable forms via `{{form.*}}` and per-node `bindings`  
 - [ ] `code` node — custom function (JS first; other languages only if isolation story is solid)  
   - [ ] Secure isolated runtime (no ambient FS/network unless explicitly gated); timeouts + memory caps; document in SECURITY.md  
   - [ ] Monaco-class editor with syntax highlighting when editing the node / opened as a tab  

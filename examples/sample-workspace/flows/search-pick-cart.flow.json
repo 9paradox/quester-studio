@@ -7,78 +7,180 @@
 		{
 			"id": "start",
 			"type": "start",
-			"data": { "label": "Start" },
-			"position": { "x": 0, "y": 120 }
+			"data": {
+				"label": "Start"
+			},
+			"position": {
+				"x": 0,
+				"y": 120
+			},
+			"width": 210,
+			"height": 102
 		},
 		{
 			"id": "searchForm",
 			"type": "form",
-			"data": { "formId": "search-products", "label": "Search" },
-			"position": { "x": 220, "y": 120 }
+			"data": {
+				"formId": "search-products",
+				"label": "Search"
+			},
+			"position": {
+				"x": 220,
+				"y": 120
+			},
+			"width": 210,
+			"height": 102
 		},
 		{
 			"id": "search",
 			"type": "http",
 			"data": {
-				"label": "Search products",
 				"method": "GET",
 				"url": "{{env.API_BASE}}/products/search?q={{nodes.searchForm.q}}&limit=10",
-				"headers": { "Accept": "application/json" }
+				"headers": {
+					"Accept": "application/json"
+				},
+				"label": "Search products"
 			},
-			"position": { "x": 440, "y": 120 }
+			"position": {
+				"x": 440,
+				"y": 120
+			},
+			"width": 300,
+			"height": 102
 		},
 		{
 			"id": "pickForm",
 			"type": "form",
-			"data": { "formId": "pick-product", "label": "Pick product" },
-			"position": { "x": 660, "y": 120 }
+			"data": {
+				"formId": "pick-product",
+				"bindings": {
+					"products": "{{nodes.search.body.products}}"
+				},
+				"label": "Pick product"
+			},
+			"position": {
+				"x": 797.5108364829512,
+				"y": 122.95087631937662
+			},
+			"width": 210,
+			"height": 102
 		},
 		{
 			"id": "detail",
 			"type": "http",
 			"data": {
-				"label": "Product detail",
 				"method": "GET",
 				"url": "{{env.API_BASE}}/products/{{nodes.pickForm.productId}}",
-				"headers": { "Accept": "application/json" }
+				"headers": {
+					"Accept": "application/json"
+				},
+				"label": "Product detail"
 			},
-			"position": { "x": 880, "y": 120 }
+			"position": {
+				"x": 1057.61418285749,
+				"y": 122.95087631937665
+			},
+			"width": 300,
+			"height": 102
 		},
 		{
 			"id": "detailForm",
 			"type": "form",
-			"data": { "formId": "product-detail", "label": "Add to cart" },
-			"position": { "x": 1100, "y": 120 }
+			"data": {
+				"formId": "product-detail",
+				"label": "Add to cart"
+			},
+			"position": {
+				"x": 1385.8138303964845,
+				"y": 125.27038421619366
+			},
+			"width": 210,
+			"height": 102
 		},
 		{
 			"id": "cart",
 			"type": "http",
 			"data": {
-				"label": "Add to cart",
 				"method": "POST",
 				"url": "{{env.API_BASE}}/carts/add",
 				"headers": {
 					"Content-Type": "application/json",
 					"Accept": "application/json"
 				},
-				"body": "{\n  \"userId\": 1,\n  \"products\": [\n    {\n      \"id\": {{nodes.pickForm.productId}},\n      \"quantity\": {{nodes.detailForm.quantity}}\n    }\n  ]\n}"
+				"body": "{\n  \"userId\": 1,\n  \"products\": [\n    {\n      \"id\": {{nodes.pickForm.productId}},\n      \"quantity\": {{nodes.detailForm.quantity}}\n    }\n  ]\n}",
+				"label": "Add to cart"
 			},
-			"position": { "x": 1320, "y": 120 }
+			"position": {
+				"x": 1632.2039883328248,
+				"y": 125.58989211301065
+			},
+			"width": 210,
+			"height": 102
 		},
 		{
 			"id": "out",
 			"type": "output",
-			"data": { "label": "Cart result" },
-			"position": { "x": 1540, "y": 120 }
+			"data": {
+				"label": "Cart result"
+			},
+			"position": {
+				"x": 1901.0257805150536,
+				"y": 120.31186052574265
+			},
+			"width": 150,
+			"height": 68
 		}
 	],
 	"edges": [
-		{ "id": "e1", "source": "start", "target": "searchForm" },
-		{ "id": "e2", "source": "searchForm", "target": "search" },
-		{ "id": "e3", "source": "search", "target": "pickForm" },
-		{ "id": "e4", "source": "pickForm", "target": "detail" },
-		{ "id": "e5", "source": "detail", "target": "detailForm" },
-		{ "id": "e6", "source": "detailForm", "target": "cart" },
-		{ "id": "e7", "source": "cart", "target": "out" }
+		{
+			"id": "e1",
+			"source": "start",
+			"target": "searchForm",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e2",
+			"source": "searchForm",
+			"target": "search",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e3",
+			"source": "search",
+			"target": "pickForm",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e4",
+			"source": "pickForm",
+			"target": "detail",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e5",
+			"source": "detail",
+			"target": "detailForm",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e6",
+			"source": "detailForm",
+			"target": "cart",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e7",
+			"source": "cart",
+			"target": "out",
+			"sourceHandle": null,
+			"targetHandle": null
+		}
 	]
 }

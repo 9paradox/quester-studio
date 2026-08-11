@@ -2,7 +2,10 @@
 	"version": "v1",
 	"id": "showcase-pick-user",
 	"name": "Showcase — pick user",
-	"description": "Dynamic select via optionsFrom on prior HTTP results.",
+	"description": "Dynamic select via optionsFrom; bind users from the flow node.",
+	"inputs": [
+		{ "id": "users", "label": "Users", "type": "json", "required": true }
+	],
 	"fields": [
 		{
 			"id": "userId",
@@ -10,7 +13,7 @@
 			"label": "Teammate",
 			"required": true,
 			"optionsFrom": {
-				"items": "{{nodes.searchUsers.body.users}}",
+				"items": "{{form.users}}",
 				"value": "id",
 				"label": "username"
 			}

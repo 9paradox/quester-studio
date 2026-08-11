@@ -58,6 +58,7 @@ const ctx = {
 	envKeys: ["API_BASE"],
 	envValues: { API_BASE: "https://api.example.com" },
 	secretKeys: ["password", "username"],
+	formKeys: ["theme", "products"],
 	nodePaths: {
 		login: ["status", "body.id", "body.token"],
 		profile: ["body.name"],
@@ -80,6 +81,7 @@ describe("templateSuggestions", () => {
 			"input",
 			"nodes",
 			"vars",
+			"form",
 		]);
 	});
 

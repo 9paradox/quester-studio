@@ -1,9 +1,12 @@
 import { type FormV1, formNodeDataSchema } from "@quester-studio/schema";
 import type { FlowNodePlugin } from "../types.js";
 import {
+	assertRequiredFormBindings,
 	mergeFormSubmission,
+	resolveBindingsRecord,
 	resolveFormFields,
 	validateFormSubmission,
+	withFormTemplateScope,
 } from "./form-resolve.js";
 
 export const formPlugin: FlowNodePlugin = {
@@ -25,11 +28,24 @@ export const formPlugin: FlowNodePlugin = {
 		const resolveValue =
 			ctx.resolveValue ?? ((template: string) => ctx.resolveTemplate(template));
 
+		const formScope = resolveBindingsRecord(
+			data.bindings,
+			resolveValue,
+			ctx.resolveTemplate,
+		);
+		assertRequiredFormBindings(form, formScope);
+
+		const scoped = withFormTemplateScope(
+			formScope,
+			resolveValue,
+			ctx.resolveTemplate,
+		);
+
 		const resolved = resolveFormFields(
 			form,
 			data.value,
-			resolveValue,
-			ctx.resolveTemplate,
+			scoped.resolveValue,
+			scoped.resolveTemplate,
 		);
 
 		const submitted = await ctx.awaitForm({
@@ -46,6 +62,7 @@ export const formPlugin: FlowNodePlugin = {
 			output: merged,
 			processedInput: {
 				formId: data.formId,
+				bindings: formScope,
 				resolved,
 				submitted,
 			},
