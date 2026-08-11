@@ -3,12 +3,15 @@ import {
 	normalizeAssertChecks,
 } from "@/components/AssertChecksEditor.js";
 import { CodeEditor } from "@/components/CodeEditor.js";
+import { ForeachItemsField } from "@/components/ForeachItemsField.js";
 import { HeadersEditor } from "@/components/HeadersEditor.js";
 import { JmesPathField } from "@/components/JmesPathField.js";
+import { JmesPathMapEditor } from "@/components/JmesPathMapEditor.js";
 import { JsonDraftField } from "@/components/JsonDraftField.js";
 import { NodeHelpDialog } from "@/components/NodeHelpDialog.js";
 import { SwitchCasesEditor } from "@/components/SwitchCasesEditor.js";
 import { TemplateField } from "@/components/TemplateField.js";
+import { TemplateMapEditor } from "@/components/TemplateMapEditor.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
 import {
@@ -80,6 +83,17 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 	const setInputJson = useQuesterStore((s) => s.setInputJson);
 	const flows = useQuesterStore((s) => s.flows);
 	const forms = useQuesterStore((s) => s.forms);
+	const formDefinition = useQuesterStore((s) => {
+		if (node.type !== "form") return null;
+		const formId = String(
+			(node.data as { formId?: string } | undefined)?.formId ?? "",
+		);
+		if (!formId) return null;
+		const tab = s.openTabs.find(
+			(t) => t.kind === "form" && t.formId === formId,
+		);
+		return tab?.kind === "form" ? tab.form : null;
+	});
 	const loopKeys = useQuesterStore(
 		useShallow((s) => {
 			const tab = selectActiveFlowTab(s);
@@ -461,9 +475,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Items"
-						hint="JMESPath on previous output or templated JSON array string. Body runs once per item."
+						hint="JMESPath on previous output, or a {{…}} template that resolves to a JSON array. Assist switches when {{ appears."
 					>
-						<JmesPathField
+						<ForeachItemsField
 							value={String(data.items ?? "items")}
 							onChange={(items) => setField("items", items)}
 							placeholder="body.users"
@@ -544,56 +558,72 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Target flow"
-						hint="Flow in this workspace (without .flow.json). Pick from the list or type a custom id."
+						hint="Flow in this workspace (without .flow.json)."
 					>
-						<div className="flex flex-col gap-2">
-							{flows.length > 0 ? (
+						{flows.length > 0 ? (
+							<div className="flex flex-col gap-2">
 								<Select
-									value={String(data.flowId ?? "") || undefined}
+									value={(() => {
+										const current = String(data.flowId ?? "");
+										if (!current) return undefined;
+										return flows.some((f) => f.id === current)
+											? current
+											: "__custom__";
+									})()}
 									onValueChange={(flowId) => {
-										if (typeof flowId === "string" && flowId) {
-											setField("flowId", flowId);
+										if (typeof flowId !== "string" || !flowId) return;
+										if (flowId === "__custom__") {
+											const current = String(data.flowId ?? "");
+											const known = flows.some((f) => f.id === current);
+											setField("flowId", known ? "" : current);
+											return;
 										}
+										setField("flowId", flowId);
 									}}
 								>
 									<SelectTrigger className="w-full">
 										<SelectValue placeholder="Select a flow…" />
 									</SelectTrigger>
 									<SelectContent>
-										{(() => {
-											const current = String(data.flowId ?? "");
-											const known = flows.some((f) => f.id === current);
-											return (
-												<>
-													{!known && current ? (
-														<SelectItem value={current}>{current}</SelectItem>
-													) : null}
-													{flows.map((f) => (
-														<SelectItem key={f.id} value={f.id}>
-															{f.name === f.id ? f.id : `${f.name} (${f.id})`}
-														</SelectItem>
-													))}
-												</>
-											);
-										})()}
+										{flows.map((f) => (
+											<SelectItem key={f.id} value={f.id}>
+												{f.name === f.id ? f.id : `${f.name} (${f.id})`}
+											</SelectItem>
+										))}
+										<SelectItem value="__custom__">Custom…</SelectItem>
 									</SelectContent>
 								</Select>
-							) : null}
+								{(() => {
+									const current = String(data.flowId ?? "");
+									const known = flows.some((f) => f.id === current);
+									if (known && current) return null;
+									return (
+										<Input
+											value={current}
+											onChange={(e) => setField("flowId", e.target.value)}
+											placeholder="echo-subflow"
+											className="font-mono"
+										/>
+									);
+								})()}
+							</div>
+						) : (
 							<Input
 								value={String(data.flowId ?? "")}
 								onChange={(e) => setField("flowId", e.target.value)}
 								placeholder="echo-subflow"
+								className="font-mono"
 							/>
-						</div>
+						)}
 					</InspectorField>
 					<InspectorField
 						label="Input"
-						hint="JSON object of templates passed as subflow run input."
+						hint="Key → template string passed as subflow run input."
 					>
-						<JsonDraftField
-							value={data.input ?? {}}
-							onCommit={(input) => setField("input", input)}
-							minHeight="7rem"
+						<TemplateMapEditor
+							value={(data.input as Record<string, unknown> | undefined) ?? {}}
+							onChange={(input) => setField("input", input)}
+							valuePlaceholder="{{nodes.login.token}}"
 						/>
 					</InspectorField>
 				</>
@@ -603,57 +633,145 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Form"
-						hint="Workspace form id (without .form.json). Pick from the list or type a custom id."
+						hint="Workspace form id (without .form.json)."
 						error={fieldErrors.formId}
 					>
-						<div className="flex flex-col gap-2">
-							{forms.length > 0 ? (
+						{forms.length > 0 ? (
+							<div className="flex flex-col gap-2">
 								<Select
-									value={String(data.formId ?? "") || undefined}
+									value={(() => {
+										const current = String(data.formId ?? "");
+										if (!current) return undefined;
+										return forms.some((f) => f.id === current)
+											? current
+											: "__custom__";
+									})()}
 									onValueChange={(formId) => {
-										if (typeof formId === "string" && formId) {
-											setField("formId", formId);
+										if (typeof formId !== "string" || !formId) return;
+										if (formId === "__custom__") {
+											const current = String(data.formId ?? "");
+											const known = forms.some((f) => f.id === current);
+											setField("formId", known ? "" : current);
+											return;
 										}
+										setField("formId", formId);
 									}}
 								>
 									<SelectTrigger className="w-full">
 										<SelectValue placeholder="Select a form…" />
 									</SelectTrigger>
 									<SelectContent>
-										{(() => {
-											const current = String(data.formId ?? "");
-											const known = forms.some((f) => f.id === current);
-											return (
-												<>
-													{!known && current ? (
-														<SelectItem value={current}>{current}</SelectItem>
-													) : null}
-													{forms.map((f) => (
-														<SelectItem key={f.id} value={f.id}>
-															{f.name === f.id ? f.id : `${f.name} (${f.id})`}
-														</SelectItem>
-													))}
-												</>
-											);
-										})()}
+										{forms.map((f) => (
+											<SelectItem key={f.id} value={f.id}>
+												{f.name === f.id ? f.id : `${f.name} (${f.id})`}
+											</SelectItem>
+										))}
+										<SelectItem value="__custom__">Custom…</SelectItem>
 									</SelectContent>
 								</Select>
-							) : null}
+								{(() => {
+									const current = String(data.formId ?? "");
+									const known = forms.some((f) => f.id === current);
+									if (known && current) return null;
+									return (
+										<Input
+											value={current}
+											onChange={(e) => setField("formId", e.target.value)}
+											placeholder="my-form-id"
+											className="font-mono"
+										/>
+									);
+								})()}
+							</div>
+						) : (
 							<Input
 								value={String(data.formId ?? "")}
 								onChange={(e) => setField("formId", e.target.value)}
 								placeholder="product-search"
+								className="font-mono"
 							/>
-						</div>
+						)}
+					</InspectorField>
+					<InspectorField
+						label="Bindings"
+						hint={
+							formDefinition?.inputs && formDefinition.inputs.length > 0
+								? "Map form input ids → templates for this flow (available as {{form.*}} in the form file)."
+								: "Optional inputId → template map. Open the form in the editor to declare inputs and get a guided list."
+						}
+					>
+						{formDefinition?.inputs && formDefinition.inputs.length > 0 ? (
+							<div className="flex flex-col gap-2">
+								{formDefinition.inputs.map((input) => {
+									const bindings =
+										(data.bindings as Record<string, unknown> | undefined) ??
+										{};
+									const raw = bindings[input.id];
+									const text =
+										raw == null
+											? ""
+											: typeof raw === "string"
+												? raw
+												: JSON.stringify(raw);
+									return (
+										<div key={input.id} className="flex flex-col gap-1">
+											<Label className="text-xs text-muted-foreground">
+												{input.label ?? input.id}
+												{input.required ? " *" : ""}
+												<span className="ml-1 font-mono text-[10px] opacity-70">
+													{input.id}
+												</span>
+											</Label>
+											<TemplateField
+												value={text}
+												onChange={(value) => {
+													const prev =
+														(data.bindings as
+															| Record<string, unknown>
+															| undefined) ?? {};
+													const next = { ...prev };
+													if (value === "") {
+														delete next[input.id];
+													} else {
+														next[input.id] = value;
+													}
+													onUpdate({
+														...data,
+														bindings:
+															Object.keys(next).length > 0 ? next : undefined,
+													});
+												}}
+												placeholder={`{{nodes.…}} → form.${input.id}`}
+											/>
+										</div>
+									);
+								})}
+							</div>
+						) : (
+							<TemplateMapEditor
+								value={
+									(data.bindings as Record<string, unknown> | undefined) ?? {}
+								}
+								onChange={(bindings) => {
+									onUpdate({
+										...data,
+										bindings:
+											Object.keys(bindings).length > 0 ? bindings : undefined,
+									});
+								}}
+								valuePlaceholder="{{nodes.search.body.products}}"
+								keyPlaceholder="inputId"
+							/>
+						)}
 					</InspectorField>
 					<InspectorField
 						label="Prefill overrides"
-						hint="Optional field id → value map (strings may be templates)."
+						hint="Optional field id → value map (overrides field defaults after bindings)."
 					>
-						<JsonDraftField
-							value={data.value ?? {}}
-							onCommit={(value) => setField("value", value)}
-							minHeight="7rem"
+						<TemplateMapEditor
+							value={(data.value as Record<string, unknown> | undefined) ?? {}}
+							onChange={(value) => setField("value", value)}
+							valuePlaceholder="{{input.name}}"
 						/>
 					</InspectorField>
 				</>
@@ -732,11 +850,15 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "set" ? (
 				<InspectorField
 					label="Variables"
-					hint="JSON object of string, number, or boolean values. Strings are templated."
+					hint="Key → string, number, or boolean. Strings are templated."
 				>
-					<JsonDraftField
-						value={data.variables ?? {}}
-						onCommit={(variables) => setField("variables", variables)}
+					<TemplateMapEditor
+						value={
+							(data.variables as Record<string, unknown> | undefined) ?? {}
+						}
+						onChange={(variables) => setField("variables", variables)}
+						coerceScalars
+						valuePlaceholder="{{env.API_BASE}}"
 					/>
 				</InspectorField>
 			) : null}
@@ -756,12 +878,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "transform" ? (
 				<InspectorField
 					label="Map"
-					hint="JSON object: key → JMESPath expression on previous output."
+					hint="Key → JMESPath expression on previous output."
 				>
-					<JsonDraftField
-						value={data.map ?? {}}
-						onCommit={(map) => setField("map", map)}
-						minHeight="7rem"
+					<JmesPathMapEditor
+						value={(data.map as Record<string, unknown> | undefined) ?? {}}
+						onChange={(map) => setField("map", map)}
 					/>
 				</InspectorField>
 			) : null}
@@ -863,25 +984,19 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "output" ? (
 				<InspectorField
 					label="Map (optional)"
-					hint="Key → template string. Omit for passthrough of previous output."
+					hint="Key → template string. Clear all rows for passthrough of previous output."
 				>
-					<JsonDraftField
-						value={data.map ?? {}}
-						onCommit={(map) => {
-							if (
-								map &&
-								typeof map === "object" &&
-								!Array.isArray(map) &&
-								Object.keys(map as object).length === 0
-							) {
+					<TemplateMapEditor
+						value={(data.map as Record<string, unknown> | undefined) ?? {}}
+						onChange={(map) => {
+							if (Object.keys(map).length === 0) {
 								const { map: _omit, ...rest } = data;
 								onUpdate(rest);
 								return;
 							}
 							onUpdate({ ...data, map });
 						}}
-						minHeight="7rem"
-						placeholder={'{\n  "userId": "{{nodes.userId}}"\n}'}
+						valuePlaceholder="{{nodes.userId}}"
 					/>
 				</InspectorField>
 			) : null}

@@ -22,7 +22,7 @@ import {
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
 import type { FlowEditorTab } from "@/lib/editorTabs.js";
-import { listRunHistory } from "@/lib/runHistory.js";
+import { clearRunHistory, listRunHistory } from "@/lib/runHistory.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
@@ -143,9 +143,16 @@ export function Panel() {
 	const activeFlowTab = openTabs.find(
 		(t): t is FlowEditorTab => t.id === activeTabId && t.kind === "flow",
 	);
+	const [, setHistoryRevision] = useState(0);
 	const historyEntries = activeFlowTab
 		? listRunHistory(activeFlowTab.flowId)
 		: [];
+
+	const clearHistory = useCallback(() => {
+		if (!activeFlowTab) return;
+		clearRunHistory(activeFlowTab.flowId);
+		setHistoryRevision((n) => n + 1);
+	}, [activeFlowTab]);
 
 	const logs = runResult?.logs ?? [];
 	const dragging = useRef(false);
@@ -335,6 +342,18 @@ export function Panel() {
 									<IconTrash />
 								</Button>
 							</>
+						) : activeTab === "history" ? (
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon-xs"
+								onClick={clearHistory}
+								disabled={!activeFlowTab || historyEntries.length === 0}
+								aria-label="Clear history"
+								title="Clear history for this flow"
+							>
+								<IconTrash />
+							</Button>
 						) : null}
 					</div>
 					<button

@@ -2,28 +2,38 @@
 	"version": "v1",
 	"id": "showcase-confirm",
 	"name": "Showcase — confirm",
-	"description": "Readonly summary from prior forms + confirm boolean.",
+	"description": "Readonly summary from prior forms + confirm boolean. Uses form inputs so each flow can bind its own node ids.",
+	"inputs": [
+		{ "id": "actor", "label": "Acting as", "type": "string", "required": true },
+		{ "id": "theme", "label": "Theme", "type": "string", "required": true },
+		{
+			"id": "assigneeId",
+			"label": "Assignee id",
+			"type": "number",
+			"required": true
+		}
+	],
 	"fields": [
 		{
 			"id": "actor",
 			"type": "string",
 			"label": "Acting as",
 			"readonly": true,
-			"default": "{{nodes.profileForm.username}}"
+			"default": "{{form.actor}}"
 		},
 		{
 			"id": "theme",
 			"type": "string",
 			"label": "Chosen theme",
 			"readonly": true,
-			"default": "{{nodes.profileForm.theme}}"
+			"default": "{{form.theme}}"
 		},
 		{
 			"id": "assigneeId",
 			"type": "number",
 			"label": "Assignee id",
 			"readonly": true,
-			"default": "{{nodes.pickUserForm.userId}}"
+			"default": "{{form.assigneeId}}"
 		},
 		{
 			"id": "notifyInDays",

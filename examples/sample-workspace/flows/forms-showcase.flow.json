@@ -91,13 +91,27 @@
 		{
 			"id": "pickUserForm",
 			"type": "form",
-			"data": { "formId": "showcase-pick-user", "label": "Pick teammate" },
+			"data": {
+				"formId": "showcase-pick-user",
+				"label": "Pick teammate",
+				"bindings": {
+					"users": "{{nodes.searchUsers.body.users}}"
+				}
+			},
 			"position": { "x": 1980, "y": 140 }
 		},
 		{
 			"id": "confirmForm",
 			"type": "form",
-			"data": { "formId": "showcase-confirm", "label": "Confirm" },
+			"data": {
+				"formId": "showcase-confirm",
+				"label": "Confirm",
+				"bindings": {
+					"actor": "{{nodes.profileForm.username}}",
+					"theme": "{{nodes.profileForm.theme}}",
+					"assigneeId": "{{nodes.pickUserForm.userId}}"
+				}
+			},
 			"position": { "x": 2200, "y": 140 }
 		},
 		{

@@ -6,6 +6,11 @@ export const formNodeDataSchema = z.object({
 	/** Workspace form id (`forms/{formId}.form.json`). */
 	formId: workspaceFileIdSchema,
 	/**
+	 * Map form input ids → values/templates for this flow.
+	 * Resolved before field defaults; available as `{{form.*}}`.
+	 */
+	bindings: z.record(z.unknown()).optional(),
+	/**
 	 * Optional draft / prefill overrides for this node (field id → value).
 	 * String values may be templates resolved at await time.
 	 */

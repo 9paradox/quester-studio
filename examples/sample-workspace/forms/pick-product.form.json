@@ -3,16 +3,24 @@
 	"id": "pick-product",
 	"name": "Pick product",
 	"description": "Choose one product from the search results.",
+	"inputs": [
+		{
+			"id": "products",
+			"label": "Products",
+			"type": "json",
+			"required": true
+		}
+	],
 	"fields": [
 		{
 			"id": "productId",
-			"type": "select",
 			"label": "Product",
 			"required": true,
+			"type": "select",
 			"optionsFrom": {
-				"items": "{{nodes.search.body.products}}",
+				"items": "{{form.products}}",
 				"value": "id",
-				"label": "title"
+				"label": "{{title}} · {{brand}} · ${{price}}"
 			}
 		}
 	]

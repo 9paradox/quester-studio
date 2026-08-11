@@ -2,6 +2,11 @@ import {
 	CodeEditor,
 	type CodeEditorCompletionMode,
 } from "@/components/CodeEditor.js";
+import { PathPickerField } from "@/components/PathPickerDialog.js";
+import { buildTemplatePickerPaths } from "@/lib/pathPicker.js";
+import { useQuesterStore } from "@/stores/quester-store.js";
+import { selectTemplateContext } from "@/stores/selectors.js";
+import { useShallow } from "zustand/react/shallow";
 
 type TemplateFieldProps = {
 	id?: string;
@@ -15,6 +20,11 @@ type TemplateFieldProps = {
 	completionMode?: CodeEditorCompletionMode;
 	/** Used when `completionMode` is `header-value`. */
 	headerName?: string;
+	/**
+	 * Show Pick path for template modes. Defaults on for `template` /
+	 * `template+eta`; off for headers / jmespath (JmesPathField has its own).
+	 */
+	showPickPath?: boolean;
 };
 
 /**
@@ -32,8 +42,20 @@ export function TemplateField({
 	onBlur,
 	completionMode = "template",
 	headerName,
+	showPickPath,
 }: TemplateFieldProps) {
-	return (
+	const defaultPick =
+		completionMode === "template" || completionMode === "template+eta";
+	const pickEnabled = showPickPath ?? defaultPick;
+
+	const templatePaths = useQuesterStore(
+		useShallow((state) => {
+			if (!pickEnabled) return [] as string[];
+			return buildTemplatePickerPaths(selectTemplateContext(state));
+		}),
+	);
+
+	const editor = (
 		<CodeEditor
 			id={id}
 			value={value}
@@ -49,5 +71,20 @@ export function TemplateField({
 			}
 			className={className}
 		/>
+	);
+
+	if (!pickEnabled) return editor;
+
+	return (
+		<PathPickerField
+			paths={templatePaths}
+			title="Pick template path"
+			description="Insert a {{…}} token from env, input, vars, or node outputs."
+			emptyMessage="No template paths yet. Open an env, set run input, or run the flow so node outputs are known."
+			triggerTitle="Insert a template path token"
+			onPick={(path) => onChange(path)}
+		>
+			{editor}
+		</PathPickerField>
 	);
 }

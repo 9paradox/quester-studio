@@ -1,9 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import type { FormV1 } from "@quester-studio/schema";
 import {
+	assertRequiredFormBindings,
 	mergeFormSubmission,
+	resolveBindingsRecord,
 	resolveFormFields,
 	validateFormSubmission,
+	withFormTemplateScope,
 } from "./form-resolve.js";
 import { formPlugin } from "./form.js";
 
@@ -57,6 +60,91 @@ describe("form-resolve", () => {
 			{ value: 1, label: "Phone" },
 			{ value: 2, label: "Laptop" },
 		]);
+	});
+
+	test("resolves optionsFrom label templates over each item", () => {
+		const form: FormV1 = {
+			version: "v1",
+			id: "pick",
+			name: "Pick",
+			fields: [
+				{
+					id: "productId",
+					type: "select",
+					required: true,
+					optionsFrom: {
+						items: "{{nodes.search.body.products}}",
+						value: "id",
+						label: "{{title}} · {{brand}} · ${{price}}",
+					},
+				},
+			],
+		};
+		const products = [
+			{ id: 1, title: "Phone", brand: "Acme", price: 99 },
+			{ id: 2, title: "Laptop", brand: "Nova", price: 899 },
+		];
+		const resolveValue = (t: string) =>
+			t.includes("nodes.search.body.products") ? products : undefined;
+		const resolved = resolveFormFields(form, undefined, resolveValue, (t) => t);
+		expect(resolved.fields[0]?.options).toEqual([
+			{ value: 1, label: "Phone · Acme · $99" },
+			{ value: 2, label: "Laptop · Nova · $899" },
+		]);
+	});
+
+	test("resolves {{form.*}} via withFormTemplateScope bindings", () => {
+		const form: FormV1 = {
+			version: "v1",
+			id: "confirm",
+			name: "Confirm",
+			inputs: [
+				{ id: "theme", type: "string", required: true },
+				{ id: "assigneeId", type: "number", required: true },
+			],
+			fields: [
+				{
+					id: "theme",
+					type: "string",
+					readonly: true,
+					default: "{{form.theme}}",
+				},
+				{
+					id: "assigneeId",
+					type: "number",
+					readonly: true,
+					default: "{{form.assigneeId}}",
+				},
+			],
+		};
+		const resolveValue = (t: string) => {
+			if (t.includes("nodes.profileForm.theme")) return "dark";
+			if (t.includes("nodes.pickUserForm.userId")) return 42;
+			return undefined;
+		};
+		const resolveTemplate = (t: string) => t;
+		const formScope = resolveBindingsRecord(
+			{
+				theme: "{{nodes.profileForm.theme}}",
+				assigneeId: "{{nodes.pickUserForm.userId}}",
+			},
+			resolveValue,
+			resolveTemplate,
+		);
+		assertRequiredFormBindings(form, formScope);
+		const scoped = withFormTemplateScope(
+			formScope,
+			resolveValue,
+			resolveTemplate,
+		);
+		const resolved = resolveFormFields(
+			form,
+			undefined,
+			scoped.resolveValue,
+			scoped.resolveTemplate,
+		);
+		expect(resolved.fields[0]?.value).toBe("dark");
+		expect(resolved.fields[1]?.value).toBe(42);
 	});
 
 	test("merges defaults with submission and keeps readonly", () => {

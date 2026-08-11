@@ -200,6 +200,28 @@ export function selectTemplateContext(
 		? rowsToEnvVariables(envTab.rows)
 		: state.templateEnvValues;
 
+	const activeTab = state.openTabs.find((t) => t.id === state.activeTabId);
+	const selectedNode = selectedId
+		? nodes.find((n) => n.id === selectedId)
+		: undefined;
+	const formKeys = (() => {
+		if (activeTab?.kind === "form") {
+			return (activeTab.form.inputs ?? []).map((i) => i.id);
+		}
+		if (selectedNode?.type === "form") {
+			const formId = String(
+				(selectedNode.data as { formId?: string } | undefined)?.formId ?? "",
+			);
+			if (!formId) return [];
+			const formTab = state.openTabs.find(
+				(t): t is Extract<EditorTab, { kind: "form" }> =>
+					t.kind === "form" && t.formId === formId,
+			);
+			return (formTab?.form.inputs ?? []).map((i) => i.id);
+		}
+		return [];
+	})();
+
 	return {
 		nodeIds: nodes.map((n) => n.id),
 		inputKeys: inputKeysFromJson(state.inputJson),
@@ -210,6 +232,7 @@ export function selectTemplateContext(
 		secretKeys: secretsTab
 			? keysFromRows(secretsTab.rows)
 			: state.templateSecretKeys,
+		formKeys,
 		nodePaths,
 		jmesPaths,
 		previousPaths,

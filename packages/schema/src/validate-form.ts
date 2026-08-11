@@ -34,5 +34,16 @@ export function validateForm(data: unknown): ValidationResult<FormV1> {
 		}
 	}
 
+	const inputIds = new Set<string>();
+	for (const input of form.inputs ?? []) {
+		if (inputIds.has(input.id)) {
+			return {
+				success: false,
+				error: `duplicate form input id: ${input.id}`,
+			};
+		}
+		inputIds.add(input.id);
+	}
+
 	return { success: true, data: form };
 }

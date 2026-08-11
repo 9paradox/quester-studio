@@ -6,6 +6,8 @@
 	nodeOutputs: Record<string, unknown>;
 	/** Foreach body scopes: item (or itemVar) + index. */
 	loop?: Record<string, unknown>;
+	/** Form node bindings (`{{form.*}}`) while resolving a form. */
+	form?: Record<string, unknown>;
 };
 
 function getPath(obj: unknown, path: string): unknown {
@@ -37,6 +39,8 @@ function resolvePath(
 			return getPath(ctx.input, path);
 		case "vars":
 			return getPath(ctx.vars, path);
+		case "form":
+			return getPath(ctx.form ?? {}, path);
 		case "index":
 			return ctx.loop?.index;
 		default:

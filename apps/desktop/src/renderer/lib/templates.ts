@@ -28,6 +28,8 @@ export type TemplateCompletionContext = {
 	envValues: Record<string, string | number | boolean>;
 	/** Keys from the selected env secrets file (for `secrets.<key>`). */
 	secretKeys: string[];
+	/** Form input ids (`form.<id>`) from the active form / selected form node. */
+	formKeys: string[];
 	/** Relative paths under each node id (contracts ∪ learned). */
 	nodePaths: Record<string, string[]>;
 	/** JMESPath suggestions for previous-node / selected context. */
@@ -53,6 +55,7 @@ export const TEMPLATE_ROOTS = [
 	"input",
 	"nodes",
 	"vars",
+	"form",
 ] as const;
 
 export const ETA_ROOTS = ["input", "vars", "nodes", "previous"] as const;
@@ -397,6 +400,12 @@ export function templateSuggestions(
 				`vars.${rest}`,
 				"variable",
 			);
+		case "form":
+			return filterByPrefix(
+				ctx.formKeys.map((key) => `form.${key}`),
+				`form.${rest}`,
+				"form input",
+			);
 		case "env":
 			return filterByPrefix(
 				ctx.envKeys.map((key) => `env.${key}`),
@@ -578,6 +587,9 @@ export function classifyTemplatePath(
 			return ctx.secretKeys.includes(rest) ? "known" : "unknown";
 		case "vars":
 			return ctx.varKeys.includes(rest) ? "known" : "unknown";
+		case "form":
+			if (ctx.formKeys.length === 0) return "skip";
+			return ctx.formKeys.includes(rest) ? "known" : "unknown";
 		case "input": {
 			if (ctx.inputKeys.includes(rest) || ctx.inputPaths.includes(rest)) {
 				return "known";

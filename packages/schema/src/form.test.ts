@@ -43,6 +43,53 @@ describe("formDefinitionSchemaV1", () => {
 		expect(result.success).toBe(true);
 	});
 
+	test("accepts optionsFrom label template", () => {
+		const result = validateForm({
+			version: "v1",
+			id: "pick-product",
+			name: "Pick product",
+			fields: [
+				{
+					id: "productId",
+					type: "select",
+					label: "Product",
+					required: true,
+					optionsFrom: {
+						items: "{{form.products}}",
+						value: "id",
+						label: "{{title}} · {{brand}} · ${{price}}",
+					},
+				},
+			],
+		});
+		expect(result.success).toBe(true);
+	});
+
+	test("accepts form inputs", () => {
+		const result = validateForm({
+			version: "v1",
+			id: "confirm",
+			name: "Confirm",
+			inputs: [{ id: "theme", type: "string", required: true }],
+			fields: [{ id: "theme", type: "string", default: "{{form.theme}}" }],
+		});
+		expect(result.success).toBe(true);
+	});
+
+	test("rejects duplicate form input ids", () => {
+		const result = validateForm({
+			version: "v1",
+			id: "confirm",
+			name: "Confirm",
+			inputs: [
+				{ id: "theme", type: "string" },
+				{ id: "theme", type: "number" },
+			],
+			fields: [{ id: "theme", type: "string", default: "{{form.theme}}" }],
+		});
+		expect(result.success).toBe(false);
+	});
+
 	test("accepts readonly detail fields", () => {
 		const result = formDefinitionSchemaV1.safeParse({
 			version: "v1",

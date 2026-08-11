@@ -28,6 +28,18 @@ function asRecord(value: unknown): Record<string, unknown> {
 	return {};
 }
 
+function getPath(obj: unknown, path: string): unknown {
+	if (!path) return obj;
+	const parts = path.split(".");
+	let cur: unknown = obj;
+	for (const part of parts) {
+		if (cur === null || cur === undefined) return undefined;
+		if (typeof cur !== "object") return undefined;
+		cur = (cur as Record<string, unknown>)[part];
+	}
+	return cur;
+}
+
 function resolveMaybeTemplate(
 	raw: unknown,
 	resolveValue: (template: string) => unknown,
@@ -52,6 +64,127 @@ function optionLabel(value: unknown): string {
 	return String(value);
 }
 
+const ITEM_LABEL_TOKEN_RE = /\{\{([^}]+)\}\}/g;
+
+/** Resolve `{{title}} · {{brand}}` against one optionsFrom item. */
+export function resolveItemLabelTemplate(
+	template: string,
+	item: unknown,
+): string {
+	return template.replace(ITEM_LABEL_TOKEN_RE, (_match, inner: string) => {
+		let path = String(inner).trim();
+		if (path.startsWith("item.")) path = path.slice("item.".length);
+		return optionLabel(getPath(item, path));
+	});
+}
+
+/**
+ * `label` is either a property name (`title`) or a per-item template
+ * containing `{{…}}` tokens (`{{title}} · {{brand}} · ${{price}}`).
+ * Property mode falls back to `fallbackValue` when the key is missing.
+ */
+export function resolveOptionLabel(
+	item: unknown,
+	labelSpec: string,
+	fallbackValue?: unknown,
+): string {
+	if (labelSpec.includes("{{")) {
+		return resolveItemLabelTemplate(labelSpec, item);
+	}
+	const raw = readProp(item, labelSpec);
+	return optionLabel(raw !== undefined ? raw : fallbackValue);
+}
+
+function stringifyResolved(value: unknown): string {
+	if (value === undefined || value === null) return "";
+	if (typeof value === "string") return value;
+	if (typeof value === "number" || typeof value === "boolean")
+		return String(value);
+	try {
+		return JSON.stringify(value);
+	} catch {
+		return String(value);
+	}
+}
+
+/** Resolve a bindings/prefill record with the flow template scope. */
+export function resolveBindingsRecord(
+	raw: Record<string, unknown> | undefined,
+	resolveValue: (template: string) => unknown,
+	resolveTemplate: (template: string) => string,
+): Record<string, unknown> {
+	if (!raw) return {};
+	const out: Record<string, unknown> = {};
+	for (const [key, value] of Object.entries(raw)) {
+		out[key] = resolveMaybeTemplate(value, resolveValue, resolveTemplate);
+	}
+	return out;
+}
+
+/**
+ * Wrap flow resolvers so `{{form.*}}` reads from the resolved bindings map.
+ */
+export function withFormTemplateScope(
+	formScope: Record<string, unknown>,
+	resolveValue: (template: string) => unknown,
+	resolveTemplate: (template: string) => string,
+): {
+	resolveValue: (template: string) => unknown;
+	resolveTemplate: (template: string) => string;
+} {
+	const resolveTemplateWithForm = (template: string): string =>
+		template.replace(ITEM_LABEL_TOKEN_RE, (_match, inner: string) => {
+			const trimmed = String(inner).trim();
+			if (trimmed === "form") return stringifyResolved(formScope);
+			if (trimmed.startsWith("form.")) {
+				return stringifyResolved(
+					getPath(formScope, trimmed.slice("form.".length)),
+				);
+			}
+			return stringifyResolved(resolveValue(`{{${trimmed}}}`));
+		});
+
+	const resolveValueWithForm = (template: string): unknown => {
+		const trimmed = template.trim();
+		const single = /^\{\{\s*([^}]+?)\s*\}\}$/.exec(trimmed);
+		if (single?.[1]) {
+			const inner = single[1].trim();
+			if (inner === "form") return formScope;
+			if (inner.startsWith("form.")) {
+				return getPath(formScope, inner.slice("form.".length));
+			}
+			return resolveValue(template);
+		}
+		if (template.includes("{{")) return resolveTemplateWithForm(template);
+		return resolveTemplate(template);
+	};
+
+	return {
+		resolveValue: resolveValueWithForm,
+		resolveTemplate: resolveTemplateWithForm,
+	};
+}
+
+/** Ensure required form inputs have bindings (after resolve). */
+export function assertRequiredFormBindings(
+	form: FormV1,
+	formScope: Record<string, unknown>,
+): void {
+	for (const input of form.inputs ?? []) {
+		if (input.required !== true) continue;
+		const value = formScope[input.id];
+		if (
+			value === undefined ||
+			value === null ||
+			(typeof value === "string" && value.trim() === "")
+		) {
+			throw new Error(
+				`Form "${form.id}" requires binding for input "${input.id}"`,
+			);
+		}
+	}
+}
+
 export function resolveSelectOptions(
 	field: Extract<FormFieldV1, { type: "select" }>,
 	resolveValue: (template: string) => unknown,
@@ -66,15 +199,15 @@ export function resolveSelectOptions(
 		}
 		return itemsRaw.map((item, index) => {
 			const value = readProp(item, from.value);
-			const label = readProp(item, from.label);
 			if (value === undefined) {
 				throw new Error(
 					`Form field "${field.id}" optionsFrom item[${index}] missing "${from.value}"`,
 				);
 			}
+			const label = resolveOptionLabel(item, from.label, value);
 			return {
 				value: value as string | number | boolean,
-				label: optionLabel(label ?? value) || String(index),
+				label: label || String(index),
 			};
 		});
 	}

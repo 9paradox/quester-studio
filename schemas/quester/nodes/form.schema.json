@@ -8,6 +8,10 @@
       "type": "string",
       "minLength": 1
     },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": {}
+    },
     "value": {
       "type": "object",
       "additionalProperties": {}

@@ -24,7 +24,7 @@ None hard. Forms/code DnD consummated in 12/13.
 - [x] Canvas ergonomics — selection, multi-select, alignment, edge editing  
 - [x] Inspector depth — clear per-node forms; fewer dead ends  
 - [x] Per-flow console lines (fix global `consoleLines` gap)  
-- [ ] Template / JMESPath assist polish beyond v1  
+- [x] Template / JMESPath assist polish beyond v1  
 - [ ] Command palette + shortcuts coverage  
 - [ ] Preferences discoverability  
 - [ ] Welcome / empty / error states  
