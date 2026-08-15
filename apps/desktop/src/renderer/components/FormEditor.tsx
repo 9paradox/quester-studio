@@ -608,7 +608,7 @@ function FieldEditorCard({
 					/>
 				)}
 				{usesNodesTemplate(field.default) ? (
-					<p className="text-2xs text-amber-600 dark:text-amber-400">
+					<p className="text-2xs text-warning">
 						This default hardcodes a flow node id. Prefer a form input +{" "}
 						<code className="font-mono text-3xs">{"{{form…}}"}</code> so the
 						form stays reusable.
@@ -693,7 +693,7 @@ function FieldEditorCard({
 									placeholder="{{form.products}}"
 								/>
 								{usesNodesTemplate(field.optionsFrom?.items) ? (
-									<p className="text-2xs text-amber-600 dark:text-amber-400">
+									<p className="text-2xs text-warning">
 										Prefer{" "}
 										<code className="font-mono text-3xs">
 											{"{{form.products}}"}
