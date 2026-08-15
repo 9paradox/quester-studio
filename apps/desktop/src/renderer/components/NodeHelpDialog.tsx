@@ -39,21 +39,21 @@ export function NodeHelpDialog({ type }: NodeHelpDialogProps) {
 				<IconHelp className="size-4" />
 			</DialogTrigger>
 			<DialogContent className="flex max-h-[min(85vh,640px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
+				<DialogHeader className="shrink-0 border-b px-4 py-3 pr-12">
+					<div className="flex items-center gap-2">
+						<span className="flex size-7 items-center justify-center rounded-md bg-muted">
+							<Icon className="size-4" />
+						</span>
+						<div className="min-w-0">
+							<DialogTitle>{label}</DialogTitle>
+							<DialogDescription className="mt-0.5">
+								{help.summary}
+							</DialogDescription>
+						</div>
+					</div>
+				</DialogHeader>
 				{open ? (
 					<>
-						<DialogHeader className="shrink-0 border-b px-4 py-3 pr-12">
-							<div className="flex items-center gap-2">
-								<span className="flex size-7 items-center justify-center rounded-md bg-muted">
-									<Icon className="size-4" />
-								</span>
-								<div className="min-w-0">
-									<DialogTitle>{label}</DialogTitle>
-									<DialogDescription className="mt-0.5">
-										{help.summary}
-									</DialogDescription>
-								</div>
-							</div>
-						</DialogHeader>
 						{/* Native overflow avoids the custom scrollbar cost in this modal. */}
 						<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
 							<div className="flex flex-col gap-4">

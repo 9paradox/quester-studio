@@ -57,7 +57,10 @@ export function StatusBar() {
 
 	return (
 		<footer className="flex h-6 shrink-0 items-center justify-between border-t bg-muted/30 px-2 text-[11px] text-muted-foreground">
-			<div className="flex min-w-0 items-center gap-2 truncate">
+			<output
+				className="flex min-w-0 items-center gap-2 truncate"
+				aria-live="polite"
+			>
 				<span className="truncate" title={workspaceName}>
 					{workspaceName || "—"}
 				</span>
@@ -89,12 +92,15 @@ export function StatusBar() {
 					<>
 						<span className="text-border">|</span>
 						<span className="inline-flex items-center gap-1 text-primary">
-							<IconLoader2 className="size-3 animate-spin" aria-hidden />
+							<IconLoader2
+								className="size-3 animate-spin motion-reduce:animate-none"
+								aria-hidden
+							/>
 							Indexing paths…
 						</span>
 					</>
 				) : null}
-			</div>
+			</output>
 			<div className="flex shrink-0 items-center gap-2">
 				<span>
 					{nodeCount} nodes · {edgeCount} edges

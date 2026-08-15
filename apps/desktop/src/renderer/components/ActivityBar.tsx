@@ -4,7 +4,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
-import { cn } from "@/lib/utils.js";
+import { railButtonClass } from "@/lib/railButton.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	IconBox,
@@ -44,7 +44,7 @@ export function ActivityBar() {
 					return (
 						<Tooltip key={view}>
 							<TooltipTrigger
-								className={cn(buttonClass(active))}
+								className={railButtonClass(active)}
 								onClick={() => handleActivityView(view)}
 								aria-label={label}
 								aria-pressed={active}
@@ -58,21 +58,15 @@ export function ActivityBar() {
 			</div>
 			<Tooltip>
 				<TooltipTrigger
-					className={cn(buttonClass(false))}
+					className={railButtonClass(sidebarOpen && activeView === "settings")}
 					onClick={() => handleActivityView("settings")}
 					aria-label="Preferences"
+					aria-pressed={sidebarOpen && activeView === "settings"}
 				>
 					<IconSettings className="size-4" />
 				</TooltipTrigger>
 				<TooltipContent side="right">Preferences</TooltipContent>
 			</Tooltip>
 		</nav>
-	);
-}
-
-function buttonClass(active: boolean): string {
-	return cn(
-		"inline-flex size-9 items-center justify-center rounded-md border border-transparent text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-		active && "bg-sidebar-accent text-sidebar-accent-foreground",
 	);
 }

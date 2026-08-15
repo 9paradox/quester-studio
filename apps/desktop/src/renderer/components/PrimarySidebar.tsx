@@ -633,7 +633,7 @@ export function PrimarySidebar() {
 											type="button"
 											variant="ghost"
 											size="icon-xs"
-											className="mr-1 shrink-0 opacity-0 group-hover:opacity-100"
+											className="mr-1 shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
 											aria-label={`Delete flow runs ${flow.flowId}`}
 											onClick={() =>
 												void deleteRunEntry(flow.flowId, flow.flowId, "folder")
@@ -674,7 +674,7 @@ export function PrimarySidebar() {
 														type="button"
 														variant="ghost"
 														size="icon-xs"
-														className="mr-1 shrink-0 opacity-0 group-hover:opacity-100"
+														className="mr-1 shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
 														aria-label={`Delete run ${run.name}`}
 														onClick={() =>
 															void deleteRunEntry(
@@ -848,6 +848,7 @@ function FileListItem({
 			<button
 				type="button"
 				draggable={draggable}
+				aria-current={selected ? "true" : undefined}
 				className={cn(
 					"flex h-8 min-w-0 flex-1 items-center gap-1.5 px-2 text-left text-sm font-normal",
 					draggable && "cursor-grab active:cursor-grabbing",
@@ -865,11 +866,15 @@ function FileListItem({
 				<Icon className="size-3.5 shrink-0 opacity-70" />
 				<span className="truncate">{label}</span>
 				{dirty ? (
-					<span className="size-1.5 shrink-0 rounded-full bg-primary" />
+					<span
+						className="size-1.5 shrink-0 rounded-full bg-primary"
+						role="img"
+						aria-label="Unsaved changes"
+					/>
 				) : null}
 			</button>
 			{onRename || onDelete ? (
-				<div className="flex shrink-0 opacity-0 group-hover:opacity-100">
+				<div className="flex shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100">
 					{onRename ? (
 						<Button
 							type="button"
@@ -953,6 +958,7 @@ function RequestListItem({
 			<button
 				type="button"
 				draggable
+				aria-current={selected ? "true" : undefined}
 				className="flex h-8 min-w-0 flex-1 cursor-grab items-center gap-1.5 px-2 text-left text-sm font-normal active:cursor-grabbing"
 				onClick={onSelect}
 				onDragStart={(event) => {
@@ -963,7 +969,11 @@ function RequestListItem({
 				<IconWorld className="size-3.5 shrink-0 opacity-70" />
 				<span className="truncate">{request.name}</span>
 				{dirty ? (
-					<span className="size-1.5 shrink-0 rounded-full bg-primary" />
+					<span
+						className="size-1.5 shrink-0 rounded-full bg-primary"
+						role="img"
+						aria-label="Unsaved changes"
+					/>
 				) : null}
 			</button>
 		</div>

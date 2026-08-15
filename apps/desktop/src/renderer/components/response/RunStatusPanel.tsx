@@ -63,7 +63,7 @@ function TimelineMarker({ status }: { status: NodeRunStatus }) {
 	if (status === "running") {
 		return (
 			<IconLoader2
-				className="size-3.5 shrink-0 animate-spin text-primary"
+				className="size-3.5 shrink-0 animate-spin motion-reduce:animate-none text-primary"
 				aria-hidden
 			/>
 		);
@@ -221,7 +221,10 @@ export function RunStatusPanel({
 	return (
 		<div className="flex flex-col gap-3">
 			<section className="flex flex-col gap-2">
-				<div className="flex flex-wrap items-center gap-2">
+				<output
+					className="flex flex-wrap items-center gap-2"
+					aria-live="polite"
+				>
 					{overall === "running" ? (
 						<Badge variant="secondary">Running…</Badge>
 					) : null}
@@ -243,7 +246,7 @@ export function RunStatusPanel({
 						<Badge variant="outline">Failed nodes {failedNodes}</Badge>
 					) : null}
 					<Badge variant="outline">{formatDuration(totalMs)}</Badge>
-				</div>
+				</output>
 
 				{runResult?.runDir ? (
 					<div className="flex flex-col gap-1.5 rounded-md border border-border bg-muted/30 px-2.5 py-2">

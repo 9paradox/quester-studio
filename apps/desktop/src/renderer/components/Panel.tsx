@@ -22,6 +22,7 @@ import {
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
 import type { FlowEditorTab } from "@/lib/editorTabs.js";
+import { focusRing } from "@/lib/focusRing.js";
 import { clearRunHistory, listRunHistory } from "@/lib/runHistory.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
@@ -231,7 +232,10 @@ export function Panel() {
 		return (
 			<button
 				type="button"
-				className="flex h-7 shrink-0 items-center border-t bg-background px-3 text-xs text-muted-foreground hover:bg-muted/50"
+				className={cn(
+					focusRing,
+					"flex h-7 shrink-0 items-center border-t bg-background px-3 text-xs text-muted-foreground hover:bg-muted/50",
+				)}
 				onClick={togglePanel}
 			>
 				&gt;_ Panel
@@ -358,7 +362,10 @@ export function Panel() {
 					</div>
 					<button
 						type="button"
-						className={cn("rounded p-1 text-muted-foreground hover:bg-muted")}
+						className={cn(
+							focusRing,
+							"rounded p-1 text-muted-foreground hover:bg-muted",
+						)}
 						onClick={togglePanel}
 						aria-label="Collapse panel"
 					>

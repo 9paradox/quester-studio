@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button.js";
+import { focusRing } from "@/lib/focusRing.js";
 import { formatTemplateNodePath, joinPathSegments } from "@/lib/pathShapes.js";
 import { cn } from "@/lib/utils.js";
 import {
@@ -140,7 +141,7 @@ function PathTreeNode({
 				{expandable ? (
 					<button
 						type="button"
-						className="mt-0.5 shrink-0 text-muted-foreground"
+						className={cn(focusRing, "mt-0.5 shrink-0 text-muted-foreground")}
 						aria-label={open ? "Collapse" : "Expand"}
 						onClick={() => setOpen((v) => !v)}
 					>

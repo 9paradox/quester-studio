@@ -18,6 +18,7 @@ import {
 	editorTabIcon,
 	editorTabLabel,
 } from "@/lib/editorTabs.js";
+import { focusRing } from "@/lib/focusRing.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
@@ -70,7 +71,10 @@ function WorkspaceChip() {
 				render={
 					<button
 						type="button"
-						className="flex h-9 max-w-[200px] shrink-0 items-center gap-1 border-r border-border/50 px-2.5 text-xs text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+						className={cn(
+							focusRing,
+							"flex h-9 max-w-[200px] shrink-0 items-center gap-1 border-r border-border/50 px-2.5 text-xs text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+						)}
 						aria-label="Workspace actions"
 					/>
 				}
@@ -187,6 +191,8 @@ export function TopBar() {
 			<div
 				ref={scrollRef}
 				onWheel={onWheel}
+				role="tablist"
+				aria-label="Open editors"
 				className="flex h-9 min-w-0 flex-1 items-stretch overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
 			>
 				{openTabs.length === 0 ? (
@@ -225,7 +231,12 @@ export function TopBar() {
 								>
 									<button
 										type="button"
-										className="flex h-9 max-w-[180px] min-w-0 items-center gap-1.5 px-2.5 text-xs"
+										role="tab"
+										aria-selected={active}
+										className={cn(
+											focusRing,
+											"flex h-9 max-w-[180px] min-w-0 items-center gap-1.5 px-2.5 text-xs",
+										)}
 										onClick={() => {
 											setActiveTabId(tab.id);
 											scrollTabIntoView(tab.id);
@@ -234,12 +245,16 @@ export function TopBar() {
 										<TabIcon tab={tab} />
 										<span className="truncate">{label}</span>
 										{tab.dirty ? (
-											<span className="size-1.5 shrink-0 rounded-full bg-primary" />
+											<span
+												className="size-1.5 shrink-0 rounded-full bg-primary"
+												role="img"
+												aria-label="Unsaved changes"
+											/>
 										) : null}
 									</button>
 									<button
 										type="button"
-										className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm opacity-0 hover:bg-muted group-hover:opacity-100"
+										className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm opacity-0 hover:bg-muted group-hover:opacity-100 focus-visible:opacity-100"
 										onClick={() => void closeTab(tab.id)}
 										aria-label={`Close ${label}`}
 									>

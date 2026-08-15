@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label.js";
 import {
 	Sheet,
 	SheetContent,
+	SheetDescription,
 	SheetFooter,
 	SheetHeader,
 	SheetTitle,
@@ -26,6 +27,9 @@ export function PlaygroundSheet() {
 			<SheetContent side="right" className="w-full sm:max-w-md">
 				<SheetHeader>
 					<SheetTitle>Playground input</SheetTitle>
+					<SheetDescription>
+						Run a single node against ad-hoc input.
+					</SheetDescription>
 				</SheetHeader>
 				<div className="flex flex-col gap-2 px-4">
 					<Label htmlFor="playground-input">Input JSON</Label>
@@ -41,7 +45,9 @@ export function PlaygroundSheet() {
 						ariaLabel="Flow run input JSON"
 					/>
 					{inputError ? (
-						<p className="text-sm text-destructive">{inputError}</p>
+						<p className="text-sm text-destructive" role="alert">
+							{inputError}
+						</p>
 					) : null}
 				</div>
 				<SheetFooter>

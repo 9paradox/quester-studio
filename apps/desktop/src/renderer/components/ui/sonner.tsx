@@ -23,7 +23,9 @@ function Toaster({ ...props }: ToasterProps) {
 				info: <IconInfoCircle className="size-4" />,
 				warning: <IconAlertTriangle className="size-4" />,
 				error: <IconAlertOctagon className="size-4" />,
-				loading: <IconLoader className="size-4 animate-spin" />,
+				loading: (
+					<IconLoader className="size-4 animate-spin motion-reduce:animate-none" />
+				),
 			}}
 			style={
 				{

@@ -1,3 +1,4 @@
+import { focusRing } from "@/lib/focusRing.js";
 import { cn } from "@/lib/utils.js";
 import type { ReactNode } from "react";
 
@@ -48,6 +49,7 @@ export function SettingsPageLayout({
 							type="button"
 							onClick={() => onCategoryChange(cat.id)}
 							className={cn(
+								focusRing,
 								"rounded-md px-2.5 py-1.5 text-left text-xs transition-colors",
 								activeCategory === cat.id
 									? "bg-sidebar-accent text-sidebar-accent-foreground"
