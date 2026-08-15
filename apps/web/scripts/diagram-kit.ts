@@ -12,8 +12,10 @@ export type PortKind =
 	| "one"
 	| "branch2"
 	| "branchN"
+	| "multiIn"
 	| "sourceOnly"
-	| "targetOnly";
+	| "targetOnly"
+	| "formPause";
 
 export const NODE_PORTS: Record<
 	string,
@@ -36,6 +38,13 @@ export const NODE_PORTS: Record<
 		out: "1",
 		kind: "one",
 		blurb: "Puts run payload on the wire.",
+	},
+	form: {
+		in: "1",
+		out: "1",
+		kind: "formPause",
+		blurb:
+			"Pauses until submit (desktop UI or CLI --forms). Output is the submitted field object.",
 	},
 	http: {
 		in: "1",
@@ -69,12 +78,17 @@ export const NODE_PORTS: Record<
 		blurb: "One handle per case plus default.",
 	},
 	delay: { in: "1", out: "1", kind: "one", blurb: "Sleep, then passthrough." },
-	foreach: { in: "1", out: "1", kind: "one", blurb: "Maps an array (capped)." },
+	foreach: {
+		in: "1",
+		out: "complete",
+		kind: "branch2",
+		blurb: "Framed loop container — see frame diagram below.",
+	},
 	try: {
 		in: "1",
-		out: "ok · catch",
+		out: "success · failed",
 		kind: "branch2",
-		blurb: "Soft-fail branch handles.",
+		blurb: "Framed exception boundary — see frame diagram below.",
 	},
 	subflow: { in: "1", out: "1", kind: "one", blurb: "Calls another flow." },
 	output: {
@@ -96,6 +110,13 @@ export const NODE_PORTS: Record<
 		blurb: "Build object via JMESPath map.",
 	},
 	merge: { in: "1", out: "1", kind: "one", blurb: "Deep-merge named sources." },
+	join: {
+		in: "N",
+		out: "1 · fan-out ok",
+		kind: "multiIn",
+		blurb:
+			"Barrier — waits for every live predecessor, emits collect-map by node id.",
+	},
 	json: {
 		in: "1",
 		out: "1",
@@ -111,6 +132,7 @@ export const NODE_PORTS: Record<
 	},
 };
 
+/** Linear / branch port sketch for per-node reference pages. */
 export function portSvg(type: string, title = type): string {
 	const meta = NODE_PORTS[type] ?? {
 		in: "1",
@@ -163,7 +185,28 @@ ${DIAGRAM_DEFS}
 	}
 
 	if (kind === "branch2") {
-		const [a, b] = type === "try" ? ["ok", "catch"] : ["true", "false"];
+		const [a, b] =
+			type === "try"
+				? ["success", "failed"]
+				: type === "foreach"
+					? ["complete", ""]
+					: ["true", "false"];
+		if (type === "foreach") {
+			return `<figure class="qs-diagram">
+<svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} ports">
+${DIAGRAM_DEFS}
+  <circle class="qs-port" cx="48" cy="75" r="6"/>
+  <text class="qs-caption" x="48" y="108" text-anchor="middle">in ×1</text>
+  <line class="qs-edge" x1="54" y1="75" x2="140" y2="75"/>
+  <rect class="qs-node qs-node-accent" x="140" y="45" width="140" height="60" rx="8"/>
+  <text class="qs-label" x="210" y="81" text-anchor="middle">${title}</text>
+  <line class="qs-edge qs-edge-ok" x1="280" y1="75" x2="400" y2="75"/>
+  <circle class="qs-port" cx="406" cy="75" r="6"/>
+  <text class="qs-caption" x="460" y="79">${a}</text>
+</svg>
+<figcaption>${meta.blurb}</figcaption>
+</figure>`;
+		}
 		return `<figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} branch ports">
 ${DIAGRAM_DEFS}
@@ -206,6 +249,45 @@ ${DIAGRAM_DEFS}
 </figure>`;
 	}
 
+	if (kind === "multiIn") {
+		return `<figure class="qs-diagram">
+<svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} ports">
+${DIAGRAM_DEFS}
+  <circle class="qs-port" cx="48" cy="50" r="6"/>
+  <circle class="qs-port" cx="48" cy="90" r="6"/>
+  <text class="qs-caption" x="48" y="120" text-anchor="middle">in ×N</text>
+  <line class="qs-edge" x1="54" y1="50" x2="150" y2="65"/>
+  <line class="qs-edge" x1="54" y1="90" x2="150" y2="75"/>
+  <rect class="qs-node qs-node-accent" x="150" y="40" width="200" height="60" rx="8"/>
+  <text class="qs-label" x="250" y="75" text-anchor="middle">${title}</text>
+  <line class="qs-edge" x1="350" y1="70" x2="446" y2="70"/>
+  <circle class="qs-port" cx="452" cy="70" r="6"/>
+  <text class="qs-caption" x="452" y="100" text-anchor="middle">out ×1</text>
+</svg>
+<figcaption>${meta.blurb}</figcaption>
+</figure>`;
+	}
+
+	if (kind === "formPause") {
+		return `<figure class="qs-diagram">
+<svg class="qs-svg" viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} pause ports">
+${DIAGRAM_DEFS}
+  <circle class="qs-port" cx="48" cy="70" r="6"/>
+  <text class="qs-caption" x="48" y="100" text-anchor="middle">in ×1</text>
+  <line class="qs-edge" x1="54" y1="70" x2="130" y2="70"/>
+  <rect class="qs-node qs-node-accent" x="130" y="40" width="200" height="60" rx="8"/>
+  <text class="qs-label" x="230" y="75" text-anchor="middle">${title}</text>
+  <rect class="qs-badge" x="168" y="48" width="52" height="18" rx="4"/>
+  <text class="qs-badge-text" x="194" y="60" text-anchor="middle">await</text>
+  <line class="qs-edge" x1="330" y1="70" x2="406" y2="70"/>
+  <circle class="qs-port" cx="412" cy="70" r="6"/>
+  <text class="qs-caption" x="412" y="100" text-anchor="middle">out ×1</text>
+  <text class="qs-caption" x="280" y="138" text-anchor="middle">Run pauses until Submit (desktop) or --forms map (CLI)</text>
+</svg>
+<figcaption>${meta.blurb}</figcaption>
+</figure>`;
+	}
+
 	return `<figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} ports">
 ${DIAGRAM_DEFS}
@@ -219,5 +301,117 @@ ${DIAGRAM_DEFS}
   <text class="qs-caption" x="452" y="100" text-anchor="middle">out ×1</text>
 </svg>
 <figcaption>${meta.blurb} Multiple outgoing edges (fan-out) share the same output.</figcaption>
+</figure>`;
+}
+
+/** Framed subgraph container — try / foreach entry/exit wiring. */
+export function frameSvg(type: "try" | "foreach", title = type): string {
+	const outerOut =
+		type === "try"
+			? [
+					{ y: 58, label: "success", cls: "qs-edge-ok" },
+					{ y: 118, label: "failed", cls: "" },
+				]
+			: [{ y: 88, label: "complete", cls: "qs-edge-ok" }];
+	const outerOutPaths = outerOut
+		.map(
+			(o) => `
+  <path class="qs-edge ${o.cls}" d="M520 ${o.y - 8} H560 V${o.y} H610"/>
+  <circle class="qs-port" cx="616" cy="${o.y}" r="6"/>
+  <text class="qs-caption" x="660" y="${o.y + 4}">${o.label}</text>`,
+		)
+		.join("");
+	const caption =
+		type === "try"
+			? "Outside wires attach to the frame only. Body runs entry → … → exit once; throws take <code>failed</code>."
+			: "Resolve <code>items</code>, run body per element via entry → … → exit, then continue on <code>complete</code> with collected results.";
+
+	return `<figure class="qs-diagram">
+<svg class="qs-svg" viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} framed container">
+${DIAGRAM_DEFS}
+  <circle class="qs-port" cx="36" cy="110" r="6"/>
+  <text class="qs-caption" x="36" y="148" text-anchor="middle">in</text>
+  <line class="qs-edge" x1="42" y1="110" x2="88" y2="110"/>
+  <rect class="qs-node qs-node-accent" x="88" y="32" width="432" height="156" rx="10" fill="color-mix(in oklch, var(--qs-accent) 6%, var(--qs-surface))"/>
+  <rect class="qs-node qs-node-accent" x="88" y="32" width="432" height="28" rx="10"/>
+  <rect class="qs-node qs-node-accent" x="88" y="48" width="432" height="12" rx="0" fill="color-mix(in oklch, var(--qs-accent) 10%, var(--qs-surface))"/>
+  <text class="qs-label" x="120" y="52">${title} frame</text>
+  <circle class="qs-port" cx="120" cy="168" r="5"/>
+  <text class="qs-caption" x="120" y="192" text-anchor="middle">entry</text>
+  <line class="qs-edge qs-edge-ok" x1="126" y1="168" x2="200" y2="168"/>
+  <rect class="qs-node" x="200" y="144" width="120" height="48" rx="8"/>
+  <text class="qs-label" x="260" y="174" text-anchor="middle">body</text>
+  <line class="qs-edge qs-edge-ok" x1="320" y1="168" x2="394" y2="168"/>
+  <circle class="qs-port" cx="400" cy="168" r="5"/>
+  <text class="qs-caption" x="400" y="192" text-anchor="middle">exit</text>
+  <text class="qs-caption" x="304" y="128" text-anchor="middle">children · parentId → frame</text>${outerOutPaths}
+</svg>
+<figcaption>${caption}</figcaption>
+</figure>`;
+}
+
+/** Mid-flow form await — used in concepts / workspace pages. */
+export function formFlowSvg(): string {
+	return `<figure class="qs-diagram">
+<svg class="qs-svg" viewBox="0 0 760 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mid-flow form await">
+${DIAGRAM_DEFS}
+  <text class="qs-caption" x="380" y="22" text-anchor="middle">search → pick → confirm (each form node pauses the run)</text>
+  <rect class="qs-node" x="24" y="72" width="88" height="48" rx="8"/>
+  <text class="qs-label" x="68" y="102" text-anchor="middle">http</text>
+  <text class="qs-caption" x="68" y="138" text-anchor="middle">search</text>
+  <line class="qs-edge" x1="112" y1="96" x2="148" y2="96"/>
+  <rect class="qs-node qs-node-accent" x="150" y="72" width="100" height="48" rx="8"/>
+  <text class="qs-label" x="200" y="96" text-anchor="middle">form</text>
+  <rect class="qs-badge" x="168" y="78" width="40" height="16" rx="3"/>
+  <text class="qs-badge-text" x="188" y="89" text-anchor="middle">await</text>
+  <text class="qs-caption" x="200" y="138" text-anchor="middle">pick</text>
+  <line class="qs-edge" x1="250" y1="96" x2="286" y2="96"/>
+  <rect class="qs-node" x="288" y="72" width="88" height="48" rx="8"/>
+  <text class="qs-label" x="332" y="102" text-anchor="middle">http</text>
+  <text class="qs-caption" x="332" y="138" text-anchor="middle">detail</text>
+  <line class="qs-edge" x1="376" y1="96" x2="412" y2="96"/>
+  <rect class="qs-node qs-node-accent" x="414" y="72" width="100" height="48" rx="8"/>
+  <text class="qs-label" x="464" y="96" text-anchor="middle">form</text>
+  <rect class="qs-badge" x="432" y="78" width="40" height="16" rx="3"/>
+  <text class="qs-badge-text" x="452" y="89" text-anchor="middle">await</text>
+  <text class="qs-caption" x="464" y="138" text-anchor="middle">confirm</text>
+  <line class="qs-edge" x1="514" y1="96" x2="550" y2="96"/>
+  <rect class="qs-node" x="552" y="72" width="88" height="48" rx="8"/>
+  <text class="qs-label" x="596" y="102" text-anchor="middle">http</text>
+  <text class="qs-caption" x="596" y="138" text-anchor="middle">cart</text>
+  <text class="qs-mono" x="200" y="168" text-anchor="middle" style="font-size:10px">{{nodes.pickForm.productId}}</text>
+  <text class="qs-mono" x="464" y="168" text-anchor="middle" style="font-size:10px">{{nodes.detailForm.quantity}}</text>
+</svg>
+<figcaption>Bind reusable form inputs with <code>bindings</code> (e.g. <code>products: "{{nodes.search.body.products}}"</code>). Later steps read <code>{{nodes.&lt;formNodeId&gt;.fieldId}}</code>.</figcaption>
+</figure>`;
+}
+
+/** Diamond fan-in with join — used in concepts page. */
+export function joinDiamondSvg(): string {
+	return `<figure class="qs-diagram">
+<svg class="qs-svg" viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diamond reconvergence with join">
+${DIAGRAM_DEFS}
+  <text class="qs-caption" x="320" y="22" text-anchor="middle">After if/switch/try branches — reconverge with join (N inputs → 1 collect-map)</text>
+  <rect class="qs-node qs-node-accent" x="24" y="96" width="72" height="44" rx="8"/>
+  <text class="qs-label" x="60" y="124" text-anchor="middle">a</text>
+  <line class="qs-edge" x1="96" y1="118" x2="132" y2="118"/>
+  <rect class="qs-node" x="134" y="96" width="72" height="44" rx="8"/>
+  <text class="qs-label" x="170" y="124" text-anchor="middle">b</text>
+  <path class="qs-edge qs-edge-ok" d="M206 110 H260 V168 H340"/>
+  <rect class="qs-node" x="134" y="168" width="72" height="44" rx="8"/>
+  <text class="qs-label" x="170" y="196" text-anchor="middle">c</text>
+  <path class="qs-edge qs-edge-ok" d="M206 190 H340"/>
+  <rect class="qs-node qs-node-accent" x="340" y="128" width="88" height="52" rx="8"/>
+  <text class="qs-label" x="384" y="160" text-anchor="middle">join</text>
+  <circle class="qs-port" cx="334" cy="146" r="5"/>
+  <circle class="qs-port" cx="334" cy="178" r="5"/>
+  <line class="qs-edge qs-edge-ok" x1="428" y1="154" x2="480" y2="154"/>
+  <rect class="qs-node" x="482" y="128" width="88" height="52" rx="8"/>
+  <text class="qs-label" x="526" y="160" text-anchor="middle">next</text>
+  <text class="qs-mono" x="384" y="210" text-anchor="middle" style="font-size:10px">{ b: …, c: … }</text>
+  <text class="qs-caption" x="170" y="72" text-anchor="middle">true arm</text>
+  <text class="qs-caption" x="170" y="228" text-anchor="middle">false arm</text>
+</svg>
+<figcaption>Exclusive branches skip untaken arms. Diamond fan-out waits for <strong>both</strong> arms. Use <a href="../nodes/merge/">merge</a> when you need deep-merge of named bags on a single wire instead.</figcaption>
 </figure>`;
 }

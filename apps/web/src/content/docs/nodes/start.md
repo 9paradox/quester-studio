@@ -7,6 +7,8 @@ Graph entry point. Every flow must have **exactly one** `start` node. It has **n
 Run payload is **not** produced here. Chain `start → input → …` to put it on the wire, or use `{{input.*}}` in templates. Overview: [How flows work](../../concepts/).
 
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="start ports">

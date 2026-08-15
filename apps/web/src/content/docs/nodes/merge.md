@@ -6,9 +6,11 @@ Deep-merges one or more sources left-to-right. Later sources overwrite conflicti
 
 <div class="qs-callout qs-callout-warn">
 
-Here `previous` and `input` are **merge source keywords** (`sources: ["previous", "input", …]`). In templates use `{{input.*}}` or `{{nodes.id…}}` — there is no `{{previous.*}}` mustache scope. See [How flows work](../../concepts/).
+Here `previous` and `input` are **merge source keywords** (`sources: ["previous", "input", …]`). In templates use `{{input.*}}` or `{{nodes.id…}}` — there is no `{{nodes.<id>…}}` mustache scope. See [How flows work](../../concepts/).
 
 </div>
+
+
 
 
 <!-- qs-ports:start -->

@@ -5,6 +5,8 @@ description: Canvas sticky for plain-text annotations (not executed)
 A disconnected canvas sticky for documentation on the flow. Notes have no handles, cannot be connected, and are skipped by reachability validation and execution — CLI and desktop runs ignore them.
 
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 420 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="note has no ports">

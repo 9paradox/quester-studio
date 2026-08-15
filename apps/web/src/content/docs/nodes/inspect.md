@@ -7,6 +7,8 @@ Debug/display step — same idea as [`json`](../json/): passthrough or JMESPath 
 Prefer this when you want an explicit “inspect” step in the canvas; `json` remains available for the same behavior. Expressions start at the previous root (`body`), not `previous.body` ([How flows work](../../concepts/)).
 
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="inspect ports">

@@ -5,6 +5,8 @@ description: Produce the final flow result (passthrough or mapped fields)
 Marks the flow result. Without `map`, returns the previous node’s output. With `map`, builds a new object from templated values (`{{input.*}}` or `{{nodes.id…}}`). [How flows work](../../concepts/).
 
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="output ports">

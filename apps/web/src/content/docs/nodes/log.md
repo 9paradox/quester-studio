@@ -7,6 +7,8 @@ Appends a resolved message to the run log (CLI stderr / desktop Logs). Passes th
 `message` is templated (`{{input.*}}` or `{{nodes.id…}}`). [How flows work](../../concepts/).
 
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="log ports">

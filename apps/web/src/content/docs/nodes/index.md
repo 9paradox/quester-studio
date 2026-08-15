@@ -24,6 +24,7 @@ Read [How flows work](../concepts/) for connection rules, fan-out vs branches, a
   <text class="qs-caption" x="420" y="100" text-anchor="middle">source (out)</text>
   <text class="qs-caption" x="560" y="68" text-anchor="middle">named outs on</text>
   <text class="qs-caption" x="560" y="86" text-anchor="middle">if · try · switch</text>
+  <text class="qs-caption" x="560" y="104" text-anchor="middle">foreach · complete</text>
 </svg>
 <figcaption>Linear nodes use one in and one out. Branch nodes add labeled source handles.</figcaption>
 </figure>
@@ -82,4 +83,4 @@ start → input → http (login) → extract (body.id) → http (profile) → ou
 | Next needs id from login | extract `body.id` or later `{{nodes.login.body.id}}` |
 | Wrong | Mustache for wire fields with no scope; extract `input.username` when you meant run input |
 
-Samples: `demo-main-nodes.flow.json`, `login-and-profile.flow.json`, `kitchen-sink.flow.json`.
+Samples: `demo-main-nodes.flow.json`, `login-and-profile.flow.json`, `search-pick-cart.flow.json`, `forms-showcase.flow.json`, `nested-frames.flow.json`, `kitchen-sink.flow.json`.

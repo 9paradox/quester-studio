@@ -7,6 +7,8 @@ Runs one or more checks against the previous node’s output. On failure, execut
 Check `path` values are JMESPath from the previous root (`status`, `body.id`) — not `previous.status` and not run-input paths (use templates / an [`input`](../input/) node first). See [How flows work](../../concepts/).
 
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="assert ports">

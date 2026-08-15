@@ -6,6 +6,8 @@ Waits for **every live predecessor**, then emits an object of their outputs keye
 
 All other nodes allow **at most one** incoming edge. Prefer [`merge`](../merge/) when you need deep-merge of named sources rather than a barrier.
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="join ports">
@@ -25,7 +27,7 @@ All other nodes allow **at most one** incoming edge. Prefer [`merge`](../merge/)
   <circle class="qs-port" cx="452" cy="70" r="6"/>
   <text class="qs-caption" x="452" y="100" text-anchor="middle">out ×1</text>
 </svg>
-<figcaption>N arms in, one collect-map out. Fan-out from join shares the same object.</figcaption>
+<figcaption>Barrier — waits for every live predecessor, emits collect-map by node id.</figcaption>
 </figure>
 <!-- qs-ports:end -->
 

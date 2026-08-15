@@ -5,6 +5,8 @@ description: Sleep for N milliseconds (optional jitter); alias wait
 Pauses the flow, then passes the previous node output through unchanged. Useful for rate limits and demo pacing. Alias type: **`wait`** (same schema and plugin).
 
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="delay ports">

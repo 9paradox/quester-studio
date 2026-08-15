@@ -18,7 +18,7 @@ Also see [Download](../../download/), [Guide](../../guide/), and [UI reference](
    - **macOS:** unsigned `.app` / setup artifact from the release (Electrobun build).
 3. Builds are **unsigned development builds**. See [SECURITY.md](https://github.com/9paradox/quester-studio/blob/main/SECURITY.md) for the trust model and how to run unsigned apps safely on your OS.
 4. Launch Quester Studio. On first open you see a welcome screen: **Open workspace**, **Create workspace**, or **Open sample**. Closing a workspace returns here.
-5. Select a flow (prefer `login-and-profile` from the sample for a real auth chain, or `demo-main-nodes` to learn nodes) → pick env `local` → run. Connection rules and wire vs templates: [How flows work](../concepts/).
+5. Select a flow (prefer `login-and-profile` from the sample for a real auth chain, `demo-main-nodes` to learn nodes, or `search-pick-cart` / `forms-showcase` for mid-flow forms) → pick env `local` → run. Connection rules and wire vs templates: [How flows work](../concepts/).
 
 ### What to try
 
@@ -26,6 +26,8 @@ Also see [Download](../../download/), [Guide](../../guide/), and [UI reference](
 - Run with env vars / secrets from the sample workspace
 - Change workspace or flow HTTP settings (timeout, headers) and confirm they apply on run
 - Confirm you can tell apart: Run panel fields (`{{input.productId}}`), the `input` node, and JMESPath on the wire after HTTP (`body.title`, not a template)
+- Run `search-pick-cart` or `forms-showcase` — submit each form step in the desktop UI (or pass `--forms` on CLI)
+- Open `nested-frames` to see nested `foreach` → `try` framed containers on the canvas
 
 ### Known limits (preview)
 
