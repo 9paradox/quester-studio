@@ -281,6 +281,7 @@ export function Panel() {
 									value={consoleFilter}
 									onChange={(e) => setConsoleFilter(e.target.value)}
 									placeholder="Filter…"
+									aria-label="Filter console"
 									className="h-6 max-w-[160px] text-xs"
 								/>
 								<Button
@@ -308,6 +309,7 @@ export function Panel() {
 									value={logsFilter}
 									onChange={(e) => setLogsFilter(e.target.value)}
 									placeholder="Filter…"
+									aria-label="Filter logs"
 									className="h-6 max-w-[120px] text-xs"
 								/>
 								<Select
@@ -316,7 +318,11 @@ export function Panel() {
 										v && setLogLevel(v as "all" | "info" | "error")
 									}
 								>
-									<SelectTrigger size="sm" className="min-w-20">
+									<SelectTrigger
+										size="sm"
+										className="min-w-20"
+										aria-label="Log level"
+									>
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent align="end">

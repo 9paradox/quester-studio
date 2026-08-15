@@ -160,7 +160,10 @@ export function RequestEditor({
 						}
 					}}
 				>
-					<SelectTrigger className="h-7 w-[100px] shrink-0">
+					<SelectTrigger
+						className="h-7 w-[100px] shrink-0"
+						aria-label="HTTP method"
+					>
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
@@ -182,7 +185,10 @@ export function RequestEditor({
 						value={selectedEnv}
 						onValueChange={(v) => v && onEnvChange(v)}
 					>
-						<SelectTrigger className="h-7 w-[110px] shrink-0">
+						<SelectTrigger
+							className="h-7 w-[110px] shrink-0"
+							aria-label="Environment"
+						>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
