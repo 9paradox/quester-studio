@@ -12,6 +12,7 @@ import { NodeHelpDialog } from "@/components/NodeHelpDialog.js";
 import { SwitchCasesEditor } from "@/components/SwitchCasesEditor.js";
 import { TemplateField } from "@/components/TemplateField.js";
 import { TemplateMapEditor } from "@/components/TemplateMapEditor.js";
+import { FieldHint } from "@/components/Typography.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
 import {
@@ -138,9 +139,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						{presentation?.label ?? node.type}
 					</div>
 					{presentation ? (
-						<p className="text-2xs leading-relaxed text-muted-foreground">
-							{presentation.description}
-						</p>
+						<FieldHint>{presentation.description}</FieldHint>
 					) : null}
 					<div className="mt-0.5 font-mono text-3xs text-muted-foreground">
 						{node.id}
@@ -1056,9 +1055,7 @@ function InspectorField({
 				</Label>
 				{action}
 			</div>
-			{hint ? (
-				<p className="text-2xs leading-relaxed text-muted-foreground">{hint}</p>
-			) : null}
+			{hint ? <FieldHint>{hint}</FieldHint> : null}
 			{children}
 			{error ? <p className="text-xs text-destructive">{error}</p> : null}
 		</div>

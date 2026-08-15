@@ -1,5 +1,5 @@
 import { TemplateField } from "@/components/TemplateField.js";
-import { CodeChip } from "@/components/Typography.js";
+import { CodeChip, FieldHint } from "@/components/Typography.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
@@ -746,7 +746,7 @@ function FieldEditorCard({
 									/>
 								</div>
 							</div>
-							<p className="text-2xs leading-relaxed text-muted-foreground">
+							<FieldHint>
 								Label can be a property name (
 								<code className="font-mono text-3xs">title</code>) or a per-item
 								template (
@@ -754,7 +754,7 @@ function FieldEditorCard({
 									{"{{title}} · {{brand}} · ${{price}}"}
 								</code>
 								).
-							</p>
+							</FieldHint>
 						</div>
 					)}
 				</div>
