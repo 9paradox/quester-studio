@@ -114,7 +114,13 @@ export function StatusBar() {
 				{dirty ? (
 					<>
 						<span className="text-border">|</span>
-						<span className="text-warning">unsaved</span>
+						<span className="inline-flex items-center gap-1 text-warning">
+							<span
+								className="size-1.5 shrink-0 rounded-full bg-warning"
+								aria-hidden
+							/>
+							unsaved
+						</span>
 					</>
 				) : null}
 			</div>

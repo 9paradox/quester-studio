@@ -308,8 +308,3 @@ export function TopBar() {
 		</header>
 	);
 }
-
-export function DirtyBadge({ dirty }: { dirty: boolean }) {
-	if (!dirty) return null;
-	return <span className="text-3xs text-muted-foreground">unsaved</span>;
-}
