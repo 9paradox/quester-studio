@@ -41,7 +41,9 @@ export function PlaygroundSheet() {
 						ariaLabel="Flow run input JSON"
 					/>
 					{inputError ? (
-						<p className="text-sm text-destructive">{inputError}</p>
+						<p className="text-sm text-destructive" role="alert">
+							{inputError}
+						</p>
 					) : null}
 				</div>
 				<SheetFooter>

@@ -57,7 +57,10 @@ export function StatusBar() {
 
 	return (
 		<footer className="flex h-6 shrink-0 items-center justify-between border-t bg-muted/30 px-2 text-[11px] text-muted-foreground">
-			<div className="flex min-w-0 items-center gap-2 truncate">
+			<output
+				className="flex min-w-0 items-center gap-2 truncate"
+				aria-live="polite"
+			>
 				<span className="truncate" title={workspaceName}>
 					{workspaceName || "—"}
 				</span>
@@ -94,7 +97,7 @@ export function StatusBar() {
 						</span>
 					</>
 				) : null}
-			</div>
+			</output>
 			<div className="flex shrink-0 items-center gap-2">
 				<span>
 					{nodeCount} nodes · {edgeCount} edges
