@@ -51,3 +51,19 @@ export function EmptyState({
 		</p>
 	);
 }
+
+export function KeyValueGridHead({
+	keyLabel,
+	valueLabel,
+}: {
+	keyLabel: string;
+	valueLabel: string;
+}) {
+	return (
+		<div className="grid grid-cols-[1fr_1fr_auto] gap-1.5 px-0.5 text-3xs font-medium tracking-wide text-muted-foreground uppercase">
+			<span>{keyLabel}</span>
+			<span>{valueLabel}</span>
+			<span className="w-7" />
+		</div>
+	);
+}

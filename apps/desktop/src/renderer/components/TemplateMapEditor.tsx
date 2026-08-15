@@ -5,6 +5,7 @@ import {
 	rowsToStringRecord,
 } from "@/components/KeyValueEditor.js";
 import { TemplateField } from "@/components/TemplateField.js";
+import { KeyValueGridHead } from "@/components/Typography.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
@@ -63,11 +64,7 @@ export function TemplateMapEditor({
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: plan 19 — group label without fieldset layout change
 		<div role="group" aria-label="Template map" className="flex flex-col gap-2">
-			<div className="grid grid-cols-[1fr_1fr_auto] gap-1.5 px-0.5 text-3xs font-medium tracking-wide text-muted-foreground uppercase">
-				<span>Key</span>
-				<span>Value</span>
-				<span className="w-7" />
-			</div>
+			<KeyValueGridHead keyLabel="Key" valueLabel="Value" />
 			{rows.map((row) => (
 				<div
 					key={row.id}

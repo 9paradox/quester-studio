@@ -1,3 +1,4 @@
+import { KeyValueGridHead } from "@/components/Typography.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
@@ -169,15 +170,11 @@ export function KeyValueEditor({
 			</div>
 			<ScrollArea className="min-h-0 flex-1">
 				<div className="flex flex-col gap-2 p-4">
-					<div className="grid grid-cols-[1fr_1fr_auto] gap-2 px-1 text-3xs font-medium uppercase tracking-wide text-muted-foreground">
-						<span>Key</span>
-						<span>Value</span>
-						<span className="w-7" />
-					</div>
+					<KeyValueGridHead keyLabel="Key" valueLabel="Value" />
 					{rows.map((row) => (
 						<div
 							key={row.id}
-							className="grid grid-cols-[1fr_1fr_auto] items-center gap-2"
+							className="grid grid-cols-[1fr_1fr_auto] items-start gap-1.5"
 						>
 							<Input
 								value={row.key}
