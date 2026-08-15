@@ -21,7 +21,6 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
-import type { FlowEditorTab } from "@/lib/editorTabs.js";
 import { focusRing } from "@/lib/focusRing.js";
 import { clearRunHistory, listRunHistory } from "@/lib/runHistory.js";
 import { cn } from "@/lib/utils.js";
@@ -29,6 +28,7 @@ import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	selectActiveConsoleLines,
 	selectActiveFlowRun,
+	selectActiveFlowTab,
 } from "@/stores/selectors.js";
 import {
 	IconChevronDown,
@@ -139,12 +139,7 @@ export function Panel() {
 	const clearConsole = useQuesterStore((s) => s.clearConsole);
 	const clearLogs = useQuesterStore((s) => s.clearLogs);
 	const replayRunFromHistory = useQuesterStore((s) => s.replayRunFromHistory);
-	const openTabs = useQuesterStore((s) => s.openTabs);
-	const activeTabId = useQuesterStore((s) => s.activeTabId);
-
-	const activeFlowTab = openTabs.find(
-		(t): t is FlowEditorTab => t.id === activeTabId && t.kind === "flow",
-	);
+	const activeFlowTab = useQuesterStore(selectActiveFlowTab);
 	const [, setHistoryRevision] = useState(0);
 	const historyEntries = activeFlowTab
 		? listRunHistory(activeFlowTab.flowId)
