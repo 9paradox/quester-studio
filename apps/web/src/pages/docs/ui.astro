@@ -10,14 +10,14 @@ const shots = [
 		file: "shell.png",
 		title: "App shell",
 		caption:
-			"Quester Studio chrome with the sample workspace open and demo-main-nodes selected in the Flows sidebar.",
+			"Quester Studio chrome with the sample workspace open and login-and-profile selected in the Flows sidebar.",
 	},
 	{
 		id: "canvas",
 		file: "canvas.png",
 		title: "Flow canvas",
 		caption:
-			"Full demo-main-nodes graph: start → input → http → extract → output, with assert under the HTTP branch.",
+			"login-and-profile graph: credentials → login → token extract → profile request, with assert on the profile step.",
 	},
 	{
 		id: "inspector",
@@ -50,7 +50,7 @@ const base = import.meta.env.BASE_URL;
 		<h1 class="text-3xl font-semibold tracking-tight">UI reference</h1>
 		<p class="mt-3 text-muted-foreground">
 			Desktop layout reference. Screenshots show the
-			<code class="rounded bg-muted px-1">demo-main-nodes</code> flow from the sample workspace.
+			<code class="rounded bg-muted px-1">login-and-profile</code> flow from the sample workspace.
 		</p>
 
 		<div class="mt-10 space-y-12">

@@ -7,6 +7,20 @@ export const DIAGRAM_DEFS = `
 </defs>
 `.trim();
 
+/** Matches `FRAME_INNER_INSET_PX` in desktop FlowNodes. */
+const FRAME_INSET = 14;
+
+function svgText(
+	x: number,
+	y: number,
+	text: string,
+	cls: string,
+	anchor: "start" | "middle" | "end" = "start",
+	baseline: "middle" | "hanging" = "middle",
+): string {
+	return `<text class="${cls}" x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="${baseline}">${text}</text>`;
+}
+
 export type PortKind =
 	| "none"
 	| "one"
@@ -287,27 +301,31 @@ ${DIAGRAM_DEFS}
 	}
 
 	if (kind === "formPause") {
-		const nodeX = 118;
-		const nodeY = 36;
-		const nodeW = 180;
-		const nodeH = 52;
+		const inX = 44;
+		const outX = 476;
+		const nodeX = 148;
+		const nodeY = 34;
+		const nodeW = 200;
+		const nodeH = 56;
 		const nodeCy = nodeY + nodeH / 2;
-		const badgeX = nodeX + nodeW - 50;
-		const badgeY = nodeY + 6;
+		const badgeW = 44;
+		const badgeH = 18;
+		const badgeX = nodeX + nodeW - badgeW - 8;
+		const badgeY = nodeY + 8;
 		return `<figure class="qs-diagram">
-<svg class="qs-svg" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} pause ports">
+<svg class="qs-svg" viewBox="0 0 520 148" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} pause ports">
 ${DIAGRAM_DEFS}
-  <circle class="qs-port" cx="40" cy="${nodeCy}" r="6"/>
-  <text class="qs-caption qs-text-below" x="40" y="${nodeCy + 12}" text-anchor="middle">in</text>
-  <line class="qs-edge" x1="46" y1="${nodeCy}" x2="${nodeX}" y2="${nodeCy}"/>
+  <circle class="qs-port" cx="${inX}" cy="${nodeCy}" r="6"/>
+  ${svgText(inX, nodeCy + 16, "in", "qs-caption qs-text-below", "middle", "hanging")}
+  <line class="qs-edge" x1="${inX + 6}" y1="${nodeCy}" x2="${nodeX}" y2="${nodeCy}"/>
   <rect class="qs-node qs-node-accent" x="${nodeX}" y="${nodeY}" width="${nodeW}" height="${nodeH}" rx="8"/>
-  <text class="qs-label qs-text-aligned" x="${nodeX + nodeW / 2 - 12}" y="${nodeCy}" text-anchor="middle">${title}</text>
-  <rect class="qs-badge" x="${badgeX}" y="${badgeY}" width="42" height="16" rx="4"/>
-  <text class="qs-badge-text qs-text-aligned" x="${badgeX + 21}" y="${badgeY + 8}" text-anchor="middle">await</text>
-  <line class="qs-edge" x1="${nodeX + nodeW}" y1="${nodeCy}" x2="370" y2="${nodeCy}"/>
-  <circle class="qs-port" cx="376" cy="${nodeCy}" r="6"/>
-  <text class="qs-caption qs-text-below" x="376" y="${nodeCy + 12}" text-anchor="middle">out</text>
-  <text class="qs-caption qs-text-aligned" x="260" y="118" text-anchor="middle">Pauses until Submit (desktop) or --forms (CLI)</text>
+  ${svgText(nodeX + 16, nodeCy, title, "qs-label qs-text-aligned")}
+  <rect class="qs-badge" x="${badgeX}" y="${badgeY}" width="${badgeW}" height="${badgeH}" rx="4"/>
+  ${svgText(badgeX + badgeW / 2, badgeY + badgeH / 2, "await", "qs-badge-text qs-text-aligned", "middle")}
+  <line class="qs-edge" x1="${nodeX + nodeW}" y1="${nodeCy}" x2="${outX - 6}" y2="${nodeCy}"/>
+  <circle class="qs-port" cx="${outX}" cy="${nodeCy}" r="6"/>
+  ${svgText(outX, nodeCy + 16, "out", "qs-caption qs-text-below", "middle", "hanging")}
+  ${svgText(260, 126, "Pauses until Submit (desktop) or --forms (CLI)", "qs-caption qs-text-aligned", "middle")}
 </svg>
 <figcaption>${meta.blurb}</figcaption>
 </figure>`;
@@ -332,32 +350,39 @@ ${DIAGRAM_DEFS}
 /** Framed subgraph container — single diagram for try / foreach (matches desktop canvas). */
 export function frameSvg(type: "try" | "foreach", title = type): string {
 	const isTry = type === "try";
-	const frameX = 72;
-	const frameW = 420;
+	const frameX = 64;
+	const frameY = 48;
+	const frameW = 440;
+	const frameH = 172;
 	const frameRight = frameX + frameW;
-	const headerTop = 38;
-	const headerH = 34;
-	const headerCy = headerTop + headerH / 2;
-	const bodyTop = 84;
-	const bodyH = 92;
-	const bodyCy = bodyTop + bodyH / 2;
-	const innerX = frameX + 14;
-	const innerW = frameW - 28;
+	const frameBottom = frameY + frameH;
+	const headerH = 36;
+	const headerBottom = frameY + headerH;
+	const headerCy = frameY + headerH / 2;
+	const inPortY = frameY + 34;
+	const innerX = frameX + FRAME_INSET;
+	const innerY = headerBottom + FRAME_INSET;
+	const innerW = frameW - FRAME_INSET * 2;
+	const innerH = frameBottom - innerY - FRAME_INSET;
 	const innerRight = innerX + innerW;
+	const portY = Math.round(frameY + frameH * 0.62);
+	const childW = 96;
+	const childH = 44;
+	const childX = Math.round(innerX + (innerW - childW) / 2);
 	const outerOuts = isTry
 		? [
-				{ y: headerCy - 7, label: "success", cls: "qs-edge-ok" },
-				{ y: headerCy + 7, label: "failed", cls: "" },
+				{ y: frameY + 16, label: "success", cls: "qs-edge-ok" },
+				{ y: frameY + 28, label: "failed", cls: "" },
 			]
-		: [{ y: headerCy, label: "complete", cls: "qs-edge-ok" }];
+		: [{ y: inPortY, label: "complete", cls: "qs-edge-ok" }];
 	const outerOutPaths = outerOuts
 		.map((o) => {
+			const stubEnd = frameRight + 36;
 			const edgeCls = o.cls ? `qs-edge ${o.cls}` : "qs-edge";
-			const stubEnd = frameRight + 46;
 			return `
   <circle class="qs-port" cx="${frameRight}" cy="${o.y}" r="6"/>
   <line class="${edgeCls}" x1="${frameRight + 6}" y1="${o.y}" x2="${stubEnd}" y2="${o.y}"/>
-  <text class="qs-caption" x="${stubEnd + 8}" y="${o.y}" text-anchor="start">${o.label}</text>`;
+  ${svgText(stubEnd + 6, o.y, o.label, "qs-caption")}`;
 		})
 		.join("");
 	const caption = isTry
@@ -365,27 +390,27 @@ export function frameSvg(type: "try" | "foreach", title = type): string {
 		: "Header: outside <code>in</code> → frame, then <code>complete</code> out. Body: <code>entry</code> → child → <code>exit</code> runs once per item.";
 
 	return `<figure class="qs-diagram qs-diagram-frame">
-<svg class="qs-svg" viewBox="0 0 620 218" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} frame ports and wiring">
+<svg class="qs-svg" viewBox="0 0 640 248" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} frame ports and wiring">
 ${DIAGRAM_DEFS}
-  <text class="qs-caption" x="310" y="18" text-anchor="middle">Header ports = outside flow · entry/exit = inside body only</text>
-  <line class="qs-edge" x1="8" y1="${headerCy}" x2="${frameX}" y2="${headerCy}"/>
-  <circle class="qs-port" cx="${frameX}" cy="${headerCy}" r="6"/>
-  <text class="qs-caption qs-text-below" x="${frameX}" y="${headerCy + 12}" text-anchor="middle">in</text>
-  <rect class="qs-node qs-node-accent" x="${frameX}" y="${headerTop}" width="${frameW}" height="${bodyTop + bodyH - headerTop}" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
-  <rect x="${frameX}" y="${headerTop}" width="${frameW}" height="${headerH}" rx="10" fill="color-mix(in oklch, var(--qs-accent) 12%, var(--qs-surface))" stroke="none"/>
-  <line x1="${frameX}" y1="${headerTop + headerH}" x2="${frameRight}" y2="${headerTop + headerH}" stroke="var(--qs-line)" stroke-width="1"/>
-  <text class="qs-label" x="${frameX + 14}" y="${headerCy}">${title}</text>${outerOutPaths}
-  <rect class="qs-node" x="${innerX}" y="${bodyTop}" width="${innerW}" height="${bodyH}" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 3%, var(--qs-surface))"/>
-  <text class="qs-caption" x="${innerX + innerW / 2}" y="${bodyTop + 16}" text-anchor="middle">body · parentId children</text>
-  <circle class="qs-port" cx="${innerX}" cy="${bodyCy}" r="6"/>
-  <text class="qs-caption qs-text-below" x="${innerX}" y="${bodyCy + 12}" text-anchor="middle">entry</text>
-  <line class="qs-edge qs-edge-ok" x1="${innerX + 6}" y1="${bodyCy}" x2="228" y2="${bodyCy}"/>
-  <rect class="qs-node" x="228" y="${bodyCy - 22}" width="96" height="44" rx="8"/>
-  <text class="qs-label" x="276" y="${bodyCy}">child</text>
-  <line class="qs-edge qs-edge-ok" x1="324" y1="${bodyCy}" x2="${innerRight - 6}" y2="${bodyCy}"/>
-  <circle class="qs-port" cx="${innerRight}" cy="${bodyCy}" r="6"/>
-  <text class="qs-caption qs-text-below" x="${innerRight}" y="${bodyCy + 12}" text-anchor="middle">exit</text>
-  <text class="qs-mono" x="310" y="208" text-anchor="middle" style="font-size:10px">entry = sourceHandle · exit = targetHandle</text>
+  ${svgText(320, 22, "Header ports = outside flow · entry/exit = inside body only", "qs-caption", "middle")}
+  <line class="qs-edge" x1="12" y1="${inPortY}" x2="${frameX}" y2="${inPortY}"/>
+  <circle class="qs-port" cx="${frameX}" cy="${inPortY}" r="6"/>
+  ${svgText(frameX - 10, inPortY, "in", "qs-caption", "end")}
+  <rect class="qs-node qs-node-accent" x="${frameX}" y="${frameY}" width="${frameW}" height="${frameH}" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
+  <rect x="${frameX}" y="${frameY}" width="${frameW}" height="${headerH}" rx="10" fill="color-mix(in oklch, var(--qs-accent) 12%, var(--qs-surface))" stroke="none"/>
+  <line x1="${frameX}" y1="${headerBottom}" x2="${frameRight}" y2="${headerBottom}" stroke="var(--qs-line)" stroke-width="1"/>
+  ${svgText(frameX + 14, headerCy, title, "qs-label")}${outerOutPaths}
+  <rect class="qs-node" x="${innerX}" y="${innerY}" width="${innerW}" height="${innerH}" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 3%, var(--qs-surface))"/>
+  ${svgText(innerX + innerW / 2, innerY + 14, "body · parentId children", "qs-caption", "middle")}
+  <circle class="qs-port" cx="${innerX}" cy="${portY}" r="6"/>
+  ${svgText(innerX + 12, portY, "entry", "qs-caption")}
+  <line class="qs-edge qs-edge-ok" x1="${innerX + 6}" y1="${portY}" x2="${childX}" y2="${portY}"/>
+  <rect class="qs-node" x="${childX}" y="${portY - childH / 2}" width="${childW}" height="${childH}" rx="8"/>
+  ${svgText(childX + childW / 2, portY, "child", "qs-label", "middle")}
+  <line class="qs-edge qs-edge-ok" x1="${childX + childW}" y1="${portY}" x2="${innerRight - 6}" y2="${portY}"/>
+  <circle class="qs-port" cx="${innerRight}" cy="${portY}" r="6"/>
+  ${svgText(innerRight - 12, portY, "exit", "qs-caption", "end")}
+  ${svgText(320, 230, "entry = sourceHandle · exit = targetHandle", "qs-mono", "middle")}
 </svg>
 <figcaption>${caption}</figcaption>
 </figure>`;
