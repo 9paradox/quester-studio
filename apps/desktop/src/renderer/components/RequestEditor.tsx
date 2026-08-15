@@ -16,13 +16,13 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.js";
-import { cn } from "@/lib/utils.js";
+import { clamp, cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import type { RequestV1 } from "@quester-studio/schema";
 import { IconExternalLink, IconPlayerPlay } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ExecuteRequestRpcResult } from "../../shared/rpc.js";
-import { ResizeGutter, clamp } from "./ResizeGutter.js";
+import { ResizeGutter } from "./ResizeGutter.js";
 
 const METHODS = [
 	"GET",

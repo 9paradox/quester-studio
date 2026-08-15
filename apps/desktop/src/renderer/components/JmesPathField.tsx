@@ -1,5 +1,6 @@
 import { PathPickerField } from "@/components/PathPickerDialog.js";
 import { TemplateField } from "@/components/TemplateField.js";
+import { FieldHint } from "@/components/Typography.js";
 import { buildJmesPathPickerPaths } from "@/lib/pathPicker.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import { selectTemplateContext } from "@/stores/selectors.js";
@@ -16,11 +17,11 @@ type JmesPathFieldProps = {
 
 export function JmesPathHelpText() {
 	return (
-		<p className="text-[11px] leading-relaxed text-muted-foreground">
+		<FieldHint>
 			JMESPath selects values from JSON. Examples:{" "}
-			<code className="font-mono text-[10px]">body.id</code> for a nested field,{" "}
-			<code className="font-mono text-[10px]">[*].name</code> for each
-			item&apos;s name.{" "}
+			<code className="font-mono text-3xs">body.id</code> for a nested field,{" "}
+			<code className="font-mono text-3xs">[*].name</code> for each item&apos;s
+			name.{" "}
 			<a
 				href="https://jmespath.org/"
 				target="_blank"
@@ -29,7 +30,7 @@ export function JmesPathHelpText() {
 			>
 				JMESPath docs
 			</a>
-		</p>
+		</FieldHint>
 	);
 }
 

@@ -90,7 +90,7 @@ export function JsonPane({
 			aria-label="Copy"
 		>
 			{copied ? (
-				<span className="text-[10px] text-muted-foreground">OK</span>
+				<span className="text-3xs text-muted-foreground">OK</span>
 			) : (
 				<IconCopy />
 			)}

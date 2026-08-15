@@ -1,3 +1,4 @@
+import { SectionHeading } from "@/components/Typography.js";
 import { resolveAssertChecks } from "@/components/response/types.js";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
@@ -251,7 +252,7 @@ export function RunStatusPanel({
 				{runResult?.runDir ? (
 					<div className="flex flex-col gap-1.5 rounded-md border border-border bg-muted/30 px-2.5 py-2">
 						<p className="text-xs text-muted-foreground">On-disk run folder</p>
-						<p className="break-all font-mono text-[11px] text-foreground">
+						<p className="break-all font-mono text-2xs text-foreground">
 							{runResult.runDir}
 						</p>
 						<div className="flex flex-wrap items-center gap-2">
@@ -288,7 +289,7 @@ export function RunStatusPanel({
 			</section>
 
 			<section className="flex flex-col gap-1.5">
-				<h3 className="text-xs font-medium text-muted-foreground">Timeline</h3>
+				<SectionHeading>Timeline</SectionHeading>
 				{rows.length === 0 ? (
 					<p className="text-xs text-muted-foreground">
 						No nodes in this flow.
@@ -340,7 +341,7 @@ export function RunStatusPanel({
 													<li
 														key={`${row.nodeId}:${check.path}:${check.message ?? ""}`}
 														className={cn(
-															"font-mono text-[11px]",
+															"font-mono text-2xs",
 															check.ok
 																? "text-muted-foreground"
 																: "text-destructive",

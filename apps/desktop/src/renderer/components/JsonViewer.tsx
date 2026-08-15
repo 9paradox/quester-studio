@@ -136,7 +136,7 @@ function PathTreeNode({
 	const expandable = isObject || isArray;
 
 	return (
-		<div className="font-mono text-[11px] leading-5">
+		<div className="font-mono text-2xs leading-5">
 			<div className="group/row flex min-w-0 items-start gap-0.5">
 				{expandable ? (
 					<button
@@ -252,7 +252,7 @@ export function JsonViewer({
 					aria-label="Copy JSON"
 				>
 					{copied ? (
-						<span className="text-[10px] text-muted-foreground">OK</span>
+						<span className="text-3xs text-muted-foreground">OK</span>
 					) : (
 						<IconCopy />
 					)}

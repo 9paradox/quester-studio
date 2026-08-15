@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/Typography.js";
 import { Button } from "@/components/ui/button.js";
 import {
 	Collapsible,
@@ -264,7 +265,7 @@ export function PrimarySidebar() {
 			style={{ width }}
 			className="flex h-full min-h-0 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground"
 		>
-			<div className="shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/70">
+			<div className="flex h-9 shrink-0 items-center px-3 text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/70">
 				{viewTitle(view)}
 			</div>
 			<Separator className="shrink-0 bg-sidebar-border" />
@@ -304,9 +305,7 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredFlows.length === 0 ? (
-						<p className="px-2 py-4 text-xs text-muted-foreground">
-							No flows found
-						</p>
+						<EmptyState>No flows found</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}
@@ -343,9 +342,7 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredForms.length === 0 ? (
-						<p className="px-2 py-4 text-xs text-muted-foreground">
-							No forms found
-						</p>
+						<EmptyState>No forms found</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}
@@ -371,9 +368,7 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredEnvs.length === 0 ? (
-						<p className="px-2 py-4 text-xs text-muted-foreground">
-							No environments
-						</p>
+						<EmptyState>No environments</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}
@@ -399,9 +394,9 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredSecrets.length === 0 ? (
-						<p className="px-2 py-4 text-xs text-muted-foreground">
+						<EmptyState>
 							No secrets files. Create one for an environment.
-						</p>
+						</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}
@@ -505,7 +500,7 @@ export function PrimarySidebar() {
 							aria-label="Search requests"
 							className="h-8 bg-background"
 						/>
-						<p className="px-1 text-[11px] text-muted-foreground">
+						<p className="px-1 text-2xs text-muted-foreground">
 							Drag a request onto the canvas to insert an HTTP node (copy, not
 							linked).
 						</p>
@@ -548,16 +543,16 @@ export function PrimarySidebar() {
 										/>
 									))}
 									{collection && items.length === 0 ? (
-										<p className="px-2 pb-1 text-[11px] text-muted-foreground">
+										<p className="px-2 pb-1 text-2xs text-muted-foreground">
 											Empty — add a request
 										</p>
 									) : null}
 								</div>
 							))}
 							{requestsByCollection.length === 0 ? (
-								<p className="px-2 py-4 text-xs text-muted-foreground">
+								<EmptyState>
 									No collections yet. Create a collection or request.
-								</p>
+								</EmptyState>
 							) : null}
 						</div>
 					</ScrollArea>
@@ -591,14 +586,10 @@ export function PrimarySidebar() {
 					<ScrollArea className="min-h-0 flex-1">
 						<div className="flex flex-col gap-2 px-2 pb-2">
 							{!workspacePath ? (
-								<p className="px-2 py-4 text-xs text-muted-foreground">
-									Open a workspace to browse run logs.
-								</p>
+								<EmptyState>Open a workspace to browse run logs.</EmptyState>
 							) : null}
 							{workspacePath && runsLoading ? (
-								<p className="px-2 py-4 text-xs text-muted-foreground">
-									Loading runs…
-								</p>
+								<EmptyState>Loading runs…</EmptyState>
 							) : null}
 							{runsError ? (
 								<p className="px-2 py-4 text-xs text-destructive">
@@ -609,10 +600,10 @@ export function PrimarySidebar() {
 							!runsLoading &&
 							!runsError &&
 							filteredRunTree.length === 0 ? (
-								<p className="px-2 py-4 text-xs text-muted-foreground">
+								<EmptyState>
 									No run logs yet. Enable runs in workspace settings and execute
 									a flow.
-								</p>
+								</EmptyState>
 							) : null}
 							{filteredRunTree.map((flow) => (
 								<Collapsible
@@ -627,7 +618,7 @@ export function PrimarySidebar() {
 											<span className="truncate font-medium">
 												{flow.flowId}
 											</span>
-											<span className="shrink-0 text-[10px] text-muted-foreground">
+											<span className="shrink-0 text-3xs text-muted-foreground">
 												{flow.runs.length}
 											</span>
 										</CollapsibleTrigger>
@@ -654,12 +645,12 @@ export function PrimarySidebar() {
 												<div className="group flex items-center rounded-md hover:bg-sidebar-accent/70">
 													<CollapsibleTrigger className="flex h-8 min-w-0 flex-1 items-center gap-1.5 px-1 text-left text-xs">
 														<IconChevronRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-data-open/run:rotate-90" />
-														<span className="truncate font-mono text-[11px]">
+														<span className="truncate font-mono text-2xs">
 															{run.name}
 														</span>
 														{run.meta?.status ? (
 															<span
-																className="shrink-0 text-[10px] text-muted-foreground"
+																className="shrink-0 text-3xs text-muted-foreground"
 																title={
 																	run.meta.status === "running"
 																		? "Run did not finish writing a terminal status (interrupted or cancelled between steps)"

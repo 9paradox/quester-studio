@@ -44,7 +44,7 @@ export function HttpRequestPanel({
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-wrap items-center gap-2">
 				<Badge variant="secondary">{request.method}</Badge>
-				<code className="min-w-0 flex-1 break-all font-mono text-[11px]">
+				<code className="min-w-0 flex-1 break-all font-mono text-2xs">
 					{request.url}
 				</code>
 			</div>
@@ -156,7 +156,7 @@ export function HttpResponsePanel({
 						<HeadersTable headers={http.headers ?? {}} />
 					</TabsContent>
 					<TabsContent value="raw" className="mt-2">
-						<pre className="max-h-80 overflow-auto rounded-md border bg-muted/20 p-2.5 font-mono text-[11px] leading-5 break-all whitespace-pre-wrap">
+						<pre className="max-h-80 overflow-auto rounded-md border bg-muted/20 p-2.5 font-mono text-2xs leading-5 break-all whitespace-pre-wrap">
 							{formatResponseRawText(http.body, http.text)}
 						</pre>
 					</TabsContent>

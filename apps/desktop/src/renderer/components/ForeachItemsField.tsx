@@ -1,5 +1,6 @@
 import { PathPickerField } from "@/components/PathPickerDialog.js";
 import { TemplateField } from "@/components/TemplateField.js";
+import { FieldHint } from "@/components/Typography.js";
 import {
 	buildJmesPathPickerPaths,
 	buildTemplatePickerPaths,
@@ -71,13 +72,12 @@ export function ForeachItemsField({
 					showPickPath={false}
 				/>
 			</PathPickerField>
-			<p className="text-[11px] leading-relaxed text-muted-foreground">
+			<FieldHint>
 				Uses JMESPath on the previous output, or a{" "}
-				<code className="font-mono text-[10px]">{"{{…}}"}</code> template that
+				<code className="font-mono text-3xs">{"{{…}}"}</code> template that
 				resolves to a JSON array. Assist switches to templates when{" "}
-				<code className="font-mono text-[10px]">{"{{"}</code> appears in the
-				field.
-			</p>
+				<code className="font-mono text-3xs">{"{{"}</code> appears in the field.
+			</FieldHint>
 		</div>
 	);
 }

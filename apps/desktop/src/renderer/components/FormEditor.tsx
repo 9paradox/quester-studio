@@ -1,4 +1,5 @@
 import { TemplateField } from "@/components/TemplateField.js";
+import { CodeChip, FieldHint } from "@/components/Typography.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
@@ -220,10 +221,7 @@ export function FormEditor({
 						/>
 					</SettingsField>
 					<p className="text-xs text-muted-foreground">
-						Id:{" "}
-						<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-							{form.id}
-						</code>
+						Id: <CodeChip>{form.id}</CodeChip>
 					</p>
 				</SettingsSection>
 			) : null}
@@ -232,10 +230,10 @@ export function FormEditor({
 				<SettingsSection title="Inputs">
 					<p className="text-xs text-muted-foreground">
 						Declare reusable slots. In fields use{" "}
-						<code className="font-mono text-[10px]">{"{{form.theme}}"}</code>.
-						Each flow&apos;s form node binds those ids — avoid hardcoding{" "}
-						<code className="font-mono text-[10px]">{"{{nodes…}}"}</code> in
-						this file.
+						<code className="font-mono text-3xs">{"{{form.theme}}"}</code>. Each
+						flow&apos;s form node binds those ids — avoid hardcoding{" "}
+						<code className="font-mono text-3xs">{"{{nodes…}}"}</code> in this
+						file.
 					</p>
 					<div className="flex flex-col gap-3">
 						{inputs.map((input, index) => (
@@ -535,10 +533,10 @@ function FieldEditorCard({
 
 			<div className="flex flex-col gap-1.5">
 				<Label className="text-xs text-muted-foreground">Default</Label>
-				<p className="text-[11px] text-muted-foreground">
+				<p className="text-2xs text-muted-foreground">
 					Prefer{" "}
-					<code className="font-mono text-[10px]">{"{{form.inputId}}"}</code>{" "}
-					and bind in each flow&apos;s form node.
+					<code className="font-mono text-3xs">{"{{form.inputId}}"}</code> and
+					bind in each flow&apos;s form node.
 				</p>
 				{field.type === "boolean" ? (
 					<Select
@@ -608,9 +606,9 @@ function FieldEditorCard({
 					/>
 				)}
 				{usesNodesTemplate(field.default) ? (
-					<p className="text-[11px] text-amber-600 dark:text-amber-400">
+					<p className="text-2xs text-warning">
 						This default hardcodes a flow node id. Prefer a form input +{" "}
-						<code className="font-mono text-[10px]">{"{{form…}}"}</code> so the
+						<code className="font-mono text-3xs">{"{{form…}}"}</code> so the
 						form stays reusable.
 					</p>
 				) : null}
@@ -693,9 +691,9 @@ function FieldEditorCard({
 									placeholder="{{form.products}}"
 								/>
 								{usesNodesTemplate(field.optionsFrom?.items) ? (
-									<p className="text-[11px] text-amber-600 dark:text-amber-400">
+									<p className="text-2xs text-warning">
 										Prefer{" "}
-										<code className="font-mono text-[10px]">
+										<code className="font-mono text-3xs">
 											{"{{form.products}}"}
 										</code>{" "}
 										and bind the array on the form node.
@@ -748,15 +746,15 @@ function FieldEditorCard({
 									/>
 								</div>
 							</div>
-							<p className="text-[11px] leading-relaxed text-muted-foreground">
+							<FieldHint>
 								Label can be a property name (
-								<code className="font-mono text-[10px]">title</code>) or a
-								per-item template (
-								<code className="font-mono text-[10px]">
+								<code className="font-mono text-3xs">title</code>) or a per-item
+								template (
+								<code className="font-mono text-3xs">
 									{"{{title}} · {{brand}} · ${{price}}"}
 								</code>
 								).
-							</p>
+							</FieldHint>
 						</div>
 					)}
 				</div>

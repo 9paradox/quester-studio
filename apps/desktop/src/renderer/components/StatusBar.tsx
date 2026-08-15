@@ -56,7 +56,7 @@ export function StatusBar() {
 	const activityLabel = formatActivityLabel(runningFlows, sendingRequests);
 
 	return (
-		<footer className="flex h-6 shrink-0 items-center justify-between border-t bg-muted/30 px-2 text-[11px] text-muted-foreground">
+		<footer className="flex h-6 shrink-0 items-center justify-between border-t bg-muted/30 px-2 text-2xs text-muted-foreground">
 			<output
 				className="flex min-w-0 items-center gap-2 truncate"
 				aria-live="polite"
@@ -64,22 +64,28 @@ export function StatusBar() {
 				<span className="truncate" title={workspaceName}>
 					{workspaceName || "—"}
 				</span>
-				<span className="text-border">|</span>
+				<span className="text-border" aria-hidden>
+					|
+				</span>
 				<span className="truncate" title={flowName}>
 					{flowName}
 				</span>
-				<span className="text-border">|</span>
+				<span className="text-border" aria-hidden>
+					|
+				</span>
 				<span>{env}</span>
 				{activityLabel ? (
 					<>
-						<span className="text-border">|</span>
+						<span className="text-border" aria-hidden>
+							|
+						</span>
 						<span className="text-primary">{activityLabel}</span>
 						{activeFlowRunning ? (
 							<Button
 								type="button"
 								variant="ghost"
 								size="sm"
-								className="h-5 px-1.5 text-[11px] text-destructive hover:text-destructive"
+								className="h-5 px-1.5 text-2xs text-destructive hover:text-destructive"
 								onClick={stopFlow}
 							>
 								<IconPlayerStop className="size-3" data-icon="inline-start" />
@@ -90,7 +96,9 @@ export function StatusBar() {
 				) : null}
 				{pathIndexStatus === "updating" ? (
 					<>
-						<span className="text-border">|</span>
+						<span className="text-border" aria-hidden>
+							|
+						</span>
 						<span className="inline-flex items-center gap-1 text-primary">
 							<IconLoader2
 								className="size-3 animate-spin motion-reduce:animate-none"
@@ -105,16 +113,28 @@ export function StatusBar() {
 				<span>
 					{nodeCount} nodes · {edgeCount} edges
 				</span>
-				<span className="text-border">|</span>
+				<span className="text-border" aria-hidden>
+					|
+				</span>
 				<span>
 					{openTabCount} tab{openTabCount === 1 ? "" : "s"}
 				</span>
-				<span className="text-border">|</span>
+				<span className="text-border" aria-hidden>
+					|
+				</span>
 				<span>{Math.round(zoom * 100)}%</span>
 				{dirty ? (
 					<>
-						<span className="text-border">|</span>
-						<span className="text-amber-600 dark:text-amber-400">unsaved</span>
+						<span className="text-border" aria-hidden>
+							|
+						</span>
+						<span className="inline-flex items-center gap-1 text-warning">
+							<span
+								className="size-1.5 shrink-0 rounded-full bg-warning"
+								aria-hidden
+							/>
+							unsaved
+						</span>
 					</>
 				) : null}
 			</div>

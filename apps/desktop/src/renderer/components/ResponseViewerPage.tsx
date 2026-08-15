@@ -41,7 +41,7 @@ export function ResponseViewerPage({ snapshot }: ResponseViewerPageProps) {
 				<div className="min-w-0 flex-1">
 					<h1 className="truncate text-sm font-medium">{snapshot.title}</h1>
 					{snapshot.subtitle ? (
-						<p className="truncate font-mono text-[11px] text-muted-foreground">
+						<p className="truncate font-mono text-2xs text-muted-foreground">
 							{snapshot.subtitle}
 						</p>
 					) : null}

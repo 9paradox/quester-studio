@@ -1,4 +1,5 @@
 import { JsonViewer } from "@/components/JsonViewer.js";
+import { SectionHeading } from "@/components/Typography.js";
 import { NodeResponsePanels } from "@/components/response/NodeResponsePanels.js";
 import { RunStatusPanel } from "@/components/response/RunStatusPanel.js";
 import { resolveSelectedStep } from "@/components/response/resolveStep.js";
@@ -97,9 +98,7 @@ export function ResponseView({
 				{runResult && runResult.output !== undefined && !isRunning ? (
 					<section className="flex flex-col gap-2">
 						<div className="flex items-center gap-2">
-							<h3 className="text-xs font-medium text-muted-foreground">
-								Flow output
-							</h3>
+							<SectionHeading>Flow output</SectionHeading>
 							<Badge variant="outline">final</Badge>
 							<span className="flex-1" />
 							<Button

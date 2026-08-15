@@ -55,7 +55,7 @@ export function JmesPathMapEditor({
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: plan 19 — group label without fieldset layout change
 		<div role="group" aria-label="JMESPath map" className="flex flex-col gap-2">
-			<div className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto] gap-1.5 px-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+			<div className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto] gap-1.5 px-0.5 text-3xs font-medium tracking-wide text-muted-foreground uppercase">
 				<span>Key</span>
 				<span>JMESPath</span>
 				<span className="w-7" />
