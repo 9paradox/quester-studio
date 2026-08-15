@@ -1,7 +1,7 @@
 # Plan 04 — Desktop JSON / response viewers
 
 **Priority:** 4  
-**Status:** after plan 01; perf pass (plan 17) comes later  
+**Status:** complete (user confirmed X/Y/Z); perf pass (plan 17) comes later  
 **ROADMAP:** §3 Builders — collections JSON, response new tab  
 
 ## Goal
@@ -32,9 +32,9 @@ Large collection body (~MB-class) editable without UI freeze; response “Open i
 
 When this plan’s work is done and automated tests/lint pass, **ask the user** to manually verify:
 
-- [ ] **X** — Collections: edit a large JSON body with highlight/fold/search; UI stays usable.
-- [ ] **Y** — Response “Open in tab” shows full JSON/pretty/headers; panel quick-peek still works.
-- [ ] **Z** — Light and dark themes look correct for the shared viewer/editor.
+- [x] **X** — Collections: edit a large JSON body with highlight/fold/search; UI stays usable.
+- [x] **Y** — Response “Open in tab” shows full JSON/pretty/headers; panel quick-peek still works.
+- [x] **Z** — Light and dark themes look correct for the shared viewer/editor.
 
 Do not treat the plan as fully closed until the user confirms (or explicitly skips) these checks.
 

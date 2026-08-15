@@ -128,7 +128,8 @@ export function AppPreferencesEditor() {
 			{category === "shortcuts" ? (
 				<SettingsSection title="Shortcuts">
 					<p className="text-xs text-muted-foreground">
-						Hardwired bindings for this app. Remapping is not available yet.
+						Hardwired bindings for this app. Remapping is not available yet. The
+						command palette lists the same actions.
 					</p>
 					<div className="overflow-hidden rounded-md border border-border">
 						<table className="w-full text-xs">

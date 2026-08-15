@@ -1,4 +1,10 @@
-import { Alert, AlertDescription } from "@/components/ui/alert.js";
+import {
+	Alert,
+	AlertAction,
+	AlertDescription,
+	AlertTitle,
+} from "@/components/ui/alert.js";
+import { Button } from "@/components/ui/button.js";
 import { Toaster } from "@/components/ui/sonner.js";
 import { TooltipProvider } from "@/components/ui/tooltip.js";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts.js";
@@ -27,6 +33,8 @@ export function AppShell() {
 	useSuppressBrowserContextMenu();
 
 	const loadError = useQuesterStore((s) => s.loadError);
+	const clearLoadError = useQuesterStore((s) => s.clearLoadError);
+	const openWorkspacePicker = useQuesterStore((s) => s.openWorkspacePicker);
 	const sidebarOpen = useQuesterStore((s) => s.sidebarOpen);
 	const rightPanelVisible = useQuesterStore(selectRightPanelVisible);
 	const resizeSidebar = useQuesterStore((s) => s.resizeSidebar);
@@ -38,7 +46,26 @@ export function AppShell() {
 				<TopBar />
 				{loadError ? (
 					<Alert variant="destructive" className="rounded-none border-x-0">
+						<AlertTitle>Could not open workspace</AlertTitle>
 						<AlertDescription>{loadError}</AlertDescription>
+						<AlertAction className="flex gap-1">
+							<Button
+								type="button"
+								variant="ghost"
+								size="xs"
+								onClick={() => void openWorkspacePicker()}
+							>
+								Open…
+							</Button>
+							<Button
+								type="button"
+								variant="ghost"
+								size="xs"
+								onClick={() => clearLoadError()}
+							>
+								Dismiss
+							</Button>
+						</AlertAction>
 					</Alert>
 				) : null}
 				<div className="flex min-h-0 flex-1 flex-col overflow-hidden">

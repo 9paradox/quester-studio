@@ -13,6 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.js";
+import { formatKeyBinding, setCommandPaletteOpen } from "@/lib/commands.js";
 import {
 	type EditorTab,
 	editorTabIcon,
@@ -29,6 +30,7 @@ import {
 	IconHistory,
 	IconJson,
 	IconKey,
+	IconSearch,
 	IconSettings,
 	IconTopologyRing2,
 	IconWorld,
@@ -62,6 +64,7 @@ function WorkspaceChip() {
 	const openWorkspaceSettings = useQuesterStore((s) => s.openWorkspaceSettings);
 	const openWorkspacePicker = useQuesterStore((s) => s.openWorkspacePicker);
 	const closeWorkspace = useQuesterStore((s) => s.closeWorkspace);
+	const openAppPreferences = useQuesterStore((s) => s.openAppPreferences);
 
 	const label = workspaceName || "No workspace";
 
@@ -90,6 +93,14 @@ function WorkspaceChip() {
 				<DropdownMenuItem onClick={() => void openWorkspacePicker()}>
 					<IconFolderOpen />
 					Open workspace
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => openAppPreferences()}>
+					<IconSettings />
+					Preferences
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => setCommandPaletteOpen(true)}>
+					<IconSearch />
+					Command palette
 				</DropdownMenuItem>
 				{workspacePath ? (
 					<>

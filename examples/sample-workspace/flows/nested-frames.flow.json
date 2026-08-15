@@ -7,8 +7,13 @@
 		{
 			"id": "start",
 			"type": "start",
-			"data": { "label": "Start" },
-			"position": { "x": 0, "y": 120 },
+			"data": {
+				"label": "Start"
+			},
+			"position": {
+				"x": 0,
+				"y": 120
+			},
 			"width": 180,
 			"height": 72
 		},
@@ -16,10 +21,15 @@
 			"id": "in",
 			"type": "input",
 			"data": {
-				"value": { "ids": ["a", "b", "c"] },
+				"value": {
+					"ids": ["a", "b", "c"]
+				},
 				"label": "Input ids"
 			},
-			"position": { "x": 220, "y": 120 },
+			"position": {
+				"x": 220,
+				"y": 120
+			},
 			"width": 180,
 			"height": 72
 		},
@@ -31,53 +41,73 @@
 				"maxItems": 100,
 				"label": "Map ids"
 			},
-			"position": { "x": 460, "y": 40 },
-			"width": 420,
-			"height": 300
+			"position": {
+				"x": 452,
+				"y": 2.9999999999999716
+			},
+			"width": 474,
+			"height": 359
+		},
+		{
+			"id": "out",
+			"type": "output",
+			"data": {
+				"label": "Results"
+			},
+			"position": {
+				"x": 940,
+				"y": 120
+			},
+			"width": 180,
+			"height": 72
 		},
 		{
 			"id": "guard",
 			"type": "try",
-			"parentId": "loop",
-			"extent": "parent",
-			"data": { "label": "Per-item try" },
-			"position": { "x": 40, "y": 48 },
+			"data": {
+				"label": "Per-item try"
+			},
+			"position": {
+				"x": 57,
+				"y": 104.00000000000006
+			},
 			"width": 320,
-			"height": 220
+			"height": 220,
+			"parentId": "loop",
+			"extent": "parent"
 		},
 		{
 			"id": "row",
 			"type": "template",
-			"parentId": "guard",
-			"extent": "parent",
 			"data": {
 				"template": "{{item}}-ok",
 				"mode": "safe",
 				"label": "Row"
 			},
-			"position": { "x": 40, "y": 56 },
+			"position": {
+				"x": 54,
+				"y": 89.00000000000003
+			},
 			"width": 200,
-			"height": 72
-		},
-		{
-			"id": "out",
-			"type": "output",
-			"data": { "label": "Results" },
-			"position": { "x": 940, "y": 120 },
-			"width": 180,
-			"height": 72
+			"height": 72,
+			"parentId": "guard",
+			"extent": "parent"
 		}
 	],
 	"edges": [
 		{
 			"id": "e-start-in",
 			"source": "start",
-			"target": "in"
+			"target": "in",
+			"sourceHandle": null,
+			"targetHandle": null
 		},
 		{
 			"id": "e-in-loop",
 			"source": "in",
-			"target": "loop"
+			"target": "loop",
+			"sourceHandle": null,
+			"targetHandle": null
 		},
 		{
 			"id": "e-loop-entry",
@@ -97,19 +127,22 @@
 			"id": "e-guard-entry",
 			"source": "guard",
 			"target": "row",
-			"sourceHandle": "entry"
+			"sourceHandle": "entry",
+			"targetHandle": null
 		},
 		{
 			"id": "e-row-exit-guard",
 			"source": "row",
 			"target": "guard",
+			"sourceHandle": null,
 			"targetHandle": "exit"
 		},
 		{
 			"id": "e-loop-complete",
 			"source": "loop",
 			"target": "out",
-			"sourceHandle": "complete"
+			"sourceHandle": "complete",
+			"targetHandle": null
 		}
 	]
 }

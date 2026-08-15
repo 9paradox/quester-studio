@@ -1,0 +1,36 @@
+---
+description: Run check plus the changed app/web/CLI locally before push or PR
+alwaysApply: true
+---
+
+# Local verify before GitHub
+
+Never `git push`, open/update a PR, or merge until **automated checks and a local smoke of the changed surface** have just passed on this machine. CI is a second gate, not a substitute.
+
+## 1. Automated gate
+
+On PowerShell use the fail-fast script (do **not** chain with `;` — that hides earlier failures):
+
+```powershell
+bun run check
+```
+
+If the change needs a build (schema emit, package consumers, desktop), run `bun run build` then `bun run check`. Re-run after the last code change — do not skip because hooks ran earlier.
+
+## 2. Exercise the change locally
+
+Automated tests are not enough. Run or click through the thing that actually changed, then confirm it works.
+
+| What changed | Smoke locally |
+| --- | --- |
+| Desktop UI / IPC / canvas | `bun run build:pkgs` if packages changed; `bun run --filter @quester-studio/desktop dev` (or `dev:hmr` / `dev:web`); open the app and use the new path |
+| Docs / `apps/web` | `bun run --filter @quester-studio/web dev`; open the pages you edited |
+| CLI / engine / nodes / schema | `bunx --bun quester validate` on a sample workspace; `quester run` a relevant flow when execution changed |
+| API | start the API the same way the desktop uses it; hit the changed endpoint or the UI that calls it |
+
+Do not push if the app failed to start, the page 404s, a flow run errors, or you only ran `check` without touching the new behavior.
+
+## Do not
+
+- Push or `gh pr create` / `gh pr merge` if `check` failed, was skipped, or the changed app/web/CLI was not run locally
+- Rely on GitHub Actions or reviewers to discover that the UI never launched

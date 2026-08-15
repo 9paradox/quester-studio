@@ -98,6 +98,8 @@ Keep validation in main process; renderer sends flow id + input, never executes 
 ## UI conventions
 
 - **shadcn/ui** — use `@/components/ui/*` components and theme tokens; see skill `shadcn-ui`
+- **Plans 18–21 (standing)** — focus rings / `focusRing`, labelled fields, `text-2xs`/`text-3xs`,
+  semantic tokens, one zustand selector per primitive; see `.cursor/rules/desktop-ui-review.mdc`
 - Add components via `npx shadcn@latest add <name> -y` in `apps/desktop`
 - Custom markup only for React Flow nodes/canvas (domain-specific)
 - Local-first: no cloud calls unless flow nodes request them at run time

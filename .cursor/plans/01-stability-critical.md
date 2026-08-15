@@ -1,7 +1,7 @@
 # Plan 01 — Stability (critical / high)
 
 **Priority:** 1 — open first  
-**Status:** done  
+**Status:** complete (user confirmed X/Y/Z)  
 **ROADMAP:** §1 Stability — Critical / high  
 **BUGS:** B4, B5, B6, B7, B8, B16  
 
@@ -40,9 +40,9 @@ None. Blocks plans 05, 09 (partially).
 
 When this plan’s work is done and automated tests/lint pass, **ask the user** to manually verify:
 
-- [ ] **X** — Diamond / fan-in sample: both branches join correctly (no premature or skipped join).
-- [ ] **Y** — Desktop: long run (>30s) finishes; Mod+Enter does not stack double runs; Stop / workspace close cancels cleanly.
-- [ ] **Z** — Open sample → hero `login-and-profile` works cold; secrets stay redacted in UI/RPC; `apps/api` docs/guards match localhost-dev expectation.
+- [x] **X** — Diamond / fan-in sample: both branches join correctly (no premature or skipped join).
+- [x] **Y** — Desktop: long run (>30s) finishes; Mod+Enter does not stack double runs; Stop / workspace close cancels cleanly.
+- [x] **Z** — Open sample → hero `login-and-profile` works cold; secrets stay redacted in UI/RPC; `apps/api` docs/guards match localhost-dev expectation.
 
 Do not treat the plan as fully closed until the user confirms (or explicitly skips) these checks.
 

@@ -7,8 +7,18 @@ import {
 	ContextMenuTrigger,
 } from "@/components/ui/context-menu.js";
 import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip.js";
+import {
+	type CanvasPointerTool,
+	canvasPaneInteraction,
+} from "@/lib/canvasPointer.js";
+import {
 	CANVAS_MAX_ZOOM,
 	CANVAS_MIN_ZOOM,
+	clampCanvasZoom,
 	readCanvasViewport,
 	writeCanvasViewport,
 } from "@/lib/canvasViewport.js";
@@ -26,14 +36,22 @@ import {
 	flowToReactFlow,
 	isFrameContainerType,
 	isValidFlowConnection,
+	mergeLiveReactFlowNode,
 	pruneRedundantFrameWiring,
 	reactFlowToFlow,
 	reparentNodeInFlow,
 } from "@/lib/flowEditor.js";
 import { isTypingFocus } from "@/lib/typingFocus.js";
+import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import type { BuiltinNodeType, FlowV1 } from "@quester-studio/schema";
-import { IconFocusCentered, IconMinus, IconPlus } from "@tabler/icons-react";
+import {
+	IconFocusCentered,
+	IconHandMove,
+	IconMinus,
+	IconPlus,
+	IconPointer,
+} from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	Background,
@@ -46,6 +64,7 @@ import {
 	Panel,
 	ReactFlow,
 	ReactFlowProvider,
+	SelectionMode,
 	type Viewport,
 	addEdge,
 	applyEdgeChanges,
@@ -153,7 +172,7 @@ function ViewportBridge({
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: mount-only initial zoom sync
 	useEffect(() => {
-		onZoomChangeRef.current?.(getZoom());
+		onZoomChangeRef.current?.(clampCanvasZoom(getZoom()));
 	}, []);
 	return null;
 }
@@ -190,14 +209,14 @@ function FitViewOnLoad({
 				if (saved) {
 					void setViewport(saved, { duration: 0 });
 					if (cancelled) return;
-					onZoomChange?.(getViewport().zoom);
+					onZoomChange?.(clampCanvasZoom(getViewport().zoom));
 					return;
 				}
 				void fitView({ padding: 0.2, maxZoom: 1, duration: 0 });
 				if (cancelled) return;
 				const viewport = getViewport();
 				writeCanvasViewport(workspacePath, flowId, viewport);
-				onZoomChange?.(viewport.zoom);
+				onZoomChange?.(clampCanvasZoom(viewport.zoom));
 			});
 		});
 
@@ -285,6 +304,13 @@ function FlowCanvasInner({
 	const [typingInUi, setTypingInUi] = useState(() =>
 		isTypingFocus(document.activeElement),
 	);
+	const [pointerTool, setPointerTool] = useState<CanvasPointerTool>("select");
+	const [spacePan, setSpacePan] = useState(false);
+	const paneInteraction = canvasPaneInteraction(pointerTool, spacePan);
+
+	const reportZoom = useCallback(() => {
+		onZoomChange?.(clampCanvasZoom(getZoom()));
+	}, [getZoom, onZoomChange]);
 
 	useEffect(() => {
 		const sync = () => setTypingInUi(isTypingFocus(document.activeElement));
@@ -293,6 +319,33 @@ function FlowCanvasInner({
 		return () => {
 			document.removeEventListener("focusin", sync);
 			document.removeEventListener("focusout", sync);
+		};
+	}, []);
+
+	useEffect(() => {
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.code !== "Space" || event.repeat) return;
+			if (
+				isTypingFocus(event.target) ||
+				isTypingFocus(document.activeElement)
+			) {
+				return;
+			}
+			event.preventDefault();
+			setSpacePan(true);
+		};
+		const onKeyUp = (event: KeyboardEvent) => {
+			if (event.code !== "Space") return;
+			setSpacePan(false);
+		};
+		const onBlur = () => setSpacePan(false);
+		window.addEventListener("keydown", onKeyDown);
+		window.addEventListener("keyup", onKeyUp);
+		window.addEventListener("blur", onBlur);
+		return () => {
+			window.removeEventListener("keydown", onKeyDown);
+			window.removeEventListener("keyup", onKeyUp);
+			window.removeEventListener("blur", onBlur);
 		};
 	}, []);
 	const [nodes, setNodes] = useState<Node[]>(() => flowToReactFlow(flow).nodes);
@@ -332,12 +385,7 @@ function FlowCanvasInner({
 			mapped.nodes.map((mn) => {
 				const existing = current.find((n) => n.id === mn.id);
 				if (!existing) return mn;
-				return {
-					...mn,
-					position: existing.position,
-					selected: existing.selected,
-					dragging: existing.dragging,
-				};
+				return mergeLiveReactFlowNode(mn, existing);
 			}),
 		);
 		setEdges((current) =>
@@ -600,10 +648,14 @@ function FlowCanvasInner({
 				};
 			}
 		).__questerZoom = {
-			in: () => zoomIn(),
-			out: () => zoomOut(),
-			fit: () => {
-				void fitView({ padding: 0.15, duration: 200 });
+			in: async () => {
+				await zoomIn();
+			},
+			out: async () => {
+				await zoomOut();
+			},
+			fit: async () => {
+				await fitView({ padding: 0.15, duration: 200 });
 			},
 			get: () => getZoom(),
 		};
@@ -626,10 +678,17 @@ function FlowCanvasInner({
 		setContextTarget({ kind: "pane" });
 	}, []);
 
+	const onMove = useCallback(
+		(_: unknown, viewport: Viewport) => {
+			onZoomChange?.(clampCanvasZoom(viewport.zoom));
+		},
+		[onZoomChange],
+	);
+
 	const onMoveEnd = useCallback(
 		(_: unknown, viewport: Viewport) => {
 			writeCanvasViewport(workspacePath, flow.id, viewport);
-			onZoomChange?.(viewport.zoom);
+			onZoomChange?.(clampCanvasZoom(viewport.zoom));
 		},
 		[workspacePath, flow.id, onZoomChange],
 	);
@@ -693,7 +752,11 @@ function FlowCanvasInner({
 					onPaneContextMenu={onPaneContextMenu}
 					onDragOver={onDragOver}
 					onDrop={onDrop}
+					onMove={onMove}
 					onMoveEnd={onMoveEnd}
+					panOnDrag={paneInteraction.panOnDrag}
+					selectionOnDrag={paneInteraction.selectionOnDrag}
+					selectionMode={SelectionMode.Partial}
 					nodesDraggable
 					nodesConnectable
 					elementsSelectable
@@ -702,9 +765,13 @@ function FlowCanvasInner({
 					deleteKeyCode={typingInUi ? null : DELETE_KEYS}
 					defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
 					proOptions={PRO_OPTIONS}
-					className="bg-muted/50"
+					className={cn(
+						"bg-muted/50",
+						paneInteraction.selectionOnDrag ? "cursor-default" : "cursor-grab",
+					)}
 					minZoom={CANVAS_MIN_ZOOM}
 					maxZoom={CANVAS_MAX_ZOOM}
+					nodeOrigin={[0, 0]}
 				>
 					<Background
 						variant={BackgroundVariant.Dots}
@@ -712,17 +779,70 @@ function FlowCanvasInner({
 						size={1.5}
 						color="color-mix(in oklch, var(--foreground) 22%, transparent)"
 					/>
+					{nodes.length === 0 ? (
+						<Panel position="top-center" className="pointer-events-none mt-16">
+							<div className="max-w-sm rounded-md border border-border bg-background/95 px-3 py-2 text-center text-xs text-muted-foreground shadow-sm">
+								Empty canvas — drag a node from the Nodes sidebar, or drop a
+								flow as a subflow.
+							</div>
+						</Panel>
+					) : null}
 					<Panel
 						position="bottom-right"
 						className="m-3 flex flex-col overflow-hidden rounded-md border border-border bg-background/95 p-0 shadow-sm backdrop-blur-sm"
 					>
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<Button
+										type="button"
+										variant={pointerTool === "select" ? "secondary" : "ghost"}
+										size="icon-sm"
+										className="rounded-none border-b border-border"
+										aria-label="Select"
+										aria-pressed={pointerTool === "select" && !spacePan}
+										onClick={() => setPointerTool("select")}
+									>
+										<IconPointer />
+									</Button>
+								}
+							/>
+							<TooltipContent side="left">
+								Select — drag a box to multi-select (no Shift)
+							</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<Button
+										type="button"
+										variant={
+											pointerTool === "hand" || spacePan ? "secondary" : "ghost"
+										}
+										size="icon-sm"
+										className="rounded-none border-b border-border"
+										aria-label="Pan"
+										aria-pressed={pointerTool === "hand" || spacePan}
+										onClick={() => setPointerTool("hand")}
+									>
+										<IconHandMove />
+									</Button>
+								}
+							/>
+							<TooltipContent side="left">
+								Pan — or hold Space / middle mouse
+							</TooltipContent>
+						</Tooltip>
 						<Button
 							type="button"
 							variant="ghost"
 							size="icon-sm"
 							className="rounded-none border-b border-border"
 							aria-label="Zoom in"
-							onClick={() => zoomIn()}
+							onClick={() => {
+								zoomIn();
+								reportZoom();
+							}}
 						>
 							<IconPlus />
 						</Button>
@@ -732,7 +852,10 @@ function FlowCanvasInner({
 							size="icon-sm"
 							className="rounded-none border-b border-border"
 							aria-label="Zoom out"
-							onClick={() => zoomOut()}
+							onClick={() => {
+								zoomOut();
+								reportZoom();
+							}}
 						>
 							<IconMinus />
 						</Button>
@@ -742,7 +865,10 @@ function FlowCanvasInner({
 							size="icon-sm"
 							className="rounded-none"
 							aria-label="Fit view"
-							onClick={() => void fitView({ padding: 0.15, duration: 200 })}
+							onClick={() => {
+								fitView({ padding: 0.15, duration: 200 });
+								reportZoom();
+							}}
 						>
 							<IconFocusCentered />
 						</Button>

@@ -214,6 +214,12 @@ describe("useQuesterStore", () => {
 		expect(s.flows).toEqual([]);
 	});
 
+	test("clearLoadError dismisses workspace load banner", () => {
+		useQuesterStore.setState({ loadError: "boom" });
+		useQuesterStore.getState().clearLoadError();
+		expect(useQuesterStore.getState().loadError).toBeNull();
+	});
+
 	test("openTab activates tab and clears node selection for flows", () => {
 		resetStore();
 		useQuesterStore.setState({ selectedNodeId: "node-1" });

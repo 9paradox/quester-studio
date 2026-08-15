@@ -10,14 +10,21 @@ const DOCS_URL = "https://github.com/9paradox/quester-studio#readme";
 
 export type CommandKeyBinding = string;
 
+export type AppCommandGroup = "File" | "Edit" | "View" | "Canvas" | "Help";
+
 export type AppCommand = {
 	id: string;
 	label: string;
+	group?: AppCommandGroup;
 	keywords?: string[];
 	keys?: CommandKeyBinding[];
 	run: () => void;
 	when?: () => boolean;
 };
+
+function hasWorkspace(): boolean {
+	return Boolean(useQuesterStore.getState().workspacePath);
+}
 
 let commandPaletteOpen = false;
 const commandPaletteListeners = new Set<(open: boolean) => void>();
@@ -49,6 +56,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "palette.show",
 			label: "Show Command Palette",
+			group: "View",
 			keywords: ["commands", "search"],
 			keys: ["mod+shift+p"],
 			run: () => setCommandPaletteOpen(true),
@@ -56,6 +64,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "flow.run",
 			label: "Run Flow",
+			group: "Edit",
 			keywords: ["execute", "start"],
 			keys: ["mod+enter"],
 			when: () => {
@@ -70,6 +79,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "request.send",
 			label: "Send Request",
+			group: "Edit",
 			keywords: ["run", "execute"],
 			keys: ["mod+enter"],
 			when: () =>
@@ -81,6 +91,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "flow.stop",
 			label: "Stop Run",
+			group: "Edit",
 			keywords: ["cancel", "abort"],
 			keys: ["mod+."],
 			when: () => selectActiveFlowRun(useQuesterStore.getState()).isRunning,
@@ -91,6 +102,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "tab.save",
 			label: "Save",
+			group: "File",
 			keywords: ["write"],
 			keys: ["mod+s"],
 			run: () => {
@@ -100,6 +112,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "tab.close",
 			label: "Close Tab",
+			group: "File",
 			keywords: ["close"],
 			keys: ["mod+w"],
 			when: () => Boolean(useQuesterStore.getState().activeTabId),
@@ -111,22 +124,162 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "preferences.open",
 			label: "Preferences",
-			keywords: ["settings", "options"],
+			group: "File",
+			keywords: ["settings", "options", "theme", "tls"],
+			keys: ["mod+comma"],
 			run: () => {
 				useQuesterStore.getState().openAppPreferences();
 			},
 		},
 		{
+			id: "workspace.settings",
+			label: "Workspace Settings",
+			group: "File",
+			keywords: ["manifest", "http", "tls"],
+			when: hasWorkspace,
+			run: () => {
+				void useQuesterStore.getState().openWorkspaceSettings();
+			},
+		},
+		{
+			id: "flow.new",
+			label: "New Flow",
+			group: "File",
+			keywords: ["create", "add"],
+			when: hasWorkspace,
+			run: () => {
+				void useQuesterStore.getState().createFlow();
+			},
+		},
+		{
+			id: "form.new",
+			label: "New Form",
+			group: "File",
+			keywords: ["create"],
+			when: hasWorkspace,
+			run: () => {
+				void useQuesterStore.getState().createForm();
+			},
+		},
+		{
+			id: "env.new",
+			label: "New Environment",
+			group: "File",
+			keywords: ["create", "env"],
+			when: hasWorkspace,
+			run: () => {
+				void useQuesterStore.getState().createEnv();
+			},
+		},
+		{
+			id: "request.new",
+			label: "New Request",
+			group: "File",
+			keywords: ["create", "http", "collection"],
+			when: hasWorkspace,
+			run: () => {
+				void useQuesterStore.getState().createRequest();
+			},
+		},
+		{
+			id: "collection.new",
+			label: "New Collection",
+			group: "File",
+			keywords: ["create", "folder"],
+			when: hasWorkspace,
+			run: () => {
+				void useQuesterStore.getState().createCollection();
+			},
+		},
+		{
+			id: "node.duplicate",
+			label: "Duplicate Node",
+			group: "Edit",
+			keywords: ["copy", "clone"],
+			when: () => useQuesterStore.getState().selectedNodeIds.length === 1,
+			run: () => {
+				const id = useQuesterStore.getState().selectedNodeIds[0];
+				if (id) useQuesterStore.getState().duplicateNode(id);
+			},
+		},
+		{
+			id: "node.delete-selected",
+			label: "Delete Selected Nodes",
+			group: "Edit",
+			keywords: ["remove"],
+			when: () => useQuesterStore.getState().selectedNodeIds.length > 0,
+			run: () => {
+				const { selectedNodeIds, deleteNodes } = useQuesterStore.getState();
+				deleteNodes(selectedNodeIds);
+			},
+		},
+		{
+			id: "view.flows",
+			label: "Show Flows",
+			group: "View",
+			keywords: ["sidebar", "explorer"],
+			run: () => {
+				useQuesterStore.getState().handleActivityView("flows");
+			},
+		},
+		{
+			id: "view.forms",
+			label: "Show Forms",
+			group: "View",
+			keywords: ["sidebar"],
+			run: () => {
+				useQuesterStore.getState().handleActivityView("forms");
+			},
+		},
+		{
+			id: "view.collections",
+			label: "Show Collections",
+			group: "View",
+			keywords: ["sidebar", "requests"],
+			run: () => {
+				useQuesterStore.getState().handleActivityView("collections");
+			},
+		},
+		{
+			id: "view.envs",
+			label: "Show Environments",
+			group: "View",
+			keywords: ["sidebar"],
+			run: () => {
+				useQuesterStore.getState().handleActivityView("envs");
+			},
+		},
+		{
+			id: "view.secrets",
+			label: "Show Secrets",
+			group: "View",
+			keywords: ["sidebar"],
+			run: () => {
+				useQuesterStore.getState().handleActivityView("secrets");
+			},
+		},
+		{
 			id: "runs.open",
-			label: "Open Runs",
+			label: "Show Runs",
+			group: "View",
 			keywords: ["logs", "history", "folder", "run logs"],
 			run: () => {
 				useQuesterStore.getState().handleActivityView("runs");
 			},
 		},
 		{
+			id: "view.nodes",
+			label: "Show Nodes Palette",
+			group: "View",
+			keywords: ["sidebar", "add node", "catalog"],
+			run: () => {
+				useQuesterStore.getState().handleActivityView("nodes");
+			},
+		},
+		{
 			id: "sidebar.toggle",
 			label: "Toggle Sidebar",
+			group: "View",
 			keywords: ["primary", "explorer"],
 			keys: ["mod+b"],
 			run: () => {
@@ -137,6 +290,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "panel.toggle",
 			label: "Toggle Bottom Panel",
+			group: "View",
 			keywords: ["console", "logs", "terminal"],
 			keys: ["mod+j"],
 			run: () => {
@@ -146,16 +300,19 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "canvas.zoom-in",
 			label: "Zoom In",
+			group: "Canvas",
 			keywords: ["magnify", "canvas"],
 			keys: ["mod+=", "mod++"],
 			run: () => {
-				const zoom = callQuesterZoom("in");
-				useQuesterStore.getState().setZoom(zoom);
+				void callQuesterZoom("in").then((zoom) => {
+					useQuesterStore.getState().setZoom(zoom);
+				});
 			},
 		},
 		{
 			id: "canvas.align-left",
 			label: "Align Left",
+			group: "Canvas",
 			keywords: ["multi", "selection", "layout"],
 			when: () => useQuesterStore.getState().selectedNodeIds.length >= 2,
 			run: () => {
@@ -165,6 +322,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "canvas.align-right",
 			label: "Align Right",
+			group: "Canvas",
 			keywords: ["multi", "selection", "layout"],
 			when: () => useQuesterStore.getState().selectedNodeIds.length >= 2,
 			run: () => {
@@ -174,6 +332,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "canvas.align-top",
 			label: "Align Top",
+			group: "Canvas",
 			keywords: ["multi", "selection", "layout"],
 			when: () => useQuesterStore.getState().selectedNodeIds.length >= 2,
 			run: () => {
@@ -183,6 +342,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "canvas.align-bottom",
 			label: "Align Bottom",
+			group: "Canvas",
 			keywords: ["multi", "selection", "layout"],
 			when: () => useQuesterStore.getState().selectedNodeIds.length >= 2,
 			run: () => {
@@ -192,6 +352,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "canvas.distribute-horizontal",
 			label: "Distribute Horizontally",
+			group: "Canvas",
 			keywords: ["multi", "selection", "layout", "space"],
 			when: () => useQuesterStore.getState().selectedNodeIds.length >= 3,
 			run: () => {
@@ -201,6 +362,7 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "canvas.distribute-vertical",
 			label: "Distribute Vertically",
+			group: "Canvas",
 			keywords: ["multi", "selection", "layout", "space"],
 			when: () => useQuesterStore.getState().selectedNodeIds.length >= 3,
 			run: () => {
@@ -210,34 +372,69 @@ export function buildAppCommands(): AppCommand[] {
 		{
 			id: "canvas.zoom-out",
 			label: "Zoom Out",
+			group: "Canvas",
 			keywords: ["canvas"],
 			keys: ["mod+-"],
 			run: () => {
-				const zoom = callQuesterZoom("out");
-				useQuesterStore.getState().setZoom(zoom);
+				void callQuesterZoom("out").then((zoom) => {
+					useQuesterStore.getState().setZoom(zoom);
+				});
 			},
 		},
 		{
 			id: "canvas.zoom-fit",
 			label: "Zoom to Fit",
+			group: "Canvas",
 			keywords: ["fit", "canvas", "reset"],
 			keys: ["mod+0"],
 			run: () => {
-				const zoom = callQuesterZoom("fit");
-				useQuesterStore.getState().setZoom(zoom);
+				void callQuesterZoom("fit").then((zoom) => {
+					useQuesterStore.getState().setZoom(zoom);
+				});
 			},
 		},
 		{
 			id: "workspace.open",
 			label: "Open Workspace",
+			group: "File",
 			keywords: ["folder", "project"],
+			keys: ["mod+o"],
 			run: () => {
 				void useQuesterStore.getState().openWorkspacePicker();
 			},
 		},
 		{
+			id: "workspace.create",
+			label: "Create Workspace",
+			group: "File",
+			keywords: ["folder", "new", "project"],
+			run: () => {
+				void useQuesterStore.getState().createWorkspaceViaPicker();
+			},
+		},
+		{
+			id: "workspace.sample",
+			label: "Open Sample Workspace",
+			group: "File",
+			keywords: ["demo", "example"],
+			run: () => {
+				void useQuesterStore.getState().openSampleWorkspace();
+			},
+		},
+		{
+			id: "workspace.close",
+			label: "Close Workspace",
+			group: "File",
+			keywords: ["quit", "leave"],
+			when: hasWorkspace,
+			run: () => {
+				useQuesterStore.getState().closeWorkspace();
+			},
+		},
+		{
 			id: "help.open",
 			label: "Help",
+			group: "Help",
 			keywords: ["docs", "documentation", "guide"],
 			run: () => {
 				window.open(DOCS_URL, "_blank", "noopener,noreferrer");
@@ -307,6 +504,7 @@ function normalizeBindingKey(key: string): string {
 	if (lower === "period" || lower === ".") return ".";
 	if (lower === "enter" || lower === "return") return "enter";
 	if (lower === "0") return "0";
+	if (lower === "comma" || lower === ",") return ",";
 	return lower.length === 1 ? lower : lower;
 }
 
@@ -379,9 +577,10 @@ export function formatKeyBinding(binding: CommandKeyBinding): string {
 			if (lower === "=" || lower === "equal") return "=";
 			if (lower === "-" || lower === "minus") return "−";
 			if (lower === "0") return "0";
+			if (lower === "," || lower === "comma") return ",";
 			return part.length === 1 ? part.toUpperCase() : part;
 		})
-		.join(" ");
+		.join("+");
 }
 
 export function getShortcutRows(): Array<{ action: string; keys: string }> {

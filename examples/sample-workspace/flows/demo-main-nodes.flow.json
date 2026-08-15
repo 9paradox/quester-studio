@@ -11,8 +11,8 @@
 				"label": "Start"
 			},
 			"position": {
-				"x": 0,
-				"y": 80
+				"x": -15.814345599763215,
+				"y": 96.86863530641403
 			},
 			"width": 180,
 			"height": 72
@@ -27,8 +27,8 @@
 				"label": "Product id"
 			},
 			"position": {
-				"x": 240,
-				"y": 80
+				"x": 224.18565440023679,
+				"y": 96.86863530641403
 			},
 			"width": 180,
 			"height": 72
@@ -40,13 +40,15 @@
 				"method": "GET",
 				"url": "{{env.API_BASE}}/products/{{input.productId}}",
 				"headers": {
-					"Accept": "application/json"
+					"Accept": "application/json",
+					"Content-Type": "application/json"
 				},
+				"body": "",
 				"label": "GET product"
 			},
 			"position": {
-				"x": 480,
-				"y": 80
+				"x": 499.3370404377747,
+				"y": 94.69149899294663
 			},
 			"width": 200,
 			"height": 87
@@ -106,20 +108,6 @@
 			"height": 72
 		},
 		{
-			"id": "note-tip",
-			"type": "note",
-			"data": {
-				"text": "Pick Env local, then Run.\nproductId comes from Input (or the Run panel).",
-				"label": "Note"
-			},
-			"position": {
-				"x": -3.5192307692307736,
-				"y": -87.34615384615402
-			},
-			"width": 240,
-			"height": 140
-		},
-		{
 			"id": "delay-59be641e",
 			"type": "delay",
 			"data": {
@@ -128,11 +116,25 @@
 				"label": "Delay"
 			},
 			"position": {
-				"x": 768.9982376949721,
-				"y": 72.51775230291322
+				"x": 782.0610555757765,
+				"y": 75.78345677311428
 			},
 			"width": 210,
 			"height": 102
+		},
+		{
+			"id": "note-c68e1dc9",
+			"type": "note",
+			"data": {
+				"text": "Pick Env local, then Run.\nproductId comes from Input (or the Run panel).",
+				"label": "Note (copy)"
+			},
+			"position": {
+				"x": -29.730416588033677,
+				"y": -85.9140427806837
+			},
+			"width": 240,
+			"height": 140
 		}
 	],
 	"edges": [
@@ -140,37 +142,43 @@
 			"id": "e-start-input",
 			"source": "start",
 			"target": "input",
-			"sourceHandle": null
+			"sourceHandle": null,
+			"targetHandle": null
 		},
 		{
 			"id": "e-input-http",
 			"source": "input",
 			"target": "fetchProduct",
-			"sourceHandle": null
+			"sourceHandle": null,
+			"targetHandle": null
 		},
 		{
 			"id": "e-http-assert",
 			"source": "fetchProduct",
 			"target": "assertOk",
-			"sourceHandle": null
+			"sourceHandle": null,
+			"targetHandle": null
 		},
 		{
 			"id": "e-extract-output",
 			"source": "title",
 			"target": "output",
-			"sourceHandle": null
+			"sourceHandle": null,
+			"targetHandle": null
 		},
 		{
 			"id": "e-http-extract",
 			"source": "fetchProduct",
 			"target": "delay-59be641e",
-			"sourceHandle": null
+			"sourceHandle": null,
+			"targetHandle": null
 		},
 		{
 			"id": "e-delay-59be641e-title-e4a710",
 			"source": "delay-59be641e",
 			"target": "title",
-			"sourceHandle": null
+			"sourceHandle": null,
+			"targetHandle": null
 		}
 	]
 }

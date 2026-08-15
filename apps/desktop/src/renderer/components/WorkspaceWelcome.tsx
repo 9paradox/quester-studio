@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button.js";
+import { formatKeyBinding, setCommandPaletteOpen } from "@/lib/commands.js";
 import { focusRing } from "@/lib/focusRing.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
@@ -6,6 +7,8 @@ import {
 	IconFolderOpen,
 	IconFolderPlus,
 	IconPackage,
+	IconSearch,
+	IconSettings,
 } from "@tabler/icons-react";
 import logoUrl from "../../../assets/quester-logo-128.png";
 
@@ -18,6 +21,7 @@ export function WorkspaceWelcome() {
 	);
 	const openSampleWorkspace = useQuesterStore((s) => s.openSampleWorkspace);
 	const openRecentWorkspace = useQuesterStore((s) => s.openRecentWorkspace);
+	const openAppPreferences = useQuesterStore((s) => s.openAppPreferences);
 
 	if (isLoading) {
 		return (
@@ -67,6 +71,32 @@ export function WorkspaceWelcome() {
 				>
 					<IconPackage />
 					Open sample
+				</Button>
+			</div>
+			<div className="flex flex-wrap items-center justify-center gap-2">
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					onClick={() => setCommandPaletteOpen(true)}
+				>
+					<IconSearch />
+					Command palette
+					<span className="font-mono text-2xs text-muted-foreground">
+						{formatKeyBinding("mod+shift+p")}
+					</span>
+				</Button>
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					onClick={() => openAppPreferences()}
+				>
+					<IconSettings />
+					Preferences
+					<span className="font-mono text-2xs text-muted-foreground">
+						{formatKeyBinding("mod+comma")}
+					</span>
 				</Button>
 			</div>
 			{recentWorkspacePaths.length > 0 ? (

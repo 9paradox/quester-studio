@@ -311,7 +311,10 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredFlows.length === 0 ? (
-						<EmptyState>No flows found</EmptyState>
+						<EmptyState>
+							No flows yet. Create one, or drop a flow file into the workspace
+							folder.
+						</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}
@@ -348,7 +351,9 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredForms.length === 0 ? (
-						<EmptyState>No forms found</EmptyState>
+						<EmptyState>
+							No forms yet. Create a form, then drag it onto a flow canvas.
+						</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}
@@ -374,7 +379,9 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredEnvs.length === 0 ? (
-						<EmptyState>No environments</EmptyState>
+						<EmptyState>
+							No environments yet. Create one to store {"{{env.*}}"} values.
+						</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}

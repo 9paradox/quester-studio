@@ -12,6 +12,7 @@ import {
 	findFrameAtPoint,
 	flowToReactFlow,
 	isValidFlowConnection,
+	mergeLiveReactFlowNode,
 	pruneRedundantFrameWiring,
 	reactFlowToFlow,
 	reparentNodeInFlow,
@@ -845,6 +846,28 @@ describe("json node size mapping", () => {
 		expect(nodes[0]?.height).toBe(220);
 	});
 
+	test("flowToReactFlow does not freeze content-sized http nodes to a stored box", () => {
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{
+					id: "http-1",
+					type: "http",
+					data: { label: "GET product" },
+					position: { x: 0, y: 0 },
+					width: 150,
+					height: 40,
+				},
+			],
+			edges: [],
+		};
+		const rf = flowToReactFlow(flow);
+		expect(rf.nodes[0]?.width).toBeUndefined();
+		expect(rf.nodes[0]?.height).toBeUndefined();
+		expect(rf.nodes[0]?.style?.width).toBeUndefined();
+		expect(rf.nodes[0]?.style?.height).toBeUndefined();
+	});
+
 	test("reactFlowToFlow persists width and height", () => {
 		const flow: FlowV1 = {
 			...sampleFlow,
@@ -864,6 +887,77 @@ describe("json node size mapping", () => {
 		const roundTrip = reactFlowToFlow(flow, rf.nodes, rf.edges);
 		expect(roundTrip.nodes[0]?.width).toBe(300);
 		expect(roundTrip.nodes[0]?.height).toBe(200);
+	});
+
+	test("reactFlowToFlow does not persist measured size for http nodes", () => {
+		const flow: FlowV1 = {
+			...sampleFlow,
+			nodes: [
+				{
+					id: "http-1",
+					type: "http",
+					data: {},
+					position: { x: 0, y: 0 },
+				},
+			],
+			edges: [],
+		};
+		const roundTrip = reactFlowToFlow(
+			flow,
+			[
+				{
+					id: "http-1",
+					type: "http",
+					position: { x: 0, y: 0 },
+					data: {},
+					width: 248,
+					height: 96,
+				},
+			],
+			[],
+		);
+		expect(roundTrip.nodes[0]?.width).toBeUndefined();
+		expect(roundTrip.nodes[0]?.height).toBeUndefined();
+	});
+
+	test("mergeLiveReactFlowNode keeps measured size for the selection bounds box", () => {
+		const mapped = flowToReactFlow(sampleFlow).nodes[1];
+		expect(mapped).toBeDefined();
+		if (!mapped) return;
+		const existing = {
+			...mapped,
+			width: 248,
+			height: 96,
+			position: { x: 40, y: 80 },
+			positionAbsolute: { x: 40, y: 80 },
+			selected: true,
+		};
+		const merged = mergeLiveReactFlowNode(mapped, existing);
+		expect(merged.width).toBe(248);
+		expect(merged.height).toBe(96);
+		expect(merged.position).toEqual({ x: 40, y: 80 });
+		expect(merged.selected).toBe(true);
+		expect(merged.positionAbsolute).toEqual({ x: 40, y: 80 });
+	});
+
+	test("mergeLiveReactFlowNode prefers explicit flow sizes over live measure", () => {
+		const mapped = {
+			id: "json-1",
+			type: "json",
+			position: { x: 0, y: 0 },
+			data: {},
+			width: 320,
+			height: 240,
+		};
+		const existing = {
+			...mapped,
+			width: 200,
+			height: 100,
+			selected: false,
+		};
+		const merged = mergeLiveReactFlowNode(mapped, existing);
+		expect(merged.width).toBe(320);
+		expect(merged.height).toBe(240);
 	});
 
 	test("round-trips parentId, extent, and targetHandle", () => {

@@ -55,7 +55,8 @@ function InspectorPanelBody() {
 					/>
 				) : (
 					<p className="text-sm text-muted-foreground">
-						Select a node on the canvas to inspect its properties.
+						Select a node on the canvas to inspect its properties. Open the
+						Nodes sidebar to add steps.
 					</p>
 				)}
 			</div>
