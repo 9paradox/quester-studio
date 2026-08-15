@@ -1,20 +1,23 @@
 /**
- * Inject standardized port diagrams into node doc pages.
+ * Inject standardized port / frame diagrams into node doc pages.
  * Run: bun apps/web/scripts/inject-node-diagrams.ts
  */
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { NODE_PORTS, portSvg } from "./diagram-kit.ts";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { NODE_PORTS, frameSvg, portSvg } from "./diagram-kit.ts";
 
-const nodesDir = join(import.meta.dir, "../src/content/docs/nodes");
-const MARK_START = "<!-- qs-ports:start -->";
-const MARK_END = "<!-- qs-ports:end -->";
+const here = dirname(fileURLToPath(import.meta.url));
+const nodesDir = join(here, "../src/content/docs/nodes");
+const MARK_PORTS_START = "<!-- qs-ports:start -->";
+const MARK_PORTS_END = "<!-- qs-ports:end -->";
+const MARK_FRAME_START = "<!-- qs-frame:start -->";
+const MARK_FRAME_END = "<!-- qs-frame:end -->";
 
-function stripOldPorts(body: string): string {
-	return body.replace(
-		new RegExp(`${MARK_START}[\\s\\S]*?${MARK_END}\\n?`, "m"),
-		"",
-	);
+const FRAMED = new Set(["try", "foreach"]);
+
+function stripBlock(body: string, start: string, end: string): string {
+	return body.replace(new RegExp(`${start}[\\s\\S]*?${end}\\n?`, "m"), "");
 }
 
 function scrubPreviousWording(body: string): string {
@@ -40,15 +43,25 @@ for (const name of readdirSync(nodesDir)) {
 
 	const file = join(nodesDir, name);
 	const cleaned = scrubPreviousWording(
-		stripOldPorts(readFileSync(file, "utf8")),
+		stripBlock(
+			stripBlock(readFileSync(file, "utf8"), MARK_PORTS_START, MARK_PORTS_END),
+			MARK_FRAME_START,
+			MARK_FRAME_END,
+		),
 	);
+
 	const heading = cleaned.search(/\r?\n## /);
 	if (heading === -1) {
 		console.log("no-heading", type);
 		continue;
 	}
-	const block = `${MARK_START}\n${portSvg(type, type)}\n${MARK_END}\n\n`;
-	const next = `${cleaned.slice(0, heading)}\n\n${block}${cleaned.slice(heading).replace(/^\r?\n/, "")}`;
+
+	const portBlock = `${MARK_PORTS_START}\n${portSvg(type, type)}\n${MARK_PORTS_END}\n\n`;
+	const frameBlock = FRAMED.has(type)
+		? `${MARK_FRAME_START}\n${frameSvg(type as "try" | "foreach", type)}\n${MARK_FRAME_END}\n\n`
+		: "";
+
+	const next = `${cleaned.slice(0, heading)}\n\n${portBlock}${frameBlock}${cleaned.slice(heading).replace(/^\r?\n/, "")}`;
 	writeFileSync(file, next);
 	console.log("updated", type);
 }

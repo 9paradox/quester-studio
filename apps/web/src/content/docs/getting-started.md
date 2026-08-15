@@ -61,6 +61,22 @@ bunx quester run examples/sample-workspace/flows/kitchen-sink.flow.json \
   --input '{"username":"emilys","password":"emilyspass","productTitle":"Quester Pencil","searchQuery":"phone"}'
 ```
 
+Interactive mid-flow forms (desktop UI or CLI `--forms` map):
+
+```bash
+bunx quester run search-pick-cart \
+  --workspace examples/sample-workspace \
+  --env local \
+  --forms examples/sample-workspace/forms/search-pick-cart.forms.json
+
+bunx quester run forms-showcase \
+  --workspace examples/sample-workspace \
+  --env local \
+  --forms examples/sample-workspace/forms/forms-showcase.forms.json
+```
+
+See [Workspace forms](../workspace/#forms-formjson) and the [`form`](../nodes/form/) node reference.
+
 ### Run logs and reports
 
 ```bash

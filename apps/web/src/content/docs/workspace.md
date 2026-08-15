@@ -17,6 +17,7 @@ For how nodes connect and how `{{input.*}}` differs from the `input` node, see [
     <span class="qs-ft-file">login-and-profile.flow.json</span>
     <span class="qs-ft-file">search-pick-cart.flow.json</span>
     <span class="qs-ft-file">forms-showcase.flow.json</span>
+    <span class="qs-ft-file">nested-frames.flow.json</span>
     <span class="qs-ft-file">echo-subflow.flow.json</span>
     <span class="qs-ft-file">kitchen-sink.flow.json</span>
   <span class="qs-ft-dir">forms/</span>
@@ -131,17 +132,57 @@ Forms live under `formsDir` (default `forms/`) as `{id}.form.json`. A flow can i
 
 This is different from the **`input` node**, which exposes the run’s initial `--input` / flow input payload once at the start.
 
+<figure class="qs-diagram">
+<svg class="qs-svg" viewBox="0 0 760 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mid-flow form await">
+  <defs>
+    <marker id="qs-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="var(--qs-faint)"/>
+    </marker>
+  </defs>
+  <text class="qs-caption" x="380" y="22" text-anchor="middle">search → pick → confirm (each form node pauses the run)</text>
+  <rect class="qs-node" x="24" y="72" width="88" height="48" rx="8"/>
+  <text class="qs-label" x="68" y="102" text-anchor="middle">http</text>
+  <text class="qs-caption" x="68" y="138" text-anchor="middle">search</text>
+  <line class="qs-edge" x1="112" y1="96" x2="148" y2="96"/>
+  <rect class="qs-node qs-node-accent" x="150" y="72" width="100" height="48" rx="8"/>
+  <text class="qs-label" x="200" y="96" text-anchor="middle">form</text>
+  <rect class="qs-badge" x="168" y="78" width="40" height="16" rx="3"/>
+  <text class="qs-badge-text" x="188" y="89" text-anchor="middle">await</text>
+  <text class="qs-caption" x="200" y="138" text-anchor="middle">pick</text>
+  <line class="qs-edge" x1="250" y1="96" x2="286" y2="96"/>
+  <rect class="qs-node" x="288" y="72" width="88" height="48" rx="8"/>
+  <text class="qs-label" x="332" y="102" text-anchor="middle">http</text>
+  <text class="qs-caption" x="332" y="138" text-anchor="middle">detail</text>
+  <line class="qs-edge" x1="376" y1="96" x2="412" y2="96"/>
+  <rect class="qs-node qs-node-accent" x="414" y="72" width="100" height="48" rx="8"/>
+  <text class="qs-label" x="464" y="96" text-anchor="middle">form</text>
+  <rect class="qs-badge" x="432" y="78" width="40" height="16" rx="3"/>
+  <text class="qs-badge-text" x="452" y="89" text-anchor="middle">await</text>
+  <text class="qs-caption" x="464" y="138" text-anchor="middle">confirm</text>
+  <line class="qs-edge" x1="514" y1="96" x2="550" y2="96"/>
+  <rect class="qs-node" x="552" y="72" width="88" height="48" rx="8"/>
+  <text class="qs-label" x="596" y="102" text-anchor="middle">http</text>
+  <text class="qs-caption" x="596" y="138" text-anchor="middle">cart</text>
+  <text class="qs-mono" x="200" y="168" text-anchor="middle" style="font-size:10px">{{nodes.pickForm.productId}}</text>
+  <text class="qs-mono" x="464" y="168" text-anchor="middle" style="font-size:10px">{{nodes.detailForm.quantity}}</text>
+</svg>
+<figcaption>Sample: <code>search-pick-cart.flow.json</code>. See the <a href="../nodes/form/">form node</a> reference for ports and CLI <code>--forms</code>.</figcaption>
+</figure>
+
 | Field | Type | Description |
 | --- | --- | --- |
 | `version` | `"v1"` | Form format version |
 | `id` | string | Stable form id (file stem) |
 | `name` | string | Display name |
 | `description` | string | Optional |
-| `fields` | array | Field definitions |
+| `inputs` | array | Reusable parameters bound per flow via the form node’s `bindings` |
+| `fields` | array | Visible field definitions |
 
 **Field types:** `string`, `number`, `boolean`, `json`, `select`.
 
-- `default` may be a template (e.g. `{{nodes.getProfile.body.email}}`) resolved when the form pauses.
+**Form node `bindings`:** map each declared input id to a value or template before the form opens. Inside the form file, reference bound values with `{{form.<inputId>}}` (e.g. `optionsFrom.items: "{{form.products}}"`).
+
+- `default` on a field may be a template resolved when the form pauses (prefer `{{form.*}}` for reusable forms).
 - `readonly: true` shows a value but keeps it fixed on submit (useful for product detail review).
 - `select` needs static `options` **or** dynamic `optionsFrom` (`items` template → array, plus `value` / `label` property names).
 

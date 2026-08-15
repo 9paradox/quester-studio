@@ -339,6 +339,84 @@ Desktop shows **target** (in) and **source** (out) ports. Branch nodes expose **
 
 </div>
 
+<figure class="qs-diagram">
+<svg class="qs-svg" viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diamond reconvergence with join">
+  <defs>
+    <marker id="qs-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="var(--qs-faint)"/>
+    </marker>
+  </defs>
+  <text class="qs-caption" x="320" y="22" text-anchor="middle">After if/switch/try branches — reconverge with join (N inputs → 1 collect-map)</text>
+  <rect class="qs-node qs-node-accent" x="24" y="96" width="72" height="44" rx="8"/>
+  <text class="qs-label" x="60" y="124" text-anchor="middle">a</text>
+  <line class="qs-edge" x1="96" y1="118" x2="132" y2="118"/>
+  <rect class="qs-node" x="134" y="96" width="72" height="44" rx="8"/>
+  <text class="qs-label" x="170" y="124" text-anchor="middle">b</text>
+  <path class="qs-edge qs-edge-ok" d="M206 110 H260 V168 H340"/>
+  <rect class="qs-node" x="134" y="168" width="72" height="44" rx="8"/>
+  <text class="qs-label" x="170" y="196" text-anchor="middle">c</text>
+  <path class="qs-edge qs-edge-ok" d="M206 190 H340"/>
+  <rect class="qs-node qs-node-accent" x="340" y="128" width="88" height="52" rx="8"/>
+  <text class="qs-label" x="384" y="160" text-anchor="middle">join</text>
+  <circle class="qs-port" cx="334" cy="146" r="5"/>
+  <circle class="qs-port" cx="334" cy="178" r="5"/>
+  <line class="qs-edge qs-edge-ok" x1="428" y1="154" x2="480" y2="154"/>
+  <rect class="qs-node" x="482" y="128" width="88" height="52" rx="8"/>
+  <text class="qs-label" x="526" y="160" text-anchor="middle">next</text>
+  <text class="qs-mono" x="384" y="210" text-anchor="middle" style="font-size:10px">{ b: …, c: … }</text>
+  <text class="qs-caption" x="170" y="72" text-anchor="middle">true arm</text>
+  <text class="qs-caption" x="170" y="228" text-anchor="middle">false arm</text>
+</svg>
+<figcaption>Exclusive branches skip untaken arms. Diamond fan-out waits for <strong>both</strong> arms. Use <a href="../nodes/merge/">merge</a> when you need deep-merge of named bags on a single wire instead.</figcaption>
+</figure>
+
+## Framed containers (`try` / `foreach`)
+
+[`try`](../nodes/try/) and [`foreach`](../nodes/foreach/) are **framed subgraphs** on the canvas. Outside wires attach only to the frame (`in`, then `success`/`failed` or `complete`). Inside, wire **one** path: `entry` → body children → `exit`. Body nodes use `parentId` pointing at the frame.
+
+Both frame types may nest inside each other (sample: `nested-frames.flow.json`). See the frame diagrams on the [try](../nodes/try/) and [foreach](../nodes/foreach/) pages.
+
+## Mid-flow forms
+
+[`form`](../nodes/form/) nodes pause the run until values are submitted (desktop UI) or supplied via CLI `--forms`. Unlike the [`input`](../nodes/input/) node (run payload once at the start), a flow may include **multiple** form steps.
+
+<figure class="qs-diagram">
+<svg class="qs-svg" viewBox="0 0 760 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mid-flow form await">
+  <defs>
+    <marker id="qs-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="var(--qs-faint)"/>
+    </marker>
+  </defs>
+  <text class="qs-caption" x="380" y="22" text-anchor="middle">search → pick → confirm (each form node pauses the run)</text>
+  <rect class="qs-node" x="24" y="72" width="88" height="48" rx="8"/>
+  <text class="qs-label" x="68" y="102" text-anchor="middle">http</text>
+  <text class="qs-caption" x="68" y="138" text-anchor="middle">search</text>
+  <line class="qs-edge" x1="112" y1="96" x2="148" y2="96"/>
+  <rect class="qs-node qs-node-accent" x="150" y="72" width="100" height="48" rx="8"/>
+  <text class="qs-label" x="200" y="96" text-anchor="middle">form</text>
+  <rect class="qs-badge" x="168" y="78" width="40" height="16" rx="3"/>
+  <text class="qs-badge-text" x="188" y="89" text-anchor="middle">await</text>
+  <text class="qs-caption" x="200" y="138" text-anchor="middle">pick</text>
+  <line class="qs-edge" x1="250" y1="96" x2="286" y2="96"/>
+  <rect class="qs-node" x="288" y="72" width="88" height="48" rx="8"/>
+  <text class="qs-label" x="332" y="102" text-anchor="middle">http</text>
+  <text class="qs-caption" x="332" y="138" text-anchor="middle">detail</text>
+  <line class="qs-edge" x1="376" y1="96" x2="412" y2="96"/>
+  <rect class="qs-node qs-node-accent" x="414" y="72" width="100" height="48" rx="8"/>
+  <text class="qs-label" x="464" y="96" text-anchor="middle">form</text>
+  <rect class="qs-badge" x="432" y="78" width="40" height="16" rx="3"/>
+  <text class="qs-badge-text" x="452" y="89" text-anchor="middle">await</text>
+  <text class="qs-caption" x="464" y="138" text-anchor="middle">confirm</text>
+  <line class="qs-edge" x1="514" y1="96" x2="550" y2="96"/>
+  <rect class="qs-node" x="552" y="72" width="88" height="48" rx="8"/>
+  <text class="qs-label" x="596" y="102" text-anchor="middle">http</text>
+  <text class="qs-caption" x="596" y="138" text-anchor="middle">cart</text>
+  <text class="qs-mono" x="200" y="168" text-anchor="middle" style="font-size:10px">{{nodes.pickForm.productId}}</text>
+  <text class="qs-mono" x="464" y="168" text-anchor="middle" style="font-size:10px">{{nodes.detailForm.quantity}}</text>
+</svg>
+<figcaption>Bind reusable form inputs with <code>bindings</code> (e.g. <code>products: "{{nodes.search.body.products}}"</code>). Later steps read <code>{{nodes.&lt;formNodeId&gt;.fieldId}}</code>. Author forms under <code>forms/*.form.json</code> — see <a href="../workspace/#forms-formjson">Workspace files</a>.</figcaption>
+</figure>
+
 ## Wire data vs templates
 
 When `http` finishes, the next node’s **execute input** is already the response object.
@@ -467,6 +545,8 @@ There is **no** `{{previous.*}}` mustache scope. Previous output is already the 
 | Run panel field | `{{input.field}}` |
 | Env / secret / set var | `{{env.*}}` / `{{secrets.*}}` / `{{vars.*}}` |
 | Sticky text on canvas | `note` (not executed) |
+| Mid-flow user input | [`form`](../nodes/form/) (pauses until submit) |
+| Reconverge branch arms | [`join`](../nodes/join/) |
 
 ## Related
 

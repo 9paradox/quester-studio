@@ -7,6 +7,8 @@ Merges key/value pairs into the flow’s `vars` bag. The previous node’s outpu
 String values are [templated](../../templates/): `{{input.*}}` or `{{nodes.id…}}`. Overview: [How flows work](../../concepts/).
 
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="set ports">

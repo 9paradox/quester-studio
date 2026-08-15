@@ -13,6 +13,8 @@ Typical chain: `start → input → http → …`
 </div>
 
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="input ports">

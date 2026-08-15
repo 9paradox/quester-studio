@@ -5,6 +5,8 @@ description: Build a new object by mapping keys to JMESPath expressions
 Creates an object where each key is the result of a JMESPath expression over the previous output (`body.id`, not `previous.body.id`). Run fields: `{{input.*}}` in other nodes — see [How flows work](../../concepts/).
 
 
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="transform ports">
