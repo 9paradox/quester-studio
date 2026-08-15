@@ -179,6 +179,7 @@ export function RequestEditor({
 					onChange={(url) => onChange({ ...request, url })}
 					placeholder="https://… or {{env.API_BASE}}/…"
 					className="h-7 min-w-0 flex-1"
+					ariaLabel="Request URL"
 				/>
 				{envs.length > 0 ? (
 					<Select
