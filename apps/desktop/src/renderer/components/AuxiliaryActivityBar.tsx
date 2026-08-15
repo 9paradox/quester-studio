@@ -3,7 +3,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip.js";
-import { cn } from "@/lib/utils.js";
+import { railButtonClass } from "@/lib/railButton.js";
 import { type RightPanelTab, useQuesterStore } from "@/stores/quester-store.js";
 import { selectRightPanelVisible } from "@/stores/selectors.js";
 import { IconAdjustmentsHorizontal, IconBraces } from "@tabler/icons-react";
@@ -36,7 +36,7 @@ export function AuxiliaryActivityBar() {
 				return (
 					<Tooltip key={tab}>
 						<TooltipTrigger
-							className={cn(buttonClass(active))}
+							className={railButtonClass(active)}
 							onClick={() => handleRightPanelView(tab)}
 							aria-label={label}
 							aria-pressed={active}
@@ -48,12 +48,5 @@ export function AuxiliaryActivityBar() {
 				);
 			})}
 		</nav>
-	);
-}
-
-function buttonClass(active: boolean): string {
-	return cn(
-		"inline-flex size-9 items-center justify-center rounded-md border border-transparent text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-		active && "bg-sidebar-accent text-sidebar-accent-foreground",
 	);
 }
