@@ -1064,7 +1064,11 @@ function InspectorField({
 	return (
 		<div className="flex flex-col gap-1.5">
 			<div className="flex items-center justify-between gap-2">
-				<Label htmlFor={htmlFor} className="text-xs text-muted-foreground">
+				<Label
+					htmlFor={htmlFor}
+					id={htmlFor ? `${htmlFor}-label` : undefined}
+					className="text-xs text-muted-foreground"
+				>
 					{label}
 				</Label>
 				{action}
