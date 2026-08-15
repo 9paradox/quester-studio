@@ -191,6 +191,8 @@ export function TopBar() {
 			<div
 				ref={scrollRef}
 				onWheel={onWheel}
+				role="tablist"
+				aria-label="Open editors"
 				className="flex h-9 min-w-0 flex-1 items-stretch overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
 			>
 				{openTabs.length === 0 ? (
@@ -229,6 +231,8 @@ export function TopBar() {
 								>
 									<button
 										type="button"
+										role="tab"
+										aria-selected={active}
 										className={cn(
 											focusRing,
 											"flex h-9 max-w-[180px] min-w-0 items-center gap-1.5 px-2.5 text-xs",
@@ -241,7 +245,11 @@ export function TopBar() {
 										<TabIcon tab={tab} />
 										<span className="truncate">{label}</span>
 										{tab.dirty ? (
-											<span className="size-1.5 shrink-0 rounded-full bg-primary" />
+											<span
+												className="size-1.5 shrink-0 rounded-full bg-primary"
+												role="img"
+												aria-label="Unsaved changes"
+											/>
 										) : null}
 									</button>
 									<button
