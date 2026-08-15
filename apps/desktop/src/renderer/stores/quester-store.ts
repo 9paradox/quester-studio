@@ -82,7 +82,6 @@ import {
 	rowsToEnvVariables,
 	rowsToStringRecord,
 } from "../components/KeyValueEditor.js";
-import { clamp } from "../components/ResizeGutter.js";
 import {
 	type NodeTiming,
 	applyNodeStatusEvent,
@@ -90,6 +89,7 @@ import {
 	initNodeStatuses,
 	reconcileNodeStatuses,
 } from "../lib/nodeRunStatus.js";
+import { clamp } from "../lib/utils.js";
 import { slugifyName } from "./slugify.js";
 
 export type RightPanelTab = "inspector" | "response";
