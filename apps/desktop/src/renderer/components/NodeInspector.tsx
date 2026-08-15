@@ -149,8 +149,9 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				{isBuiltinType(node.type) ? <NodeHelpDialog type={node.type} /> : null}
 			</div>
 
-			<InspectorField label="Label">
+			<InspectorField label="Label" htmlFor="inspector-label">
 				<Input
+					id="inspector-label"
 					value={String(data.label ?? "")}
 					onChange={(e) => setField("label", e.target.value)}
 				/>
@@ -161,6 +162,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					<Separator />
 					<InspectorField
 						label="Run input (JSON)"
+						htmlFor="inspector-input-run-input"
 						hint={
 							<>
 								Saved on this input node as{" "}
@@ -172,7 +174,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						}
 					>
 						<JsonDraftField
-							id="flow-run-input"
+							id="inspector-input-run-input"
 							key={`${node.id}-run-input`}
 							value={parseRunInputJson(inputJson)}
 							onCommit={(next) => {
@@ -188,12 +190,12 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 
 			{node.type === "http" ? (
 				<>
-					<InspectorField label="Method">
+					<InspectorField label="Method" htmlFor="inspector-http-method">
 						<Select
 							value={String(data.method ?? "GET")}
 							onValueChange={(v) => v && setField("method", v)}
 						>
-							<SelectTrigger className="w-full">
+							<SelectTrigger id="inspector-http-method" className="w-full">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -207,6 +209,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="URL"
+						htmlFor="inspector-http-url"
 						hint={
 							<>
 								Supports templates like{" "}
@@ -217,6 +220,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						}
 					>
 						<TemplateField
+							id="inspector-http-url"
 							value={String(data.url ?? "")}
 							onChange={(url) => setField("url", url)}
 							placeholder="{{env.API_BASE}}/path"
@@ -231,6 +235,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Body"
+						htmlFor="inspector-http-body"
 						hint="String body with templates. Omitted for GET/HEAD at send time."
 						action={
 							<Select
@@ -261,6 +266,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						}
 					>
 						<CodeEditor
+							id="inspector-http-body"
 							value={
 								typeof data.body === "string"
 									? data.body
@@ -284,13 +290,14 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Mode"
+						htmlFor="inspector-template-mode"
 						hint="eta (default) runs Eta JS in-process. safe is {{…}} interpolation only and rejects Eta tags."
 					>
 						<Select
 							value={String(data.mode ?? "eta")}
 							onValueChange={(mode) => mode && setField("mode", mode)}
 						>
-							<SelectTrigger className="w-full">
+							<SelectTrigger id="inspector-template-mode" className="w-full">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -301,6 +308,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Template"
+						htmlFor="inspector-template-template"
 						error={fieldErrors.template}
 						hint={
 							(data.mode ?? "eta") === "safe" ? (
@@ -363,6 +371,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						}
 					>
 						<TemplateField
+							id="inspector-template-template"
 							value={String(data.template ?? "")}
 							onChange={(template) => setField("template", template)}
 							multiline
@@ -384,9 +393,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Condition"
+						htmlFor="inspector-if-condition"
 						hint='Optional templated truthy string. Combined with checks using AND when both are set. Truthy unless "", "0", or "false".'
 					>
 						<TemplateField
+							id="inspector-if-condition"
 							value={String(data.condition ?? "")}
 							onChange={(condition) => {
 								const hasChecks =
@@ -430,9 +441,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Milliseconds"
+						htmlFor="inspector-delay-ms"
 						hint={`Base sleep duration before the next node runs (max ${DELAY_MS_CEILING} ms).`}
 					>
 						<Input
+							id="inspector-delay-ms"
 							type="number"
 							min={0}
 							max={DELAY_MS_CEILING}
@@ -450,9 +463,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Jitter (ms)"
+						htmlFor="inspector-delay-jitter-ms"
 						hint={`Optional random extra delay from 0 up to this value (max ${DELAY_MS_CEILING}).`}
 					>
 						<Input
+							id="inspector-delay-jitter-ms"
 							type="number"
 							min={0}
 							max={DELAY_MS_CEILING}
@@ -485,18 +500,22 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Item variable"
+						htmlFor="inspector-foreach-item-var"
 						hint='Template scope name (default "item"). Use {{item}} / {{index}} in the body.'
 					>
 						<Input
+							id="inspector-foreach-item-var"
 							value={String(data.itemVar ?? "item")}
 							onChange={(e) => setField("itemVar", e.target.value)}
 						/>
 					</InspectorField>
 					<InspectorField
 						label="Max items"
+						htmlFor="inspector-foreach-max-items"
 						hint={`Cap iteration count (default 100, max ${FOREACH_MAX_ITEMS_CEILING}).`}
 					>
 						<Input
+							id="inspector-foreach-max-items"
 							type="number"
 							min={1}
 							max={FOREACH_MAX_ITEMS_CEILING}
@@ -514,9 +533,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Concurrency"
+						htmlFor="inspector-foreach-concurrency"
 						hint={`Parallel body iterations (max ${FOREACH_MAX_CONCURRENCY}). Leave empty for sequential.`}
 					>
 						<Input
+							id="inspector-foreach-concurrency"
 							type="number"
 							min={1}
 							max={FOREACH_MAX_CONCURRENCY}
@@ -781,9 +802,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Expression"
+						htmlFor="inspector-switch-expression"
 						hint="Optional templated value to match against cases. Used when set; otherwise path is used."
 					>
 						<TemplateField
+							id="inspector-switch-expression"
 							value={String(data.expression ?? "")}
 							onChange={(expression) => {
 								if (expression === "") {
@@ -798,9 +821,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Path"
+						htmlFor="inspector-switch-path"
 						hint="Optional JMESPath on previous output. Used when expression is empty."
 					>
 						<JmesPathField
+							id="inspector-switch-path"
 							value={String(data.path ?? "")}
 							onChange={(path) => {
 								if (path === "") {
@@ -824,9 +849,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Default handle"
+						htmlFor="inspector-switch-default-handle"
 						hint='Handle when no case matches. Defaults to "default".'
 					>
 						<Input
+							id="inspector-switch-default-handle"
 							value={String(data.defaultHandle ?? "default")}
 							onChange={(e) => setField("defaultHandle", e.target.value)}
 						/>
@@ -837,9 +864,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "extract" ? (
 				<InspectorField
 					label="Expression"
+					htmlFor="inspector-extract-expression"
 					hint="JMESPath against the previous node output."
 				>
 					<JmesPathField
+						id="inspector-extract-expression"
 						value={String(data.expression ?? "")}
 						onChange={(expression) => setField("expression", expression)}
 						placeholder="body.id"
@@ -890,9 +919,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "merge" ? (
 				<InspectorField
 					label="Sources"
+					htmlFor="inspector-merge-sources"
 					hint='JSON array of "previous", "input", "vars", or a node id.'
 				>
 					<JsonDraftField
+						id="inspector-merge-sources"
 						value={data.sources ?? ["previous"]}
 						onCommit={(sources) => setField("sources", sources)}
 						minHeight="5rem"
@@ -903,9 +934,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "json" ? (
 				<InspectorField
 					label="Expression"
+					htmlFor="inspector-json-expression"
 					hint="Optional JMESPath on previous output. Leave empty to pass through."
 				>
 					<JmesPathField
+						id="inspector-json-expression"
 						value={String(data.expression ?? "")}
 						onChange={(expression) => setField("expression", expression)}
 						placeholder="body"
@@ -916,9 +949,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "inspect" || node.type === "preview" ? (
 				<InspectorField
 					label="Expression"
+					htmlFor={`inspector-${node.type}-expression`}
 					hint="Optional JMESPath on previous output. Leave empty to preview full input."
 				>
 					<JmesPathField
+						id={`inspector-${node.type}-expression`}
 						value={String(data.expression ?? "")}
 						onChange={(expression) => setField("expression", expression)}
 						placeholder="body"
@@ -929,9 +964,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 			{node.type === "log" ? (
 				<InspectorField
 					label="Message"
+					htmlFor="inspector-log-message"
 					hint="Templated string written to the run log."
 				>
 					<TemplateField
+						id="inspector-log-message"
 						value={String(data.message ?? "")}
 						onChange={(message) => setField("message", message)}
 						placeholder="status={{input.status}}"
@@ -943,9 +980,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 				<>
 					<InspectorField
 						label="Text"
+						htmlFor="inspector-note-text"
 						hint="Plain text shown on the canvas sticky. Notes are not executed."
 					>
 						<Textarea
+							id="inspector-note-text"
 							value={String(data.text ?? "")}
 							onChange={(e) => setField("text", e.target.value)}
 							placeholder="Add a note…"
@@ -955,9 +994,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 					</InspectorField>
 					<InspectorField
 						label="Font size"
+						htmlFor="inspector-note-font-size"
 						hint={`Body size in pixels (${NOTE_FONT_SIZE_MIN}–${NOTE_FONT_SIZE_MAX}).`}
 					>
 						<Input
+							id="inspector-note-font-size"
 							type="number"
 							min={NOTE_FONT_SIZE_MIN}
 							max={NOTE_FONT_SIZE_MAX}
