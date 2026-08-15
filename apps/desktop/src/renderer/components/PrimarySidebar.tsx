@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/Typography.js";
 import { Button } from "@/components/ui/button.js";
 import {
 	Collapsible,
@@ -304,9 +305,7 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredFlows.length === 0 ? (
-						<p className="px-2 py-4 text-xs text-muted-foreground">
-							No flows found
-						</p>
+						<EmptyState>No flows found</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}
@@ -343,9 +342,7 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredForms.length === 0 ? (
-						<p className="px-2 py-4 text-xs text-muted-foreground">
-							No forms found
-						</p>
+						<EmptyState>No forms found</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}
@@ -371,9 +368,7 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredEnvs.length === 0 ? (
-						<p className="px-2 py-4 text-xs text-muted-foreground">
-							No environments
-						</p>
+						<EmptyState>No environments</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}
@@ -399,9 +394,9 @@ export function PrimarySidebar() {
 						/>
 					))}
 					{filteredSecrets.length === 0 ? (
-						<p className="px-2 py-4 text-xs text-muted-foreground">
+						<EmptyState>
 							No secrets files. Create one for an environment.
-						</p>
+						</EmptyState>
 					) : null}
 				</SidebarFileList>
 			) : null}
@@ -555,9 +550,9 @@ export function PrimarySidebar() {
 								</div>
 							))}
 							{requestsByCollection.length === 0 ? (
-								<p className="px-2 py-4 text-xs text-muted-foreground">
+								<EmptyState>
 									No collections yet. Create a collection or request.
-								</p>
+								</EmptyState>
 							) : null}
 						</div>
 					</ScrollArea>
@@ -591,14 +586,10 @@ export function PrimarySidebar() {
 					<ScrollArea className="min-h-0 flex-1">
 						<div className="flex flex-col gap-2 px-2 pb-2">
 							{!workspacePath ? (
-								<p className="px-2 py-4 text-xs text-muted-foreground">
-									Open a workspace to browse run logs.
-								</p>
+								<EmptyState>Open a workspace to browse run logs.</EmptyState>
 							) : null}
 							{workspacePath && runsLoading ? (
-								<p className="px-2 py-4 text-xs text-muted-foreground">
-									Loading runs…
-								</p>
+								<EmptyState>Loading runs…</EmptyState>
 							) : null}
 							{runsError ? (
 								<p className="px-2 py-4 text-xs text-destructive">
@@ -609,10 +600,10 @@ export function PrimarySidebar() {
 							!runsLoading &&
 							!runsError &&
 							filteredRunTree.length === 0 ? (
-								<p className="px-2 py-4 text-xs text-muted-foreground">
+								<EmptyState>
 									No run logs yet. Enable runs in workspace settings and execute
 									a flow.
-								</p>
+								</EmptyState>
 							) : null}
 							{filteredRunTree.map((flow) => (
 								<Collapsible
