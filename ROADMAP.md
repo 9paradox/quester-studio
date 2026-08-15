@@ -48,7 +48,7 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 - [ ] Performant JSON viewer (collections + response) — Monaco-class editor/viewer; virtualize / lazy parse large payloads  
 - [ ] Lazy / truncate on-canvas `json` / `inspect` viewers  
 - [ ] Engine memory & speed — big responses, long suites, many nodes; default `maxResponseBytes`  
-- [ ] Avoid unnecessary re-renders / IPC chatter on run status updates  
+- [x] Avoid unnecessary re-renders / IPC chatter on run status updates  
 - [ ] Fast workspace load (many flows / collections / run history)  
 - [ ] CLI suite performance for CI-scale smoke runs  
 
