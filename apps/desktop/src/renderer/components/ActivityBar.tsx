@@ -58,9 +58,10 @@ export function ActivityBar() {
 			</div>
 			<Tooltip>
 				<TooltipTrigger
-					className={railButtonClass(false)}
+					className={railButtonClass(sidebarOpen && activeView === "settings")}
 					onClick={() => handleActivityView("settings")}
 					aria-label="Preferences"
+					aria-pressed={sidebarOpen && activeView === "settings"}
 				>
 					<IconSettings className="size-4" />
 				</TooltipTrigger>
