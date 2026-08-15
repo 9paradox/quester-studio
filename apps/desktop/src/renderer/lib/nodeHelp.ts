@@ -147,6 +147,12 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 				description: "Header name → string (templated)",
 			},
 			{
+				name: "skipInheritedAuth",
+				type: "boolean",
+				description:
+					"If true, do not apply bearer / basicAuth / apiKey vars on this request only",
+			},
+			{
 				name: "body",
 				type: "string | object",
 				description: "Request body; omitted for GET/HEAD at send time",
@@ -154,9 +160,7 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 		],
 		syntax: [
 			"{{env.API_BASE}}/users/{{nodes.userId}}",
-			"{{nodes.login.body.token}}",
-			"{{input.username}}",
-			"Authorization: Bearer {{vars.token}}",
+			"After bearer, later HTTP hops send the token unless skipInheritedAuth is true",
 		],
 		example: {
 			label: "Login",
@@ -169,6 +173,110 @@ export const nodeHelpByType: Record<BuiltinNodeType, NodeHelp> = {
 			input: "Previous node output (not sent unless templated)",
 			output:
 				"{ status, statusText, headers, body, text, request, timing, size }",
+		},
+	},
+	bearer: {
+		summary:
+			"Sets Authorization: Bearer <token> on later HTTP nodes via in-run vars. Wire output is passthrough. Token is not echoed on the node output.",
+		fields: [
+			{
+				name: "label",
+				type: "string",
+				description: "Optional UI label",
+			},
+			{
+				name: "token",
+				type: "string",
+				description: "Templated token, typically {{secrets.API_TOKEN}}",
+			},
+		],
+		syntax: [
+			"Chain: login → extract token → bearer → me → mycart (one bearer, both HTTP hops inherit it)",
+			"token: {{nodes.accessToken}} or {{secrets.API_TOKEN}}",
+			"Wire is passthrough; every later HTTP sends Authorization: Bearer … until overwritten",
+			"HTTP node Authorization or a later basicAuth overwrites; subflows start with empty vars",
+		],
+		example: { label: "Bearer", token: "{{nodes.accessToken}}" },
+		io: {
+			input: "Previous node output",
+			output: "Same as input (passthrough); vars.httpAuthHeaders updated",
+		},
+	},
+	basicAuth: {
+		summary:
+			"Sets Authorization: Basic <base64(user:pass)> on later HTTP nodes. Password is not included in node output.",
+		fields: [
+			{
+				name: "label",
+				type: "string",
+				description: "Optional UI label",
+			},
+			{
+				name: "username",
+				type: "string",
+				description: "Templated username",
+			},
+			{
+				name: "password",
+				type: "string",
+				description: "Templated password, typically {{secrets.password}}",
+			},
+		],
+		syntax: [
+			"Chain: input → basicAuth → http (no Authorization header)",
+			"username/password: {{input.*}} or {{secrets.*}}",
+			"Wire is passthrough; password is not on node output",
+			"Overwrites a previous bearer Authorization on later HTTP nodes",
+		],
+		example: {
+			label: "Basic auth",
+			username: "{{secrets.username}}",
+			password: "{{secrets.password}}",
+		},
+		io: {
+			input: "Previous node output",
+			output: "Same as input (passthrough); vars.httpAuthHeaders updated",
+		},
+	},
+	apiKey: {
+		summary:
+			"Adds an API key as a request header or query parameter on later HTTP nodes. The key value is not echoed on node output.",
+		fields: [
+			{
+				name: "label",
+				type: "string",
+				description: "Optional UI label",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Header or query parameter name",
+			},
+			{
+				name: "value",
+				type: "string",
+				description: "Templated key value",
+			},
+			{
+				name: "in",
+				type: "enum",
+				description: "header (default) or query",
+			},
+		],
+		syntax: [
+			"Chain: apiKey → http (do not copy the key onto the HTTP node unless overriding)",
+			"in: header → following HTTP request headers; node header with same name wins",
+			"in: query → following HTTP URL; query keys already on the URL win",
+		],
+		example: {
+			label: "API key",
+			name: "X-Api-Key",
+			value: "{{secrets.API_TOKEN}}",
+			in: "header",
+		},
+		io: {
+			input: "Previous node output",
+			output: "Same as input (passthrough); auth vars updated",
 		},
 	},
 	extract: {

@@ -1,0 +1,373 @@
+{
+	"id": "auth-helpers",
+	"version": "v1",
+	"name": "Auth helpers",
+	"description": "DummyJSON: login → bearer → /auth/me → cart (Bearer continues) → products list (skip inherited auth), then basicAuth and apiKey demos. Credentials stay on the Input node.",
+	"nodes": [
+		{
+			"id": "start",
+			"type": "start",
+			"data": {
+				"label": "Start"
+			},
+			"position": {
+				"x": 0,
+				"y": 0
+			}
+		},
+		{
+			"id": "input",
+			"type": "input",
+			"data": {
+				"value": {
+					"username": "emilys",
+					"password": "emilyspass"
+				},
+				"label": "Credentials"
+			},
+			"position": {
+				"x": 240,
+				"y": 0
+			}
+		},
+		{
+			"id": "login",
+			"type": "http",
+			"data": {
+				"method": "POST",
+				"url": "{{env.API_BASE}}/auth/login",
+				"headers": {
+					"Content-Type": "application/json"
+				},
+				"body": "{\n  \"username\": \"{{input.username}}\",\n  \"password\": \"{{input.password}}\"\n}",
+				"label": "Login"
+			},
+			"position": {
+				"x": 480,
+				"y": 0
+			}
+		},
+		{
+			"id": "accessToken",
+			"type": "extract",
+			"data": {
+				"expression": "body.accessToken",
+				"label": "Access token"
+			},
+			"position": {
+				"x": 720,
+				"y": 0
+			}
+		},
+		{
+			"id": "bearer",
+			"type": "bearer",
+			"data": {
+				"token": "{{nodes.accessToken}}",
+				"label": "Bearer"
+			},
+			"position": {
+				"x": 960.8312379459621,
+				"y": 3.324951783848789
+			}
+		},
+		{
+			"id": "me",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/auth/me",
+				"headers": {},
+				"label": "Profile (inherited Bearer)"
+			},
+			"position": {
+				"x": 1200,
+				"y": 0
+			}
+		},
+		{
+			"id": "assertMe",
+			"type": "assert",
+			"data": {
+				"checks": [
+					{
+						"path": "status",
+						"equals": 200
+					}
+				],
+				"label": "Assert 200"
+			},
+			"position": {
+				"x": 1479.8994214061854,
+				"y": -2.493713837886581
+			}
+		},
+		{
+			"id": "mycart",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/carts/user/{{nodes.me.body.id}}",
+				"headers": {},
+				"label": "My cart (Bearer continues)"
+			},
+			"position": {
+				"x": 1720,
+				"y": -4.000000000000014
+			}
+		},
+		{
+			"id": "listProducts",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/products?limit=3",
+				"headers": {},
+				"skipInheritedAuth": true,
+				"label": "List products (skip inherited auth)"
+			},
+			"position": {
+				"x": 2050,
+				"y": 2
+			}
+		},
+		{
+			"id": "basic",
+			"type": "basicAuth",
+			"data": {
+				"username": "{{input.username}}",
+				"password": "{{input.password}}",
+				"label": "Basic auth"
+			},
+			"position": {
+				"x": 240,
+				"y": 180
+			}
+		},
+		{
+			"id": "productsBasic",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/products/1",
+				"headers": {},
+				"label": "Products (Basic snapshot)"
+			},
+			"position": {
+				"x": 470.8563825944159,
+				"y": 180
+			}
+		},
+		{
+			"id": "apiKeyHeader",
+			"type": "apiKey",
+			"data": {
+				"name": "X-Api-Key",
+				"value": "demo-header-key",
+				"in": "header",
+				"label": "API key header"
+			},
+			"position": {
+				"x": 805.0036800678781,
+				"y": 193.78438055154783
+			}
+		},
+		{
+			"id": "productsHeader",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/products/1",
+				"headers": {},
+				"label": "Products (X-Api-Key)"
+			},
+			"position": {
+				"x": 1045.0036800678781,
+				"y": 193.78438055154783
+			}
+		},
+		{
+			"id": "apiKeyQuery",
+			"type": "apiKey",
+			"data": {
+				"name": "apiKey",
+				"value": "demo-query-key",
+				"in": "query",
+				"label": "API key query"
+			},
+			"position": {
+				"x": 1298.0036800678783,
+				"y": 193.78438055154783
+			}
+		},
+		{
+			"id": "productsQuery",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/products/1",
+				"headers": {},
+				"label": "Products (query apiKey)"
+			},
+			"position": {
+				"x": 1525.0036800678781,
+				"y": 194.78438055154783
+			}
+		},
+		{
+			"id": "productsOverride",
+			"type": "http",
+			"data": {
+				"method": "GET",
+				"url": "{{env.API_BASE}}/products/1",
+				"headers": {
+					"X-Api-Key": "from-node"
+				},
+				"label": "Products (node header wins)"
+			},
+			"position": {
+				"x": 1820.0036800678781,
+				"y": 194.78438055154783
+			}
+		},
+		{
+			"id": "output",
+			"type": "output",
+			"data": {
+				"label": "Result"
+			},
+			"position": {
+				"x": 2134.0036800678786,
+				"y": 196.78438055154786
+			}
+		},
+		{
+			"id": "note-tip",
+			"type": "note",
+			"data": {
+				"text": "Bearer lasts for later HTTP hops (me and mycart). listProducts sets skipInheritedAuth so that request is sent without the token. Later hops still inherit unless they also skip.\n\nThen basicAuth replaces Authorization. Helpers do not copy previous-node response headers.",
+				"label": "Auth vars"
+			},
+			"position": {
+				"x": 5,
+				"y": -253
+			},
+			"width": 315,
+			"height": 213
+		}
+	],
+	"edges": [
+		{
+			"id": "e0",
+			"source": "start",
+			"target": "input",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e1",
+			"source": "input",
+			"target": "login",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e2",
+			"source": "login",
+			"target": "accessToken",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e3",
+			"source": "accessToken",
+			"target": "bearer",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e4",
+			"source": "bearer",
+			"target": "me",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e5",
+			"source": "me",
+			"target": "assertMe",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e6",
+			"source": "assertMe",
+			"target": "mycart",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e6b",
+			"source": "mycart",
+			"target": "listProducts",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e6c",
+			"source": "listProducts",
+			"target": "basic",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e7",
+			"source": "basic",
+			"target": "productsBasic",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e8",
+			"source": "productsBasic",
+			"target": "apiKeyHeader",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e9",
+			"source": "apiKeyHeader",
+			"target": "productsHeader",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e10",
+			"source": "productsHeader",
+			"target": "apiKeyQuery",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e11",
+			"source": "apiKeyQuery",
+			"target": "productsQuery",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e12",
+			"source": "productsQuery",
+			"target": "productsOverride",
+			"sourceHandle": null,
+			"targetHandle": null
+		},
+		{
+			"id": "e13",
+			"source": "productsOverride",
+			"target": "output",
+			"sourceHandle": null,
+			"targetHandle": null
+		}
+	]
+}

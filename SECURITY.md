@@ -16,6 +16,12 @@ We aim to acknowledge reports within 7 days and provide a fix or mitigation plan
 
 Quester does not encrypt secrets at rest. Protect workspace directories with OS-level permissions.
 
+## Auth helper nodes
+
+- `bearer`, `basicAuth`, and `apiKey` helpers take credentials from templated fields. Prefer `{{secrets.*}}` (or env templates), not literals in the flow file.
+- Helper **output** and `processedInput` do not echo the token, password, or API key value. HTTP **request snapshots** still include outbound headers (existing HTTP behavior).
+- These helpers are not OAuth2. A bounded `oauth2` node is not claimed here.
+
 ## Flow execution trust model
 
 - **HTTP nodes** can request any `http:` or `https:` URL after template resolution.

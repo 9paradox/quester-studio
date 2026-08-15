@@ -233,6 +233,29 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						/>
 					</InspectorField>
 					<InspectorField
+						label="Inherited auth"
+						htmlFor="inspector-http-skip-inherited-auth"
+						hint="Bearer / basic / API key helpers apply to later HTTP hops. Skip this request only — later hops still inherit."
+					>
+						<Select
+							value={data.skipInheritedAuth ? "skip" : "apply"}
+							onValueChange={(v) =>
+								v && setField("skipInheritedAuth", v === "skip")
+							}
+						>
+							<SelectTrigger
+								id="inspector-http-skip-inherited-auth"
+								className="w-full"
+							>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="apply">Apply (default)</SelectItem>
+								<SelectItem value="skip">Skip on this request</SelectItem>
+							</SelectContent>
+						</Select>
+					</InspectorField>
+					<InspectorField
 						label="Body"
 						htmlFor="inspector-http-body"
 						hint="String body with templates. Omitted for GET/HEAD at send time."
@@ -280,6 +303,93 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 							formatOnBlur={bodyType === "json"}
 							minHeight="10rem"
 							placeholder={bodyOption.placeholder}
+						/>
+					</InspectorField>
+				</>
+			) : null}
+
+			{node.type === "bearer" ? (
+				<InspectorField
+					label="Token"
+					htmlFor="inspector-bearer-token"
+					hint={
+						<>
+							Prefer{" "}
+							<code className="font-mono text-3xs">
+								{"{{secrets.API_TOKEN}}"}
+							</code>
+							. Applied as Authorization on later HTTP nodes.
+						</>
+					}
+				>
+					<TemplateField
+						id="inspector-bearer-token"
+						value={String(data.token ?? "")}
+						onChange={(token) => setField("token", token)}
+						placeholder="{{secrets.API_TOKEN}}"
+					/>
+				</InspectorField>
+			) : null}
+
+			{node.type === "basicAuth" ? (
+				<>
+					<InspectorField label="Username" htmlFor="inspector-basic-username">
+						<TemplateField
+							id="inspector-basic-username"
+							value={String(data.username ?? "")}
+							onChange={(username) => setField("username", username)}
+							placeholder="{{secrets.username}}"
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Password"
+						htmlFor="inspector-basic-password"
+						hint="Not stored on node output. Use a secrets template."
+					>
+						<TemplateField
+							id="inspector-basic-password"
+							value={String(data.password ?? "")}
+							onChange={(password) => setField("password", password)}
+							placeholder="{{secrets.password}}"
+						/>
+					</InspectorField>
+				</>
+			) : null}
+
+			{node.type === "apiKey" ? (
+				<>
+					<InspectorField label="Send in" htmlFor="inspector-apikey-in">
+						<Select
+							value={String(data.in ?? "header")}
+							onValueChange={(v) => v && setField("in", v)}
+						>
+							<SelectTrigger id="inspector-apikey-in" className="w-full">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="header">Header</SelectItem>
+								<SelectItem value="query">Query</SelectItem>
+							</SelectContent>
+						</Select>
+					</InspectorField>
+					<InspectorField label="Name" htmlFor="inspector-apikey-name">
+						<TemplateField
+							id="inspector-apikey-name"
+							value={String(data.name ?? "")}
+							onChange={(name) => setField("name", name)}
+							placeholder="X-Api-Key"
+						/>
+					</InspectorField>
+					<InspectorField
+						label="Value"
+						htmlFor="inspector-apikey-value"
+						hint="Not echoed on node output."
+					>
+						<TemplateField
+							id="inspector-apikey-value"
+							value={String(data.value ?? "")}
+							onChange={(value) => setField("value", value)}
+							placeholder="{{secrets.API_TOKEN}}"
 						/>
 					</InspectorField>
 				</>

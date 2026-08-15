@@ -359,6 +359,18 @@ export function NodeResponsePanels({
 			return <ForeachPanels step={step} />;
 		case "set":
 			return <SetPanels step={step} node={node} />;
+		case "bearer":
+		case "basicAuth":
+		case "apiKey":
+			return (
+				<ResultWithInput
+					result={step.output}
+					input={step.input}
+					error={step.error}
+					resultLabel="Passthrough (credentials not echoed)"
+					pathCopyNodeId={step.nodeId}
+				/>
+			);
 		case "start":
 			return <StartPanels step={step} />;
 		case "extract":

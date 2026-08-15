@@ -75,6 +75,45 @@ describe("executeFlow", () => {
 		});
 	});
 
+	test("bearer vars apply to the following http request", async () => {
+		const authFlow: FlowV1 = {
+			id: "auth",
+			version: "v1",
+			nodes: [
+				{ id: "start", type: "start", data: {} },
+				{
+					id: "auth",
+					type: "bearer",
+					data: { token: "abc" },
+				},
+				{
+					id: "http",
+					type: "http",
+					data: {
+						method: "GET",
+						url: "https://example.com/me",
+						headers: {},
+					},
+				},
+			],
+			edges: [
+				{ id: "e0", source: "start", target: "auth" },
+				{ id: "e1", source: "auth", target: "http" },
+			],
+		};
+		const fetchMock = mock(async (_url: string, init?: RequestInit) => {
+			expect((init?.headers as Record<string, string>).Authorization).toBe(
+				"Bearer abc",
+			);
+			return new Response("{}", { status: 200 });
+		});
+		const result = await executeFlow(authFlow, {
+			fetch: fetchMock as unknown as typeof fetch,
+		});
+		expect(fetchMock).toHaveBeenCalled();
+		expect(JSON.stringify(result.nodeOutputs.auth)).not.toContain("abc");
+	});
+
 	test("throws FlowExecutionError with partial steps on node failure", async () => {
 		const fetchMock = mock(async () => {
 			throw new Error("unable to verify the first certificate");

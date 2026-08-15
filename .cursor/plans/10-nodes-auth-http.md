@@ -1,16 +1,20 @@
-# Plan 10 — Nodes: auth + HTTP
+# Plan 10 — Nodes: auth helpers
 
 **Priority:** 10  
-**Status:** after stability wave (01–02)  
-**ROADMAP:** §6 Auth + HTTP / API  
+**Status:** **Complete** (user confirmed X/Y/Z)  
+**ROADMAP:** §6 Auth  
+**Follow-ups:** [10b](./10b-nodes-http-helpers.md) HTTP/API helpers; [10c](./10c-nodes-control.md) `parallel` / `while`
 
 ## Goal
 
-High-leverage auth and HTTP nodes for real API scenario testing.
+High-leverage auth helpers so HTTP requests can send bearer, basic, and API-key credentials without hand-rolled headers every time.
 
 ## Out of scope
 
-`oauth2` full productization if trust model isn’t ready — can ship bearer/basic/apiKey first.
+- `oauth2` — bounded helper + trust-model docs; ship only after this plan if the model is ready, otherwise a later slice
+- HTTP/API nodes (`pagination`, `multipart` / HTTP form, `graphql`) — plan 10b
+- Control (`parallel`, `loop` / `while`) — plan 10c
+- Do not auto-merge previous-node `headers` (HTTP responses also have `headers`)
 
 ## Dependencies
 
@@ -18,33 +22,24 @@ Stability wave; security review for auth helpers.
 
 ## Work
 
-**Auth**
-
-- [ ] `bearer` / `basicAuth` / `apiKey` helpers  
-- [ ] `oauth2` helper (bounded scope; document trust model)  
-
-**HTTP / API**
-
-- [ ] `pagination`  
-- [ ] `multipart` / `form`  
-- [ ] `graphql`  
-
-Also from §6 Control (after plan 09):
-
-- [ ] `parallel`  
-- [ ] `loop` / `while` (caps per SECURITY.md)  
+- [x] `bearer` helper
+- [x] `basicAuth` helper
+- [x] `apiKey` helper (header or query)
+- [x] HTTP node applies in-run auth vars (`httpAuthHeaders` / `httpAuthQuery`); node headers win
+- [x] Schema + plugin + tests + desktop catalog/inspector/help + docs pages + changeset
+- [x] SECURITY.md: tokens via `{{secrets.*}}`; no secret echo in node output; no oauth2 claim
 
 ## Done when
 
-Each shipped node: schema + plugin + tests + desktop catalog/inspector + docs page + changeset.
+`bearer` / `basicAuth` / `apiKey` each have schema, plugin, tests, catalog/inspector, docs, and changeset; HTTP inherits auth as documented.
 
 ## After complete — ask user to confirm
 
 When this plan’s work is done and automated tests/lint pass, **ask the user** to manually verify:
 
-- [ ] **X** — Auth helpers (`bearer` / `basicAuth` / `apiKey`, and `oauth2` if shipped): wire into HTTP and see headers/auth applied as documented.
-- [ ] **Y** — HTTP helpers (`pagination`, `multipart`/`form`, `graphql`): smoke each in desktop + CLI against a known endpoint or sample.
-- [ ] **Z** — Any shipped `parallel` / `loop`/`while`: caps/abort behave safely; catalog, inspector, and docs exist for each node.
+- [x] **X** — `bearer`: token from secrets/env appears as `Authorization: Bearer …` on the following HTTP request (inspector / run request snapshot).
+- [x] **Y** — `basicAuth`: Basic header is applied; password is not shown in node output.
+- [x] **Z** — `apiKey` header and query modes both reach the request; an HTTP header on the node still overrides inherited auth.
 
 Do not treat the plan as fully closed until the user confirms (or explicitly skips) these checks.
 

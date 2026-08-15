@@ -112,6 +112,36 @@ export const NODE_PORTS: Record<
 		kind: "one",
 		blurb: "Wire in unused unless templated into the request.",
 	},
+	bearer: {
+		in: "1",
+		out: "1",
+		kind: "one",
+		blurb: "Writes Authorization Bearer; wire passthrough.",
+	},
+	basicAuth: {
+		in: "1",
+		out: "1",
+		kind: "one",
+		blurb: "Writes Authorization Basic; wire passthrough.",
+	},
+	"basic-auth": {
+		in: "1",
+		out: "1",
+		kind: "one",
+		blurb: "Writes Authorization Basic; wire passthrough.",
+	},
+	apiKey: {
+		in: "1",
+		out: "1",
+		kind: "one",
+		blurb: "Writes API key header or query; wire passthrough.",
+	},
+	"api-key": {
+		in: "1",
+		out: "1",
+		kind: "one",
+		blurb: "Writes API key header or query; wire passthrough.",
+	},
 	extract: {
 		in: "1",
 		out: "1",

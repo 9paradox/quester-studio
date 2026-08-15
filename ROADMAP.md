@@ -79,9 +79,9 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 - [ ] Run / debug clarity — status, errors, stop, replay easy to follow (depends on B5/B8; ties to Run UX above)  
 - [x] Per-flow console lines (global `consoleLines` isolation gap after B3)  
 - [x] Template / JMESPath assist polish beyond v1  
-- [ ] Command palette + shortcuts coverage for everyday actions  
-- [ ] Preferences / settings discoverability and consistency  
-- [ ] Welcome / empty / error states that explain the next action  
+- [x] Command palette + shortcuts coverage for everyday actions  
+- [x] Preferences / settings discoverability and consistency  
+- [x] Welcome / empty / error states that explain the next action  
 
 ### 4. Web UI/UX
 
@@ -108,7 +108,7 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 
 **Auth**
 
-- [ ] `bearer` / `basicAuth` / `apiKey` helpers  
+- [x] `bearer` / `basicAuth` / `apiKey` helpers  
 - [ ] `oauth2` helper (bounded scope; document trust model)  
 
 **HTTP / API**
