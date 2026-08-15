@@ -22,6 +22,7 @@ import type { useQuesterStore as UseQuesterStore } from "./quester-store.js";
 import { emptyFlowRunState, emptyRequestSendState } from "./quester-store.js";
 import {
 	selectActiveConsoleLines,
+	selectActiveFlowRun,
 	selectActiveFlowTab,
 	selectActiveTab,
 	selectAnyDirty,
@@ -724,6 +725,37 @@ describe("useQuesterStore", () => {
 		).toEqual({
 			a: { startedAt: 1, endedAt: 2 },
 		});
+	});
+
+	test("selectActiveFlowRun isRunning is stable across nodeStatuses patches", () => {
+		resetStore();
+		const tab = createFlowEditorTab(sampleFlow);
+		useQuesterStore.setState({
+			openTabs: [tab],
+			activeTabId: tab.id,
+			runByFlowId: {
+				"demo-flow": {
+					...emptyFlowRunState(),
+					isRunning: true,
+					activeRunId: "run-1",
+					nodeStatuses: { a: "idle" },
+				},
+			},
+		});
+		const before = selectActiveFlowRun(useQuesterStore.getState()).isRunning;
+		useQuesterStore.getState().applyNodeRunStatusEvent({
+			runId: "run-1",
+			flowId: "demo-flow",
+			nodeId: "a",
+			nodeType: "http",
+			status: "running",
+			ts: 1,
+		});
+		const after = selectActiveFlowRun(useQuesterStore.getState()).isRunning;
+		expect(after).toBe(before);
+		expect(
+			useQuesterStore.getState().runByFlowId["demo-flow"]?.nodeStatuses.a,
+		).toBe("running");
 	});
 
 	test("focusNodeOnCanvas pins response summary and requests pan", () => {
