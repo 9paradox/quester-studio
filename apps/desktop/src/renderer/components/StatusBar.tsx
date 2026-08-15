@@ -64,15 +64,21 @@ export function StatusBar() {
 				<span className="truncate" title={workspaceName}>
 					{workspaceName || "—"}
 				</span>
-				<span className="text-border">|</span>
+				<span className="text-border" aria-hidden>
+					|
+				</span>
 				<span className="truncate" title={flowName}>
 					{flowName}
 				</span>
-				<span className="text-border">|</span>
+				<span className="text-border" aria-hidden>
+					|
+				</span>
 				<span>{env}</span>
 				{activityLabel ? (
 					<>
-						<span className="text-border">|</span>
+						<span className="text-border" aria-hidden>
+							|
+						</span>
 						<span className="text-primary">{activityLabel}</span>
 						{activeFlowRunning ? (
 							<Button
@@ -90,7 +96,9 @@ export function StatusBar() {
 				) : null}
 				{pathIndexStatus === "updating" ? (
 					<>
-						<span className="text-border">|</span>
+						<span className="text-border" aria-hidden>
+							|
+						</span>
 						<span className="inline-flex items-center gap-1 text-primary">
 							<IconLoader2
 								className="size-3 animate-spin motion-reduce:animate-none"
@@ -105,15 +113,21 @@ export function StatusBar() {
 				<span>
 					{nodeCount} nodes · {edgeCount} edges
 				</span>
-				<span className="text-border">|</span>
+				<span className="text-border" aria-hidden>
+					|
+				</span>
 				<span>
 					{openTabCount} tab{openTabCount === 1 ? "" : "s"}
 				</span>
-				<span className="text-border">|</span>
+				<span className="text-border" aria-hidden>
+					|
+				</span>
 				<span>{Math.round(zoom * 100)}%</span>
 				{dirty ? (
 					<>
-						<span className="text-border">|</span>
+						<span className="text-border" aria-hidden>
+							|
+						</span>
 						<span className="inline-flex items-center gap-1 text-warning">
 							<span
 								className="size-1.5 shrink-0 rounded-full bg-warning"
