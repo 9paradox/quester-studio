@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button.js";
+import { focusRing } from "@/lib/focusRing.js";
+import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	IconFolderOpen,
@@ -77,7 +79,10 @@ export function WorkspaceWelcome() {
 							<li key={path}>
 								<button
 									type="button"
-									className="w-full truncate rounded-md px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
+									className={cn(
+										focusRing,
+										"w-full truncate rounded-md px-3 py-2 text-left text-sm text-foreground hover:bg-muted",
+									)}
 									title={path}
 									onClick={() => void openRecentWorkspace(path)}
 								>

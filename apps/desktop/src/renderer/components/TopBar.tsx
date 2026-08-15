@@ -18,6 +18,7 @@ import {
 	editorTabIcon,
 	editorTabLabel,
 } from "@/lib/editorTabs.js";
+import { focusRing } from "@/lib/focusRing.js";
 import { cn } from "@/lib/utils.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
@@ -70,7 +71,10 @@ function WorkspaceChip() {
 				render={
 					<button
 						type="button"
-						className="flex h-9 max-w-[200px] shrink-0 items-center gap-1 border-r border-border/50 px-2.5 text-xs text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+						className={cn(
+							focusRing,
+							"flex h-9 max-w-[200px] shrink-0 items-center gap-1 border-r border-border/50 px-2.5 text-xs text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+						)}
 						aria-label="Workspace actions"
 					/>
 				}
@@ -225,7 +229,10 @@ export function TopBar() {
 								>
 									<button
 										type="button"
-										className="flex h-9 max-w-[180px] min-w-0 items-center gap-1.5 px-2.5 text-xs"
+										className={cn(
+											focusRing,
+											"flex h-9 max-w-[180px] min-w-0 items-center gap-1.5 px-2.5 text-xs",
+										)}
 										onClick={() => {
 											setActiveTabId(tab.id);
 											scrollTabIntoView(tab.id);

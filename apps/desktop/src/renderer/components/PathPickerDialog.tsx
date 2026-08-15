@@ -8,6 +8,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog.js";
 import { ScrollArea } from "@/components/ui/scroll-area.js";
+import { focusRing } from "@/lib/focusRing.js";
 import { cn } from "@/lib/utils.js";
 import { IconListSearch } from "@tabler/icons-react";
 import type { ReactNode } from "react";
@@ -70,7 +71,10 @@ export function PathPickerDialog({
 								<li key={path}>
 									<button
 										type="button"
-										className="w-full rounded-md px-2 py-1.5 text-left font-mono text-xs hover:bg-muted"
+										className={cn(
+											focusRing,
+											"w-full rounded-md px-2 py-1.5 text-left font-mono text-xs hover:bg-muted",
+										)}
 										onClick={() => pickPath(path)}
 									>
 										{path}
