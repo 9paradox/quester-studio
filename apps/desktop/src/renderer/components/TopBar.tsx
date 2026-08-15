@@ -239,7 +239,7 @@ export function TopBar() {
 									</button>
 									<button
 										type="button"
-										className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm opacity-0 hover:bg-muted group-hover:opacity-100"
+										className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm opacity-0 hover:bg-muted group-hover:opacity-100 focus-visible:opacity-100"
 										onClick={() => void closeTab(tab.id)}
 										aria-label={`Close ${label}`}
 									>

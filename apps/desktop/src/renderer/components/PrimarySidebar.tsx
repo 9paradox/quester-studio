@@ -633,7 +633,7 @@ export function PrimarySidebar() {
 											type="button"
 											variant="ghost"
 											size="icon-xs"
-											className="mr-1 shrink-0 opacity-0 group-hover:opacity-100"
+											className="mr-1 shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
 											aria-label={`Delete flow runs ${flow.flowId}`}
 											onClick={() =>
 												void deleteRunEntry(flow.flowId, flow.flowId, "folder")
@@ -674,7 +674,7 @@ export function PrimarySidebar() {
 														type="button"
 														variant="ghost"
 														size="icon-xs"
-														className="mr-1 shrink-0 opacity-0 group-hover:opacity-100"
+														className="mr-1 shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
 														aria-label={`Delete run ${run.name}`}
 														onClick={() =>
 															void deleteRunEntry(
@@ -869,7 +869,7 @@ function FileListItem({
 				) : null}
 			</button>
 			{onRename || onDelete ? (
-				<div className="flex shrink-0 opacity-0 group-hover:opacity-100">
+				<div className="flex shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100">
 					{onRename ? (
 						<Button
 							type="button"
