@@ -138,11 +138,11 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						{presentation?.label ?? node.type}
 					</div>
 					{presentation ? (
-						<p className="text-[11px] leading-relaxed text-muted-foreground">
+						<p className="text-2xs leading-relaxed text-muted-foreground">
 							{presentation.description}
 						</p>
 					) : null}
-					<div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+					<div className="mt-0.5 font-mono text-3xs text-muted-foreground">
 						{node.id}
 					</div>
 				</div>
@@ -166,10 +166,10 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						hint={
 							<>
 								Saved on this input node as{" "}
-								<code className="font-mono text-[10px]">data.value</code> and
+								<code className="font-mono text-3xs">data.value</code> and
 								passed when you click Run. Reference fields as{" "}
-								<code className="font-mono text-[10px]">{"{{input.*}}"}</code>{" "}
-								in later nodes.
+								<code className="font-mono text-3xs">{"{{input.*}}"}</code> in
+								later nodes.
 							</>
 						}
 					>
@@ -213,7 +213,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 						hint={
 							<>
 								Supports templates like{" "}
-								<code className="font-mono text-[10px]">
+								<code className="font-mono text-3xs">
 									{"{{env.API_BASE}}/path"}
 								</code>
 							</>
@@ -250,7 +250,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 							>
 								<SelectTrigger
 									size="sm"
-									className="h-6 w-[5.5rem] text-[11px]"
+									className="h-6 w-[5.5rem] text-2xs"
 									aria-label="Body content type"
 								>
 									<SelectValue>{bodyOption.label}</SelectValue>
@@ -314,48 +314,31 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 							(data.mode ?? "eta") === "safe" ? (
 								<>
 									Interpolation only:{" "}
-									<code className="font-mono text-[10px]">{"{{input.*}}"}</code>
-									,{" "}
-									<code className="font-mono text-[10px]">
-										{"{{nodes.id}}"}
-									</code>
-									, <code className="font-mono text-[10px]">{"{{env.*}}"}</code>
+									<code className="font-mono text-3xs">{"{{input.*}}"}</code>,{" "}
+									<code className="font-mono text-3xs">{"{{nodes.id}}"}</code>,{" "}
+									<code className="font-mono text-3xs">{"{{env.*}}"}</code>
 									{loopKeys.includes("item") ? (
 										<>
+											, <code className="font-mono text-3xs">{"{{item}}"}</code>
 											,{" "}
-											<code className="font-mono text-[10px]">
-												{"{{item}}"}
-											</code>
-											,{" "}
-											<code className="font-mono text-[10px]">
-												{"{{index}}"}
-											</code>
+											<code className="font-mono text-3xs">{"{{index}}"}</code>
 										</>
 									) : null}
 								</>
 							) : (
 								<>
 									Use{" "}
-									<code className="font-mono text-[10px]">{"{{input.*}}"}</code>
-									,{" "}
-									<code className="font-mono text-[10px]">
-										{"{{nodes.id}}"}
-									</code>
-									, <code className="font-mono text-[10px]">{"{{env.*}}"}</code>
+									<code className="font-mono text-3xs">{"{{input.*}}"}</code>,{" "}
+									<code className="font-mono text-3xs">{"{{nodes.id}}"}</code>,{" "}
+									<code className="font-mono text-3xs">{"{{env.*}}"}</code>
 									{loopKeys.includes("item") ? (
 										<>
-											,{" "}
-											<code className="font-mono text-[10px]">
-												{"{{item}}"}
-											</code>
-											/
-											<code className="font-mono text-[10px]">
-												{"{{index}}"}
-											</code>
+											, <code className="font-mono text-3xs">{"{{item}}"}</code>
+											/<code className="font-mono text-3xs">{"{{index}}"}</code>
 										</>
 									) : null}
 									, or Eta{" "}
-									<code className="font-mono text-[10px]">{"<%= it.* %>"}</code>{" "}
+									<code className="font-mono text-3xs">{"<%= it.* %>"}</code>{" "}
 									(in-process JS — see{" "}
 									<a
 										href="https://github.com/9paradox/quester-studio/blob/main/SECURITY.md"
@@ -739,7 +722,7 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 											<Label className="text-xs text-muted-foreground">
 												{input.label ?? input.id}
 												{input.required ? " *" : ""}
-												<span className="ml-1 font-mono text-[10px] opacity-70">
+												<span className="ml-1 font-mono text-3xs opacity-70">
 													{input.id}
 												</span>
 											</Label>
@@ -1074,9 +1057,7 @@ function InspectorField({
 				{action}
 			</div>
 			{hint ? (
-				<p className="text-[11px] leading-relaxed text-muted-foreground">
-					{hint}
-				</p>
+				<p className="text-2xs leading-relaxed text-muted-foreground">{hint}</p>
 			) : null}
 			{children}
 			{error ? <p className="text-xs text-destructive">{error}</p> : null}

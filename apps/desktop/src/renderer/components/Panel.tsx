@@ -72,7 +72,7 @@ function LogEntryRow({ entry }: { entry: ExecutionLogEntry }) {
 							)}
 						/>
 						<div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-							<span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+							<span className="font-mono text-3xs text-muted-foreground tabular-nums">
 								{new Date(entry.ts).toLocaleTimeString()}
 							</span>
 							<Badge
@@ -103,7 +103,7 @@ function LogEntryRow({ entry }: { entry: ExecutionLogEntry }) {
 				</Collapsible>
 			) : (
 				<div className="flex flex-wrap items-center gap-2 pl-5">
-					<span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+					<span className="font-mono text-3xs text-muted-foreground tabular-nums">
 						{new Date(entry.ts).toLocaleTimeString()}
 					</span>
 					<Badge

@@ -89,27 +89,27 @@ export function EditorArea() {
 						<>
 							<p>
 								Use in flows as{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
 									{"{{env.KEY}}"}
 								</code>
 								{" — "}
 								e.g.{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
 									{"{{env.API_BASE}}"}
 								</code>
 								.
 							</p>
 							<p>
 								Linked to env{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
 									{envName}
 								</code>
 								. Pair with{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
 									{envName}.secrets.json
 								</code>{" "}
 								(
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
 									{"{{secrets.KEY}}"}
 								</code>
 								). Select this env when running.
@@ -135,27 +135,27 @@ export function EditorArea() {
 						<>
 							<p>
 								Use in flows as{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
 									{"{{secrets.KEY}}"}
 								</code>
 								{" — "}
 								e.g.{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
 									{"{{secrets.password}}"}
 								</code>
 								. Loaded at runtime; never committed to git.
 							</p>
 							<p>
 								Linked to env{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
 									{envName}
 								</code>
 								. Pair with{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
 									{envName}.json
 								</code>{" "}
 								(
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
 									{"{{env.KEY}}"}
 								</code>
 								). Select this env when running.

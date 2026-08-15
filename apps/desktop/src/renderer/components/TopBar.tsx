@@ -311,5 +311,5 @@ export function TopBar() {
 
 export function DirtyBadge({ dirty }: { dirty: boolean }) {
 	if (!dirty) return null;
-	return <span className="text-[10px] text-muted-foreground">unsaved</span>;
+	return <span className="text-3xs text-muted-foreground">unsaved</span>;
 }

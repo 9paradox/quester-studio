@@ -248,7 +248,7 @@ function FrameContainerShell({
 				>
 					<span
 						className={cn(
-							"inline-flex h-5 items-center gap-1 rounded-sm px-1.5 text-[10px]",
+							"inline-flex h-5 items-center gap-1 rounded-sm px-1.5 text-3xs",
 							presentation.badgeTone,
 							"bg-secondary text-secondary-foreground",
 						)}
@@ -261,13 +261,13 @@ function FrameContainerShell({
 							{title}
 						</div>
 						<div
-							className="truncate font-mono text-[10px] text-muted-foreground"
+							className="truncate font-mono text-3xs text-muted-foreground"
 							title={id}
 						>
 							{id}
 						</div>
 						{subtitle ? (
-							<div className="truncate text-[11px] text-muted-foreground">
+							<div className="truncate text-2xs text-muted-foreground">
 								{subtitle}
 							</div>
 						) : null}

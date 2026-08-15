@@ -8,7 +8,7 @@ export function HeadersTable({ headers }: { headers: Record<string, string> }) {
 	}
 	return (
 		<div className="overflow-hidden rounded-md border">
-			<table className="w-full text-left text-[11px]">
+			<table className="w-full text-left text-2xs">
 				<thead className="border-b bg-muted/40 text-muted-foreground">
 					<tr>
 						<th className="px-2 py-1.5 font-medium">Header</th>
@@ -35,10 +35,10 @@ export function HeadersTable({ headers }: { headers: Record<string, string> }) {
 export function MetaChip({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex items-center gap-1.5 rounded-md border bg-muted/20 px-2 py-1">
-			<span className="text-[10px] tracking-wide text-muted-foreground uppercase">
+			<span className="text-3xs tracking-wide text-muted-foreground uppercase">
 				{label}
 			</span>
-			<span className="font-mono text-[11px] font-medium">{value}</span>
+			<span className="font-mono text-2xs font-medium">{value}</span>
 		</div>
 	);
 }

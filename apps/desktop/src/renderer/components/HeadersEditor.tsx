@@ -62,7 +62,7 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 				</TabsTrigger>
 			</TabsList>
 			<TabsContent value="pairs" className="mt-2 flex flex-col gap-2">
-				<div className="grid grid-cols-[1fr_1fr_auto] gap-1.5 px-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+				<div className="grid grid-cols-[1fr_1fr_auto] gap-1.5 px-0.5 text-3xs font-medium tracking-wide text-muted-foreground uppercase">
 					<span>Header</span>
 					<span>Value</span>
 					<span className="w-7" />

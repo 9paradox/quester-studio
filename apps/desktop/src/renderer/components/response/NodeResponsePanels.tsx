@@ -246,10 +246,10 @@ function SetPanels({
 				<h3 className="text-xs font-medium text-muted-foreground">
 					Variables applied
 				</h3>
-				<p className="text-[11px] text-muted-foreground">
+				<p className="text-2xs text-muted-foreground">
 					Values written to{" "}
-					<code className="font-mono text-[10px]">{"{{vars.*}}"}</code> for
-					later nodes. Output below is the passthrough previous value.
+					<code className="font-mono text-3xs">{"{{vars.*}}"}</code> for later
+					nodes. Output below is the passthrough previous value.
 				</p>
 				<JsonPane value={variables} />
 			</section>

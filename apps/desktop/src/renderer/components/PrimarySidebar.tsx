@@ -505,7 +505,7 @@ export function PrimarySidebar() {
 							aria-label="Search requests"
 							className="h-8 bg-background"
 						/>
-						<p className="px-1 text-[11px] text-muted-foreground">
+						<p className="px-1 text-2xs text-muted-foreground">
 							Drag a request onto the canvas to insert an HTTP node (copy, not
 							linked).
 						</p>
@@ -548,7 +548,7 @@ export function PrimarySidebar() {
 										/>
 									))}
 									{collection && items.length === 0 ? (
-										<p className="px-2 pb-1 text-[11px] text-muted-foreground">
+										<p className="px-2 pb-1 text-2xs text-muted-foreground">
 											Empty — add a request
 										</p>
 									) : null}
@@ -627,7 +627,7 @@ export function PrimarySidebar() {
 											<span className="truncate font-medium">
 												{flow.flowId}
 											</span>
-											<span className="shrink-0 text-[10px] text-muted-foreground">
+											<span className="shrink-0 text-3xs text-muted-foreground">
 												{flow.runs.length}
 											</span>
 										</CollapsibleTrigger>
@@ -654,12 +654,12 @@ export function PrimarySidebar() {
 												<div className="group flex items-center rounded-md hover:bg-sidebar-accent/70">
 													<CollapsibleTrigger className="flex h-8 min-w-0 flex-1 items-center gap-1.5 px-1 text-left text-xs">
 														<IconChevronRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-data-open/run:rotate-90" />
-														<span className="truncate font-mono text-[11px]">
+														<span className="truncate font-mono text-2xs">
 															{run.name}
 														</span>
 														{run.meta?.status ? (
 															<span
-																className="shrink-0 text-[10px] text-muted-foreground"
+																className="shrink-0 text-3xs text-muted-foreground"
 																title={
 																	run.meta.status === "running"
 																		? "Run did not finish writing a terminal status (interrupted or cancelled between steps)"

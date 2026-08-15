@@ -56,7 +56,7 @@ export function StatusBar() {
 	const activityLabel = formatActivityLabel(runningFlows, sendingRequests);
 
 	return (
-		<footer className="flex h-6 shrink-0 items-center justify-between border-t bg-muted/30 px-2 text-[11px] text-muted-foreground">
+		<footer className="flex h-6 shrink-0 items-center justify-between border-t bg-muted/30 px-2 text-2xs text-muted-foreground">
 			<output
 				className="flex min-w-0 items-center gap-2 truncate"
 				aria-live="polite"
@@ -79,7 +79,7 @@ export function StatusBar() {
 								type="button"
 								variant="ghost"
 								size="sm"
-								className="h-5 px-1.5 text-[11px] text-destructive hover:text-destructive"
+								className="h-5 px-1.5 text-2xs text-destructive hover:text-destructive"
 								onClick={stopFlow}
 							>
 								<IconPlayerStop className="size-3" data-icon="inline-start" />

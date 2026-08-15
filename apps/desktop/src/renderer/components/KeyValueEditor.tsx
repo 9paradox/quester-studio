@@ -169,7 +169,7 @@ export function KeyValueEditor({
 			</div>
 			<ScrollArea className="min-h-0 flex-1">
 				<div className="flex flex-col gap-2 p-4">
-					<div className="grid grid-cols-[1fr_1fr_auto] gap-2 px-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+					<div className="grid grid-cols-[1fr_1fr_auto] gap-2 px-1 text-3xs font-medium uppercase tracking-wide text-muted-foreground">
 						<span>Key</span>
 						<span>Value</span>
 						<span className="w-7" />

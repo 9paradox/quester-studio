@@ -16,11 +16,11 @@ type JmesPathFieldProps = {
 
 export function JmesPathHelpText() {
 	return (
-		<p className="text-[11px] leading-relaxed text-muted-foreground">
+		<p className="text-2xs leading-relaxed text-muted-foreground">
 			JMESPath selects values from JSON. Examples:{" "}
-			<code className="font-mono text-[10px]">body.id</code> for a nested field,{" "}
-			<code className="font-mono text-[10px]">[*].name</code> for each
-			item&apos;s name.{" "}
+			<code className="font-mono text-3xs">body.id</code> for a nested field,{" "}
+			<code className="font-mono text-3xs">[*].name</code> for each item&apos;s
+			name.{" "}
 			<a
 				href="https://jmespath.org/"
 				target="_blank"

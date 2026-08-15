@@ -71,12 +71,11 @@ export function ForeachItemsField({
 					showPickPath={false}
 				/>
 			</PathPickerField>
-			<p className="text-[11px] leading-relaxed text-muted-foreground">
+			<p className="text-2xs leading-relaxed text-muted-foreground">
 				Uses JMESPath on the previous output, or a{" "}
-				<code className="font-mono text-[10px]">{"{{…}}"}</code> template that
+				<code className="font-mono text-3xs">{"{{…}}"}</code> template that
 				resolves to a JSON array. Assist switches to templates when{" "}
-				<code className="font-mono text-[10px]">{"{{"}</code> appears in the
-				field.
+				<code className="font-mono text-3xs">{"{{"}</code> appears in the field.
 			</p>
 		</div>
 	);

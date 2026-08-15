@@ -43,7 +43,7 @@ export function CanvasControls({
 				<div className="flex flex-col gap-0.5">
 					<span
 						id="canvas-env-label"
-						className="text-[10px] leading-none text-muted-foreground"
+						className="text-3xs leading-none text-muted-foreground"
 					>
 						Environment
 					</span>

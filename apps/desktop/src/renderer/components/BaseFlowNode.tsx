@@ -181,7 +181,7 @@ export function BaseFlowNode({
 				<Badge
 					variant="secondary"
 					className={cn(
-						"h-5 gap-1 rounded-sm px-1.5 text-[10px]",
+						"h-5 gap-1 rounded-sm px-1.5 text-3xs",
 						presentation.badgeTone,
 					)}
 				>
@@ -193,13 +193,13 @@ export function BaseFlowNode({
 						{title}
 					</div>
 					<div
-						className="truncate font-mono text-[10px] text-muted-foreground"
+						className="truncate font-mono text-3xs text-muted-foreground"
 						title={nodeId}
 					>
 						{nodeId}
 					</div>
 					{subtitle ? (
-						<div className="truncate text-[11px] text-muted-foreground">
+						<div className="truncate text-2xs text-muted-foreground">
 							{subtitle}
 						</div>
 					) : null}
@@ -209,7 +209,7 @@ export function BaseFlowNode({
 			{children ? (
 				<div
 					className={cn(
-						"px-2.5 py-2 text-[11px] leading-relaxed text-muted-foreground",
+						"px-2.5 py-2 text-2xs leading-relaxed text-muted-foreground",
 						fill && "flex min-h-0 flex-1 flex-col",
 					)}
 				>

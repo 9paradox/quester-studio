@@ -62,7 +62,7 @@ export function NodeHelpDialog({ type }: NodeHelpDialogProps) {
 										Configuration
 									</h3>
 									<div className="overflow-hidden rounded-md border">
-										<table className="w-full text-left text-[11px]">
+										<table className="w-full text-left text-2xs">
 											<thead className="border-b bg-muted/40 text-muted-foreground">
 												<tr>
 													<th className="px-2 py-1.5 font-medium">Field</th>
@@ -99,11 +99,11 @@ export function NodeHelpDialog({ type }: NodeHelpDialogProps) {
 										<h3 className="text-xs font-medium text-muted-foreground">
 											Syntax tips
 										</h3>
-										<ul className="list-inside list-disc space-y-1 text-[11px] text-muted-foreground">
+										<ul className="list-inside list-disc space-y-1 text-2xs text-muted-foreground">
 											{help.syntax.map((tip) => (
 												<li
 													key={tip}
-													className="font-mono text-[10px] text-foreground"
+													className="font-mono text-3xs text-foreground"
 												>
 													{tip}
 												</li>
@@ -117,13 +117,13 @@ export function NodeHelpDialog({ type }: NodeHelpDialogProps) {
 										<h3 className="text-xs font-medium text-muted-foreground">
 											Input / output
 										</h3>
-										<p className="text-[11px] text-muted-foreground">
+										<p className="text-2xs text-muted-foreground">
 											<span className="font-medium text-foreground">
 												Input:
 											</span>{" "}
 											{help.io.input}
 										</p>
-										<p className="text-[11px] text-muted-foreground">
+										<p className="text-2xs text-muted-foreground">
 											<span className="font-medium text-foreground">
 												Output:
 											</span>{" "}
