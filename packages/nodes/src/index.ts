@@ -1,5 +1,8 @@
 ﻿import {
+	apiKeyPlugin,
 	assertPlugin,
+	basicAuthPlugin,
+	bearerPlugin,
 	delayPlugin,
 	extractPlugin,
 	foreachPlugin,
@@ -34,6 +37,9 @@ const builtins = [
 	inputPlugin,
 	formPlugin,
 	httpPlugin,
+	bearerPlugin,
+	basicAuthPlugin,
+	apiKeyPlugin,
 	extractPlugin,
 	templatePlugin,
 	setPlugin,

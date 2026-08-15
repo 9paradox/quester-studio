@@ -1,6 +1,13 @@
 import { httpNodeDataSchema, isCookieJarEnabled } from "@quester-studio/schema";
 import type { CookieJar } from "../cookie-jar.js";
 import type { FlowNodePlugin } from "../types.js";
+import {
+	HTTP_AUTH_HEADERS_VAR,
+	HTTP_AUTH_QUERY_VAR,
+	applyAuthQuery,
+	asStringRecord,
+	setHeaderCaseInsensitive,
+} from "./http-auth-vars.js";
 import { assertHttpUrl } from "./validate-http-url.js";
 
 export type HttpRequestSnapshot = {
@@ -98,16 +105,34 @@ export const httpPlugin: FlowNodePlugin = {
 	type: "http",
 	async execute(ctx) {
 		const data = httpNodeDataSchema.parse(ctx.node.data);
-		const url = ctx.resolveTemplate(data.url);
+		let url = ctx.resolveTemplate(data.url);
+		const inheritAuth = !data.skipInheritedAuth;
+		const authQuery = inheritAuth
+			? asStringRecord(ctx.vars[HTTP_AUTH_QUERY_VAR])
+			: {};
+		if (Object.keys(authQuery).length > 0) {
+			try {
+				url = applyAuthQuery(url, authQuery);
+			} catch {
+				// invalid URL — assertHttpUrl below
+			}
+		}
 		assertHttpUrl(url);
 
 		const headers: Record<string, string> = {};
 		const defaults = ctx.httpDefaults?.defaultHeaders ?? {};
 		for (const [k, v] of Object.entries(defaults)) {
-			headers[k] = ctx.resolveTemplate(v);
+			setHeaderCaseInsensitive(headers, k, ctx.resolveTemplate(v));
+		}
+		if (inheritAuth) {
+			for (const [k, v] of Object.entries(
+				asStringRecord(ctx.vars[HTTP_AUTH_HEADERS_VAR]),
+			)) {
+				setHeaderCaseInsensitive(headers, k, v);
+			}
 		}
 		for (const [k, v] of Object.entries(data.headers)) {
-			headers[k] = ctx.resolveTemplate(v);
+			setHeaderCaseInsensitive(headers, k, ctx.resolveTemplate(v));
 		}
 
 		const jar: CookieJar | undefined =

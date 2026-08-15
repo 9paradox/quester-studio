@@ -28,6 +28,10 @@
       },
       "default": {}
     },
+    "skipInheritedAuth": {
+      "type": "boolean",
+      "default": false
+    },
     "body": {
       "anyOf": [
         {

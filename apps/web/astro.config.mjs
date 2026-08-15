@@ -20,5 +20,7 @@ export default defineConfig({
 		"/cli": "/docs/getting-started/",
 		"/cli/getting-started": "/docs/getting-started/",
 		"/cli/try": "/docs/try/",
+		"/docs/nodes/basicAuth": "/docs/nodes/basic-auth/",
+		"/docs/nodes/apiKey": "/docs/nodes/api-key/",
 	},
 });

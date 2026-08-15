@@ -37,6 +37,9 @@ Read [How flows work](../concepts/) for connection rules, fan-out vs branches, a
 | [input](./input/) | 1 | 1 | Flow run input object |
 | [form](./form/) | 1 | 1 | Submitted field object (pauses until submit) |
 | [http](./http/) | 1 | 1 · fan-out ok | `{ status, body, headers, … }` |
+| [bearer](./bearer/) | 1 | 1 | Passthrough + `httpAuthHeaders` |
+| [basicAuth](./basic-auth/) | 1 | 1 | Passthrough + `httpAuthHeaders` |
+| [apiKey](./api-key/) | 1 | 1 | Passthrough + header or query auth vars |
 | [extract](./extract/) | 1 | 1 | JMESPath result on **wire** |
 | [template](./template/) | 1 | 1 | Rendered string |
 | [set](./set/) | 1 | 1 | Passthrough + `vars` |
@@ -62,7 +65,7 @@ Read [How flows work](../concepts/) for connection rules, fan-out vs branches, a
 2. Nodes run along edges from `start` (branch filters by `sourceHandle`).
 3. Each node receives the previous output as execute input (the wire). JMESPath roots there: `body.id`, not a template.
 4. Run panel / `--input` is `{{input.*}}`. An [`input`](./input/) node places that object on the wire.
-5. `set` updates `vars`.
+5. `set` updates `vars`. [`bearer`](./bearer/), [`basicAuth`](./basic-auth/), and [`apiKey`](./api-key/) also merge reserved HTTP auth vars.
 6. Linear nodes may **fan-out** to several children (same output). Each node (except [`join`](./join/)) may have **at most one** incoming edge.
 
 ## Shared conventions
@@ -83,4 +86,4 @@ start → input → http (login) → extract (body.id) → http (profile) → ou
 | Next needs id from login | extract `body.id` or later `{{nodes.login.body.id}}` |
 | Wrong | Mustache for wire fields with no scope; extract `input.username` when you meant run input |
 
-Samples: `demo-main-nodes.flow.json`, `login-and-profile.flow.json`, `search-pick-cart.flow.json`, `forms-showcase.flow.json`, `nested-frames.flow.json`, `kitchen-sink.flow.json`.
+Samples: `demo-main-nodes.flow.json`, `login-and-profile.flow.json`, `auth-helpers.flow.json`, `search-pick-cart.flow.json`, `forms-showcase.flow.json`, `nested-frames.flow.json`, `kitchen-sink.flow.json`.

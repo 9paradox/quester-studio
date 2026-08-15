@@ -1,6 +1,9 @@
 ﻿import { z } from "zod";
 import { FLOW_VERSION, workspaceFileIdSchema } from "./common.js";
+import { apiKeyNodeDataSchema } from "./nodes/apiKey.js";
 import { assertNodeDataSchema } from "./nodes/assert.js";
+import { basicAuthNodeDataSchema } from "./nodes/basicAuth.js";
+import { bearerNodeDataSchema } from "./nodes/bearer.js";
 import { delayNodeDataSchema } from "./nodes/delay.js";
 import { extractNodeDataSchema } from "./nodes/extract.js";
 import { foreachNodeDataSchema } from "./nodes/foreach.js";
@@ -29,6 +32,9 @@ export const builtinNodeTypes = [
 	"input",
 	"form",
 	"http",
+	"bearer",
+	"basicAuth",
+	"apiKey",
 	"extract",
 	"template",
 	"set",
@@ -56,6 +62,9 @@ const nodeDataByType: Record<BuiltinNodeType, z.ZodTypeAny> = {
 	input: inputNodeDataSchema,
 	form: formNodeDataSchema,
 	http: httpNodeDataSchema,
+	bearer: bearerNodeDataSchema,
+	basicAuth: basicAuthNodeDataSchema,
+	apiKey: apiKeyNodeDataSchema,
 	extract: extractNodeDataSchema,
 	template: templateNodeDataSchema,
 	set: setNodeDataSchema,

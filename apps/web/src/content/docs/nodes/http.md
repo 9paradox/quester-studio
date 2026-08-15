@@ -6,14 +6,21 @@ Sends an HTTP request. URL, headers, and body support [templates](../../template
 
 The previous node’s JSON is available as execute input but is **not** sent unless you template it into `url` / `headers` / `body`. Typical teaching chain: `start → input → http → extract` ([How flows work](../../concepts/)).
 
+Header merge order (later wins, header names compared case-insensitively):
+
+1. Workspace / flow `settings.http.defaultHeaders`
+2. In-run auth vars from [`bearer`](../bearer/) / [`basicAuth`](../basic-auth/) / [`apiKey`](../api-key/) (`httpAuthHeaders`) — applied on **every** HTTP hop after the helper until overwritten, unless this node sets `skipInheritedAuth: true`
+3. This node’s `headers`
+
+Query: `httpAuthQuery` is applied to the resolved URL; **query keys already on the URL win**. Auth helpers do **not** copy the previous node’s `headers` (HTTP responses also have `headers`).
+
+[`subflow`](../subflow/) runs start with empty vars, so parent-flow auth is not inherited.
+
 | Need in this node | Use |
 | --- | --- |
 | Run panel / `--input` field | `{{input.username}}` |
 | Field from an earlier named node | `{{nodes.login.body.token}}` |
 | In a later extract/json on this response | JMESPath `body.id` (wire root) |
-
-
-
 
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
@@ -36,6 +43,7 @@ The previous node’s JSON is available as execute input but is **not** sent unl
 </figure>
 <!-- qs-ports:end -->
 
+
 ## Data
 
 | Field | Type | Default | Description |
@@ -44,6 +52,7 @@ The previous node’s JSON is available as execute input but is **not** sent unl
 | `method` | enum | `"GET"` | `GET` · `POST` · `PUT` · `PATCH` · `DELETE` · `HEAD` · `OPTIONS` |
 | `url` | string | required | Must resolve to `http:` or `https:` |
 | `headers` | object | `{}` | Header name → string (templated) |
+| `skipInheritedAuth` | boolean | `false` | If true, do not apply helper auth headers/query on **this** request. Later HTTP hops still inherit. Workspace default headers still apply. |
 | `body` | string \| object | | Omitted for GET/HEAD at send time |
 
 ## Input / output
@@ -128,6 +137,23 @@ Common template paths:
     "headers": {
       "Authorization": "Bearer {{secrets.API_TOKEN}}"
     }
+  }
+}
+```
+
+### Skip inherited helper auth
+
+Use after a [`bearer`](../bearer/) (or other helper) when this hop should be unauthenticated. Later HTTP nodes still inherit unless they also skip.
+
+```json
+{
+  "id": "listProducts",
+  "type": "http",
+  "data": {
+    "method": "GET",
+    "url": "{{env.API_BASE}}/products?limit=3",
+    "headers": {},
+    "skipInheritedAuth": true
   }
 }
 ```

@@ -1,0 +1,50 @@
+---
+description: Standing desktop UI lessons from plans 18–21 (focus, labels, tokens, selectors)
+globs: apps/desktop/src/renderer/**/*
+alwaysApply: false
+---
+
+# Desktop UI (plans 18–21, standing)
+
+These are **product constraints for all future renderer work**, not only the original review PRs.
+The mechanical “one task per turn / never change behaviour” contract in
+`.cursor/plans/UI-REVIEW-EXECUTION.md` applied only while executing plans 18–21.
+
+## 18 — Focus and control state
+
+- Prefer shadcn `@/components/ui/*` so focus rings come for free.
+- Bespoke controls (tabs, rails, canvas chrome, raw `<button>`) must include `focusRing` from `@/lib/focusRing.js`.
+- Hover-only chrome (`opacity-0 group-hover:opacity-100`) also needs `focus-visible:opacity-100` or `focus-within:opacity-100`.
+- Toggle/rail buttons: `aria-pressed` / `aria-current` as appropriate.
+- Live status belongs in `aria-live` regions (status bar pattern), not only toast text.
+- Dialogs need a title and description (visible or `sr-only`).
+
+## 19 — Form labelling
+
+- Every visible field label uses `htmlFor` pointing at the control `id`.
+- IDs: kebab-case, surface prefix (`inspector-http-url`, `request-url`, `sidebar-flows-search`). Row ids, never array indexes.
+
+## 20 — Design system
+
+- Type: `text-xs` / `text-2xs` / `text-3xs` — no new `text-[9px]` / `text-[10px]` / `text-[11px]`.
+- Color: semantic tokens (`background`, `foreground`, `muted-foreground`, `border`, `warning`, `destructive`). No new `gray-*` / `blue-*` on app chrome.
+- Reuse `EmptyState`, `FieldHint`, `CodeChip`, `SectionHeading`, `SettingsPageLayout` instead of one-off copy blocks.
+- Unsaved: the small primary/warning dot pattern, not a new glyph.
+- New actions: shadcn `Button` / `Alert`, not raw styled `<button>`/`<div>`.
+
+## 21 — Render perf
+
+- One `useQuesterStore` per primitive. Do not subscribe to `selectActiveFlowRun` as an object.
+- Good: `useQuesterStore((s) => selectActiveFlowRun(s).isRunning)`
+- `useShallow` only for genuine collections.
+- Do not add `React.memo` on canvas nodes here — that is plan 17.
+
+## Smoke-test strings
+
+Keep unless the change **is** that UI copy:
+
+- `aria-label="Flows"` / `aria-label="Preferences"` on the activity bar
+- Canvas `Environment` and Run button name `Run`
+- `{n} nodes · {e} edges` (middle dot, un-pluralised `edges`)
+- Welcome `<h1>` `Quester Studio`
+- Preferences category names `Appearance` / `Network`; label `Theme`

@@ -332,7 +332,7 @@ export function HttpFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 			type="http"
 			nodeId={id}
 			title={data.label ?? "HTTP Request"}
-			subtitle={method}
+			subtitle={data.skipInheritedAuth ? `${method} · no auth` : method}
 			selected={selected}
 			runStatus={runStatus}
 			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
@@ -342,6 +342,72 @@ export function HttpFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 				{url || "Set URL in inspector"}
 			</div>
 		</BaseFlowNode>
+	);
+}
+
+export function BearerFlowNode({
+	id,
+	data,
+	selected,
+}: NodeProps<FlowNodeData>) {
+	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
+	return (
+		<BaseFlowNode
+			type="bearer"
+			nodeId={id}
+			title={data.label ?? "Bearer"}
+			subtitle="Bearer"
+			selected={selected}
+			runStatus={runStatus}
+			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+		/>
+	);
+}
+
+export function BasicAuthFlowNode({
+	id,
+	data,
+	selected,
+}: NodeProps<FlowNodeData>) {
+	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
+	return (
+		<BaseFlowNode
+			type="basicAuth"
+			nodeId={id}
+			title={data.label ?? "Basic auth"}
+			subtitle="Basic"
+			selected={selected}
+			runStatus={runStatus}
+			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+		/>
+	);
+}
+
+export function ApiKeyFlowNode({
+	id,
+	data,
+	selected,
+}: NodeProps<FlowNodeData>) {
+	const edges = useEdges();
+	const runStatus = useNodeRunStatus(id);
+	const name = String(data.name ?? "X-Api-Key");
+	const where = String(data.in ?? "header");
+	const subtitle = `${where}: ${name}`;
+	return (
+		<BaseFlowNode
+			type="apiKey"
+			nodeId={id}
+			title={data.label ?? "API key"}
+			subtitle={subtitle}
+			selected={selected}
+			runStatus={runStatus}
+			targetPorts={[{ connected: isHandleConnected(edges, id, "target") }]}
+			sourcePorts={[{ connected: isHandleConnected(edges, id, "source") }]}
+		/>
 	);
 }
 
@@ -893,6 +959,9 @@ export const flowNodeTypes = {
 	start: StartFlowNode,
 	input: InputFlowNode,
 	http: HttpFlowNode,
+	bearer: BearerFlowNode,
+	basicAuth: BasicAuthFlowNode,
+	apiKey: ApiKeyFlowNode,
 	extract: ExtractFlowNode,
 	template: TemplateFlowNode,
 	set: SetFlowNode,

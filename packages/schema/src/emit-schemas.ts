@@ -6,7 +6,10 @@ import { environmentSchemaV1 } from "./environment.js";
 import { flowSchemaV1 } from "./flow.js";
 import { formDefinitionSchemaV1 } from "./form.js";
 import {
+	apiKeyNodeDataSchema,
 	assertNodeDataSchema,
+	basicAuthNodeDataSchema,
+	bearerNodeDataSchema,
 	delayNodeDataSchema,
 	extractNodeDataSchema,
 	foreachNodeDataSchema,
@@ -53,6 +56,9 @@ const specs: [string, unknown][] = [
 	["quester/nodes/input.schema.json", inputNodeDataSchema],
 	["quester/nodes/form.schema.json", formNodeDataSchema],
 	["quester/nodes/http.schema.json", httpNodeDataSchema],
+	["quester/nodes/bearer.schema.json", bearerNodeDataSchema],
+	["quester/nodes/basicAuth.schema.json", basicAuthNodeDataSchema],
+	["quester/nodes/apiKey.schema.json", apiKeyNodeDataSchema],
 	["quester/nodes/extract.schema.json", extractNodeDataSchema],
 	["quester/nodes/template.schema.json", templateNodeDataSchema],
 	["quester/nodes/set.schema.json", setNodeDataSchema],

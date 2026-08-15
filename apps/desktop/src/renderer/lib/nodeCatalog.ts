@@ -18,6 +18,9 @@ import {
 	IconGitBranch,
 	IconGitMerge,
 	IconJson,
+	IconKey,
+	IconLink,
+	IconLock,
 	IconLogs,
 	IconNote,
 	IconRepeat,
@@ -134,6 +137,30 @@ export const nodePresentation: Record<BuiltinNodeType, NodePresentation> = {
 		label: "HTTP",
 		description: "HTTP request",
 		icon: IconWorld,
+		accentTone: "border-l-primary",
+		badgeTone: "bg-primary/15 text-primary",
+	}),
+	bearer: withHelp({
+		type: "bearer",
+		label: "Bearer",
+		description: "Authorization: Bearer token",
+		icon: IconKey,
+		accentTone: "border-l-primary",
+		badgeTone: "bg-primary/15 text-primary",
+	}),
+	basicAuth: withHelp({
+		type: "basicAuth",
+		label: "Basic auth",
+		description: "Authorization: Basic",
+		icon: IconLock,
+		accentTone: "border-l-primary",
+		badgeTone: "bg-primary/15 text-primary",
+	}),
+	apiKey: withHelp({
+		type: "apiKey",
+		label: "API key",
+		description: "API key header or query",
+		icon: IconLink,
 		accentTone: "border-l-primary",
 		badgeTone: "bg-primary/15 text-primary",
 	}),
@@ -259,7 +286,7 @@ const catalogGroupOrder: { title: string; types: BuiltinNodeType[] }[] = [
 	},
 	{ title: "Canvas", types: ["note"] },
 	{ title: "Observability", types: ["log"] },
-	{ title: "HTTP", types: ["http"] },
+	{ title: "HTTP", types: ["http", "bearer", "basicAuth", "apiKey"] },
 	{
 		title: "Transform",
 		types: ["extract", "template", "set", "transform", "merge", "join"],
@@ -320,6 +347,21 @@ export function defaultNodeData(
 				method: "GET",
 				url: "https://example.com",
 				headers: {},
+			};
+		case "bearer":
+			return { label: "Bearer", token: "{{secrets.API_TOKEN}}" };
+		case "basicAuth":
+			return {
+				label: "Basic auth",
+				username: "{{secrets.username}}",
+				password: "{{secrets.password}}",
+			};
+		case "apiKey":
+			return {
+				label: "API key",
+				name: "X-Api-Key",
+				value: "{{secrets.API_TOKEN}}",
+				in: "header",
 			};
 		case "extract":
 			return { label: "Extract", expression: "body" };
