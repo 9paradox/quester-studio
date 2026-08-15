@@ -1,30 +1,36 @@
 ---
 title: Who it’s for
-description: Scenario API testing for developers, testers, and business analysts sharing one workspace
+description: Where Quester Studio fits — local debug, mid-flow forms, mixed teams, and CLI in CI
 ---
 
-Quester Studio is for **mixed teams** that need more than a request collection: real API journeys with chaining, branching, asserts, and continuous integration — as readable flow files in git.
+Quester Studio is a local desktop app (and CLI) for **multi-step API journeys**. Flows are JSON files in a workspace folder. This page is about where that is useful, not a pitch.
 
-## Developers
+## Local debug
 
-- Reproduce multi-step bugs locally (auth → call → assert)
-- Wire extracts and templates between HTTP steps
-- Run the same `*.flow.json` from desktop or CLI while debugging
+Reproduce a failing chain on your machine: login, then the next call with the token, then an [assert](../nodes/assert/). Environments and gitignored secrets stay in the workspace. The same `*.flow.json` files run from the desktop app or the CLI while you debug.
 
-## Testers
+## Mid-flow forms
 
-- Author regression scenarios as graphs with [assert](../nodes/assert/) checkpoints
-- Run single flows or suites from the CLI in continuous integration
-- Review optional [on-disk run logs](../run-logs/) with per-step input and output
+Some journeys need a human choice after a response comes back. Example: search products, pick one from the list, then add it to a cart.
 
-## Business analysts
+A [`form`](../nodes/form/) node pauses the run until you submit in the desktop UI (or pass `--forms` on the CLI). Select options can be filled from a previous HTTP body. The sample workspace includes `search-pick-cart` and `forms-showcase`.
 
-- Follow the business path on the canvas (login → profile → next action)
-- Use [note](../nodes/note/) stickies to document intent without affecting execution
-- Share the same workspace folder developers and testers already use
+This is different from the [`input`](../nodes/input/) node, which is the payload at the **start** of a run.
 
-## Shared workspace
+## Mixed team, one folder
 
-One folder with `quester.json`, environments, and flows. Developers edit wiring, testers strengthen asserts, business analysts keep the story readable — all without forking into separate scripts or siloed collections.
+One workspace with `quester.json`, environments, flows, collections, and forms.
 
-See the [Guide](../../guide/) for a first successful run of `login-and-profile`, or [Getting started](../getting-started/) for the CLI.
+- Developers wire extracts and templates between HTTP steps.
+- Testers add asserts and run suites from the CLI in continuous integration.
+- People who are not writing scripts can follow the path on the canvas. Optional [`note`](../nodes/note/) stickies document intent and are not executed.
+
+## Continuous integration
+
+`quester validate` and `quester run` / suites use the same files as the app. Optional [on-disk run logs](../run-logs/) keep per-step input and output for review.
+
+## From a collection to a journey
+
+Import a request collection into the workspace, then chain what used to be separate requests into one flow the team keeps in git.
+
+See the [Guide](../../guide/) for a first successful run of `login-and-profile`, then `search-pick-cart` for forms. CLI: [Getting started](../getting-started/).
