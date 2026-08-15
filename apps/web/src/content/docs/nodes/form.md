@@ -10,25 +10,31 @@ Unlike [`input`](../input/), forms are interactive mid-flow wait points. Field d
 Author forms under `forms/*.form.json` — see [Workspace files](../../workspace/#forms-formjson).
 
 
+
+
+
+
+
+
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
-<svg class="qs-svg" viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="form pause ports">
+<svg class="qs-svg" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="form pause ports">
 <defs>
   <marker id="qs-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
     <path d="M0,0 L8,4 L0,8 Z" fill="var(--qs-faint)"/>
   </marker>
 </defs>
-  <circle class="qs-port" cx="48" cy="70" r="6"/>
-  <text class="qs-caption" x="48" y="100" text-anchor="middle">in ×1</text>
-  <line class="qs-edge" x1="54" y1="70" x2="130" y2="70"/>
-  <rect class="qs-node qs-node-accent" x="130" y="40" width="200" height="60" rx="8"/>
-  <text class="qs-label" x="230" y="75" text-anchor="middle">form</text>
-  <rect class="qs-badge" x="168" y="48" width="52" height="18" rx="4"/>
-  <text class="qs-badge-text" x="194" y="60" text-anchor="middle">await</text>
-  <line class="qs-edge" x1="330" y1="70" x2="406" y2="70"/>
-  <circle class="qs-port" cx="412" cy="70" r="6"/>
-  <text class="qs-caption" x="412" y="100" text-anchor="middle">out ×1</text>
-  <text class="qs-caption" x="280" y="138" text-anchor="middle">Run pauses until Submit (desktop) or --forms map (CLI)</text>
+  <circle class="qs-port" cx="40" cy="62" r="6"/>
+  <text class="qs-caption" x="40" y="88" text-anchor="middle">in</text>
+  <line class="qs-edge" x1="46" y1="62" x2="118" y2="62"/>
+  <rect class="qs-node qs-node-accent" x="118" y="36" width="180" height="52" rx="8"/>
+  <text class="qs-label" x="208" y="68" text-anchor="middle">form</text>
+  <rect class="qs-badge" x="248" y="42" width="42" height="16" rx="4"/>
+  <text class="qs-badge-text" x="269" y="53" text-anchor="middle">await</text>
+  <line class="qs-edge" x1="298" y1="62" x2="370" y2="62"/>
+  <circle class="qs-port" cx="376" cy="62" r="6"/>
+  <text class="qs-caption" x="376" y="88" text-anchor="middle">out</text>
+  <text class="qs-caption" x="260" y="118" text-anchor="middle">Pauses until Submit (desktop) or --forms (CLI)</text>
 </svg>
 <figcaption>Pauses until submit (desktop UI or CLI --forms). Output is the submitted field object.</figcaption>
 </figure>

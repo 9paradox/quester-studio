@@ -56,7 +56,9 @@ for (const name of readdirSync(nodesDir)) {
 		continue;
 	}
 
-	const portBlock = `${MARK_PORTS_START}\n${portSvg(type, type)}\n${MARK_PORTS_END}\n\n`;
+	const portBlock = FRAMED.has(type)
+		? ""
+		: `${MARK_PORTS_START}\n${portSvg(type, type)}\n${MARK_PORTS_END}\n\n`;
 	const frameBlock = FRAMED.has(type)
 		? `${MARK_FRAME_START}\n${frameSvg(type as "try" | "foreach", type)}\n${MARK_FRAME_END}\n\n`
 		: "";
