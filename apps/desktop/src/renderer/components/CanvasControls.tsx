@@ -41,14 +41,20 @@ export function CanvasControls({
 		<div className="pointer-events-none absolute right-3 top-3 z-10">
 			<div className="pointer-events-auto flex items-center gap-2 rounded-md border bg-background/95 px-2 py-1.5 shadow-sm backdrop-blur-sm">
 				<div className="flex flex-col gap-0.5">
-					<span className="text-[10px] leading-none text-muted-foreground">
+					<span
+						id="canvas-env-label"
+						className="text-[10px] leading-none text-muted-foreground"
+					>
 						Environment
 					</span>
 					<Select
 						value={selectedEnv}
 						onValueChange={(v) => v && onEnvChange(v)}
 					>
-						<SelectTrigger className="h-7 w-[100px] text-xs">
+						<SelectTrigger
+							className="h-7 w-[100px] text-xs"
+							aria-labelledby="canvas-env-label"
+						>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>

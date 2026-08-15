@@ -164,10 +164,11 @@ function ResolvedFieldControl({
 }) {
 	const label = field.label ?? field.id;
 	const disabled = field.readonly;
+	const controlId = `form-await-${field.id}`;
 
 	return (
 		<div className="flex flex-col gap-1.5">
-			<Label className="text-xs">
+			<Label htmlFor={controlId} className="text-xs">
 				{label}
 				{field.required ? <span className="text-destructive"> *</span> : null}
 			</Label>
@@ -185,7 +186,7 @@ function ResolvedFieldControl({
 					}}
 					disabled={disabled}
 				>
-					<SelectTrigger className="w-full">
+					<SelectTrigger id={controlId} className="w-full">
 						<SelectValue placeholder="Select…" />
 					</SelectTrigger>
 					<SelectContent>
@@ -205,7 +206,7 @@ function ResolvedFieldControl({
 					}}
 					disabled={disabled}
 				>
-					<SelectTrigger className="w-full">
+					<SelectTrigger id={controlId} className="w-full">
 						<SelectValue placeholder={field.placeholder ?? "Select…"} />
 					</SelectTrigger>
 					<SelectContent>
@@ -218,6 +219,7 @@ function ResolvedFieldControl({
 				</Select>
 			) : field.type === "json" ? (
 				<Textarea
+					id={controlId}
 					value={
 						typeof value === "string"
 							? value
@@ -240,6 +242,7 @@ function ResolvedFieldControl({
 				/>
 			) : field.type === "number" ? (
 				<Input
+					id={controlId}
 					type="number"
 					value={value == null ? "" : String(value)}
 					onChange={(e) => {
@@ -256,6 +259,7 @@ function ResolvedFieldControl({
 				/>
 			) : (
 				<Input
+					id={controlId}
 					value={value == null ? "" : String(value)}
 					onChange={(e) => onChange(e.target.value)}
 					disabled={disabled}
