@@ -13,6 +13,7 @@ export type PortKind =
 	| "branch2"
 	| "branchN"
 	| "multiIn"
+	| "frameOuter"
 	| "sourceOnly"
 	| "targetOnly"
 	| "formPause";
@@ -79,16 +80,18 @@ export const NODE_PORTS: Record<
 	},
 	delay: { in: "1", out: "1", kind: "one", blurb: "Sleep, then passthrough." },
 	foreach: {
-		in: "1",
-		out: "complete",
-		kind: "branch2",
-		blurb: "Framed loop container — see frame diagram below.",
+		in: "1 (header left)",
+		out: "complete (header right)",
+		kind: "frameOuter",
+		blurb:
+			"Framed loop container — outer ports on the header; entry/exit on the inner body border.",
 	},
 	try: {
-		in: "1",
-		out: "success · failed",
-		kind: "branch2",
-		blurb: "Framed exception boundary — see frame diagram below.",
+		in: "1 (header left)",
+		out: "success · failed (header right)",
+		kind: "frameOuter",
+		blurb:
+			"Framed exception boundary — outer ports on the header; entry/exit on the inner body border.",
 	},
 	subflow: { in: "1", out: "1", kind: "one", blurb: "Calls another flow." },
 	output: {
@@ -185,28 +188,7 @@ ${DIAGRAM_DEFS}
 	}
 
 	if (kind === "branch2") {
-		const [a, b] =
-			type === "try"
-				? ["success", "failed"]
-				: type === "foreach"
-					? ["complete", ""]
-					: ["true", "false"];
-		if (type === "foreach") {
-			return `<figure class="qs-diagram">
-<svg class="qs-svg" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} ports">
-${DIAGRAM_DEFS}
-  <circle class="qs-port" cx="48" cy="75" r="6"/>
-  <text class="qs-caption" x="48" y="108" text-anchor="middle">in ×1</text>
-  <line class="qs-edge" x1="54" y1="75" x2="140" y2="75"/>
-  <rect class="qs-node qs-node-accent" x="140" y="45" width="140" height="60" rx="8"/>
-  <text class="qs-label" x="210" y="81" text-anchor="middle">${title}</text>
-  <line class="qs-edge qs-edge-ok" x1="280" y1="75" x2="400" y2="75"/>
-  <circle class="qs-port" cx="406" cy="75" r="6"/>
-  <text class="qs-caption" x="460" y="79">${a}</text>
-</svg>
-<figcaption>${meta.blurb}</figcaption>
-</figure>`;
-		}
+		const [a, b] = ["true", "false"];
 		return `<figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} branch ports">
 ${DIAGRAM_DEFS}
@@ -223,6 +205,42 @@ ${DIAGRAM_DEFS}
   <text class="qs-caption" x="460" y="134">${b}</text>
 </svg>
 <figcaption>${meta.blurb} Connect edges with matching <code>sourceHandle</code>.</figcaption>
+</figure>`;
+	}
+
+	if (kind === "frameOuter") {
+		const isTry = type === "try";
+		const outerOuts = isTry
+			? [
+					{ y: 46, label: "success", cls: "qs-edge-ok" },
+					{ y: 72, label: "failed", cls: "" },
+				]
+			: [{ y: 58, label: "complete", cls: "qs-edge-ok" }];
+		const outerPaths = outerOuts
+			.map(
+				(o) => `
+  <circle class="qs-port" cx="418" cy="${o.y}" r="5"/>
+  <text class="qs-caption" x="448" y="${o.y + 4}">${o.label}</text>
+  <line class="qs-edge ${o.cls}" x1="424" y1="${o.y}" x2="470" y2="${o.y}"/>
+  <circle class="qs-port" cx="476" cy="${o.y}" r="5"/>`,
+			)
+			.join("");
+		return `<figure class="qs-diagram">
+<svg class="qs-svg" viewBox="0 0 540 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} outer frame ports">
+${DIAGRAM_DEFS}
+  <text class="qs-caption" x="270" y="18" text-anchor="middle">Outside wires use header ports only — not body entry/exit</text>
+  <line class="qs-edge" x1="36" y1="58" x2="88" y2="58"/>
+  <circle class="qs-port" cx="30" cy="58" r="5"/>
+  <text class="qs-caption" x="30" y="82" text-anchor="middle">in</text>
+  <rect class="qs-node qs-node-accent" x="88" y="36" width="330" height="118" rx="8" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
+  <rect class="qs-node qs-node-accent" x="88" y="36" width="330" height="30" rx="8"/>
+  <rect x="88" y="54" width="330" height="12" fill="color-mix(in oklch, var(--qs-accent) 8%, var(--qs-surface))" stroke="none"/>
+  <text class="qs-label" x="110" y="56">${title}</text>
+  <circle class="qs-port" cx="88" cy="58" r="5"/>${outerPaths}
+  <rect class="qs-node" x="104" y="78" width="298" height="60" rx="6" stroke-dasharray="4 3" fill="none"/>
+  <text class="qs-caption" x="253" y="112" text-anchor="middle">inner body · entry → … → exit</text>
+</svg>
+<figcaption>${meta.blurb} See the frame wiring diagram below.</figcaption>
 </figure>`;
 	}
 
@@ -304,47 +322,53 @@ ${DIAGRAM_DEFS}
 </figure>`;
 }
 
-/** Framed subgraph container — try / foreach entry/exit wiring. */
+/** Framed subgraph container — try / foreach entry/exit wiring (matches desktop canvas). */
 export function frameSvg(type: "try" | "foreach", title = type): string {
-	const outerOut =
-		type === "try"
-			? [
-					{ y: 58, label: "success", cls: "qs-edge-ok" },
-					{ y: 118, label: "failed", cls: "" },
-				]
-			: [{ y: 88, label: "complete", cls: "qs-edge-ok" }];
-	const outerOutPaths = outerOut
+	const isTry = type === "try";
+	const outerOuts = isTry
+		? [
+				{ y: 44, label: "success", cls: "qs-edge-ok" },
+				{ y: 70, label: "failed", cls: "" },
+			]
+		: [{ y: 56, label: "complete", cls: "qs-edge-ok" }];
+	const outerOutPaths = outerOuts
 		.map(
 			(o) => `
-  <path class="qs-edge ${o.cls}" d="M520 ${o.y - 8} H560 V${o.y} H610"/>
-  <circle class="qs-port" cx="616" cy="${o.y}" r="6"/>
-  <text class="qs-caption" x="660" y="${o.y + 4}">${o.label}</text>`,
+  <line class="qs-edge ${o.cls}" x1="548" y1="${o.y}" x2="598" y2="${o.y}"/>
+  <circle class="qs-port" cx="604" cy="${o.y}" r="6"/>
+  <text class="qs-caption" x="648" y="${o.y + 4}">${o.label}</text>`,
 		)
 		.join("");
-	const caption =
-		type === "try"
-			? "Outside wires attach to the frame only. Body runs entry → … → exit once; throws take <code>failed</code>."
-			: "Resolve <code>items</code>, run body per element via entry → … → exit, then continue on <code>complete</code> with collected results.";
+	const caption = isTry
+		? "<code>in</code> and header <code>success</code>/<code>failed</code> are outside. Body wires use inner <code>entry</code> (source) → child → <code>exit</code> (target)."
+		: "Resolve <code>items</code>, run inner <code>entry</code> → body → <code>exit</code> per item, then continue on header <code>complete</code>.";
 
 	return `<figure class="qs-diagram">
-<svg class="qs-svg" viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} framed container">
+<svg class="qs-svg" viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} framed container wiring">
 ${DIAGRAM_DEFS}
-  <circle class="qs-port" cx="36" cy="110" r="6"/>
-  <text class="qs-caption" x="36" y="148" text-anchor="middle">in</text>
-  <line class="qs-edge" x1="42" y1="110" x2="88" y2="110"/>
-  <rect class="qs-node qs-node-accent" x="88" y="32" width="432" height="156" rx="10" fill="color-mix(in oklch, var(--qs-accent) 6%, var(--qs-surface))"/>
-  <rect class="qs-node qs-node-accent" x="88" y="32" width="432" height="28" rx="10"/>
-  <rect class="qs-node qs-node-accent" x="88" y="48" width="432" height="12" rx="0" fill="color-mix(in oklch, var(--qs-accent) 10%, var(--qs-surface))"/>
-  <text class="qs-label" x="120" y="52">${title} frame</text>
-  <circle class="qs-port" cx="120" cy="168" r="5"/>
-  <text class="qs-caption" x="120" y="192" text-anchor="middle">entry</text>
-  <line class="qs-edge qs-edge-ok" x1="126" y1="168" x2="200" y2="168"/>
-  <rect class="qs-node" x="200" y="144" width="120" height="48" rx="8"/>
-  <text class="qs-label" x="260" y="174" text-anchor="middle">body</text>
-  <line class="qs-edge qs-edge-ok" x1="320" y1="168" x2="394" y2="168"/>
-  <circle class="qs-port" cx="400" cy="168" r="5"/>
-  <text class="qs-caption" x="400" y="192" text-anchor="middle">exit</text>
-  <text class="qs-caption" x="304" y="128" text-anchor="middle">children · parentId → frame</text>${outerOutPaths}
+  <text class="qs-caption" x="360" y="18" text-anchor="middle">Matches desktop: header ports outside · entry/exit on inner body border</text>
+  <line class="qs-edge" x1="24" y1="56" x2="88" y2="56"/>
+  <circle class="qs-port" cx="18" cy="56" r="6"/>
+  <text class="qs-caption" x="18" y="78" text-anchor="middle">in</text>
+  <rect class="qs-node qs-node-accent" x="88" y="32" width="460" height="188" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
+  <rect class="qs-node qs-node-accent" x="88" y="32" width="460" height="32" rx="10"/>
+  <rect x="88" y="52" width="460" height="12" fill="color-mix(in oklch, var(--qs-accent) 10%, var(--qs-surface))" stroke="none"/>
+  <text class="qs-label" x="110" y="54">${title}</text>
+  <circle class="qs-port" cx="88" cy="56" r="6"/>
+  <circle class="qs-port" cx="542" cy="${isTry ? 44 : 56}" r="6"/>${outerOutPaths}
+  <rect class="qs-node" x="104" y="78" width="428" height="128" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 4%, var(--qs-surface))"/>
+  <text class="qs-caption" x="318" y="96" text-anchor="middle">body area (children use parentId)</text>
+  <circle class="qs-port" cx="118" cy="158" r="6"/>
+  <text class="qs-caption" x="118" y="182" text-anchor="middle">entry</text>
+  <text class="qs-caption" x="118" y="196" text-anchor="middle">source →</text>
+  <line class="qs-edge qs-edge-ok" x1="124" y1="158" x2="248" y2="158"/>
+  <rect class="qs-node" x="248" y="134" width="120" height="48" rx="8"/>
+  <text class="qs-label" x="308" y="164" text-anchor="middle">child</text>
+  <line class="qs-edge qs-edge-ok" x1="368" y1="158" x2="492" y2="158"/>
+  <circle class="qs-port" cx="518" cy="158" r="6"/>
+  <text class="qs-caption" x="518" y="182" text-anchor="middle">exit</text>
+  <text class="qs-caption" x="518" y="196" text-anchor="middle">← target</text>
+  <text class="qs-mono" x="360" y="228" text-anchor="middle" style="font-size:10px">sourceHandle: "entry" · targetHandle: "exit"</text>
 </svg>
 <figcaption>${caption}</figcaption>
 </figure>`;
