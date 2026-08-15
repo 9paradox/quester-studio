@@ -47,6 +47,11 @@
 	--font-sans: "Geist Variable", sans-serif;
 }
 
+@theme {
+	--text-2xs: 0.6875rem; /* 11px — dense metadata, hints, chips */
+	--text-3xs: 0.625rem; /* 10px — uppercase column heads, node badges */
+}
+
 @layer base {
 	.theme {
 		--font-heading: var(--font-sans);
