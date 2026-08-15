@@ -265,7 +265,7 @@ export function PrimarySidebar() {
 			style={{ width }}
 			className="flex h-full min-h-0 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground"
 		>
-			<div className="shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/70">
+			<div className="flex h-9 shrink-0 items-center px-3 text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/70">
 				{viewTitle(view)}
 			</div>
 			<Separator className="shrink-0 bg-sidebar-border" />
