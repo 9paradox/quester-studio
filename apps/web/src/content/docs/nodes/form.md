@@ -18,16 +18,16 @@ Author forms under `forms/*.form.json` — see [Workspace files](../../workspace
   </marker>
 </defs>
   <circle class="qs-port" cx="40" cy="62" r="6"/>
-  <text class="qs-caption" x="40" y="88" text-anchor="middle">in</text>
+  <text class="qs-caption qs-text-below" x="40" y="74" text-anchor="middle">in</text>
   <line class="qs-edge" x1="46" y1="62" x2="118" y2="62"/>
   <rect class="qs-node qs-node-accent" x="118" y="36" width="180" height="52" rx="8"/>
-  <text class="qs-label" x="208" y="68" text-anchor="middle">form</text>
+  <text class="qs-label qs-text-aligned" x="196" y="62" text-anchor="middle">form</text>
   <rect class="qs-badge" x="248" y="42" width="42" height="16" rx="4"/>
-  <text class="qs-badge-text" x="269" y="53" text-anchor="middle">await</text>
+  <text class="qs-badge-text qs-text-aligned" x="269" y="50" text-anchor="middle">await</text>
   <line class="qs-edge" x1="298" y1="62" x2="370" y2="62"/>
   <circle class="qs-port" cx="376" cy="62" r="6"/>
-  <text class="qs-caption" x="376" y="88" text-anchor="middle">out</text>
-  <text class="qs-caption" x="260" y="118" text-anchor="middle">Pauses until Submit (desktop) or --forms (CLI)</text>
+  <text class="qs-caption qs-text-below" x="376" y="74" text-anchor="middle">out</text>
+  <text class="qs-caption qs-text-aligned" x="260" y="118" text-anchor="middle">Pauses until Submit (desktop) or --forms (CLI)</text>
 </svg>
 <figcaption>Pauses until submit (desktop UI or CLI --forms). Output is the submitted field object.</figcaption>
 </figure>

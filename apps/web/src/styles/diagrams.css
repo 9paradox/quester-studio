@@ -162,6 +162,16 @@
 	fill: var(--qs-ink);
 	font-size: 14px;
 	font-weight: 600;
+	dominant-baseline: central;
+}
+
+.qs-diagram-frame .qs-svg text,
+.qs-diagram .qs-svg text.qs-text-aligned {
+	dominant-baseline: central;
+}
+
+.qs-diagram .qs-text-below {
+	dominant-baseline: hanging;
 }
 
 .qs-diagram-sm .qs-label {
@@ -172,6 +182,7 @@
 	fill: var(--qs-muted);
 	font-size: 11px;
 	font-weight: 500;
+	dominant-baseline: central;
 }
 
 .qs-diagram .qs-data {
@@ -186,6 +197,7 @@
 	font-family: ui-monospace, "Cascadia Code", monospace;
 	font-size: 12px;
 	font-weight: 500;
+	dominant-baseline: central;
 }
 
 .qs-diagram .qs-edge {
@@ -225,6 +237,7 @@
 	fill: var(--qs-ink);
 	font-size: 10px;
 	font-weight: 600;
+	dominant-baseline: central;
 }
 
 .qs-diagram .qs-x {
