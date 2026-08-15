@@ -92,7 +92,10 @@ export function StatusBar() {
 					<>
 						<span className="text-border">|</span>
 						<span className="inline-flex items-center gap-1 text-primary">
-							<IconLoader2 className="size-3 animate-spin" aria-hidden />
+							<IconLoader2
+								className="size-3 animate-spin motion-reduce:animate-none"
+								aria-hidden
+							/>
 							Indexing paths…
 						</span>
 					</>

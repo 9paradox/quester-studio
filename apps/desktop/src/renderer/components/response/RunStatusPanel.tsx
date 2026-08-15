@@ -63,7 +63,7 @@ function TimelineMarker({ status }: { status: NodeRunStatus }) {
 	if (status === "running") {
 		return (
 			<IconLoader2
-				className="size-3.5 shrink-0 animate-spin text-primary"
+				className="size-3.5 shrink-0 animate-spin motion-reduce:animate-none text-primary"
 				aria-hidden
 			/>
 		);

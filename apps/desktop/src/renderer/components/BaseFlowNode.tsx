@@ -238,7 +238,10 @@ function NodeStatusIndicator({ status }: { status: NodeRunStatus }) {
 				type="button"
 			>
 				{status === "running" ? (
-					<IconLoader2 className="size-3.5 animate-spin" aria-hidden />
+					<IconLoader2
+						className="size-3.5 animate-spin motion-reduce:animate-none"
+						aria-hidden
+					/>
 				) : null}
 				{status === "awaiting_form" ? (
 					<IconForms className="size-3.5" aria-hidden />
