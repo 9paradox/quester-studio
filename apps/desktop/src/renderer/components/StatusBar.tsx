@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button.js";
+import { formatKeyBinding, setCommandPaletteOpen } from "@/lib/commands.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
 	selectActiveFlowRun,
@@ -8,7 +9,7 @@ import {
 	selectSendingRequestCount,
 	selectStatusLabel,
 } from "@/stores/selectors.js";
-import { IconLoader2, IconPlayerStop } from "@tabler/icons-react";
+import { IconLoader2, IconPlayerStop, IconSearch } from "@tabler/icons-react";
 
 function formatActivityLabel(
 	runningFlows: number,
@@ -110,6 +111,20 @@ export function StatusBar() {
 				) : null}
 			</output>
 			<div className="flex shrink-0 items-center gap-2">
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="h-5 gap-1.5 px-1.5 text-2xs"
+					aria-label="Command palette"
+					onClick={() => setCommandPaletteOpen(true)}
+				>
+					<IconSearch className="size-3" data-icon="inline-start" aria-hidden />
+					{formatKeyBinding("mod+shift+p")}
+				</Button>
+				<span className="text-border" aria-hidden>
+					|
+				</span>
 				<span>
 					{nodeCount} nodes · {edgeCount} edges
 				</span>

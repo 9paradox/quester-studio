@@ -1,7 +1,7 @@
 # Plan 06 — Desktop canvas, DnD, nodes UI
 
 **Priority:** 6  
-**Status:** after plan 01  
+**Status:** complete (user confirmed X/Y/Z)  
 **ROADMAP:** §3 Builders (DnD, nodes UI) + Canvas & editor  
 
 ## Goal
@@ -25,9 +25,9 @@ None hard. Forms/code DnD consummated in 12/13.
 - [x] Inspector depth — clear per-node forms; fewer dead ends  
 - [x] Per-flow console lines (fix global `consoleLines` gap)  
 - [x] Template / JMESPath assist polish beyond v1  
-- [ ] Command palette + shortcuts coverage  
-- [ ] Preferences discoverability  
-- [ ] Welcome / empty / error states  
+- [x] Command palette + shortcuts coverage  
+- [x] Preferences discoverability  
+- [x] Welcome / empty / error states  
 
 ## Done when
 
@@ -39,12 +39,15 @@ Dragging a flow from the sidebar has a documented, working behavior; node visual
 
 When this plan’s work is done and automated tests/lint pass, **ask the user** to manually verify:
 
-- [ ] **X** — Drag a flow from the sidebar onto the canvas — documented UX (open tab vs `subflow`) works as specified.
-- [ ] **Y** — Node chrome/states (selected / running / error) are readable; selection, multi-select, and edge editing feel usable.
-- [ ] **Z** — Console lines stay per-flow; inspector / palette / welcome empty states have no obvious dead ends.
+- [x] **X** — Drag a flow from the sidebar onto the canvas — documented UX (open tab vs `subflow`) works as specified.
+- [x] **Y** — Node chrome/states (selected / running / error) are readable; selection, multi-select, and edge editing feel usable.
+- [x] **Z** — Console lines stay per-flow; inspector / palette / welcome empty states have no obvious dead ends.
 
 Do not treat the plan as fully closed until the user confirms (or explicitly skips) these checks.
 
 ## Skills
 
 `quester-desktop`, `shadcn-ui`
+
+Standing UI bar from plans 18–21 (focus, labels, tokens, selectors) applies — see
+`.cursor/rules/desktop-ui-review.mdc`.

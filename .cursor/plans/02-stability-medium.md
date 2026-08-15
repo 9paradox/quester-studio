@@ -1,7 +1,7 @@
 # Plan 02 — Stability (medium)
 
 **Priority:** 2  
-**Status:** code complete (awaiting user X/Y/Z confirm)  
+**Status:** complete (user confirmed X/Y/Z); ROADMAP ongoing hardening still open  
 **ROADMAP:** §1 Stability — Medium + Ongoing  
 **BUGS:** B9–B15, B17  
 
@@ -56,9 +56,9 @@ Each bug has a fix PR or an explicit “wontfix / superseded by plan 09” note 
 
 When this plan’s work is done and automated tests/lint pass, **ask the user** to manually verify:
 
-- [ ] **X** — `delay` aborts on Stop/cancel and rejects absurd `ms`; unsafe flow/env/secrets path ids are rejected.
-- [ ] **Y** — Cookie jar respects final URL + Secure/Path; CLI uses `environmentsDir` + shared jar like desktop; sample sync excludes `*.secrets.json`.
-- [ ] **Z** — Template `mode: "safe"` rejects Eta tags; default `eta` still works; SECURITY / docs match; B13 wording is clear until plan 09 (or noted superseded).
+- [x] **X** — `delay` aborts on Stop/cancel and rejects absurd `ms`; unsafe flow/env/secrets path ids are rejected.
+- [x] **Y** — Cookie jar respects final URL + Secure/Path; CLI uses `environmentsDir` + shared jar like desktop; sample sync excludes `*.secrets.json`.
+- [x] **Z** — Template `mode: "safe"` rejects Eta tags; default `eta` still works; SECURITY / docs match; B13 wording is clear until plan 09 (or noted superseded).
 
 Do not treat the plan as fully closed until the user confirms (or explicitly skips) these checks.
 

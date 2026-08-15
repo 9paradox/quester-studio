@@ -4,6 +4,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip.js";
+import { useSyncNodeMeasuredSize } from "@/hooks/use-sync-node-measured-size.js";
 import { getNodePresentation } from "@/lib/nodeCatalog.js";
 import { cn } from "@/lib/utils.js";
 import type { BuiltinNodeType } from "@quester-studio/schema";
@@ -89,6 +90,7 @@ export function BaseFlowNode({
 	const presentation = getNodePresentation(type);
 	const TypeIcon = presentation.icon;
 	const updateNodeInternals = useUpdateNodeInternals();
+	const sizeRef = useSyncNodeMeasuredSize(nodeId);
 	const labeledSources = sourcePorts.some((p) => Boolean(p.label ?? p.id));
 	const headerPad =
 		sourcePortPlacement === "header" && sourcePorts.length > 0
@@ -123,6 +125,7 @@ export function BaseFlowNode({
 
 	return (
 		<div
+			ref={sizeRef}
 			className={cn(
 				"relative rounded-lg border bg-card text-card-foreground transition-[box-shadow,opacity,transform] duration-200",
 				sourcePortPlacement === "header"

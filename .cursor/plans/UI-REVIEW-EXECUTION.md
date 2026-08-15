@@ -4,6 +4,12 @@ Read this **once** before starting plan 18, 19, 20, or 21. These four plans came
 engineering review of `apps/desktop/src/renderer`. They are written to be executed mechanically,
 one task at a time, by a small/cheap model.
 
+**After 18–21 landed:** keep the *product* lessons (focus rings, labelled fields, type-scale
+tokens, narrow zustand selectors) on all later desktop UI work. That standing list lives in
+`.cursor/rules/desktop-ui-review.mdc`. This file’s “never change behaviour / exact smoke strings”
+rules applied **only while executing 18–21**. Later plans may change copy and behaviour on purpose
+(update the smoke test in the same change).
+
 ## The contract
 
 1. **One task per turn.** Do task `T1`, verify, commit. Then `T2`. Never batch tasks.

@@ -25,7 +25,7 @@ New viewer product UX (plan 04/07) — land those first; this plan hardens virtu
 - [ ] Performant JSON viewer hardening — virtualize / lazy parse on plan 04 foundations  
 - [ ] Lazy / truncate on-canvas `json` / `inspect` viewers  
 - [ ] Engine — big responses, long suites; sensible default `maxResponseBytes`  
-- [ ] Cut unnecessary re-renders / IPC chatter on run status  
+- [x] Cut unnecessary re-renders / IPC chatter on run status — **retired by plan 21** ([#138](https://github.com/9paradox/quester-studio/pull/138))  
 - [ ] Fast workspace load (many flows / collections / run history)  
 - [ ] CLI suite performance for CI-scale smoke  
 - [ ] Fold in any interim perf notes / TODOs left by plans 04–16  

@@ -22,6 +22,7 @@ Read [CONTRIBUTING.md](../../CONTRIBUTING.md) for full details.
 
 ## Pull requests
 
+- Before push/PR: `bun run check` plus a local smoke of the changed app/web/CLI (see `local-before-github`)
 - PR title = squash commit message (Conventional Commit format)
 - Reference issues: `Fixes #N` or `Refs #N`
 - User-facing changes need `.changeset/*.md` in the same PR

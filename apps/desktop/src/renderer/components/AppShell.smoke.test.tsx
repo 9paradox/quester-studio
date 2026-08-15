@@ -80,6 +80,12 @@ describe("renderer smoke", () => {
 		expect(
 			screen.getByRole("button", { name: /open sample/i }),
 		).toBeInTheDocument();
+		expect(
+			screen.getAllByRole("button", { name: /command palette/i }).length,
+		).toBeGreaterThan(0);
+		expect(
+			screen.getAllByRole("button", { name: /preferences/i }).length,
+		).toBeGreaterThan(0);
 	});
 
 	test("mounts AppShell and opens flow UI without crashing", async () => {
@@ -161,9 +167,7 @@ describe("renderer smoke", () => {
 		});
 
 		await waitFor(() => {
-			expect(
-				screen.getByText("Select a file from the sidebar"),
-			).toBeInTheDocument();
+			expect(screen.getByText("No file open")).toBeInTheDocument();
 		});
 	});
 });

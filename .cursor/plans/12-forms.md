@@ -1,7 +1,7 @@
 # Plan 12 — Forms
 
 **Priority:** 12  
-**Status:** implemented (await user X/Y/Z)  
+**Status:** complete (user confirmed X/Y/Z)  
 **ROADMAP:** §3 Forms builder + §6 Forms & custom code (`form` node)  
 
 ## Goal
@@ -34,9 +34,9 @@ Create a form → drop on canvas → run with UI fields or CLI JSON; mid-flow wa
 
 When this plan’s work is done and automated tests/lint pass, **ask the user** to manually verify:
 
-- [ ] **X** — Create/edit a form under Forms; file lands on disk and lists/reloads correctly.
-- [ ] **Y** — Multi-form run: search → pick from results → detail form shows product → submit adds to cart.
-- [ ] **Z** — Same flow runs from CLI with `--forms` map; sample + docs work cold.
+- [x] **X** — Create/edit a form under Forms; file lands on disk and lists/reloads correctly.
+- [x] **Y** — Multi-form run: search → pick from results → detail form shows product → submit adds to cart.
+- [x] **Z** — Same flow runs from CLI with `--forms` map; sample + docs work cold.
 
 Do not treat the plan as fully closed until the user confirms (or explicitly skips) these checks.
 

@@ -1,9 +1,9 @@
 /** Canvas zoom bridge set by FlowCanvas on window.__questerZoom. */
 
 type QuesterZoomApi = {
-	in: () => void;
-	out: () => void;
-	fit: () => void;
+	in: () => Promise<unknown>;
+	out: () => Promise<unknown>;
+	fit: () => Promise<unknown>;
 	get: () => number;
 };
 
@@ -13,11 +13,13 @@ function getZoomApi(): QuesterZoomApi | undefined {
 		.__questerZoom;
 }
 
-export function callQuesterZoom(action: "in" | "out" | "fit"): number {
+export async function callQuesterZoom(
+	action: "in" | "out" | "fit",
+): Promise<number> {
 	const api = getZoomApi();
 	if (!api) return 1;
-	if (action === "in") api.in();
-	else if (action === "out") api.out();
-	else api.fit();
+	if (action === "in") await api.in();
+	else if (action === "out") await api.out();
+	else await api.fit();
 	return api.get();
 }

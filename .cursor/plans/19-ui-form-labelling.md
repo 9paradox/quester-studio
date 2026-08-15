@@ -1,7 +1,7 @@
 # Plan 19 — Desktop UI: associate every label with its control
 
 **Priority:** 19
-**Status:** complete (shipped [#129](https://github.com/9paradox/quester-studio/pull/129))
+**Status:** complete (user confirmed X/Y/Z) — shipped [#129](https://github.com/9paradox/quester-studio/pull/129)
 **Read first:** [UI-REVIEW-EXECUTION.md](./UI-REVIEW-EXECUTION.md)
 **Depends on:** plan 18 landed
 **Branch:** `fix/ui-form-labelling`

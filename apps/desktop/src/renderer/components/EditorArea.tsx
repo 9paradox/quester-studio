@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button.js";
+import { formatKeyBinding, setCommandPaletteOpen } from "@/lib/commands.js";
 import type { EditorTab } from "@/lib/editorTabs.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
 import {
@@ -10,6 +12,7 @@ import type { FlowV1 } from "@quester-studio/schema";
 import { useShallow } from "zustand/react/shallow";
 import { AppPreferencesEditor } from "./AppPreferencesEditor.js";
 import { CanvasControls } from "./CanvasControls.js";
+import { EditorEmptyState } from "./EditorEmptyState.js";
 import { FlowCanvas } from "./FlowCanvas.js";
 import { FormEditor } from "./FormEditor.js";
 import { KeyValueEditor } from "./KeyValueEditor.js";
@@ -60,6 +63,8 @@ export function EditorArea() {
 		(s) => s.updateWorkspaceSettingsManifest,
 	);
 	const setZoom = useQuesterStore((s) => s.setZoom);
+	const createFlow = useQuesterStore((s) => s.createFlow);
+	const handleActivityView = useQuesterStore((s) => s.handleActivityView);
 
 	const onSave = () => void saveActiveTab();
 	const canSaveTab = Boolean(activeTab?.dirty);
@@ -74,9 +79,31 @@ export function EditorArea() {
 
 	if (!activeTab) {
 		return (
-			<div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center text-sm text-muted-foreground">
-				Select a file from the sidebar
-			</div>
+			<EditorEmptyState
+				title="No file open"
+				description="Open a flow from the sidebar, create a new one, or search commands."
+			>
+				<Button type="button" onClick={() => void createFlow()}>
+					New flow
+				</Button>
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => handleActivityView("flows")}
+				>
+					Show flows
+				</Button>
+				<Button
+					type="button"
+					variant="ghost"
+					onClick={() => setCommandPaletteOpen(true)}
+				>
+					Commands
+					<span className="font-mono text-2xs text-muted-foreground">
+						{formatKeyBinding("mod+shift+p")}
+					</span>
+				</Button>
+			</EditorEmptyState>
 		);
 	}
 
@@ -210,9 +237,18 @@ export function EditorArea() {
 
 	if (activeTab.kind !== "flow") {
 		return (
-			<div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center text-sm text-muted-foreground">
-				Unsupported tab
-			</div>
+			<EditorEmptyState
+				title="This tab cannot be opened"
+				description="Close it and pick a flow, form, request, or settings file from the sidebar."
+			>
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => handleActivityView("flows")}
+				>
+					Show flows
+				</Button>
+			</EditorEmptyState>
 		);
 	}
 

@@ -1,6 +1,6 @@
 # Form reuse: inputs + bindings
 
-**Status:** implemented  
+**Status:** complete (folded into plan 12)  
 **Addresses:** form TemplateField highlight gaps + reusable forms across flows  
 
 ## Problem

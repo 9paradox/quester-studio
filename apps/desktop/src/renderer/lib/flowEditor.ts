@@ -28,6 +28,13 @@ function defaultSizeForType(
 	return undefined;
 }
 
+/** json / note / try / foreach store width×height; other nodes size to content. */
+export function nodeUsesExplicitCanvasSize(
+	type: string | null | undefined,
+): boolean {
+	return defaultSizeForType(type ?? "") != null;
+}
+
 export function isFrameContainerType(type: string | null | undefined): boolean {
 	return type === "try" || type === "foreach";
 }
@@ -158,8 +165,9 @@ export function flowToReactFlow(flow: FlowV1): {
 	const ordered = sortParentsBeforeChildren(normalized.nodes);
 	const nodes = ordered.map((n) => {
 		const defaults = defaultSizeForType(n.type);
-		const width = n.width ?? defaults?.width;
-		const height = n.height ?? defaults?.height;
+		const sized = nodeUsesExplicitCanvasSize(n.type);
+		const width = sized ? (n.width ?? defaults?.width) : undefined;
+		const height = sized ? (n.height ?? defaults?.height) : undefined;
 		const isFrame = isFrameContainerType(n.type);
 		const isChild = Boolean(n.parentId);
 		const style: CSSProperties = {
@@ -213,6 +221,27 @@ export function flowToReactFlow(flow: FlowV1): {
 		};
 	});
 	return { nodes, edges };
+}
+
+/**
+ * Keep RF-measured width/height when re-applying flow JSON.
+ * The multi-select box (`getNodesBounds`) uses `node.width`/`node.height`;
+ * dropping them makes the blue rect sit on node origins instead of the cards.
+ */
+export function mergeLiveReactFlowNode(mapped: Node, existing: Node): Node {
+	const width = mapped.width ?? existing.width;
+	const height = mapped.height ?? existing.height;
+	return {
+		...mapped,
+		position: existing.position,
+		selected: existing.selected,
+		dragging: existing.dragging,
+		...(existing.positionAbsolute
+			? { positionAbsolute: existing.positionAbsolute }
+			: {}),
+		...(width != null ? { width } : {}),
+		...(height != null ? { height } : {}),
+	};
 }
 
 type ConnectionNodes = ReadonlyArray<{
@@ -396,8 +425,9 @@ export function reactFlowToFlow(
 	edges: Edge[],
 ): FlowV1 {
 	const mapped = nodes.map((n) => {
-		const width = readNodeSize(n, "width");
-		const height = readNodeSize(n, "height");
+		const persistSize = nodeUsesExplicitCanvasSize(n.type ?? "");
+		const width = persistSize ? readNodeSize(n, "width") : undefined;
+		const height = persistSize ? readNodeSize(n, "height") : undefined;
 		return {
 			id: n.id,
 			type: n.type ?? "input",

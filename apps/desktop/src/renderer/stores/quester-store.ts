@@ -390,6 +390,7 @@ export type QuesterState = {
 	clearConsole: () => void;
 	clearLogs: () => void;
 	showError: (message: string) => void;
+	clearLoadError: () => void;
 	handleActivityView: (view: ActivityView) => void;
 	openAppPreferences: () => void;
 	openWorkspaceSettings: () => Promise<void>;
@@ -694,6 +695,9 @@ export const useQuesterStore = create<QuesterState>((set, get) => ({
 				}),
 			};
 		});
+	},
+	clearLoadError: () => {
+		set({ loadError: null });
 	},
 
 	handleActivityView: (view) => {

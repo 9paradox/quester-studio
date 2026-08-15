@@ -3,6 +3,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip.js";
+import { formatKeyBinding } from "@/lib/commands.js";
 import type { ActivityView } from "@/lib/nodeCatalog.js";
 import { railButtonClass } from "@/lib/railButton.js";
 import { useQuesterStore } from "@/stores/quester-store.js";
@@ -65,7 +66,9 @@ export function ActivityBar() {
 				>
 					<IconSettings className="size-4" />
 				</TooltipTrigger>
-				<TooltipContent side="right">Preferences</TooltipContent>
+				<TooltipContent side="right">
+					Preferences · {formatKeyBinding("mod+comma")}
+				</TooltipContent>
 			</Tooltip>
 		</nav>
 	);

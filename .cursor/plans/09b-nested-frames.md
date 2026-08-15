@@ -1,7 +1,7 @@
 # Plan 09b — Nested frames
 
 **Priority:** 9b (immediately after plan 09)  
-**Status:** complete  
+**Status:** complete (user confirmed X/Y/Z)  
 **ROADMAP:** §6 Control — Nested frames (follow-up to framed `try` / `foreach`)  
 **Depends on:** plan 09 (framed try/foreach) code complete  
 
