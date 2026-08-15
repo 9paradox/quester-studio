@@ -46,7 +46,10 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 	};
 
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: plan 19 — group label without fieldset layout change
 		<Tabs
+			role="group"
+			aria-label="Headers"
 			value={mode}
 			onValueChange={(v) => setMode((v as "pairs" | "raw") ?? "pairs")}
 		>
