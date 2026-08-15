@@ -1,318 +1,352 @@
 ---
 const steps = [
 	{
-		title: "Open workspace",
-		body: "Open a folder with quester.json — or jump in with the sample workspace.",
+		title: "Drag-and-drop nodes",
+		body: "Drop a node on the canvas — form, HTTP, extract, and the rest live in the same graph.",
 	},
 	{
-		title: "Chain the scenario",
-		body: "Connect the journey: credentials → login → token extract → authorized profile → assert.",
+		title: "HTTP request",
+		body: "GET or POST with env and previous-step values in the URL and body.",
 	},
 	{
-		title: "Run locally",
-		body: "Choose an environment and press Run. Everything executes on your machine.",
+		title: "Mid-flow form",
+		body: "A form can sit between requests. The run waits until you submit.",
 	},
 	{
-		title: "Inspect results",
-		body: "Check status, response body, and asserts in the inspector — data stays local.",
+		title: "Bind the next call",
+		body: "Select options can come from the last response, then the next request runs.",
 	},
 ];
 ---
 
-<section class="demo" data-how-it-works aria-label="Quester Studio interactive preview">
-	<div class="demo__shell" aria-hidden="true">
-		<header class="demo__topbar">
-			<div class="demo__tabs">
-				<div class="demo__tab is-active">
-					<svg
-						class="demo__ico"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						aria-hidden="true"
-						><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path
-							d="M8 6h8a2 2 0 0 1 2 2v8"></path
-						><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
+<section class="demo" data-how-it-works data-visual="0" aria-label="Quester Studio interactive preview">
+	<div class="demo__scroll">
+		<div class="demo__shell" aria-hidden="true">
+			<header class="demo__topbar">
+				<div class="demo__ws">
+					sample-workspace
+					<svg class="demo__ico demo__ico--tiny" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+						><path d="m6 9 6 6 6-6"></path></svg
 					>
-					<span>login-and-profile</span>
 				</div>
-				<div class="demo__tab">demo-main-nodes</div>
-			</div>
-			<div class="demo__win">
-				<span class="demo__win-btn" title="Minimize">
-					<svg viewBox="0 0 12 12" aria-hidden="true"
-						><path fill="currentColor" d="M2 6.25h8v1.1H2z"></path></svg
-					>
-				</span>
-				<span class="demo__win-btn" title="Maximize">
-					<svg viewBox="0 0 12 12" aria-hidden="true"
-						><rect
-							x="2.4"
-							y="2.4"
-							width="7.2"
-							height="7.2"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.15"></rect
-					></svg>
-				</span>
-				<span class="demo__win-btn demo__win-btn--close" title="Close">
-					<svg viewBox="0 0 12 12" aria-hidden="true"
-						><path
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.15"
-							d="M3 3l6 6M9 3l-6 6"></path
-					></svg>
-				</span>
-			</div>
-		</header>
-
-		<div class="demo__main">
-			<nav class="demo__activity">
-				<span class="demo__act is-active" title="Flows">
-					<svg
-						class="demo__ico"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path
-							d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"
-						></path><path d="M9 13h6"></path><path d="M9 17h6"></path></svg
-					>
-				</span>
-				<span class="demo__act" title="Collections">
-					<svg
-						class="demo__ico"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"
-						></path></svg
-					>
-				</span>
-				<span class="demo__act" title="Environments">
-					<svg
-						class="demo__ico"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><path d="M12 4 4 8l8 4 8-4-8-4"></path><path d="m4 12 8 4 8-4"></path><path
-							d="m4 16 8 4 8-4"></path
-						></svg>
-				</span>
-				<span class="demo__act demo__act--bottom" title="Preferences">
-					<svg
-						class="demo__ico"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6"></path><path
-							d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 0 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 0 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 0 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
-						></path></svg
-					>
-				</span>
-			</nav>
-
-			<aside class="demo__sidebar" data-panel="sidebar">
-				<p class="demo__side-title">Flows</p>
-				<ul class="demo__flow-list">
-					<li class="is-active" data-flow>
-						<svg
-							class="demo__ico"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							aria-hidden="true"
+				<div class="demo__tabs" role="presentation">
+					<div class="demo__tab is-active">
+						<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
 							><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path
 								d="M8 6h8a2 2 0 0 1 2 2v8"></path
 							><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
 						>
-						login-and-profile
-					</li>
-					<li>
-						<svg
-							class="demo__ico"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							aria-hidden="true"
-							><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path
-								d="M8 6h8a2 2 0 0 1 2 2v8"></path
-							><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
-						>
-						demo-main-nodes
-					</li>
-					<li>
-						<svg
-							class="demo__ico"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							aria-hidden="true"
-							><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path
-								d="M8 6h8a2 2 0 0 1 2 2v8"></path
-							><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
-						>
-						kitchen-sink
-					</li>
-				</ul>
-			</aside>
-
-			<div class="demo__editor" data-panel="canvas">
-				<div class="demo__toolbar">
-					<div class="demo__env">
-						<span class="demo__env-label">Env</span>
-						<span class="demo__env-value">local</span>
+						<span>search-pick-cart</span>
+						<span class="demo__tab-x" title="Close">×</span>
 					</div>
-					<button type="button" class="demo__run" data-demo-run tabindex="-1">
-						<svg
-							class="demo__ico"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							aria-hidden="true"
-							><path d="M7 4v16l13-8z"></path></svg
+					<div class="demo__tab">
+						<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path
+								d="M8 6h8a2 2 0 0 1 2 2v8"></path
+							><path d="M6 8v8a2 2 0 0 0 2 2h8"></path></svg
 						>
-						Run
-					</button>
-				</div>
-				<div class="demo__canvas">
-					<div class="demo__graph">
-						<article class="fn fn--start" data-node="start">
-							<div class="fn__head">
-								<span class="fn__badge fn__badge--start">Start</span>
-								<div class="fn__meta">
-									<div class="fn__title">Start</div>
-									<div class="fn__id">start</div>
-									<span class="fn__status" aria-hidden="true"></span>
-								</div>
-							</div>
-						</article>
-						<span class="demo__edge" data-edge aria-hidden="true"></span>
-						<article class="fn fn--input" data-node="input">
-							<div class="fn__head">
-								<span class="fn__badge fn__badge--input">Input</span>
-								<div class="fn__meta">
-									<div class="fn__title">Credentials</div>
-									<div class="fn__id">input</div>
-									<span class="fn__status" aria-hidden="true"></span>
-								</div>
-							</div>
-						</article>
-						<span class="demo__edge" data-edge aria-hidden="true"></span>
-						<article class="fn fn--http" data-node="http">
-							<div class="fn__head">
-								<span class="fn__badge fn__badge--http">HTTP</span>
-								<div class="fn__meta">
-									<div class="fn__title">Login</div>
-									<div class="fn__id">login</div>
-									<div class="fn__sub">POST</div>
-									<span class="fn__status" aria-hidden="true"></span>
-								</div>
-							</div>
-						</article>
-						<span class="demo__edge" data-edge aria-hidden="true"></span>
-						<article class="fn fn--extract" data-node="extract">
-							<div class="fn__head">
-								<span class="fn__badge fn__badge--extract">Extract</span>
-								<div class="fn__meta">
-									<div class="fn__title">Access token</div>
-									<div class="fn__id">accessToken</div>
-									<div class="fn__sub">body.accessToken</div>
-									<span class="fn__status" aria-hidden="true"></span>
-								</div>
-							</div>
-						</article>
-						<span class="demo__edge" data-edge aria-hidden="true"></span>
-						<article class="fn fn--output" data-node="output">
-							<div class="fn__head">
-								<span class="fn__badge fn__badge--output">Assert</span>
-								<div class="fn__meta">
-									<div class="fn__title">Profile 200</div>
-									<div class="fn__id">assertStatus</div>
-									<span class="fn__status" aria-hidden="true"></span>
-								</div>
-							</div>
-						</article>
+						<span>login-and-profile</span>
+						<span class="demo__tab-x" title="Close">×</span>
+					</div>
+					<div class="demo__tab">
+						<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							><rect x="5" y="4" width="14" height="16" rx="2"></rect><path d="M9 8h6"></path><path
+								d="M9 12h6"></path></svg
+						>
+						<span>pick-product</span>
+						<span class="demo__tab-x" title="Close">×</span>
 					</div>
 				</div>
-			</div>
+				<div class="demo__win">
+					<span class="demo__win-btn" title="Minimize">
+						<svg viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="M2 6.25h8v1.1H2z"></path></svg>
+					</span>
+					<span class="demo__win-btn" title="Maximize">
+						<svg viewBox="0 0 12 12" aria-hidden="true"
+							><rect x="2.4" y="2.4" width="7.2" height="7.2" fill="none" stroke="currentColor" stroke-width="1.15"></rect></svg
+						>
+					</span>
+					<span class="demo__win-btn demo__win-btn--close" title="Close">
+						<svg viewBox="0 0 12 12" aria-hidden="true"
+							><path fill="none" stroke="currentColor" stroke-width="1.15" d="M3 3l6 6M9 3l-6 6"></path></svg
+						>
+					</span>
+				</div>
+			</header>
 
-			<aside class="demo__aux" data-panel="inspector">
-				<p class="demo__side-title">Inspector</p>
-				<div class="demo__inspect-block">
-					<p class="demo__kv"><span>Type</span> http</p>
-					<p class="demo__kv"><span>Method</span> POST</p>
-					<p class="demo__kv demo__kv--stack">
-						<span>URL</span>
-						<code class="demo__url">{"{{env.API_BASE}}/auth/login"}</code>
-					</p>
+			<div class="demo__body">
+				<div class="demo__mid">
+					<nav class="demo__activity">
+						<span class="demo__act" data-act="flows" title="Flows">
+							<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+								><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path
+									d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path></svg
+							>
+						</span>
+						<span class="demo__act" data-act="forms" title="Forms">
+							<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+								><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M8 8h8"></path><path
+									d="M8 12h8"></path
+								><path d="M8 16h5"></path></svg
+							>
+						</span>
+						<span class="demo__act" title="Collections">
+							<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+								><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"
+								></path></svg
+							>
+						</span>
+						<span class="demo__act" title="Environments">
+							<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+								><path d="M12 4 4 8l8 4 8-4-8-4"></path><path d="m4 12 8 4 8-4"></path></svg
+							>
+						</span>
+						<span class="demo__act" title="Secrets">
+							<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+								><path d="M8 15a4 4 0 1 0 0-8 4 4 0 0 0 0 8"></path><path d="m12.5 10.5 8 8"></path><path
+									d="m17 13 3 3"></path></svg
+							>
+						</span>
+						<span class="demo__act" title="Runs">
+							<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+								><path d="M12 8v4l2 2"></path><circle cx="12" cy="12" r="9"></circle></svg
+							>
+						</span>
+						<span class="demo__act demo__act--bottom" title="Preferences">
+							<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+								><circle cx="12" cy="12" r="3"></circle><path
+									d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+								></path></svg
+							>
+						</span>
+					</nav>
+
+					<aside class="demo__sidebar">
+						<p class="demo__side-title">Flows</p>
+						<div class="demo__search">Search…</div>
+						<ul class="demo__flow-list">
+							<li class="is-active" data-flow>search-pick-cart</li>
+							<li>login-and-profile</li>
+							<li>demo-main-nodes</li>
+						</ul>
+						<div class="demo__forms-block" data-forms-block>
+							<p class="demo__side-title">Forms</p>
+							<ul class="demo__flow-list">
+								<li>search-products</li>
+								<li>pick-product</li>
+							</ul>
+						</div>
+					</aside>
+
+					<div class="demo__editor">
+						<div class="demo__toolbar">
+							<div class="demo__env">
+								<span class="demo__env-label">Env</span>
+								<span class="demo__env-value">local</span>
+							</div>
+							<div class="demo__run-group">
+								<button type="button" class="demo__run" data-demo-run tabindex="-1">Run</button>
+								<button type="button" class="demo__stop" tabindex="-1">Stop</button>
+							</div>
+						</div>
+						<div class="demo__canvas">
+							<div class="demo__graph">
+								<article class="fn fn--start" data-node="start" data-n="0">
+									<div class="fn__head">
+										<span class="fn__badge">Start</span>
+										<div class="fn__title">Start</div>
+										<div class="fn__id">start</div>
+										<span class="fn__dot"></span>
+									</div>
+								</article>
+								<span class="demo__edge" data-e="0"></span>
+								<article class="fn fn--form" data-node="searchForm" data-n="1">
+									<div class="fn__head">
+										<span class="fn__badge fn__badge--form">Form</span>
+										<div class="fn__title">Search</div>
+										<div class="fn__id">searchForm</div>
+										<span class="fn__dot"></span>
+									</div>
+								</article>
+								<span class="demo__edge" data-e="1"></span>
+								<article class="fn fn--http" data-node="search" data-n="2">
+									<div class="fn__head">
+										<span class="fn__badge fn__badge--http">HTTP</span>
+										<div class="fn__title">Search products</div>
+										<div class="fn__id">search</div>
+										<div class="fn__sub">GET</div>
+										<span class="fn__dot"></span>
+									</div>
+								</article>
+								<span class="demo__edge" data-e="2"></span>
+								<article class="fn fn--form" data-node="pickForm" data-n="3">
+									<div class="fn__head">
+										<span class="fn__badge fn__badge--form">Form</span>
+										<div class="fn__title">Pick product</div>
+										<div class="fn__id">pickForm</div>
+										<span class="fn__dot"></span>
+									</div>
+								</article>
+								<span class="demo__edge" data-e="3"></span>
+								<article class="fn fn--http" data-node="cart" data-n="4">
+									<div class="fn__head">
+										<span class="fn__badge fn__badge--http">HTTP</span>
+										<div class="fn__title">Add to cart</div>
+										<div class="fn__id">cart</div>
+										<div class="fn__sub">POST</div>
+										<span class="fn__dot"></span>
+									</div>
+								</article>
+							</div>
+							<div class="demo__form-layer" data-form-dialog>
+								<div class="demo__sheet">
+									<p class="demo__sheet-kicker">Form</p>
+									<p class="demo__sheet-title">Pick product</p>
+									<label class="demo__field demo__field--1">
+										<span>Product</span>
+										<span class="demo__select"
+											><span class="demo__fill">Essence Mascara — 9.99</span></span
+										>
+									</label>
+									<label class="demo__field demo__field--2">
+										<span>Quantity</span>
+										<span class="demo__input"><span class="demo__fill">1</span></span>
+									</label>
+									<div class="demo__sheet-foot">
+										<span class="demo__btn-outline">Cancel</span>
+										<span class="demo__btn-primary">Submit</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<aside class="demo__aux" data-panel="inspector">
+						<p class="demo__side-title" data-aux-title>Inspector</p>
+						<div class="demo__inspect" data-inspect="search">
+							<p class="demo__kv"><span>Type</span> http</p>
+							<p class="demo__kv"><span>Method</span> GET</p>
+							<p class="demo__kv demo__kv--stack">
+								<span>URL</span>
+								<code class="demo__code"
+									><span class="demo__url-type"
+										><span class="tok-mustache"
+											><span class="tok-brace">{"{{"}</span><span class="tok-scope">env</span
+											><span class="tok-dot">.</span><span class="tok-ident">API_BASE</span
+											><span class="tok-brace">{"}}"}</span></span
+										><span class="tok-path">/products/search</span></span
+									></code
+								>
+							</p>
+						</div>
+						<div class="demo__inspect" data-inspect="form">
+							<p class="demo__kv"><span>Type</span> form</p>
+							<p class="demo__kv"><span>formId</span> pick-product</p>
+							<p class="demo__kv demo__kv--stack">
+								<span>bindings</span>
+								<code class="demo__code"
+									><span class="tok-path">products: </span><span class="tok-mustache"
+										><span class="tok-brace">{"{{"}</span><span class="tok-scope">nodes</span
+										><span class="tok-dot">.</span><span class="tok-ident">search</span
+										><span class="tok-dot">.</span><span class="tok-ident">body</span
+										><span class="tok-dot">.</span><span class="tok-ident">products</span
+										><span class="tok-brace">{"}}"}</span></span
+									></code
+								>
+							</p>
+						</div>
+						<div class="demo__inspect" data-inspect="http">
+							<p class="demo__kv"><span>Type</span> http</p>
+							<p class="demo__kv"><span>Method</span> POST</p>
+							<p class="demo__kv demo__kv--stack">
+								<span>URL</span>
+								<code class="demo__code"
+									><span class="demo__url-type demo__url-type--cart"
+										><span class="tok-mustache"
+											><span class="tok-brace">{"{{"}</span><span class="tok-scope">env</span
+											><span class="tok-dot">.</span><span class="tok-ident">API_BASE</span
+											><span class="tok-brace">{"}}"}</span></span
+										><span class="tok-path">/carts/add</span></span
+									></code
+								>
+							</p>
+							<pre class="demo__json"><code><span class="tok-p">{</span>
+  <span class="tok-key">"status"</span>: <span class="tok-num">200</span><span class="tok-p">,</span>
+  <span class="tok-key">"body"</span>: <span class="tok-p">{</span>
+    <span class="tok-key">"id"</span>: <span class="tok-num">1</span><span class="tok-p">,</span>
+    <span class="tok-key">"total"</span>: <span class="tok-num">9.99</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+						</div>
+					</aside>
+
+					<nav class="demo__right-rail">
+						<span class="demo__act" data-rail="inspector" title="Inspector">
+							<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+								><circle cx="6" cy="10" r="2"></circle><path d="M6 4v4"></path><path d="M6 12v8"></path
+								><circle cx="12" cy="16" r="2"></circle><path d="M12 4v10"></path><path d="M12 18v2"></path
+								><circle cx="18" cy="7" r="2"></circle><path d="M18 4v1"></path><path d="M18 9v11"></path></svg
+							>
+						</span>
+						<span class="demo__act" data-rail="response" title="Response">
+							<svg class="demo__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+								><path d="M7 4a2 2 0 0 0-2 2v3a2 3 0 0 1-2 3 2 3 0 0 1 2 3v3a2 2 0 0 0 2 2"></path
+								><path d="M17 4a2 2 0 0 1 2 2v3a2 3 0 0 0 2 3 2 3 0 0 0-2 3v3a2 2 0 0 1-2 2"></path></svg
+							>
+						</span>
+					</nav>
 				</div>
-				<div class="demo__response" data-panel="response">
-					<p class="demo__side-title">Response</p>
-					<pre><code>{`{
-  "status": 200,
-  "body": {
-    "accessToken": "…",
-    "username": "emilys"
-  }
-}`}</code></pre>
+
+				<div class="demo__summary">
+					<span class="demo__summary-ok">Succeeded</span>
+					<span>5 nodes</span>
+					<span>2 forms</span>
+					<span>1.8s</span>
+					<span>POST /carts/add · 200</span>
 				</div>
-			</aside>
+
+				<footer class="demo__status">
+					<span>sample-workspace</span>
+					<span>search-pick-cart</span>
+					<span>local</span>
+					<span class="demo__status-right" data-status-label>Ready</span>
+				</footer>
+			</div>
 		</div>
-
-		<footer class="demo__status">
-			<span data-status-label>sample-workspace</span>
-			<span>local</span>
-			<span class="demo__status-right">Ready</span>
-		</footer>
 	</div>
 
 	<div class="demo__controls">
 		<p class="demo__caption" data-how-caption>{steps[0].body}</p>
-		<div class="demo__steps" role="tablist" aria-label="Demo steps">
+		<div class="demo__stepper">
+			<div class="demo__stepper-track" aria-hidden="true">
+				<div class="demo__stepper-fill" data-progress-fill></div>
+			</div>
+			<div class="demo__steps" role="tablist" aria-label="Demo steps">
 			{
 				steps.map((step, i) => (
-					<button
-						type="button"
-						role="tab"
-						class="demo__step"
-						data-step={i}
-						aria-selected={i === 0 ? "true" : "false"}
-					>
-						<span class="demo__step-index">{i + 1}</span>
-						<span class="demo__step-title">{step.title}</span>
-					</button>
+					<>
+						{i > 0 ? (
+							<span class="demo__arrow" data-arrow={i - 1} aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M5 12h14"></path>
+									<path d="m13 6 6 6-6 6"></path>
+								</svg>
+							</span>
+						) : null}
+						<button
+							type="button"
+							role="tab"
+							class="demo__step"
+							data-step={i}
+							aria-selected={i === 0 ? "true" : "false"}
+						>
+							<span class="demo__step-index"></span>
+							<span class="demo__step-title">{step.title}</span>
+						</button>
+					</>
 				))
 			}
+		</div>
 		</div>
 	</div>
 </section>
@@ -321,42 +355,100 @@ const steps = [
 	const root = document.querySelector("[data-how-it-works]");
 	if (root instanceof HTMLElement) {
 		const captions = [
-			"Open a folder with quester.json — or jump in with the sample workspace.",
-			"Connect the journey: credentials → login → token extract → authorized profile → assert.",
-			"Choose an environment and press Run. Everything executes on your machine.",
-			"Check status, response body, and asserts in the inspector — data stays local.",
+			"Drop a node on the canvas — form, HTTP, extract, and the rest live in the same graph.",
+			"GET or POST with env and previous-step values in the URL and body.",
+			"A form can sit between requests. The run waits until you submit.",
+			"Select options can come from the last response, then the next request runs.",
 		];
+		const visualFor = [0, 1, 2, 3];
+		const statusByVisual = ["Ready", "Running…", "Running… awaiting form", "Succeeded"];
+		const count = captions.length;
 		const captionEl = root.querySelector("[data-how-caption]");
 		const statusLabel = root.querySelector("[data-status-label]");
 		const buttons = [...root.querySelectorAll("[data-step]")];
-		let index = 0;
-		let timer = 0;
+		const arrows = [...root.querySelectorAll("[data-arrow]")];
+		const fill = root.querySelector("[data-progress-fill]");
+		const cycleMs = 20000;
+		let index = -1;
+		let elapsed = 0;
+		let lastTs = 0;
+		let raf = 0;
 		let visible = true;
 
 		function setStep(next) {
-			index = ((next % 4) + 4) % 4;
-			root.dataset.step = String(index);
+			const step = ((next % count) + count) % count;
+			if (step === index) return;
+			index = step;
+			const visual = visualFor[index] ?? 0;
+			root.dataset.visual = String(visual);
+			if (visual === 0) {
+				for (const el of root.querySelectorAll(".fn, .demo__edge")) {
+					if (!(el instanceof HTMLElement)) continue;
+					el.style.animation = "none";
+					void el.offsetWidth;
+					el.style.animation = "";
+				}
+			}
+			if (visual >= 1) {
+				for (const el of root.querySelectorAll(
+					".demo__url-type, .demo__fill, .demo__json, .demo__sheet, .demo__form-layer, .demo__field, .demo__sheet-foot",
+				)) {
+					if (!(el instanceof HTMLElement)) continue;
+					el.style.animation = "none";
+					void el.offsetWidth;
+					el.style.animation = "";
+				}
+			}
 			if (captionEl) captionEl.textContent = captions[index] ?? "";
-			if (statusLabel) {
-				statusLabel.textContent =
-					index >= 2 ? "Running login-and-profile…" : "sample-workspace";
+			if (statusLabel) statusLabel.textContent = statusByVisual[visual] ?? "Ready";
+			const auxTitle = root.querySelector("[data-aux-title]");
+			if (auxTitle) {
+				auxTitle.textContent = visual === 3 ? "Response" : "Inspector";
 			}
 			for (const btn of buttons) {
 				const i = Number(btn.getAttribute("data-step"));
 				btn.setAttribute("aria-selected", i === index ? "true" : "false");
+				btn.classList.toggle("is-done", i < index);
+				const mark = btn.querySelector(".demo__step-index");
+				if (mark) mark.textContent = i < index ? "" : String(i + 1);
+			}
+			for (const arrow of arrows) {
+				const i = Number(arrow.getAttribute("data-arrow"));
+				arrow.classList.toggle("is-on", i < index);
 			}
 		}
 
-		function schedule() {
-			window.clearInterval(timer);
-			if (!visible) return;
-			timer = window.setInterval(() => setStep(index + 1), 4200);
+		function tick(ts) {
+			if (!visible) {
+				raf = 0;
+				return;
+			}
+			if (lastTs) elapsed += ts - lastTs;
+			lastTs = ts;
+			if (elapsed >= cycleMs) elapsed %= cycleMs;
+			const p = elapsed / cycleMs;
+			if (fill instanceof HTMLElement) fill.style.width = `${p * 100}%`;
+			setStep(Math.min(count - 1, Math.floor(p * count)));
+			raf = window.requestAnimationFrame(tick);
+		}
+
+		function start() {
+			if (raf) return;
+			lastTs = 0;
+			raf = window.requestAnimationFrame(tick);
+		}
+
+		function stop() {
+			if (raf) window.cancelAnimationFrame(raf);
+			raf = 0;
+			lastTs = 0;
 		}
 
 		for (const btn of buttons) {
 			btn.addEventListener("click", () => {
-				setStep(Number(btn.getAttribute("data-step")));
-				schedule();
+				const i = Number(btn.getAttribute("data-step"));
+				elapsed = (i / count) * cycleMs;
+				setStep(i);
 			});
 		}
 
@@ -364,16 +456,16 @@ const steps = [
 			const io = new IntersectionObserver(
 				([entry]) => {
 					visible = Boolean(entry?.isIntersecting);
-					if (visible) schedule();
-					else window.clearInterval(timer);
+					if (visible) start();
+					else stop();
 				},
-				{ threshold: 0.15 },
+				{ threshold: 0.12 },
 			);
 			io.observe(root);
 		}
 
 		setStep(0);
-		schedule();
+		start();
 	}
 </script>
 
@@ -384,70 +476,99 @@ const steps = [
 		width: 100%;
 	}
 
+	.demo__scroll {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
 	.demo__shell {
+		position: relative;
+		min-width: 72rem;
 		overflow: hidden;
 		border: 1px solid var(--border);
-		border-radius: calc(var(--radius) * 1.4);
+		border-radius: calc(var(--radius) * 1.2);
 		background: var(--background);
-		box-shadow:
-			0 1px 0 color-mix(in oklch, var(--foreground) 6%, transparent),
-			0 28px 56px -32px color-mix(in oklch, var(--foreground) 35%, transparent);
+		box-shadow: 0 28px 56px -32px color-mix(in oklch, var(--foreground) 30%, transparent);
 		font-size: 12px;
 	}
 
 	.demo__topbar {
 		display: flex;
 		align-items: stretch;
-		justify-content: space-between;
-		min-height: 2.15rem;
+		min-height: 2.25rem;
 		border-bottom: 1px solid var(--border);
-		background: var(--background);
-		overflow: hidden;
+	}
+
+	.demo__ws {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		max-width: 14rem;
+		flex-shrink: 0;
+		border-right: 1px solid var(--border);
+		padding: 0 0.75rem;
+		color: var(--muted-foreground);
+		font-size: 0.7rem;
+		white-space: nowrap;
+	}
+
+	.demo__ico--tiny {
+		width: 0.7rem;
+		height: 0.7rem;
+		opacity: 0.7;
 	}
 
 	.demo__tabs {
 		display: flex;
 		min-width: 0;
+		flex: 1;
 		overflow: hidden;
 	}
 
 	.demo__tab {
+		position: relative;
 		display: inline-flex;
 		align-items: center;
-		gap: 0.35rem;
-		border-right: 1px solid var(--border);
-		padding: 0.4rem 0.75rem;
+		gap: 0.4rem;
+		border-right: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+		padding: 0 0.35rem 0 0.7rem;
 		color: var(--muted-foreground);
+		font-size: 0.72rem;
 		white-space: nowrap;
 	}
 
 	.demo__tab.is-active {
-		background: var(--muted);
+		background: var(--background);
 		color: var(--foreground);
 		font-weight: 600;
 	}
 
+	.demo__tab.is-active::after {
+		content: "";
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		height: 2px;
+		background: var(--primary);
+	}
+
+	.demo__tab-x {
+		display: inline-flex;
+		width: 1.15rem;
+		height: 1.15rem;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.2rem;
+		font-size: 0.85rem;
+		line-height: 1;
+		opacity: 0.45;
+	}
+
 	.demo__win {
-		display: none;
-		flex-shrink: 0;
-		align-items: stretch;
+		display: flex;
 		margin-left: auto;
-	}
-
-	@media (min-width: 640px) {
-		.demo__win {
-			display: flex;
-		}
-	}
-
-	.demo__tab:not(.is-active) {
-		display: none;
-	}
-
-	@media (min-width: 640px) {
-		.demo__tab:not(.is-active) {
-			display: inline-flex;
-		}
+		flex-shrink: 0;
 	}
 
 	.demo__win-btn {
@@ -463,31 +584,40 @@ const steps = [
 		height: 0.7rem;
 	}
 
-	.demo__win-btn--close {
-		color: var(--muted-foreground);
+	.demo__body {
+		display: flex;
+		min-height: 34rem;
+		flex-direction: column;
 	}
 
-	.demo__main {
+	.demo__mid {
 		display: grid;
-		grid-template-columns: 2.5rem minmax(0, 1fr);
-		min-height: 20rem;
+		grid-template-columns: 3rem 13.5rem minmax(0, 1fr) 17rem 3rem;
+		min-height: 0;
+		flex: 1;
 	}
 
-	@media (min-width: 800px) {
-		.demo__main {
-			grid-template-columns: 2.5rem 9.5rem minmax(0, 1fr) 11.5rem;
-			min-height: 19rem;
-		}
-	}
-
-	.demo__activity {
+	.demo__activity,
+	.demo__right-rail {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.25rem;
-		border-right: 1px solid var(--sidebar-border);
+		gap: 0.3rem;
 		background: var(--sidebar);
-		padding: 0.45rem 0;
+		padding: 0.5rem 0;
+	}
+
+	.demo__act--bottom {
+		margin-top: auto;
+		margin-bottom: 0.25rem;
+	}
+
+	.demo__activity {
+		border-right: 1px solid var(--sidebar-border);
+	}
+
+	.demo__right-rail {
+		border-left: 1px solid var(--sidebar-border);
 	}
 
 	.demo__act {
@@ -498,16 +628,18 @@ const steps = [
 		height: 2rem;
 		border-radius: var(--radius);
 		color: var(--sidebar-foreground);
-		opacity: 0.75;
+		opacity: 0.7;
 	}
 
-	.demo__act.is-active {
+	.demo__act.is-on,
+	.demo[data-visual="0"] [data-act="flows"],
+	.demo[data-visual="1"] [data-act="flows"],
+	.demo[data-visual="2"] [data-act="flows"],
+	.demo[data-visual="3"] [data-act="flows"],
+	.demo:not([data-visual="3"]) [data-rail="inspector"],
+	.demo[data-visual="3"] [data-rail="response"] {
 		background: var(--sidebar-accent);
 		opacity: 1;
-	}
-
-	.demo__act--bottom {
-		margin-top: auto;
 	}
 
 	.demo__ico {
@@ -518,18 +650,10 @@ const steps = [
 
 	.demo__sidebar,
 	.demo__aux {
-		display: none;
 		background: var(--sidebar);
 		color: var(--sidebar-foreground);
-		padding: 0.55rem 0.45rem;
+		padding: 0.65rem 0.55rem;
 		overflow: hidden;
-	}
-
-	@media (min-width: 800px) {
-		.demo__sidebar,
-		.demo__aux {
-			display: block;
-		}
 	}
 
 	.demo__sidebar {
@@ -540,9 +664,13 @@ const steps = [
 		border-left: 1px solid var(--sidebar-border);
 	}
 
+	.demo[data-visual="0"] .demo__sidebar {
+		box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 35%, transparent);
+	}
+
 	.demo__side-title {
-		margin: 0 0 0.45rem;
-		padding: 0 0.35rem;
+		margin: 0 0 0.4rem;
+		padding: 0 0.25rem;
 		font-size: 0.65rem;
 		font-weight: 700;
 		letter-spacing: 0.04em;
@@ -550,26 +678,34 @@ const steps = [
 		color: var(--muted-foreground);
 	}
 
+	.demo__side-title--gap {
+		margin-top: 1rem;
+	}
+
+	.demo__search {
+		margin-bottom: 0.45rem;
+		border: 1px solid var(--sidebar-border);
+		border-radius: var(--radius);
+		padding: 0.3rem 0.45rem;
+		color: var(--muted-foreground);
+		font-size: 0.7rem;
+	}
+
 	.demo__flow-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
 	.demo__flow-list li {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
 		border-radius: var(--radius);
-		padding: 0.35rem 0.4rem;
-		font-size: 0.7rem;
+		padding: 0.4rem 0.45rem;
+		font-size: 0.75rem;
+		line-height: 1.3;
 		opacity: 0.55;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		transition:
-			background 0.3s ease,
-			opacity 0.3s ease;
 	}
 
 	.demo__flow-list li.is-active {
@@ -578,21 +714,33 @@ const steps = [
 		font-weight: 600;
 	}
 
+	.demo__forms-block {
+		margin-top: 0.85rem;
+		padding: 0.35rem 0.2rem 0.45rem;
+		border-radius: var(--radius);
+	}
+
+	.demo[data-visual="0"] .demo__forms-block {
+		background: color-mix(in oklch, var(--primary) 10%, transparent);
+		box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 28%, transparent);
+	}
+
+	.demo[data-visual="0"] .demo__forms-block .demo__flow-list li {
+		opacity: 1;
+	}
+
 	.demo__editor {
 		display: flex;
 		min-width: 0;
 		flex-direction: column;
-		background: var(--background);
-		overflow: hidden;
 	}
 
 	.demo__toolbar {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 0.5rem;
 		border-bottom: 1px solid var(--border);
-		padding: 0.45rem 0.65rem;
+		padding: 0.5rem 0.75rem;
 	}
 
 	.demo__env {
@@ -601,34 +749,56 @@ const steps = [
 		gap: 0.35rem;
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
-		padding: 0.2rem 0.45rem;
-		font-size: 0.65rem;
+		padding: 0.2rem 0.5rem;
+		font-size: 0.7rem;
 	}
 
 	.demo__env-label {
 		color: var(--muted-foreground);
 	}
 
-	.demo__env-value {
-		font-weight: 600;
+	.demo__run-group {
+		display: flex;
+		gap: 0.35rem;
+	}
+
+	.demo__run,
+	.demo__stop {
+		border: none;
+		border-radius: var(--radius);
+		padding: 0.28rem 0.65rem;
+		font-size: 0.72rem;
+		font-weight: 700;
+		pointer-events: none;
 	}
 
 	.demo__run {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		border: none;
-		border-radius: var(--radius);
 		background: var(--secondary);
 		color: var(--secondary-foreground);
-		padding: 0.25rem 0.55rem;
-		font-size: 0.7rem;
-		font-weight: 700;
-		pointer-events: none;
-		transition:
-			background 0.3s ease,
-			color 0.3s ease,
-			box-shadow 0.3s ease;
+	}
+
+	.demo__stop {
+		background: transparent;
+		color: var(--muted-foreground);
+		border: 1px solid var(--border);
+		opacity: 0.4;
+	}
+
+	.demo[data-visual="1"] .demo__run,
+	.demo[data-visual="2"] .demo__run,
+	.demo[data-visual="3"] .demo__run {
+		background: var(--primary);
+		color: var(--primary-foreground);
+	}
+
+	.demo[data-visual="1"] .demo__run {
+		box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 28%, transparent);
+		animation: demo-run-pulse 1s ease-in-out infinite;
+	}
+
+	.demo[data-visual="1"] .demo__stop,
+	.demo[data-visual="2"] .demo__stop {
+		opacity: 1;
 	}
 
 	.demo__canvas {
@@ -636,7 +806,6 @@ const steps = [
 		flex: 1;
 		display: flex;
 		align-items: center;
-		overflow: hidden;
 		background:
 			radial-gradient(
 					circle at 1px 1px,
@@ -645,248 +814,342 @@ const steps = [
 				)
 				0 0 / 16px 16px,
 			var(--muted);
-		padding: 0.85rem 0.75rem;
-		min-height: 16rem;
-	}
-
-	@media (min-width: 640px) {
-		.demo__canvas {
-			padding: 1.35rem 0.75rem;
-			min-height: 11rem;
-		}
+		padding: 1.5rem 1rem 1rem;
+		overflow: hidden;
 	}
 
 	.demo__graph {
 		display: grid;
-		grid-template-columns: 1fr;
-		justify-items: stretch;
+		grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 1fr)
+			18px minmax(0, 1fr);
 		align-items: center;
-		gap: 0;
 		width: 100%;
-		max-width: 15rem;
-		margin: 0 auto;
-		overflow: hidden;
-	}
-
-	@media (min-width: 640px) {
-		.demo__graph {
-			grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr) 14px minmax(0, 1fr) 14px
-				minmax(0, 1fr) 14px minmax(0, 1fr);
-			max-width: none;
-			margin: 0;
-		}
 	}
 
 	.demo__edge {
-		display: block;
-		width: 2px;
-		height: 0.85rem;
-		justify-self: center;
-		border-radius: 9999px;
+		height: 2px;
 		background: var(--border);
-		opacity: 0.2;
-		transform: scaleY(0.35);
-		transform-origin: center;
-		transition:
-			opacity 0.35s ease,
-			transform 0.45s ease,
-			background 0.35s ease;
-	}
-
-	@media (min-width: 640px) {
-		.demo__edge {
-			width: 100%;
-			height: 2px;
-			justify-self: stretch;
-			transform: scaleX(0.35);
-		}
+		opacity: 0;
+		transform: scaleX(0);
+		transform-origin: left center;
 	}
 
 	.fn {
 		position: relative;
-		min-width: 0;
-		height: fit-content;
-		overflow: hidden;
 		border: 1px solid var(--border);
 		border-left-width: 3px;
 		border-radius: var(--radius-lg);
 		background: var(--card);
-		color: var(--card-foreground);
-		opacity: 0.4;
-		transform: translateY(6px);
-		transition:
-			opacity 0.4s ease,
-			transform 0.4s ease,
-			box-shadow 0.35s ease,
-			border-color 0.35s ease;
+		opacity: 0;
+		transform: translateY(10px);
 	}
 
 	.fn--start {
 		border-left-color: var(--foreground);
 	}
-	.fn--input {
+	.fn--form {
 		border-left-color: var(--chart-2);
 	}
 	.fn--http {
 		border-left-color: var(--primary);
 	}
-	.fn--extract {
-		border-left-color: var(--chart-1);
-	}
-	.fn--output {
-		border-left-color: var(--muted-foreground);
-	}
 
 	.fn__head {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 0.3rem;
+		position: relative;
+		padding: 0.5rem 0.55rem 0.5rem 0.55rem;
 		background: color-mix(in oklch, var(--muted) 35%, transparent);
-		padding: 0.45rem;
 	}
 
-	.fn__badge {
-		display: inline-flex;
-		align-items: center;
-		height: 1.1rem;
-		border-radius: 0.2rem;
-		padding: 0 0.3rem;
-		font-size: 0.55rem;
-		font-weight: 700;
-		white-space: nowrap;
-	}
-
-	.fn__badge--start {
-		background: color-mix(in oklch, var(--foreground) 10%, transparent);
-		color: var(--foreground);
-	}
-	.fn__badge--input {
-		background: color-mix(in oklch, var(--chart-2) 15%, transparent);
-		color: var(--chart-2);
-	}
-	.fn__badge--http {
-		background: color-mix(in oklch, var(--primary) 15%, transparent);
-		color: var(--primary);
-	}
-	.fn__badge--extract {
-		background: color-mix(in oklch, var(--chart-1) 15%, transparent);
-		color: var(--chart-1);
-	}
-	.fn__badge--output {
-		background: var(--muted);
-		color: var(--muted-foreground);
-	}
-
-	.fn__meta {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		column-gap: 0.25rem;
-		row-gap: 0.05rem;
-		width: 100%;
-		min-width: 0;
-	}
-
-	.fn__title {
-		grid-column: 1;
-		font-size: 0.68rem;
-		font-weight: 600;
-		line-height: 1.2;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.fn__id,
-	.fn__sub {
-		grid-column: 1;
-		font-size: 0.55rem;
-		color: var(--muted-foreground);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.fn__id {
-		font-family: ui-monospace, monospace;
-	}
-
-	.fn__status {
-		grid-column: 2;
-		grid-row: 1 / span 3;
-		align-self: start;
+	.fn__dot {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.45rem;
 		width: 0.4rem;
 		height: 0.4rem;
-		margin-top: 0.15rem;
 		border-radius: 9999px;
 		background: color-mix(in oklch, var(--muted-foreground) 40%, transparent);
 	}
 
-	.demo__inspect-block {
-		padding: 0 0.35rem;
+	@keyframes demo-in {
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	@keyframes demo-edge-in {
+		to {
+			opacity: 1;
+			transform: scaleX(1);
+			background: color-mix(in oklch, var(--primary) 55%, var(--border));
+		}
+	}
+
+	@keyframes demo-run-pulse {
+		50% {
+			box-shadow: 0 0 0 5px color-mix(in oklch, var(--primary) 12%, transparent);
+		}
+	}
+
+	@keyframes demo-dot-run {
+		50% {
+			opacity: 0.4;
+		}
+	}
+
+	.demo[data-visual="0"] .fn[data-n="0"] {
+		animation: demo-in 0.4s ease both;
+	}
+	.demo[data-visual="0"] .fn[data-n="1"] {
+		animation: demo-in 0.4s ease 0.55s both;
+	}
+	.demo[data-visual="0"] .fn[data-n="2"] {
+		animation: demo-in 0.4s ease 1.1s both;
+	}
+	.demo[data-visual="0"] .fn[data-n="3"] {
+		animation: demo-in 0.4s ease 1.65s both;
+	}
+	.demo[data-visual="0"] .fn[data-n="4"] {
+		animation: demo-in 0.4s ease 2.2s both;
+	}
+	.demo[data-visual="0"] .demo__edge[data-e="0"] {
+		animation: demo-edge-in 0.35s ease 0.35s both;
+	}
+	.demo[data-visual="0"] .demo__edge[data-e="1"] {
+		animation: demo-edge-in 0.35s ease 0.9s both;
+	}
+	.demo[data-visual="0"] .demo__edge[data-e="2"] {
+		animation: demo-edge-in 0.35s ease 1.45s both;
+	}
+	.demo[data-visual="0"] .demo__edge[data-e="3"] {
+		animation: demo-edge-in 0.35s ease 2s both;
+	}
+
+	.demo[data-visual="1"] .fn,
+	.demo[data-visual="2"] .fn,
+	.demo[data-visual="3"] .fn {
+		opacity: 1;
+		transform: none;
+		animation: none;
+	}
+
+	.demo[data-visual="1"] .demo__edge,
+	.demo[data-visual="2"] .demo__edge,
+	.demo[data-visual="3"] .demo__edge {
+		opacity: 1;
+		transform: scaleX(1);
+		background: color-mix(in oklch, var(--primary) 55%, var(--border));
+		animation: none;
+	}
+
+	.demo[data-visual="1"] [data-node="start"] .fn__dot,
+	.demo[data-visual="1"] [data-node="searchForm"] .fn__dot {
+		background: var(--chart-2);
+	}
+
+	.demo[data-visual="1"] [data-node="search"] {
+		box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 45%, transparent);
+	}
+
+	.demo[data-visual="1"] [data-node="search"] .fn__dot {
+		background: var(--primary);
+		box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 28%, transparent);
+		animation: demo-dot-run 0.9s linear infinite;
+	}
+
+	.demo[data-visual="2"] [data-node="start"] .fn__dot,
+	.demo[data-visual="2"] [data-node="searchForm"] .fn__dot,
+	.demo[data-visual="2"] [data-node="search"] .fn__dot {
+		background: var(--chart-2);
+	}
+
+	.demo[data-visual="2"] [data-node="pickForm"] {
+		box-shadow: 0 0 0 1px color-mix(in oklch, var(--chart-2) 50%, transparent);
+	}
+
+	.demo[data-visual="2"] [data-node="pickForm"] .fn__dot {
+		background: var(--primary);
+		animation: demo-dot-run 0.9s linear infinite;
+	}
+
+	.demo[data-visual="3"] .fn {
+		box-shadow: none;
+	}
+
+	.demo[data-visual="3"] .fn__dot {
+		background: var(--chart-2);
+	}
+
+	.fn__badge {
+		display: inline-flex;
+		height: 1.15rem;
+		align-items: center;
+		border-radius: 0.2rem;
+		padding: 0 0.3rem;
+		font-size: 0.58rem;
+		font-weight: 700;
+		background: color-mix(in oklch, var(--foreground) 10%, transparent);
+	}
+
+	.fn__badge--form {
+		background: color-mix(in oklch, var(--chart-2) 16%, transparent);
+		color: var(--chart-2);
+	}
+
+	.fn__badge--http {
+		background: color-mix(in oklch, var(--primary) 15%, transparent);
+		color: var(--primary);
+	}
+
+	.fn__title {
+		margin-top: 0.25rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+	}
+
+	.fn__id,
+	.fn__sub {
+		font-size: 0.62rem;
+		color: var(--muted-foreground);
+		font-family: ui-monospace, monospace;
+	}
+
+	.demo__inspect {
+		display: none;
+		padding: 0 0.25rem;
+		font-size: 0.75rem;
+	}
+
+	.demo[data-visual="1"] [data-inspect="search"],
+	.demo[data-visual="2"] [data-inspect="form"],
+	.demo[data-visual="3"] [data-inspect="http"] {
+		display: block;
 	}
 
 	.demo__kv {
 		display: flex;
 		justify-content: space-between;
-		gap: 0.4rem;
-		margin: 0 0 0.35rem;
-		font-size: 0.65rem;
+		gap: 0.5rem;
+		margin: 0 0 0.45rem;
 	}
 
 	.demo__kv span {
-		flex-shrink: 0;
 		color: var(--muted-foreground);
 	}
 
 	.demo__kv--stack {
 		flex-direction: column;
 		align-items: stretch;
-		gap: 0.2rem;
 	}
 
-	.demo__url {
+	.demo__code {
 		display: block;
 		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 		border: 1px solid var(--sidebar-border);
 		border-radius: calc(var(--radius) * 0.6);
 		background: var(--background);
-		padding: 0.25rem 0.35rem;
-		font-family: ui-monospace, monospace;
-		font-size: 0.58rem;
+		padding: 0.3rem 0.4rem;
+		font-size: 0.62rem;
+		white-space: nowrap;
+	}
+
+	.demo__url-type {
+		display: inline-block;
+		max-width: 0;
+		overflow: hidden;
+		vertical-align: bottom;
+		white-space: nowrap;
+	}
+
+	.demo[data-visual="1"] .demo__url-type {
+		animation: demo-type 1.5s steps(32) 0.15s forwards;
+	}
+
+	.demo[data-visual="3"] .demo__url-type--cart {
+		animation: demo-type 1.2s steps(24) 0.1s forwards;
+	}
+
+	@keyframes demo-type {
+		to {
+			max-width: 22rem;
+		}
+	}
+
+	.tok-mustache {
+		display: inline;
+		border-radius: 0.2rem;
+		background: color-mix(in oklch, var(--chart-1) 14%, transparent);
+		padding: 0.05rem 0.12rem;
+	}
+
+	.tok-brace {
+		color: var(--muted-foreground);
+	}
+
+	.tok-scope {
+		color: var(--chart-1);
+		font-weight: 700;
+	}
+
+	.tok-dot {
+		color: var(--muted-foreground);
+	}
+
+	.tok-ident {
+		color: var(--chart-2);
+	}
+
+	.tok-path {
 		color: var(--foreground);
 	}
 
-	.demo__response {
-		margin-top: 0.75rem;
-		opacity: 0;
-		transform: translateY(6px);
-		transition:
-			opacity 0.4s ease,
-			transform 0.4s ease;
+	.tok-key {
+		color: var(--chart-2);
 	}
 
-	.demo__response pre {
-		margin: 0 0.2rem;
+	.tok-num {
+		color: var(--primary);
+	}
+
+	.tok-p {
+		color: var(--muted-foreground);
+	}
+
+	.demo__json {
+		display: none;
+		margin: 0.5rem 0 0;
 		border: 1px solid var(--sidebar-border);
 		border-radius: var(--radius);
 		background: var(--background);
-		padding: 0.4rem 0.45rem;
-		font-size: 0.58rem;
-		line-height: 1.35;
-		overflow: hidden;
+		padding: 0.45rem;
+		font-size: 0.65rem;
+		line-height: 1.45;
+		opacity: 0;
+	}
+
+	.demo[data-visual="3"] .demo__json {
+		display: block;
+		animation: demo-json-in 0.5s ease 0.9s forwards;
+	}
+
+	@keyframes demo-json-in {
+		to {
+			opacity: 1;
+		}
+	}
+
+	.demo[data-visual="3"] [data-panel="inspector"] {
+		box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 30%, transparent);
 	}
 
 	.demo__status {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 0.85rem;
 		border-top: 1px solid var(--border);
 		background: var(--sidebar);
-		padding: 0.3rem 0.65rem;
-		font-size: 0.6rem;
+		padding: 0.3rem 0.75rem;
+		font-size: 0.65rem;
 		color: var(--muted-foreground);
 	}
 
@@ -894,91 +1157,158 @@ const steps = [
 		margin-left: auto;
 	}
 
-	.demo[data-step="0"] [data-panel="sidebar"] {
-		box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 40%, transparent);
+	.demo__summary {
+		display: none;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.35rem 0.85rem;
+		border-top: 1px solid var(--border);
+		background: color-mix(in oklch, var(--muted) 70%, var(--background));
+		padding: 0.4rem 0.75rem;
+		font-size: 0.68rem;
+		color: var(--muted-foreground);
 	}
 
-	.demo[data-step="0"] [data-flow] {
-		animation: demo-pulse 1.5s ease-in-out infinite;
+	.demo[data-visual="3"] .demo__summary {
+		display: flex;
 	}
 
-	.demo[data-step="1"] .fn,
-	.demo[data-step="2"] .fn,
-	.demo[data-step="3"] .fn {
-		opacity: 1;
-		transform: none;
+	.demo__summary-ok {
+		font-weight: 700;
+		color: var(--chart-2);
 	}
 
-	.demo[data-step="1"] .demo__edge,
-	.demo[data-step="2"] .demo__edge,
-	.demo[data-step="3"] .demo__edge {
-		opacity: 1;
-		transform: scaleY(1);
-		background: color-mix(in oklch, var(--primary) 60%, var(--border));
+	.demo__form-layer {
+		display: none;
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		align-items: center;
+		justify-content: center;
+		padding: 0.75rem;
+		background: color-mix(in oklch, var(--background) 55%, transparent);
 	}
 
-	@media (min-width: 640px) {
-		.demo[data-step="1"] .demo__edge,
-		.demo[data-step="2"] .demo__edge,
-		.demo[data-step="3"] .demo__edge {
-			transform: scaleX(1);
+	.demo[data-visual="2"] .demo__form-layer {
+		display: flex;
+	}
+
+	.demo__sheet {
+		width: 14.5rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--background);
+		padding: 0.65rem 0.7rem 0.55rem;
+		box-shadow: 0 6px 20px color-mix(in oklch, var(--foreground) 10%, transparent);
+	}
+
+	.demo[data-visual="2"] .demo__sheet {
+		display: grid;
+		gap: 0.4rem;
+		animation: demo-sheet-in 0.35s ease;
+	}
+
+	@keyframes demo-sheet-in {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
 		}
 	}
 
-	.demo[data-step="1"] [data-panel="canvas"] {
-		box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 28%, transparent);
+	.demo__sheet-kicker {
+		margin: 0;
+		font-size: 0.58rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--muted-foreground);
 	}
 
-	.demo[data-step="2"] .demo__run {
-		background: var(--primary);
-		color: var(--primary-foreground);
-		box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent);
+	.demo__sheet-title {
+		margin: 0;
+		font-size: 0.78rem;
+		font-weight: 600;
 	}
 
-	.demo[data-step="2"] .fn[data-node="http"],
-	.demo[data-step="2"] .fn[data-node="extract"] {
-		box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 45%, transparent);
+	.demo__field {
+		display: grid;
+		gap: 0.15rem;
+		font-size: 0.62rem;
+		font-weight: 600;
+		color: var(--muted-foreground);
+		opacity: 0;
 	}
 
-	.demo[data-step="2"] .fn[data-node="http"] .fn__status,
-	.demo[data-step="2"] .fn[data-node="extract"] .fn__status {
-		background: var(--primary);
-		box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 30%, transparent);
-		animation: demo-spin-dot 0.9s linear infinite;
+	.demo[data-visual="2"] .demo__field--1 {
+		animation: demo-field-in 0.3s ease 0.2s forwards;
 	}
 
-	.demo[data-step="3"] .demo__response {
-		opacity: 1;
-		transform: none;
+	.demo[data-visual="2"] .demo__field--2 {
+		animation: demo-field-in 0.3s ease 0.55s forwards;
 	}
 
-	.demo[data-step="3"] [data-panel="inspector"] {
-		box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 35%, transparent);
-	}
-
-	.demo[data-step="3"] .fn .fn__status {
-		background: var(--chart-2);
-	}
-
-	.demo[data-step="3"] .fn[data-node="output"] {
-		border-color: color-mix(in oklch, var(--primary) 50%, var(--border));
-		box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 30%, transparent);
-	}
-
-	@keyframes demo-pulse {
-		0%,
-		100% {
-			background: var(--sidebar-accent);
-		}
-		50% {
-			background: color-mix(in oklch, var(--primary) 20%, var(--sidebar-accent));
+	@keyframes demo-field-in {
+		to {
+			opacity: 1;
 		}
 	}
 
-	@keyframes demo-spin-dot {
-		50% {
-			opacity: 0.45;
-		}
+	.demo__select,
+	.demo__input {
+		border: 1px solid var(--border);
+		border-radius: calc(var(--radius) * 0.7);
+		background: var(--background);
+		padding: 0.28rem 0.4rem;
+		font-weight: 400;
+		font-size: 0.68rem;
+		color: var(--foreground);
+		overflow: hidden;
+		white-space: nowrap;
+	}
+
+	.demo__fill {
+		display: inline-block;
+		max-width: 0;
+		overflow: hidden;
+		vertical-align: bottom;
+		white-space: nowrap;
+	}
+
+	.demo[data-visual="2"] .demo__field--1 .demo__fill {
+		animation: demo-type 1.1s steps(22) 0.35s forwards;
+	}
+
+	.demo[data-visual="2"] .demo__field--2 .demo__fill {
+		animation: demo-type 0.45s steps(4) 0.75s forwards;
+	}
+
+	.demo__sheet-foot {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.3rem;
+		opacity: 0;
+	}
+
+	.demo[data-visual="2"] .demo__sheet-foot {
+		animation: demo-field-in 0.3s ease 1.05s forwards;
+	}
+
+	.demo__btn-outline,
+	.demo__btn-primary {
+		border-radius: calc(var(--radius) * 0.7);
+		padding: 0.2rem 0.45rem;
+		font-size: 0.62rem;
+		font-weight: 600;
+	}
+
+	.demo__btn-outline {
+		border: 1px solid var(--border);
+		color: var(--muted-foreground);
+	}
+
+	.demo__btn-primary {
+		background: var(--secondary);
+		color: var(--secondary-foreground);
 	}
 
 	.demo__controls {
@@ -988,46 +1318,103 @@ const steps = [
 
 	.demo__caption {
 		margin: 0;
-		min-height: 2.5rem;
 		color: var(--muted-foreground);
-		font-size: 0.95rem;
-		line-height: 1.45;
+		font-size: 0.8rem;
+		line-height: 1.4;
+		text-align: center;
+	}
+
+	.demo__stepper {
+		position: relative;
+	}
+
+	.demo__stepper-track {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+		background: var(--muted);
+	}
+
+	.demo__stepper-fill {
+		height: 100%;
+		width: 0%;
+		background: color-mix(in oklch, var(--primary) 12%, var(--muted));
 	}
 
 	.demo__steps {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.5rem;
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: stretch;
+		justify-content: stretch;
+		gap: 0;
+	}
+
+	.demo__arrow {
+		display: none;
+		width: 1.75rem;
+		flex-shrink: 0;
+		align-self: center;
+		color: color-mix(in oklch, var(--foreground) 22%, transparent);
+	}
+
+	.demo__arrow svg {
+		width: 100%;
+		height: 1.15rem;
 	}
 
 	@media (min-width: 640px) {
-		.demo__steps {
-			grid-template-columns: repeat(4, 1fr);
+		.demo__step {
+			flex: 1;
+			min-width: 8.5rem;
 		}
+	}
+
+	@media (min-width: 1100px) {
+		.demo__arrow {
+			display: block;
+		}
+
+		.demo__step {
+			flex: 1;
+		}
+	}
+
+	.demo__arrow.is-on {
+		color: var(--primary);
 	}
 
 	.demo__step {
 		display: flex;
-		align-items: flex-start;
-		gap: 0.5rem;
+		align-items: center;
+		gap: 0.45rem;
+		min-width: 0;
 		text-align: left;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		background: var(--background);
-		padding: 0.65rem 0.75rem;
+		border: none;
+		background: transparent;
+		padding: 0.55rem 0.5rem;
 		cursor: pointer;
-		transition:
-			border-color 0.2s ease,
-			background 0.2s ease;
+	}
+
+	.demo__step-title {
+		font-size: 0.72rem;
+		font-weight: 600;
+		line-height: 1.25;
 	}
 
 	.demo__step:hover {
-		background: var(--muted);
+		background: color-mix(in oklch, var(--foreground) 5%, transparent);
 	}
 
+	.demo__step.is-done,
 	.demo__step[aria-selected="true"] {
-		border-color: color-mix(in oklch, var(--primary) 55%, var(--border));
-		background: color-mix(in oklch, var(--primary) 12%, var(--background));
+		background: transparent;
+	}
+
+	.demo__step[aria-selected="true"] .demo__step-title {
+		color: var(--foreground);
 	}
 
 	.demo__step-index {
@@ -1038,16 +1425,28 @@ const steps = [
 		align-items: center;
 		justify-content: center;
 		border-radius: 9999px;
-		background: var(--primary);
-		color: var(--primary-foreground);
+		background: var(--muted);
+		color: var(--muted-foreground);
 		font-size: 0.7rem;
 		font-weight: 700;
 	}
 
-	.demo__step-title {
-		font-size: 0.8rem;
-		font-weight: 600;
-		line-height: 1.3;
-		color: var(--foreground);
+	.demo__step[aria-selected="true"] .demo__step-index {
+		background: var(--primary);
+		color: var(--primary-foreground);
+	}
+
+	.demo__step.is-done .demo__step-index {
+		background: var(--primary);
+		color: var(--primary-foreground);
+	}
+
+	.demo__step.is-done .demo__step-index::after {
+		content: "";
+		width: 0.35rem;
+		height: 0.55rem;
+		border-right: 2px solid currentColor;
+		border-bottom: 2px solid currentColor;
+		transform: rotate(45deg) translateY(-1px);
 	}
 </style>

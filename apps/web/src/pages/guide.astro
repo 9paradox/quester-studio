@@ -63,7 +63,16 @@ const base = import.meta.env.BASE_URL;
 				</p>
 			</li>
 			<li class="grid gap-1">
-				<h2 class="text-base font-semibold">7. Go deeper</h2>
+				<h2 class="text-base font-semibold">7. Try a mid-flow form</h2>
+				<p class="text-sm text-muted-foreground">
+					Open <code class="rounded bg-muted px-1">search-pick-cart</code> and run it with env
+					<code class="rounded bg-muted px-1">local</code>. The run pauses on each form: search, then pick
+					from the HTTP results, then the cart call. Submit in the dialog to continue. This is optional
+					after a successful login-and-profile run.
+				</p>
+			</li>
+			<li class="grid gap-1">
+				<h2 class="text-base font-semibold">8. Go deeper</h2>
 				<p class="text-sm text-muted-foreground">
 					<a class="underline underline-offset-2 hover:text-foreground" href={`${base}docs/use-cases/`}
 						>Who it’s for</a

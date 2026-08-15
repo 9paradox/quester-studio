@@ -7,81 +7,206 @@ const base = import.meta.env.BASE_URL;
 ---
 
 <BaseLayout
-	description="Quester Studio — design, chain, and regress API journeys. Same git-friendly flows for the team and continuous integration."
+	description="Quester Studio is a local desktop app for multi-step API journeys. Same git-friendly flow files in the app and the CLI. Public preview; builds are unsigned."
 >
 	<section
 		class="relative overflow-hidden border-b border-border"
 		style="background:
-			radial-gradient(90% 60% at 50% 0%, color-mix(in oklch, var(--primary) 22%, transparent), transparent 55%),
-			radial-gradient(70% 50% at 80% 100%, color-mix(in oklch, var(--muted-foreground) 6%, transparent), transparent 45%),
+			radial-gradient(90% 60% at 50% 0%, color-mix(in oklch, var(--primary) 14%, transparent), transparent 55%),
 			var(--background);"
 	>
-		<div class="mx-auto max-w-5xl px-4 pb-14 pt-14 sm:px-6 sm:pb-16 sm:pt-16">
-			<div class="mx-auto max-w-2xl text-center">
-				<h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-					Quester Studio
-				</h1>
-				<p class="mt-4 text-base text-muted-foreground sm:text-lg">
-					Design, chain, and regress API journeys — same git-friendly flows for the team and continuous
-					integration. Secrets stay on your machine.
-				</p>
-				<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-					<a
-						href={`${base}download/`}
-						class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-					>
-						Download
-					</a>
-					<a
-						href={`${base}guide/`}
-						class="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
-					>
-						Guide
-					</a>
-				</div>
+		<div class="mx-auto max-w-2xl px-4 pb-8 pt-14 text-center sm:px-6 sm:pt-16">
+			<h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+				Quester Studio
+			</h1>
+			<p class="mt-4 text-base text-muted-foreground sm:text-lg">
+				A local desktop app for multi-step API journeys. You draw the path on a canvas; the same
+				<code class="rounded bg-muted px-1 text-sm">*.flow.json</code>
+				files run from the CLI. Secrets stay on disk.
+			</p>
+			<p class="mt-2 text-xs text-muted-foreground">
+				Public preview. Desktop builds are unsigned.
+			</p>
+			<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+				<a
+					href={`${base}download/`}
+					class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+				>
+					Download
+				</a>
+				<a
+					href={`${base}guide/`}
+					class="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+				>
+					Guide
+				</a>
 			</div>
-			<div class="mx-auto mt-12 max-w-4xl">
-				<HowItWorks />
+		</div>
+		<div class="mx-auto w-full max-w-[90rem] px-3 pb-14 sm:px-4 sm:pb-16">
+			<HowItWorks />
+		</div>
+	</section>
+
+	<section class="border-b border-border">
+		<div class="mx-auto max-w-5xl px-4 py-14 sm:px-6">
+			<h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">Where it is useful</h2>
+			<p class="mt-3 max-w-2xl text-muted-foreground">
+				Everyday work where a single request is not enough, and the team needs to share the same files.
+			</p>
+			<ul class="mt-8 grid gap-6 sm:grid-cols-2">
+				<li>
+					<h3 class="text-sm font-semibold">Reproduce a failing chain locally</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						Login, then the next call with the token, then an assert — on your machine, with the same
+						environment the app uses.
+					</p>
+				</li>
+				<li>
+					<h3 class="text-sm font-semibold">Regression in continuous integration</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						Testers add assert steps on the canvas. The CLI runs those flows or a suite in CI from the
+						same files.
+					</p>
+				</li>
+				<li>
+					<h3 class="text-sm font-semibold">Follow the path without writing scripts</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						The canvas shows the business order. Optional
+						<code class="rounded bg-muted px-1 text-xs">note</code>
+						stickies document intent and are not executed.
+					</p>
+				</li>
+				<li>
+					<h3 class="text-sm font-semibold">A human choice in the middle of a run</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						Search, pick from the results, then call the next API. A form node pauses until you submit
+						(or until CLI
+						<code class="rounded bg-muted px-1 text-xs">--forms</code>
+						supplies the values).
+					</p>
+				</li>
+				<li class="sm:col-span-2">
+					<h3 class="text-sm font-semibold">From a request collection to a shared workspace</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						Import a collection, then chain what used to be separate requests into one journey the team
+						keeps in git.
+					</p>
+				</li>
+			</ul>
+			<p class="mt-8 text-sm">
+				<a
+					class="underline underline-offset-2 hover:text-foreground"
+					href={`${base}docs/use-cases/`}
+					>More on who it is for</a
+				>
+			</p>
+		</div>
+	</section>
+
+	<section class="border-b border-border bg-sidebar/40">
+		<div class="mx-auto max-w-5xl px-4 py-14 sm:px-6">
+			<h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">What it includes</h2>
+			<p class="mt-3 max-w-2xl text-muted-foreground">
+				Shipped in the current public preview. This is the working set, not a promise list.
+			</p>
+			<div class="mt-8 grid gap-8 sm:grid-cols-2">
+				<div>
+					<h3 class="text-sm font-semibold">Workspace</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						A folder with
+						<code class="rounded bg-muted px-1 text-xs">quester.json</code>,
+						environments, gitignored secrets, collections, forms, and optional on-disk run logs.
+					</p>
+				</div>
+				<div>
+					<h3 class="text-sm font-semibold">Canvas nodes</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						HTTP, extract, template, set, if / switch, foreach / try frames (including nesting), join,
+						subflow, assert, json / inspect, log, note, form, input, output, delay, transform, merge.
+					</p>
+				</div>
+				<div>
+					<h3 class="text-sm font-semibold">Forms</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						Reusable
+						<code class="rounded bg-muted px-1 text-xs">forms/*.form.json</code>.
+						A form node waits mid-flow. Field types include string, number, boolean, json, and select
+						(including options from a previous response). CLI uses
+						<code class="rounded bg-muted px-1 text-xs">--forms</code>.
+					</p>
+				</div>
+				<div>
+					<h3 class="text-sm font-semibold">Run</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						Environment picker, run status for each node, stop, response viewer, and a run list at the
+						bottom of the window.
+					</p>
+				</div>
+				<div class="sm:col-span-2">
+					<h3 class="text-sm font-semibold">CLI</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						<code class="rounded bg-muted px-1 text-xs">validate</code>,
+						<code class="rounded bg-muted px-1 text-xs">run</code>,
+						suites, and collection import — the same files as the desktop app.
+					</p>
+				</div>
 			</div>
 		</div>
 	</section>
 
 	<section class="border-b border-border">
 		<div class="mx-auto max-w-5xl px-4 py-14 sm:px-6">
-			<p class="text-center text-sm text-muted-foreground">
-				Built for
-				<strong class="font-medium text-foreground">developers</strong>,
-				<strong class="font-medium text-foreground">testers</strong>, and
-				<strong class="font-medium text-foreground">business analysts</strong>
-				who share one workspace.
+			<h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+				Compared with a typical HTTP client
+			</h2>
+			<p class="mt-3 max-w-2xl text-muted-foreground">
+				No product names. This is how Quester is shaped, not a claim that it replaces every client.
 			</p>
-			<ul class="mt-10 grid gap-8 sm:grid-cols-3">
-				<li>
-					<h2 class="text-sm font-semibold tracking-tight">API chaining</h2>
-					<p class="mt-2 text-sm text-muted-foreground">
-						Pass tokens and IDs between steps — login, authorize the next call, assert the outcome.
-					</p>
-				</li>
-				<li>
-					<h2 class="text-sm font-semibold tracking-tight">Complex flows</h2>
-					<p class="mt-2 text-sm text-muted-foreground">
-						Branch, framed try/foreach (including nesting), join, and subflows on a readable canvas the whole team can follow.
-					</p>
-				</li>
-				<li>
-					<h2 class="text-sm font-semibold tracking-tight">Regression + continuous integration</h2>
-					<p class="mt-2 text-sm text-muted-foreground">
-						Assert steps, run suites from the CLI, and keep the same
-						<code class="rounded bg-muted px-1 text-xs">*.flow.json</code> files in git.
-					</p>
-				</li>
-			</ul>
-			<p class="mt-8 text-center text-sm">
-				<a
-					class="underline underline-offset-2 hover:text-foreground"
-					href={`${base}docs/use-cases/`}
-					>Who it’s for</a
-				>
+			<div class="mt-8 overflow-x-auto">
+				<table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+					<thead>
+						<tr class="border-b border-border">
+							<th class="py-2 pr-4 font-semibold">Typical HTTP client</th>
+							<th class="py-2 font-semibold">Quester</th>
+						</tr>
+					</thead>
+					<tbody class="text-muted-foreground">
+						<tr class="border-b border-border align-top">
+							<td class="py-3 pr-4">Requests grouped in folders</td>
+							<td class="py-3 text-foreground">
+								Journeys as a graph: branch, loop, nested try / foreach
+							</td>
+						</tr>
+						<tr class="border-b border-border align-top">
+							<td class="py-3 pr-4">Parameters mainly at the start of a run</td>
+							<td class="py-3 text-foreground">
+								Mid-flow forms that wait for Submit (or CLI
+								<code class="rounded bg-muted px-1 text-xs">--forms</code>)
+							</td>
+						</tr>
+						<tr class="border-b border-border align-top">
+							<td class="py-3 pr-4">Chaining often done in scripts</td>
+							<td class="py-3 text-foreground">Extract and template steps on the canvas</td>
+						</tr>
+						<tr class="border-b border-border align-top">
+							<td class="py-3 pr-4">Cloud sync or app-only storage</td>
+							<td class="py-3 text-foreground">
+								JSON files on disk in git; secrets stay local and gitignored
+							</td>
+						</tr>
+						<tr class="align-top">
+							<td class="py-3 pr-4">Separate tooling for CI</td>
+							<td class="py-3 text-foreground">
+								The same flows via
+								<code class="rounded bg-muted px-1 text-xs">@quester-studio/cli</code>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<p class="mt-6 text-sm text-muted-foreground">
+				This is still a preview. Other clients are often stronger at editing a single request, or they
+				ship signed installers. Quester is aimed at shared multi-step scenarios that live in a folder.
 			</p>
 		</div>
 	</section>
@@ -89,15 +214,13 @@ const base = import.meta.env.BASE_URL;
 	<section class="border-b border-border bg-sidebar/60">
 		<div class="mx-auto max-w-5xl px-4 py-14 sm:px-6">
 			<p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">CLI</p>
-			<h2 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-				Prefer the terminal?
-			</h2>
+			<h2 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Prefer the terminal?</h2>
 			<p class="mt-3 max-w-xl text-muted-foreground">
-				Skip the UI. Validate workspaces and run flows or suites with
+				Validate workspaces and run flows or suites with
 				<code class="rounded bg-muted px-1.5 py-0.5 text-sm">@quester-studio/cli</code>
 				— same
 				<code class="rounded bg-muted px-1.5 py-0.5 text-sm">*.flow.json</code>
-				files, ready for continuous integration.
+				files.
 			</p>
 			<CliRunnerTabs />
 			<div class="mt-6 flex flex-wrap gap-3">
@@ -118,35 +241,27 @@ const base = import.meta.env.BASE_URL;
 	</section>
 
 	<section class="mx-auto max-w-5xl px-4 py-14 sm:px-6">
-		<h2 class="text-xl font-semibold tracking-tight">One workspace for the team</h2>
+		<h2 class="text-xl font-semibold tracking-tight">Try it on your machine</h2>
 		<p class="mt-2 max-w-2xl text-muted-foreground">
-			Flows live as git-friendly files. Use the desktop app to design and debug; use the CLI in scripts
-			and continuous integration. Your data stays local.
+			Download an unsigned build, open the sample workspace, run
+			<code class="rounded bg-muted px-1 text-sm">login-and-profile</code>
+			first, then
+			<code class="rounded bg-muted px-1 text-sm">search-pick-cart</code>
+			if you want a mid-flow form.
 		</p>
-		<ul class="mt-8 grid gap-6 sm:grid-cols-3">
-			<li>
-				<h3 class="text-sm font-semibold">Visual builder</h3>
-				<p class="mt-1 text-sm text-muted-foreground">
-					Canvas, inspector, and run panel — same theme as this site.
-				</p>
-			</li>
-			<li>
-				<h3 class="text-sm font-semibold">Hero scenario</h3>
-				<p class="mt-1 text-sm text-muted-foreground">
-					Open the sample workspace and run
-					<strong class="font-medium text-foreground">login-and-profile</strong>
-					— auth, chained call, and asserts.
-				</p>
-			</li>
-			<li>
-				<h3 class="text-sm font-semibold">One docs site</h3>
-				<p class="mt-1 text-sm text-muted-foreground">
-					<a class="underline underline-offset-2 hover:text-foreground" href={`${base}docs/`}
-						>Docs</a
-					>
-					cover UI, CLI, and nodes together.
-				</p>
-			</li>
-		</ul>
+		<div class="mt-8 flex flex-wrap gap-3">
+			<a
+				href={`${base}download/`}
+				class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+			>
+				Download
+			</a>
+			<a
+				href={`${base}docs/`}
+				class="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2.5 text-sm font-semibold hover:bg-muted"
+			>
+				Docs
+			</a>
+		</div>
 	</section>
 </BaseLayout>
