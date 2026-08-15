@@ -250,8 +250,29 @@ Desktop shows **target** (in) and **source** (out) ports. Branch nodes expose **
 </svg>
 </figure>
 <div>
-<strong><a href="../nodes/if/">if</a> / <a href="../nodes/try/">try</a></strong>
-<p>In ×1 · two named outs. Engine follows matching <code>sourceHandle</code>.</p>
+<strong><a href="../nodes/if/">if</a></strong>
+<p>In ×1 · two named outs on the node header. Engine follows matching <code>sourceHandle</code>.</p>
+</div>
+</div>
+
+<div class="qs-rule">
+<figure class="qs-diagram qs-diagram-sm">
+<svg class="qs-svg" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <circle class="qs-port" cx="14" cy="34" r="4"/>
+  <line class="qs-edge" x1="18" y1="34" x2="36" y2="34"/>
+  <rect class="qs-node qs-node-accent" x="36" y="18" width="88" height="74" rx="6"/>
+  <rect x="36" y="18" width="88" height="18" rx="6" fill="color-mix(in oklch, var(--primary) 12%, transparent)" stroke="none"/>
+  <circle class="qs-port" cx="118" cy="28" r="4"/>
+  <circle class="qs-port" cx="118" cy="44" r="4"/>
+  <rect x="46" y="44" width="68" height="38" rx="4" stroke-dasharray="3 2" fill="none" class="qs-node"/>
+  <circle class="qs-port" cx="50" cy="72" r="3"/>
+  <circle class="qs-port" cx="110" cy="72" r="3"/>
+  <text class="qs-caption" x="76" y="98" text-anchor="middle">try · foreach</text>
+</svg>
+</figure>
+<div>
+<strong><a href="../nodes/try/">try</a> / <a href="../nodes/foreach/">foreach</a> frames</strong>
+<p>Header <code>in</code> + outer continuation handles. Inner body uses <code>entry</code> → child → <code>exit</code> on the inner border — not the same as <code>if</code>.</p>
 </div>
 </div>
 
