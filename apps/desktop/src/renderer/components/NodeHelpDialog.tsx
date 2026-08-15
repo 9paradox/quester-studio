@@ -1,4 +1,5 @@
 import { JsonViewer } from "@/components/JsonViewer.js";
+import { SectionHeading } from "@/components/Typography.js";
 import { Button } from "@/components/ui/button.js";
 import {
 	Dialog,
@@ -58,9 +59,7 @@ export function NodeHelpDialog({ type }: NodeHelpDialogProps) {
 						<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
 							<div className="flex flex-col gap-4">
 								<section className="flex flex-col gap-2">
-									<h3 className="text-xs font-medium text-muted-foreground">
-										Configuration
-									</h3>
+									<SectionHeading>Configuration</SectionHeading>
 									<div className="overflow-hidden rounded-md border">
 										<table className="w-full text-left text-2xs">
 											<thead className="border-b bg-muted/40 text-muted-foreground">
@@ -96,9 +95,7 @@ export function NodeHelpDialog({ type }: NodeHelpDialogProps) {
 
 								{help.syntax && help.syntax.length > 0 ? (
 									<section className="flex flex-col gap-2">
-										<h3 className="text-xs font-medium text-muted-foreground">
-											Syntax tips
-										</h3>
+										<SectionHeading>Syntax tips</SectionHeading>
 										<ul className="list-inside list-disc space-y-1 text-2xs text-muted-foreground">
 											{help.syntax.map((tip) => (
 												<li
@@ -114,9 +111,7 @@ export function NodeHelpDialog({ type }: NodeHelpDialogProps) {
 
 								{help.io ? (
 									<section className="flex flex-col gap-1.5">
-										<h3 className="text-xs font-medium text-muted-foreground">
-											Input / output
-										</h3>
+										<SectionHeading>Input / output</SectionHeading>
 										<p className="text-2xs text-muted-foreground">
 											<span className="font-medium text-foreground">
 												Input:
@@ -135,9 +130,7 @@ export function NodeHelpDialog({ type }: NodeHelpDialogProps) {
 								<Separator />
 
 								<section className="flex flex-col gap-2">
-									<h3 className="text-xs font-medium text-muted-foreground">
-										Example data
-									</h3>
+									<SectionHeading>Example data</SectionHeading>
 									<JsonViewer
 										value={help.example}
 										defaultExpandedDepth={2}

@@ -1,3 +1,4 @@
+import { SectionHeading } from "@/components/Typography.js";
 import { resolveAssertChecks } from "@/components/response/types.js";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
@@ -288,7 +289,7 @@ export function RunStatusPanel({
 			</section>
 
 			<section className="flex flex-col gap-1.5">
-				<h3 className="text-xs font-medium text-muted-foreground">Timeline</h3>
+				<SectionHeading>Timeline</SectionHeading>
 				{rows.length === 0 ? (
 					<p className="text-xs text-muted-foreground">
 						No nodes in this flow.

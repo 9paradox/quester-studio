@@ -1,4 +1,5 @@
 import { JsonPane } from "@/components/JsonPane.js";
+import { SectionHeading } from "@/components/Typography.js";
 import {
 	HttpRequestPanel,
 	HttpResponsePanel,
@@ -37,9 +38,7 @@ function ResultWithInput({
 		<div className="flex flex-col gap-4">
 			{error ? <ErrorAlert message={error} /> : null}
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">
-					{resultLabel}
-				</h3>
+				<SectionHeading>{resultLabel}</SectionHeading>
 				{!error ? (
 					<JsonPane
 						value={result}
@@ -50,7 +49,7 @@ function ResultWithInput({
 			</section>
 			<Separator />
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">Input</h3>
+				<SectionHeading>Input</SectionHeading>
 				<JsonPane value={input} />
 			</section>
 		</div>
@@ -80,7 +79,7 @@ function AssertPanels({ step }: { step: StepView }) {
 
 			{checks.length > 0 ? (
 				<section className="flex flex-col gap-2">
-					<h3 className="text-xs font-medium text-muted-foreground">Checks</h3>
+					<SectionHeading>Checks</SectionHeading>
 					<ul className="flex flex-col gap-1.5">
 						{checks.map((check) =>
 							check.ok ? (
@@ -107,15 +106,13 @@ function AssertPanels({ step }: { step: StepView }) {
 
 			{!step.error ? (
 				<section className="flex flex-col gap-2">
-					<h3 className="text-xs font-medium text-muted-foreground">Output</h3>
+					<SectionHeading>Output</SectionHeading>
 					<JsonPane value={step.output} pathCopyNodeId={step.nodeId} />
 				</section>
 			) : null}
 
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">
-					Checked input
-				</h3>
+				<SectionHeading>Checked input</SectionHeading>
 				<JsonPane value={step.input} />
 			</section>
 		</div>
@@ -134,7 +131,7 @@ function IfPanels({ step }: { step: StepView }) {
 		<div className="flex flex-col gap-4">
 			{step.error ? <ErrorAlert message={step.error} /> : null}
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">Branch</h3>
+				<SectionHeading>Branch</SectionHeading>
 				<div className="flex flex-wrap gap-2">
 					{condition !== null ? (
 						<MetaChip label="Condition" value={String(condition)} />
@@ -170,7 +167,7 @@ function TryPanels({ step }: { step: StepView }) {
 		<div className="flex flex-col gap-4">
 			{step.error ? <ErrorAlert message={step.error} /> : null}
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">Branch</h3>
+				<SectionHeading>Branch</SectionHeading>
 				<div className="flex flex-wrap gap-2">
 					{failed ? <MetaChip label="Failed" value="true" /> : null}
 					{branch ? (
@@ -206,7 +203,7 @@ function ForeachPanels({ step }: { step: StepView }) {
 		<div className="flex flex-col gap-4">
 			{step.error ? <ErrorAlert message={step.error} /> : null}
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">Loop</h3>
+				<SectionHeading>Loop</SectionHeading>
 				<div className="flex flex-wrap gap-2">
 					{count !== null ? (
 						<MetaChip label="Count" value={String(count)} />
@@ -243,9 +240,7 @@ function SetPanels({
 		<div className="flex flex-col gap-4">
 			{step.error ? <ErrorAlert message={step.error} /> : null}
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">
-					Variables applied
-				</h3>
+				<SectionHeading>Variables applied</SectionHeading>
 				<p className="text-2xs text-muted-foreground">
 					Values written to{" "}
 					<code className="font-mono text-3xs">{"{{vars.*}}"}</code> for later
@@ -254,13 +249,11 @@ function SetPanels({
 				<JsonPane value={variables} />
 			</section>
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">
-					Passthrough output
-				</h3>
+				<SectionHeading>Passthrough output</SectionHeading>
 				{!step.error ? <JsonPane value={step.output} /> : null}
 			</section>
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">Input</h3>
+				<SectionHeading>Input</SectionHeading>
 				<JsonPane value={step.input} />
 			</section>
 		</div>
@@ -276,7 +269,7 @@ function StartPanels({ step }: { step: StepView }) {
 			</p>
 			{step.error ? <ErrorAlert message={step.error} /> : null}
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">Output</h3>
+				<SectionHeading>Output</SectionHeading>
 				<JsonPane value={step.output} />
 			</section>
 		</div>
@@ -295,7 +288,7 @@ function ConfigInputOutputPanels({
 		<div className="flex flex-col gap-4">
 			{step.error ? <ErrorAlert message={step.error} /> : null}
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">Context</h3>
+				<SectionHeading>Context</SectionHeading>
 				<Tabs defaultValue="config">
 					<TabsList variant="line" className="h-8 w-full justify-start">
 						<TabsTrigger value="config" className="text-xs">
@@ -315,7 +308,7 @@ function ConfigInputOutputPanels({
 			</section>
 			<Separator />
 			<section className="flex flex-col gap-2">
-				<h3 className="text-xs font-medium text-muted-foreground">Output</h3>
+				<SectionHeading>Output</SectionHeading>
 				{!step.error ? <JsonPane value={step.output} /> : null}
 			</section>
 		</div>
@@ -336,7 +329,7 @@ export function NodeResponsePanels({
 		return (
 			<>
 				<section className="flex flex-col gap-2">
-					<h3 className="text-xs font-medium text-muted-foreground">Request</h3>
+					<SectionHeading>Request</SectionHeading>
 					<HttpRequestPanel
 						request={httpOut?.request}
 						upstreamInput={step.input}
@@ -344,9 +337,7 @@ export function NodeResponsePanels({
 				</section>
 				<Separator />
 				<section className="flex flex-col gap-2">
-					<h3 className="text-xs font-medium text-muted-foreground">
-						Response
-					</h3>
+					<SectionHeading>Response</SectionHeading>
 					<HttpResponsePanel
 						output={step.output}
 						error={step.error}
