@@ -130,7 +130,8 @@ export function Panel() {
 	const height = useQuesterStore((s) => s.panelHeight);
 	const activeTab = useQuesterStore((s) => s.panelTab);
 	const consoleLines = useQuesterStore(selectActiveConsoleLines);
-	const { runResult, runError } = useQuesterStore(selectActiveFlowRun);
+	const runResult = useQuesterStore((s) => selectActiveFlowRun(s).runResult);
+	const runError = useQuesterStore((s) => selectActiveFlowRun(s).runError);
 
 	const setPanelTab = useQuesterStore((s) => s.setPanelTab);
 	const togglePanel = useQuesterStore((s) => s.togglePanel);
