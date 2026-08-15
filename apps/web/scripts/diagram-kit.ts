@@ -352,11 +352,12 @@ export function frameSvg(type: "try" | "foreach", title = type): string {
 		: [{ y: headerCy, label: "complete", cls: "qs-edge-ok" }];
 	const outerOutPaths = outerOuts
 		.map((o) => {
-			const edgeCls = o.cls ? ` qs-edge ${o.cls}` : " qs-edge";
+			const edgeCls = o.cls ? `qs-edge ${o.cls}` : "qs-edge";
+			const stubEnd = frameRight + 46;
 			return `
   <circle class="qs-port" cx="${frameRight}" cy="${o.y}" r="6"/>
-  <text class="qs-caption" x="${frameRight + 12}" y="${o.y}" text-anchor="start">${o.label}</text>
-  <line class="${edgeCls.trim()}" x1="${frameRight + 6}" y1="${o.y}" x2="${frameRight + 46}" y2="${o.y}"/>`;
+  <line class="${edgeCls}" x1="${frameRight + 6}" y1="${o.y}" x2="${stubEnd}" y2="${o.y}"/>
+  <text class="qs-caption" x="${stubEnd + 8}" y="${o.y}" text-anchor="start">${o.label}</text>`;
 		})
 		.join("");
 	const caption = isTry
@@ -369,7 +370,7 @@ ${DIAGRAM_DEFS}
   <text class="qs-caption" x="310" y="18" text-anchor="middle">Header ports = outside flow · entry/exit = inside body only</text>
   <line class="qs-edge" x1="8" y1="${headerCy}" x2="${frameX}" y2="${headerCy}"/>
   <circle class="qs-port" cx="${frameX}" cy="${headerCy}" r="6"/>
-  <text class="qs-caption" x="${frameX - 10}" y="${headerCy}" text-anchor="end">in</text>
+  <text class="qs-caption qs-text-below" x="${frameX}" y="${headerCy + 12}" text-anchor="middle">in</text>
   <rect class="qs-node qs-node-accent" x="${frameX}" y="${headerTop}" width="${frameW}" height="${bodyTop + bodyH - headerTop}" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
   <rect x="${frameX}" y="${headerTop}" width="${frameW}" height="${headerH}" rx="10" fill="color-mix(in oklch, var(--qs-accent) 12%, var(--qs-surface))" stroke="none"/>
   <line x1="${frameX}" y1="${headerTop + headerH}" x2="${frameRight}" y2="${headerTop + headerH}" stroke="var(--qs-line)" stroke-width="1"/>

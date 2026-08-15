@@ -5,6 +5,8 @@ description: Framed loop — body per item, complete with results
 
 `foreach` is a **framed subgraph container**. Resolve `items` to an array, then run the body once per element. Templates inside the body can use `{{item}}` / `{{index}}` (or a custom `itemVar`). Outer continuation uses the **`complete`** handle with collected results.
 
+
+
 <!-- qs-frame:start -->
 <figure class="qs-diagram qs-diagram-frame">
 <svg class="qs-svg" viewBox="0 0 620 218" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="foreach frame ports and wiring">
@@ -16,14 +18,14 @@ description: Framed loop — body per item, complete with results
   <text class="qs-caption" x="310" y="18" text-anchor="middle">Header ports = outside flow · entry/exit = inside body only</text>
   <line class="qs-edge" x1="8" y1="55" x2="72" y2="55"/>
   <circle class="qs-port" cx="72" cy="55" r="6"/>
-  <text class="qs-caption" x="62" y="55" text-anchor="end">in</text>
+  <text class="qs-caption qs-text-below" x="72" y="67" text-anchor="middle">in</text>
   <rect class="qs-node qs-node-accent" x="72" y="38" width="420" height="138" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
   <rect x="72" y="38" width="420" height="34" rx="10" fill="color-mix(in oklch, var(--qs-accent) 12%, var(--qs-surface))" stroke="none"/>
   <line x1="72" y1="72" x2="492" y2="72" stroke="var(--qs-line)" stroke-width="1"/>
   <text class="qs-label" x="86" y="55">foreach</text>
   <circle class="qs-port" cx="492" cy="55" r="6"/>
-  <text class="qs-caption" x="504" y="55" text-anchor="start">complete</text>
   <line class="qs-edge qs-edge-ok" x1="498" y1="55" x2="538" y2="55"/>
+  <text class="qs-caption" x="546" y="55" text-anchor="start">complete</text>
   <rect class="qs-node" x="86" y="84" width="392" height="92" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 3%, var(--qs-surface))"/>
   <text class="qs-caption" x="282" y="100" text-anchor="middle">body · parentId children</text>
   <circle class="qs-port" cx="86" cy="130" r="6"/>
