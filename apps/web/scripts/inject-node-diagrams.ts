@@ -63,7 +63,7 @@ for (const name of readdirSync(nodesDir)) {
 		? `${MARK_FRAME_START}\n${frameSvg(type as "try" | "foreach", type)}\n${MARK_FRAME_END}\n\n`
 		: "";
 
-	const next = `${cleaned.slice(0, heading)}\n\n${portBlock}${frameBlock}${cleaned.slice(heading).replace(/^\r?\n/, "")}`;
+	const next = `${cleaned.slice(0, heading).trimEnd()}\n\n${portBlock}${frameBlock}${cleaned.slice(heading).replace(/^\r?\n+/, "\n")}`;
 	writeFileSync(file, next);
 	console.log("updated", type);
 }

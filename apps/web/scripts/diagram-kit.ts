@@ -1,3 +1,16 @@
+/** Header band with rounded top corners only (desktop frame header). */
+function frameHeaderPath(
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	r: number,
+): string {
+	const right = x + w;
+	const bottom = y + h;
+	return `M ${x + r} ${y} H ${right - r} Q ${right} ${y} ${right} ${y + r} V ${bottom} H ${x} V ${y + r} Q ${x} ${y} ${x + r} ${y} Z`;
+}
+
 /** Shared SVG marker defs — include once per diagram via DiagramDefs snippet. */
 export const DIAGRAM_DEFS = `
 <defs>
@@ -9,6 +22,23 @@ export const DIAGRAM_DEFS = `
 
 /** Matches `FRAME_INNER_INSET_PX` in desktop FlowNodes. */
 const FRAME_INSET = 14;
+/** Desktop default rem → px (`FlowNodes.tsx` handle `top` offsets). */
+const DESKTOP_REM_PX = 16;
+const PORT_R = 6;
+
+/** Outer header port — full circle outside the frame border. */
+function outerPortDot(cx: number, cy: number): string {
+	return `  <circle class="qs-port" cx="${cx}" cy="${cy}" r="${PORT_R}"/>`;
+}
+
+/** Inner body port — semicircle on the inner border, opening into the body. */
+function innerPortArc(side: "entry" | "exit", x: number, y: number): string {
+	const r = PORT_R;
+	if (side === "entry") {
+		return `  <path class="qs-port" d="M ${x} ${y - r} A ${r} ${r} 0 0 1 ${x} ${y + r} L ${x} ${y - r} Z"/>`;
+	}
+	return `  <path class="qs-port" d="M ${x} ${y - r} A ${r} ${r} 0 0 0 ${x} ${y + r} L ${x} ${y - r} Z"/>`;
+}
 
 function svgText(
 	x: number,
@@ -16,9 +46,24 @@ function svgText(
 	text: string,
 	cls: string,
 	anchor: "start" | "middle" | "end" = "start",
-	baseline: "middle" | "hanging" = "middle",
+	baseline: "middle" | "hanging" | "auto" = "middle",
 ): string {
 	return `<text class="${cls}" x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="${baseline}">${text}</text>`;
+}
+
+/** Caption below an outer header port (matches standard portSvg: in ×1 / out ×1). */
+function outerPortLabel(cx: number, cy: number, label: string): string {
+	return svgText(cx, cy + 30, `${label} ×1`, "qs-caption", "middle");
+}
+
+/** Inner body port caption — above the wire. */
+function innerPortLabel(
+	x: number,
+	portY: number,
+	text: string,
+	anchor: "start" | "end",
+): string {
+	return svgText(x, portY - 12, text, "qs-caption", anchor, "auto");
 }
 
 export type PortKind =
@@ -359,7 +404,7 @@ export function frameSvg(type: "try" | "foreach", title = type): string {
 	const headerH = 36;
 	const headerBottom = frameY + headerH;
 	const headerCy = frameY + headerH / 2;
-	const inPortY = frameY + 34;
+	const frameInY = Math.round(frameY + 2.125 * DESKTOP_REM_PX);
 	const innerX = frameX + FRAME_INSET;
 	const innerY = headerBottom + FRAME_INSET;
 	const innerW = frameW - FRAME_INSET * 2;
@@ -369,47 +414,68 @@ export function frameSvg(type: "try" | "foreach", title = type): string {
 	const childW = 96;
 	const childH = 44;
 	const childX = Math.round(innerX + (innerW - childW) / 2);
+	const outerInX = 36;
+	const outerOutX = frameRight + 36;
 	const outerOuts = isTry
 		? [
-				{ y: frameY + 16, label: "success", cls: "qs-edge-ok" },
-				{ y: frameY + 28, label: "failed", cls: "" },
+				{
+					y: Math.round(frameY + 1.1 * DESKTOP_REM_PX),
+					label: "success",
+					cls: "qs-edge-ok",
+				},
+				{
+					y: Math.round(frameY + 2.9 * DESKTOP_REM_PX),
+					label: "failed",
+					cls: "",
+				},
 			]
-		: [{ y: inPortY, label: "complete", cls: "qs-edge-ok" }];
-	const outerOutPaths = outerOuts
+		: [{ y: frameInY, label: "complete", cls: "qs-edge-ok" }];
+	const outerOutEdges = outerOuts
 		.map((o) => {
-			const stubEnd = frameRight + 36;
 			const edgeCls = o.cls ? `qs-edge ${o.cls}` : "qs-edge";
-			return `
-  <circle class="qs-port" cx="${frameRight}" cy="${o.y}" r="6"/>
-  <line class="${edgeCls}" x1="${frameRight + 6}" y1="${o.y}" x2="${stubEnd}" y2="${o.y}"/>
-  ${svgText(stubEnd + 6, o.y, o.label, "qs-caption")}`;
+			return `  <line class="${edgeCls}" x1="${frameRight}" y1="${o.y}" x2="${outerOutX - PORT_R}" y2="${o.y}"/>`;
 		})
-		.join("");
+		.join("\n");
+	const outerOutPorts = outerOuts
+		.map((o) => outerPortDot(outerOutX, o.y))
+		.join("\n");
+	const outerOutLabels = outerOuts
+		.map((o) =>
+			isTry
+				? svgText(outerOutX + 12, o.y, `${o.label} ×1`, "qs-caption")
+				: outerPortLabel(outerOutX, o.y, o.label),
+		)
+		.join("\n");
 	const caption = isTry
 		? "Header: outside <code>in</code> → frame, then <code>success</code> or <code>failed</code> out. Body: one <code>entry</code> → child → <code>exit</code> path on the inner border."
 		: "Header: outside <code>in</code> → frame, then <code>complete</code> out. Body: <code>entry</code> → child → <code>exit</code> runs once per item.";
+
+	const frameR = 10;
 
 	return `<figure class="qs-diagram qs-diagram-frame">
 <svg class="qs-svg" viewBox="0 0 640 248" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} frame ports and wiring">
 ${DIAGRAM_DEFS}
   ${svgText(320, 22, "Header ports = outside flow · entry/exit = inside body only", "qs-caption", "middle")}
-  <line class="qs-edge" x1="12" y1="${inPortY}" x2="${frameX}" y2="${inPortY}"/>
-  <circle class="qs-port" cx="${frameX}" cy="${inPortY}" r="6"/>
-  ${svgText(frameX - 10, inPortY, "in", "qs-caption", "end")}
-  <rect class="qs-node qs-node-accent" x="${frameX}" y="${frameY}" width="${frameW}" height="${frameH}" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
-  <rect x="${frameX}" y="${frameY}" width="${frameW}" height="${headerH}" rx="10" fill="color-mix(in oklch, var(--qs-accent) 12%, var(--qs-surface))" stroke="none"/>
+  <rect class="qs-node qs-node-accent" x="${frameX}" y="${frameY}" width="${frameW}" height="${frameH}" rx="${frameR}"/>
+  <path class="qs-frame-header" d="${frameHeaderPath(frameX, frameY, frameW, headerH, frameR)}"/>
   <line x1="${frameX}" y1="${headerBottom}" x2="${frameRight}" y2="${headerBottom}" stroke="var(--qs-line)" stroke-width="1"/>
-  ${svgText(frameX + 14, headerCy, title, "qs-label")}${outerOutPaths}
-  <rect class="qs-node" x="${innerX}" y="${innerY}" width="${innerW}" height="${innerH}" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 3%, var(--qs-surface))"/>
+  ${svgText(frameX + 14, headerCy, title, "qs-label")}
+  <rect class="qs-node" x="${innerX}" y="${innerY}" width="${innerW}" height="${innerH}" rx="8" stroke-dasharray="5 4"/>
   ${svgText(innerX + innerW / 2, innerY + 14, "body · parentId children", "qs-caption", "middle")}
-  <circle class="qs-port" cx="${innerX}" cy="${portY}" r="6"/>
-  ${svgText(innerX + 12, portY, "entry", "qs-caption")}
-  <line class="qs-edge qs-edge-ok" x1="${innerX + 6}" y1="${portY}" x2="${childX}" y2="${portY}"/>
   <rect class="qs-node" x="${childX}" y="${portY - childH / 2}" width="${childW}" height="${childH}" rx="8"/>
   ${svgText(childX + childW / 2, portY, "child", "qs-label", "middle")}
-  <line class="qs-edge qs-edge-ok" x1="${childX + childW}" y1="${portY}" x2="${innerRight - 6}" y2="${portY}"/>
-  <circle class="qs-port" cx="${innerRight}" cy="${portY}" r="6"/>
-  ${svgText(innerRight - 12, portY, "exit", "qs-caption", "end")}
+  <line class="qs-edge" x1="${outerInX + PORT_R}" y1="${frameInY}" x2="${frameX}" y2="${frameInY}"/>
+${outerOutEdges}
+  <line class="qs-edge qs-edge-ok" x1="${innerX + PORT_R}" y1="${portY}" x2="${childX}" y2="${portY}"/>
+  <line class="qs-edge qs-edge-ok" x1="${childX + childW}" y1="${portY}" x2="${innerRight - PORT_R}" y2="${portY}"/>
+${outerPortDot(outerInX, frameInY)}
+${outerOutPorts}
+${innerPortArc("entry", innerX, portY)}
+${innerPortArc("exit", innerRight, portY)}
+${outerPortLabel(outerInX, frameInY, "in")}
+${outerOutLabels}
+${innerPortLabel(innerX + PORT_R + 2, portY, "entry", "start")}
+${innerPortLabel(innerRight - PORT_R - 2, portY, "exit", "end")}
   ${svgText(320, 230, "entry = sourceHandle · exit = targetHandle", "qs-mono", "middle")}
 </svg>
 <figcaption>${caption}</figcaption>

@@ -133,6 +133,12 @@
 	stroke-width: 2;
 }
 
+/** Frame header band — top corners only; sits inside qs-node-accent shell. */
+.qs-diagram .qs-frame-header {
+	fill: color-mix(in oklch, var(--qs-accent) 10%, var(--qs-surface));
+	stroke: none;
+}
+
 .qs-diagram .qs-node-deny {
 	stroke: var(--qs-deny);
 	stroke-dasharray: 5 4;
@@ -221,6 +227,10 @@
 	fill: var(--qs-surface);
 	stroke: var(--qs-accent);
 	stroke-width: 2;
+}
+
+.qs-diagram path.qs-port {
+	stroke-linejoin: round;
 }
 
 .qs-diagram .qs-port-muted {

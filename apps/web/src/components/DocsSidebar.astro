@@ -295,10 +295,47 @@ const currentLabel =
 </aside>
 
 <script>
+	const SCROLL_KEY = "qs-docs-sidebar-scroll";
+
 	const root = document.querySelector("[data-docs-sidebar]");
 	if (root instanceof HTMLElement) {
 		const toggle = root.querySelector("[data-docs-nav-toggle]");
 		const nav = root.querySelector("[data-docs-nav]");
+
+		function persistNavScroll() {
+			if (!(nav instanceof HTMLElement)) return;
+			sessionStorage.setItem(SCROLL_KEY, String(nav.scrollTop));
+		}
+
+		function restoreNavScroll() {
+			if (!(nav instanceof HTMLElement)) return;
+			const saved = sessionStorage.getItem(SCROLL_KEY);
+			if (saved === null) return;
+			const top = Number.parseInt(saved, 10);
+			if (Number.isFinite(top)) nav.scrollTop = top;
+		}
+
+		if (nav instanceof HTMLElement) {
+			restoreNavScroll();
+			requestAnimationFrame(restoreNavScroll);
+			window.addEventListener("pageshow", restoreNavScroll);
+			let scrollTick = false;
+			nav.addEventListener(
+				"scroll",
+				() => {
+					if (scrollTick) return;
+					scrollTick = true;
+					requestAnimationFrame(() => {
+						persistNavScroll();
+						scrollTick = false;
+					});
+				},
+				{ passive: true },
+			);
+			for (const link of nav.querySelectorAll("a[href]")) {
+				link.addEventListener("click", persistNavScroll);
+			}
+		}
 
 		function setOpen(open: boolean) {
 			if (!(toggle instanceof HTMLElement) || !(nav instanceof HTMLElement))
