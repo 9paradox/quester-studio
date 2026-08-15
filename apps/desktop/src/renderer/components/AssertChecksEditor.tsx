@@ -66,7 +66,12 @@ export function AssertChecksEditor({
 	};
 
 	return (
-		<div className="flex flex-col gap-3">
+		// biome-ignore lint/a11y/useSemanticElements: plan 19 — group label without fieldset layout change
+		<div
+			role="group"
+			aria-label="Assertion checks"
+			className="flex flex-col gap-3"
+		>
 			{rows.map((row, index) => (
 				<AssertCheckRow
 					key={`check-${index}-${assertCheckMode(row)}`}

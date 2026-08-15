@@ -1,3 +1,4 @@
+import { Label } from "@/components/ui/label.js";
 import { focusRing } from "@/lib/focusRing.js";
 import { cn } from "@/lib/utils.js";
 import type { ReactNode } from "react";
@@ -94,9 +95,9 @@ export function SettingsField({
 }) {
 	return (
 		<div className="flex flex-col gap-2">
-			<label htmlFor={htmlFor} className="text-xs font-medium text-foreground">
+			<Label htmlFor={htmlFor} className="text-xs font-medium text-foreground">
 				{label}
-			</label>
+			</Label>
 			{children}
 			{description ? (
 				<p className="text-xs text-muted-foreground">{description}</p>

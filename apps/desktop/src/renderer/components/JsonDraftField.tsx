@@ -13,6 +13,7 @@ type JsonDraftFieldProps = {
 	className?: string;
 	minHeight?: string;
 	id?: string;
+	ariaLabel?: string;
 	placeholder?: string;
 	/** Document mode for fold / line numbers / search (default). */
 	variant?: CodeEditorVariant;
@@ -28,6 +29,7 @@ export function JsonDraftField({
 	className,
 	minHeight = "6rem",
 	id,
+	ariaLabel,
 	placeholder,
 	variant = "document",
 }: JsonDraftFieldProps) {
@@ -54,6 +56,7 @@ export function JsonDraftField({
 		<div className="flex flex-col gap-1.5">
 			<CodeEditor
 				id={id}
+				ariaLabel={ariaLabel}
 				value={draft.text}
 				language="json"
 				variant={variant}

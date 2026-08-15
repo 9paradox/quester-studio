@@ -168,9 +168,10 @@ export function CodeEditor({
 	const extensions = useMemo<Extension[]>(() => {
 		const ext: Extension[] = [
 			...(themeExtensions as Extension[]),
-			EditorView.contentAttributes.of(
-				ariaLabel ? { "aria-label": ariaLabel } : {},
-			),
+			EditorView.contentAttributes.of({
+				...(id ? { "aria-labelledby": `${id}-label` } : {}),
+				...(ariaLabel ? { "aria-label": ariaLabel } : {}),
+			}),
 			// React Flow listens for Backspace/Delete on document; composedPath may be a
 			// Text node inside cm-content so RF's isInputDOMNode misses. Stop bubble.
 			EditorView.domEventHandlers({
@@ -227,6 +228,7 @@ export function CodeEditor({
 		language,
 		lint,
 		singleLine,
+		id,
 		ariaLabel,
 		effectiveCompletion,
 		effectivePathLint,
@@ -261,7 +263,6 @@ export function CodeEditor({
 
 	return (
 		<CodeMirror
-			id={id}
 			value={value}
 			onChange={readOnly ? undefined : onChange}
 			onBlur={handleBlur}

@@ -10,6 +10,7 @@ import { useShallow } from "zustand/react/shallow";
 
 type TemplateFieldProps = {
 	id?: string;
+	ariaLabel?: string;
 	value: string;
 	onChange: (value: string) => void;
 	placeholder?: string;
@@ -33,6 +34,7 @@ type TemplateFieldProps = {
  */
 export function TemplateField({
 	id,
+	ariaLabel,
 	value,
 	onChange,
 	placeholder,
@@ -58,6 +60,7 @@ export function TemplateField({
 	const editor = (
 		<CodeEditor
 			id={id}
+			ariaLabel={ariaLabel}
 			value={value}
 			onChange={onChange}
 			onBlur={onBlur}

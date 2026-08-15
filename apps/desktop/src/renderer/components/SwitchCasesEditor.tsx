@@ -98,7 +98,8 @@ export function SwitchCasesEditor({ cases, onChange }: SwitchCasesEditorProps) {
 	};
 
 	return (
-		<div className="flex flex-col gap-3">
+		// biome-ignore lint/a11y/useSemanticElements: plan 19 — group label without fieldset layout change
+		<div role="group" aria-label="Switch cases" className="flex flex-col gap-3">
 			{rows.map((row) => (
 				<div
 					key={row.id}

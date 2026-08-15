@@ -502,6 +502,7 @@ export function PrimarySidebar() {
 							value={search}
 							onChange={(e) => setSidebarSearch(e.target.value)}
 							placeholder="Search requests…"
+							aria-label="Search requests"
 							className="h-8 bg-background"
 						/>
 						<p className="px-1 text-[11px] text-muted-foreground">
@@ -583,6 +584,7 @@ export function PrimarySidebar() {
 							value={search}
 							onChange={(e) => setSidebarSearch(e.target.value)}
 							placeholder="Search runs…"
+							aria-label="Search runs"
 							className="h-8 bg-background"
 						/>
 					</div>
@@ -801,6 +803,7 @@ function SidebarFileList({
 					value={search}
 					onChange={(e) => onSearchChange(e.target.value)}
 					placeholder={searchPlaceholder}
+					aria-label={searchPlaceholder}
 					className="h-8 bg-background"
 				/>
 			</div>

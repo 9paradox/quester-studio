@@ -46,7 +46,10 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 	};
 
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: plan 19 — group label without fieldset layout change
 		<Tabs
+			role="group"
+			aria-label="Headers"
 			value={mode}
 			onValueChange={(v) => setMode((v as "pairs" | "raw") ?? "pairs")}
 		>
@@ -80,6 +83,7 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 							placeholder="Content-Type"
 							completionMode="header-key"
 							className="h-8"
+							ariaLabel={row.key ? `Header name, ${row.key}` : "Header name"}
 						/>
 						<TemplateField
 							value={row.value}
@@ -92,6 +96,7 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 							placeholder="application/json"
 							completionMode="header-value"
 							headerName={row.key}
+							ariaLabel={row.key ? `Header value, ${row.key}` : "Header value"}
 						/>
 						<Button
 							type="button"
@@ -131,6 +136,7 @@ export function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
 					onChange={commitRaw}
 					multiline
 					rows={6}
+					ariaLabel="Raw headers"
 					placeholder={
 						"Content-Type: application/json\nAuthorization: Bearer {{env.TOKEN}}"
 					}

@@ -61,7 +61,8 @@ export function TemplateMapEditor({
 	};
 
 	return (
-		<div className="flex flex-col gap-2">
+		// biome-ignore lint/a11y/useSemanticElements: plan 19 — group label without fieldset layout change
+		<div role="group" aria-label="Template map" className="flex flex-col gap-2">
 			<div className="grid grid-cols-[1fr_1fr_auto] gap-1.5 px-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
 				<span>Key</span>
 				<span>Value</span>
