@@ -189,42 +189,48 @@ export function PrimarySidebar() {
 		void refreshRuns();
 	}, [view, refreshRuns]);
 
-	const filteredFlows = flows.filter((f) => {
+	const filteredFlows = useMemo(() => {
 		const q = search.trim().toLowerCase();
-		if (!q) return true;
-		return f.name.toLowerCase().includes(q) || f.id.toLowerCase().includes(q);
-	});
-
-	const filteredForms = forms.filter((f) => {
-		const q = search.trim().toLowerCase();
-		if (!q) return true;
-		return f.name.toLowerCase().includes(q) || f.id.toLowerCase().includes(q);
-	});
-
-	const filteredEnvs = envs.filter((env) => {
-		const q = search.trim().toLowerCase();
-		if (!q) return true;
-		return env.toLowerCase().includes(q);
-	});
-
-	const filteredSecrets = secretFiles.filter((file) => {
-		const q = search.trim().toLowerCase();
-		if (!q) return true;
-		return (
-			file.envName.toLowerCase().includes(q) ||
-			file.fileName.toLowerCase().includes(q)
+		if (!q) return flows;
+		return flows.filter(
+			(f) => f.name.toLowerCase().includes(q) || f.id.toLowerCase().includes(q),
 		);
-	});
+	}, [flows, search]);
 
-	const filteredRequests = requests.filter((req) => {
+	const filteredForms = useMemo(() => {
 		const q = search.trim().toLowerCase();
-		if (!q) return true;
-		return (
-			req.name.toLowerCase().includes(q) ||
-			req.path.toLowerCase().includes(q) ||
-			req.collection.toLowerCase().includes(q)
+		if (!q) return forms;
+		return forms.filter(
+			(f) => f.name.toLowerCase().includes(q) || f.id.toLowerCase().includes(q),
 		);
-	});
+	}, [forms, search]);
+
+	const filteredEnvs = useMemo(() => {
+		const q = search.trim().toLowerCase();
+		if (!q) return envs;
+		return envs.filter((env) => env.toLowerCase().includes(q));
+	}, [envs, search]);
+
+	const filteredSecrets = useMemo(() => {
+		const q = search.trim().toLowerCase();
+		if (!q) return secretFiles;
+		return secretFiles.filter(
+			(file) =>
+				file.envName.toLowerCase().includes(q) ||
+				file.fileName.toLowerCase().includes(q),
+		);
+	}, [secretFiles, search]);
+
+	const filteredRequests = useMemo(() => {
+		const q = search.trim().toLowerCase();
+		if (!q) return requests;
+		return requests.filter(
+			(req) =>
+				req.name.toLowerCase().includes(q) ||
+				req.path.toLowerCase().includes(q) ||
+				req.collection.toLowerCase().includes(q),
+		);
+	}, [requests, search]);
 
 	const requestsByCollection = useMemo(
 		() => groupRequestsByCollection(filteredRequests, collections),

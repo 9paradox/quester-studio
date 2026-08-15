@@ -16,7 +16,7 @@ export function PlaygroundSheet() {
 	const open = useQuesterStore((s) => s.playgroundOpen);
 	const inputJson = useQuesterStore((s) => s.inputJson);
 	const inputError = useQuesterStore((s) => s.inputError);
-	const { isRunning } = useQuesterStore(selectActiveFlowRun);
+	const isRunning = useQuesterStore((s) => selectActiveFlowRun(s).isRunning);
 
 	const setPlaygroundOpen = useQuesterStore((s) => s.setPlaygroundOpen);
 	const setInputJson = useQuesterStore((s) => s.setInputJson);
