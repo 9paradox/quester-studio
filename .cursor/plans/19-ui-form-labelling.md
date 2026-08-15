@@ -1,7 +1,7 @@
 # Plan 19 — Desktop UI: associate every label with its control
 
 **Priority:** 19
-**Status:** not started
+**Status:** complete (shipped [#129](https://github.com/9paradox/quester-studio/pull/129))
 **Read first:** [UI-REVIEW-EXECUTION.md](./UI-REVIEW-EXECUTION.md)
 **Depends on:** plan 18 landed
 **Branch:** `fix/ui-form-labelling`
@@ -278,9 +278,9 @@ regression in `InspectorField`. Do not snapshot the DOM.
 
 ## After complete — ask user to confirm
 
-- [ ] **X** — Open a flow, select an HTTP node, and confirm the inspector looks pixel-identical to before this plan.
-- [ ] **Y** — With the browser accessibility inspector, the inspector Method/URL/Body controls and the request toolbar controls all report a non-empty accessible name.
-- [ ] **Z** — Headers editor, switch cases, and assert checks still add/remove/edit rows exactly as before.
+- [x] **X** — Open a flow, select an HTTP node, and confirm the inspector looks pixel-identical to before this plan.
+- [x] **Y** — With the browser accessibility inspector, the inspector Method/URL/Body controls and the request toolbar controls all report a non-empty accessible name.
+- [x] **Z** — Headers editor, switch cases, and assert checks still add/remove/edit rows exactly as before.
 
 ## Skills
 

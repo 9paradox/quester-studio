@@ -7,7 +7,9 @@
 			"@quester-studio/schema",
 			"@quester-studio/nodes",
 			"@quester-studio/engine",
-			"@quester-studio/cli"
+			"@quester-studio/cli",
+			"@quester-studio/desktop",
+			"@quester-studio/workspace-service"
 		]
 	],
 	"access": "public",

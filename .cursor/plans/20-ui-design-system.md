@@ -1,7 +1,7 @@
 # Plan 20 — Desktop UI: type scale, tokens, shared primitives, alignment
 
 **Priority:** 20
-**Status:** not started
+**Status:** complete (user confirmed X/Y/Z)
 **Read first:** [UI-REVIEW-EXECUTION.md](./UI-REVIEW-EXECUTION.md)
 **Depends on:** plans 18 and 19 landed
 **Branch:** `feat/ui-design-system`
@@ -434,9 +434,9 @@ rg -n 'clamp' --glob '*.ts' --glob '*.tsx'   # no import should point at ResizeG
 
 ## After complete — ask user to confirm
 
-- [ ] **X** — Left sidebar and right inspector headers line up; their divider rules are on the same row in both light and dark themes.
-- [ ] **Y** — Status bar "unsaved", the form editor warnings, and the node/edge counters all look right in both themes; nothing turned grey or invisible.
-- [ ] **Z** — Headers tab, env file editor, and template map editor rows all look consistent, and add/remove row still works in each.
+- [x] **X** — Left sidebar and right inspector headers line up; their divider rules are on the same row in both light and dark themes.
+- [x] **Y** — Status bar "unsaved", the form editor warnings, and the node/edge counters all look right in both themes; nothing turned grey or invisible.
+- [x] **Z** — Headers tab, env file editor, and template map editor rows all look consistent, and add/remove row still works in each.
 
 ## Skills
 

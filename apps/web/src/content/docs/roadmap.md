@@ -7,7 +7,7 @@ High-level priorities. Full backlog: [GitHub Issues](https://github.com/9paradox
 
 ## Current — v0.6.x polish
 
-Work follows the repo roadmap on the **current minor line** (no version jumps). Latest public preview: **[v0.6.2](https://github.com/9paradox/quester-studio/releases/tag/v0.6.2)**. Priorities:
+Work follows the repo roadmap on the **current minor line** (no version jumps). Latest public preview: **[v0.6.5](https://github.com/9paradox/quester-studio/releases/tag/v0.6.5)**. Priorities:
 
 1. **Performance** — desktop canvas, large JSON, engine/IPC.
 2. **Desktop UX** — remaining polish after viewers / run UX / canvas.
@@ -15,6 +15,12 @@ Work follows the repo roadmap on the **current minor line** (no version jumps). 
 4. Later tracks: auth/HTTP nodes, data helpers, forms, `code` node, AI options, MCP.
 
 Source of truth: [ROADMAP.md](https://github.com/9paradox/quester-studio/blob/main/ROADMAP.md). Plan files: `.cursor/plans/` in the repo.
+
+## Shipped — v0.6.5
+
+- Workspace forms and mid-flow `form` nodes (`{{form.*}}` bindings, CLI `--forms`)
+- Desktop UI review: focus/ARIA, form labelling, type-scale tokens, run-status re-render narrowing
+- Template / JMESPath assist polish
 
 ## Shipped — v0.6.2
 

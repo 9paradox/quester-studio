@@ -1,5 +1,13 @@
 # @quester-studio/schema
 
+## 0.6.5
+
+### Patch Changes
+
+- 2bd3365: Forms can declare reusable `inputs` bound per flow via the form node's `bindings` (`{{form.*}}`). Number/json field defaults use template assist; samples no longer hardcode `nodes.*` in shared form files.
+- 2bd3365: Form `optionsFrom.label` accepts a per-item template (e.g. `{{title}} · {{brand}} · ${{price}}`) as well as a single property name.
+- 9a29517: Add workspace forms and mid-flow `form` nodes that pause for structured input (desktop UI or CLI `--forms` map), with dynamic defaults and select options from prior node outputs.
+
 ## 0.6.2
 
 ### Patch Changes

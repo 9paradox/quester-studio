@@ -1,5 +1,16 @@
 # @quester-studio/workspace-service
 
+## 0.6.5
+
+### Patch Changes
+
+- Updated dependencies [2bd3365]
+- Updated dependencies [2bd3365]
+- Updated dependencies [9a29517]
+  - @quester-studio/schema@0.6.5
+  - @quester-studio/engine@0.6.5
+  - @quester-studio/api-contract@0.4.9
+
 ## 0.6.2
 
 ### Patch Changes
