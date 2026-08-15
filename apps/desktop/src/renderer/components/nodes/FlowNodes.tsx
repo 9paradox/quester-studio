@@ -747,8 +747,9 @@ export function JoinFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 export function JsonFlowNode({ id, data, selected }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
 	const runStatus = useNodeRunStatus(id);
-	const runResult = useQuesterStore(selectActiveFlowRun).runResult;
-	const output = runResult?.nodeOutputs?.[id];
+	const output = useQuesterStore(
+		(s) => selectActiveFlowRun(s).runResult?.nodeOutputs?.[id],
+	);
 	return (
 		<>
 			<NodeResizer
@@ -788,8 +789,9 @@ export function InspectFlowNode({
 }: NodeProps<FlowNodeData>) {
 	const edges = useEdges();
 	const runStatus = useNodeRunStatus(id);
-	const runResult = useQuesterStore(selectActiveFlowRun).runResult;
-	const output = runResult?.nodeOutputs?.[id];
+	const output = useQuesterStore(
+		(s) => selectActiveFlowRun(s).runResult?.nodeOutputs?.[id],
+	);
 	return (
 		<>
 			<NodeResizer
