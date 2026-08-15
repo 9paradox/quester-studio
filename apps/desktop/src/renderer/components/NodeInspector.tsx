@@ -1006,12 +1006,15 @@ export function NodeInspector({ node, onUpdate }: NodeInspectorProps) {
 
 function InspectorField({
 	label,
+	htmlFor,
 	hint,
 	action,
 	error,
 	children,
 }: {
 	label: string;
+	/** Id of the control this label names. Omit only for composite fields. */
+	htmlFor?: string;
 	hint?: ReactNode;
 	action?: ReactNode;
 	error?: string;
@@ -1020,7 +1023,9 @@ function InspectorField({
 	return (
 		<div className="flex flex-col gap-1.5">
 			<div className="flex items-center justify-between gap-2">
-				<Label className="text-xs text-muted-foreground">{label}</Label>
+				<Label htmlFor={htmlFor} className="text-xs text-muted-foreground">
+					{label}
+				</Label>
 				{action}
 			</div>
 			{hint ? (
