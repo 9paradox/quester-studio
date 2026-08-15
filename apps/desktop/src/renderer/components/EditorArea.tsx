@@ -25,7 +25,7 @@ export function EditorArea() {
 	const workspacePath = useQuesterStore((s) => s.workspacePath);
 	const envs = useQuesterStore((s) => s.envs);
 	const selectedEnv = useQuesterStore((s) => s.selectedEnv);
-	const { isRunning } = useQuesterStore(selectActiveFlowRun);
+	const isRunning = useQuesterStore((s) => selectActiveFlowRun(s).isRunning);
 	const canRun = useQuesterStore(selectCanRun);
 	const setSelectedEnv = useQuesterStore((s) => s.setSelectedEnv);
 	const runFlow = useQuesterStore((s) => s.runFlow);
