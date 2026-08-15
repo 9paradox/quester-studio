@@ -20,6 +20,15 @@ Open **one plan at a time**, in priority order. Source of truth for checkboxes: 
 | 15 | [MCP integration](./15-mcp.md) | Later — after polish track |
 | 16 | [Web + docs](./16-web-and-docs.md) | After 09–15; one pass absorbs landed product changes |
 | 17 | [Performance](./17-performance.md) | **Last** — after 04–16; harden hotspots from landed UI/engine work |
+| 18 | [UI — focus + control state](./18-ui-focus-and-states.md) | UI/UX review wave — start here |
+| 19 | [UI — form labelling](./19-ui-form-labelling.md) | After 18 |
+| 20 | [UI — design system](./20-ui-design-system.md) | After 19 |
+| 21 | [UI — render perf](./21-ui-render-perf.md) | After 20; retires one plan-17 line item |
+
+Plans 18–21 came out of a UI/UX engineering review of `apps/desktop/src/renderer`. They are written
+to be executed mechanically, one task per turn, by a small/cheap model — read
+[UI-REVIEW-EXECUTION.md](./UI-REVIEW-EXECUTION.md) first for the shared contract, setup, verify loop,
+and the guardrail list of strings that must not change.
 
 ## How to use
 
