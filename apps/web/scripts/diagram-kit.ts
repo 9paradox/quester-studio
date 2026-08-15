@@ -287,20 +287,27 @@ ${DIAGRAM_DEFS}
 	}
 
 	if (kind === "formPause") {
+		const nodeX = 118;
+		const nodeY = 36;
+		const nodeW = 180;
+		const nodeH = 52;
+		const nodeCy = nodeY + nodeH / 2;
+		const badgeX = nodeX + nodeW - 50;
+		const badgeY = nodeY + 6;
 		return `<figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} pause ports">
 ${DIAGRAM_DEFS}
-  <circle class="qs-port" cx="40" cy="62" r="6"/>
-  <text class="qs-caption" x="40" y="88" text-anchor="middle">in</text>
-  <line class="qs-edge" x1="46" y1="62" x2="118" y2="62"/>
-  <rect class="qs-node qs-node-accent" x="118" y="36" width="180" height="52" rx="8"/>
-  <text class="qs-label" x="208" y="68" text-anchor="middle">${title}</text>
-  <rect class="qs-badge" x="248" y="42" width="42" height="16" rx="4"/>
-  <text class="qs-badge-text" x="269" y="53" text-anchor="middle">await</text>
-  <line class="qs-edge" x1="298" y1="62" x2="370" y2="62"/>
-  <circle class="qs-port" cx="376" cy="62" r="6"/>
-  <text class="qs-caption" x="376" y="88" text-anchor="middle">out</text>
-  <text class="qs-caption" x="260" y="118" text-anchor="middle">Pauses until Submit (desktop) or --forms (CLI)</text>
+  <circle class="qs-port" cx="40" cy="${nodeCy}" r="6"/>
+  <text class="qs-caption qs-text-below" x="40" y="${nodeCy + 12}" text-anchor="middle">in</text>
+  <line class="qs-edge" x1="46" y1="${nodeCy}" x2="${nodeX}" y2="${nodeCy}"/>
+  <rect class="qs-node qs-node-accent" x="${nodeX}" y="${nodeY}" width="${nodeW}" height="${nodeH}" rx="8"/>
+  <text class="qs-label qs-text-aligned" x="${nodeX + nodeW / 2 - 12}" y="${nodeCy}" text-anchor="middle">${title}</text>
+  <rect class="qs-badge" x="${badgeX}" y="${badgeY}" width="42" height="16" rx="4"/>
+  <text class="qs-badge-text qs-text-aligned" x="${badgeX + 21}" y="${badgeY + 8}" text-anchor="middle">await</text>
+  <line class="qs-edge" x1="${nodeX + nodeW}" y1="${nodeCy}" x2="370" y2="${nodeCy}"/>
+  <circle class="qs-port" cx="376" cy="${nodeCy}" r="6"/>
+  <text class="qs-caption qs-text-below" x="376" y="${nodeCy + 12}" text-anchor="middle">out</text>
+  <text class="qs-caption qs-text-aligned" x="260" y="118" text-anchor="middle">Pauses until Submit (desktop) or --forms (CLI)</text>
 </svg>
 <figcaption>${meta.blurb}</figcaption>
 </figure>`;
@@ -325,55 +332,60 @@ ${DIAGRAM_DEFS}
 /** Framed subgraph container — single diagram for try / foreach (matches desktop canvas). */
 export function frameSvg(type: "try" | "foreach", title = type): string {
 	const isTry = type === "try";
-	const headerY = 58;
-	const bodyY = 132;
 	const frameX = 72;
 	const frameW = 420;
-	const innerX = 86;
-	const innerW = 392;
-	const innerRight = innerX + innerW;
 	const frameRight = frameX + frameW;
+	const headerTop = 38;
+	const headerH = 34;
+	const headerCy = headerTop + headerH / 2;
+	const bodyTop = 84;
+	const bodyH = 92;
+	const bodyCy = bodyTop + bodyH / 2;
+	const innerX = frameX + 14;
+	const innerW = frameW - 28;
+	const innerRight = innerX + innerW;
 	const outerOuts = isTry
 		? [
-				{ y: 48, label: "success", cls: "qs-edge-ok" },
-				{ y: 68, label: "failed", cls: "" },
+				{ y: headerCy - 7, label: "success", cls: "qs-edge-ok" },
+				{ y: headerCy + 7, label: "failed", cls: "" },
 			]
-		: [{ y: headerY, label: "complete", cls: "qs-edge-ok" }];
+		: [{ y: headerCy, label: "complete", cls: "qs-edge-ok" }];
 	const outerOutPaths = outerOuts
-		.map(
-			(o) => `
+		.map((o) => {
+			const edgeCls = o.cls ? `qs-edge ${o.cls}` : "qs-edge";
+			const stubEnd = frameRight + 46;
+			return `
   <circle class="qs-port" cx="${frameRight}" cy="${o.y}" r="6"/>
-  <text class="qs-caption" x="${frameRight + 14}" y="${o.y + 4}">${o.label}</text>
-  <line class="qs-edge ${o.cls}" x1="${frameRight + 6}" y1="${o.y}" x2="${frameRight + 46}" y2="${o.y}"/>`,
-		)
+  <line class="${edgeCls}" x1="${frameRight + 6}" y1="${o.y}" x2="${stubEnd}" y2="${o.y}"/>
+  <text class="qs-caption" x="${stubEnd + 8}" y="${o.y}" text-anchor="start">${o.label}</text>`;
+		})
 		.join("");
 	const caption = isTry
 		? "Header: outside <code>in</code> → frame, then <code>success</code> or <code>failed</code> out. Body: one <code>entry</code> → child → <code>exit</code> path on the inner border."
 		: "Header: outside <code>in</code> → frame, then <code>complete</code> out. Body: <code>entry</code> → child → <code>exit</code> runs once per item.";
 
 	return `<figure class="qs-diagram qs-diagram-frame">
-<svg class="qs-svg" viewBox="0 0 620 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} frame ports and wiring">
+<svg class="qs-svg" viewBox="0 0 620 218" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title} frame ports and wiring">
 ${DIAGRAM_DEFS}
-  <text class="qs-caption" x="310" y="16" text-anchor="middle">Header ports = outside flow · entry/exit = inside body only</text>
-  <line class="qs-edge" x1="8" y1="${headerY}" x2="${frameX}" y2="${headerY}"/>
-  <circle class="qs-port" cx="${frameX}" cy="${headerY}" r="6"/>
-  <text class="qs-caption" x="${frameX - 8}" y="${headerY + 18}" text-anchor="end">in</text>
-  <rect class="qs-node qs-node-accent" x="${frameX}" y="36" width="${frameW}" height="148" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
-  <rect x="${frameX}" y="36" width="${frameW}" height="36" rx="10" fill="color-mix(in oklch, var(--qs-accent) 12%, var(--qs-surface))" stroke="none"/>
-  <line x1="${frameX}" y1="72" x2="${frameRight}" y2="72" stroke="var(--qs-line)" stroke-width="1"/>
-  <text class="qs-label" x="${frameX + 14}" y="58">${title}</text>
-  <text class="qs-caption" x="${frameX + frameW - 14}" y="58" text-anchor="end">header</text>${outerOutPaths}
-  <rect class="qs-node" x="${innerX}" y="84" width="${innerW}" height="84" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 3%, var(--qs-surface))"/>
-  <text class="qs-caption" x="${innerX + innerW / 2}" y="100" text-anchor="middle">body · parentId children</text>
-  <circle class="qs-port" cx="${innerX}" cy="${bodyY}" r="6"/>
-  <text class="qs-caption" x="${innerX}" y="${bodyY + 18}" text-anchor="middle">entry</text>
-  <line class="qs-edge qs-edge-ok" x1="${innerX + 6}" y1="${bodyY}" x2="228" y2="${bodyY}"/>
-  <rect class="qs-node" x="228" y="${bodyY - 22}" width="96" height="44" rx="8"/>
-  <text class="qs-label" x="276" y="${bodyY + 6}" text-anchor="middle">child</text>
-  <line class="qs-edge qs-edge-ok" x1="324" y1="${bodyY}" x2="${innerRight - 6}" y2="${bodyY}"/>
-  <circle class="qs-port" cx="${innerRight}" cy="${bodyY}" r="6"/>
-  <text class="qs-caption" x="${innerRight}" y="${bodyY + 18}" text-anchor="middle">exit</text>
-  <text class="qs-mono" x="310" y="198" text-anchor="middle" style="font-size:10px">entry = sourceHandle · exit = targetHandle</text>
+  <text class="qs-caption" x="310" y="18" text-anchor="middle">Header ports = outside flow · entry/exit = inside body only</text>
+  <line class="qs-edge" x1="8" y1="${headerCy}" x2="${frameX}" y2="${headerCy}"/>
+  <circle class="qs-port" cx="${frameX}" cy="${headerCy}" r="6"/>
+  <text class="qs-caption qs-text-below" x="${frameX}" y="${headerCy + 12}" text-anchor="middle">in</text>
+  <rect class="qs-node qs-node-accent" x="${frameX}" y="${headerTop}" width="${frameW}" height="${bodyTop + bodyH - headerTop}" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
+  <rect x="${frameX}" y="${headerTop}" width="${frameW}" height="${headerH}" rx="10" fill="color-mix(in oklch, var(--qs-accent) 12%, var(--qs-surface))" stroke="none"/>
+  <line x1="${frameX}" y1="${headerTop + headerH}" x2="${frameRight}" y2="${headerTop + headerH}" stroke="var(--qs-line)" stroke-width="1"/>
+  <text class="qs-label" x="${frameX + 14}" y="${headerCy}">${title}</text>${outerOutPaths}
+  <rect class="qs-node" x="${innerX}" y="${bodyTop}" width="${innerW}" height="${bodyH}" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 3%, var(--qs-surface))"/>
+  <text class="qs-caption" x="${innerX + innerW / 2}" y="${bodyTop + 16}" text-anchor="middle">body · parentId children</text>
+  <circle class="qs-port" cx="${innerX}" cy="${bodyCy}" r="6"/>
+  <text class="qs-caption qs-text-below" x="${innerX}" y="${bodyCy + 12}" text-anchor="middle">entry</text>
+  <line class="qs-edge qs-edge-ok" x1="${innerX + 6}" y1="${bodyCy}" x2="228" y2="${bodyCy}"/>
+  <rect class="qs-node" x="228" y="${bodyCy - 22}" width="96" height="44" rx="8"/>
+  <text class="qs-label" x="276" y="${bodyCy}">child</text>
+  <line class="qs-edge qs-edge-ok" x1="324" y1="${bodyCy}" x2="${innerRight - 6}" y2="${bodyCy}"/>
+  <circle class="qs-port" cx="${innerRight}" cy="${bodyCy}" r="6"/>
+  <text class="qs-caption qs-text-below" x="${innerRight}" y="${bodyCy + 12}" text-anchor="middle">exit</text>
+  <text class="qs-mono" x="310" y="208" text-anchor="middle" style="font-size:10px">entry = sourceHandle · exit = targetHandle</text>
 </svg>
 <figcaption>${caption}</figcaption>
 </figure>`;
