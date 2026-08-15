@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button.js";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -69,6 +70,9 @@ export function FlowSettingsDialog({
 			<DialogContent className="flex max-h-[min(90vh,720px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
 				<DialogHeader className="shrink-0 border-b px-4 py-3 pr-12">
 					<DialogTitle>Flow settings</DialogTitle>
+					<DialogDescription>
+						Name, description, and HTTP defaults for this flow.
+					</DialogDescription>
 				</DialogHeader>
 				<div className="min-h-0 flex-1 overflow-hidden">
 					<SettingsPageLayout
