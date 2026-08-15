@@ -1,5 +1,12 @@
 # @quester-studio/api
 
+## 0.4.9
+
+### Patch Changes
+
+- @quester-studio/api-contract@0.4.9
+- @quester-studio/workspace-service@0.6.5
+
 ## 0.4.8
 
 ### Patch Changes

@@ -1,7 +1,7 @@
 # Plan 18 — Desktop UI: focus visibility + control state
 
 **Priority:** 18
-**Status:** not started
+**Status:** complete (user confirmed X/Y/Z) — shipped [#128](https://github.com/9paradox/quester-studio/pull/128)
 **Read first:** [UI-REVIEW-EXECUTION.md](./UI-REVIEW-EXECUTION.md)
 **Branch:** `feat/ui-focus-states`
 **Changeset:** yes (patch, `@quester-studio/desktop`)
@@ -353,9 +353,9 @@ upstream shadcn files and should be handled by a preset update, not hand edits.
 
 ## After complete — ask user to confirm
 
-- [ ] **X** — Tab through the whole shell with the keyboard only: every stop shows a visible focus ring, and the tab close / sidebar rename / sidebar delete buttons become visible when focused.
-- [ ] **Y** — With a screen reader or the browser accessibility tree, the editor tabs report as tabs with a selected state, and starting a run announces "Running…".
-- [ ] **Z** — Enable OS "reduce motion": spinners stop animating and nothing else visibly breaks.
+- [x] **X** — Tab through the whole shell with the keyboard only: every stop shows a visible focus ring, and the tab close / sidebar rename / sidebar delete buttons become visible when focused.
+- [x] **Y** — With a screen reader or the browser accessibility tree, the editor tabs report as tabs with a selected state, and starting a run announces "Running…".
+- [x] **Z** — Enable OS "reduce motion": spinners stop animating and nothing else visibly breaks.
 
 ## Skills
 

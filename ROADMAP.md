@@ -2,9 +2,9 @@
 
 > Living document. Trackable work lives in [GitHub Issues](https://github.com/9paradox/quester-studio/issues).  
 > Known bugs: [BUGS.md](BUGS.md).  
-> Last updated: 2026-08-09
+> Last updated: 2026-08-15
 
-**Now:** v0.6.2 — stay on **0.6.x** / slow **0.x.x**. No jumps to 0.7 / 0.8 / 0.9 until polished end-to-end (desktop → web → docs).
+**Now:** v0.6.5 — stay on **0.6.x** / slow **0.x.x**. No jumps to 0.7 / 0.8 / 0.9 until polished end-to-end (desktop → web → docs).
 
 **Build plans:** open one at a time by priority — [.cursor/plans/](./.cursor/plans/README.md) (starts with `01-stability-critical`).
 
@@ -180,6 +180,12 @@ Burn down [BUGS.md](BUGS.md) before new feature work. Audit 2026-08-08.
 - Node candidates — generic `group`/`frame` (beyond `try`/`foreach` containers), `gate`/`breakpoint`, `csv`/`table`, `hash`/`sign`, `diff`, `mock`, `websocket`, `metric`/`chart`  
 
 ## Done
+
+### v0.6.5
+
+- Workspace forms and mid-flow `form` nodes (`bindings` / `{{form.*}}`, CLI `--forms`)
+- Desktop UI review (plans 18–21): focus visibility, form labelling, type-scale tokens, selector perf
+- Template / JMESPath assist polish
 
 ### v0.6.2
 

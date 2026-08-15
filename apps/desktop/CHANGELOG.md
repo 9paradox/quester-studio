@@ -1,5 +1,24 @@
 # @quester-studio/desktop
 
+## 0.6.5
+
+### Patch Changes
+
+- 2bd3365: Forms can declare reusable `inputs` bound per flow via the form node's `bindings` (`{{form.*}}`). Number/json field defaults use template assist; samples no longer hardcode `nodes.*` in shared form files.
+- 2bd3365: Form `optionsFrom.label` accepts a per-item template (e.g. `{{title}} · {{brand}} · ${{price}}`) as well as a single property name.
+- 9a29517: Add workspace forms and mid-flow `form` nodes that pause for structured input (desktop UI or CLI `--forms` map), with dynamic defaults and select options from prior node outputs.
+- 67437b9: Add `forms-showcase` sample flow covering all form field types and mid-flow awaits.
+- 2bd3365: Polish Template/JMESPath assist: template Pick path, dual-mode foreach items, JMESPath transform map rows, and per-value template maps for set/output/subflow/form.
+- 9de29e8: Add dense type-scale and warning colour tokens, shared typography primitives, aligned sidebar headers, and a consistent unsaved indicator in the desktop renderer.
+- 8e731f2: Improve keyboard focus visibility, tab and sidebar ARIA semantics, async run announcements, dialog descriptions, and reduced-motion spinner behavior in the desktop renderer.
+- Updated dependencies [2bd3365]
+- Updated dependencies [2bd3365]
+- Updated dependencies [9a29517]
+  - @quester-studio/schema@0.6.5
+  - @quester-studio/engine@0.6.5
+  - @quester-studio/api-contract@0.4.9
+  - @quester-studio/workspace-service@0.6.5
+
 ## 0.6.2
 
 ### Patch Changes

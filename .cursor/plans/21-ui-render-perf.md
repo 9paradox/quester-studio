@@ -1,7 +1,7 @@
 # Plan 21 — Desktop UI: stop run ticks re-rendering the whole editor
 
 **Priority:** 21
-**Status:** not started
+**Status:** complete (user confirmed X/Y/Z) — shipped [#138](https://github.com/9paradox/quester-studio/pull/138)
 **Read first:** [UI-REVIEW-EXECUTION.md](./UI-REVIEW-EXECUTION.md)
 **Depends on:** plans 18–20 landed
 **Branch:** `perf/ui-selector-narrowing`
@@ -328,9 +328,9 @@ Follow whatever helpers the existing tests use to seed a running flow — do not
 
 ## After complete — ask user to confirm
 
-- [ ] **X** — Run a flow with the Inspector tab open and a text field focused: the caret stays put and typing is not interrupted while node statuses tick.
-- [ ] **Y** — Switch to the Response tab and run again: timeline, node outputs, and flow output all still populate correctly.
-- [ ] **Z** — Canvas pan/zoom, node delete via Backspace/Delete, edge reconnect, and the status bar zoom percentage all behave exactly as before.
+- [x] **X** — Run a flow with the Inspector tab open and a text field focused: the caret stays put and typing is not interrupted while node statuses tick.
+- [x] **Y** — Switch to the Response tab and run again: timeline, node outputs, and flow output all still populate correctly.
+- [x] **Z** — Canvas pan/zoom, node delete via Backspace/Delete, edge reconnect, and the status bar zoom percentage all behave exactly as before.
 
 ## Skills
 
