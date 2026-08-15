@@ -14,32 +14,32 @@ description: Framed loop — body per item, complete with results
   </marker>
 </defs>
   <text class="qs-caption" x="320" y="22" text-anchor="middle" dominant-baseline="middle">Header ports = outside flow · entry/exit = inside body only</text>
-  <line class="qs-edge" x1="12" y1="82" x2="64" y2="82"/>
-  <circle class="qs-port" cx="64" cy="82" r="6"/>
-  <text class="qs-caption" x="54" y="82" text-anchor="end" dominant-baseline="middle">in</text>
-  <rect class="qs-node qs-node-accent" x="64" y="48" width="440" height="172" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
-  <rect x="64" y="48" width="440" height="36" rx="10" fill="color-mix(in oklch, var(--qs-accent) 12%, var(--qs-surface))" stroke="none"/>
+  <rect class="qs-node qs-node-accent" x="64" y="48" width="440" height="172" rx="10"/>
+  <path class="qs-frame-header" d="M 74 48 H 494 Q 504 48 504 58 V 84 H 64 V 58 Q 64 48 74 48 Z"/>
   <line x1="64" y1="84" x2="504" y2="84" stroke="var(--qs-line)" stroke-width="1"/>
   <text class="qs-label" x="78" y="66" text-anchor="start" dominant-baseline="middle">foreach</text>
-  <circle class="qs-port" cx="504" cy="82" r="6"/>
-  <line class="qs-edge qs-edge-ok" x1="510" y1="82" x2="540" y2="82"/>
-  <text class="qs-caption" x="546" y="82" text-anchor="start" dominant-baseline="middle">complete</text>
-  <rect class="qs-node" x="78" y="98" width="412" height="108" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 3%, var(--qs-surface))"/>
+  <rect class="qs-node" x="78" y="98" width="412" height="108" rx="8" stroke-dasharray="5 4"/>
   <text class="qs-caption" x="284" y="112" text-anchor="middle" dominant-baseline="middle">body · parentId children</text>
-  <circle class="qs-port" cx="78" cy="155" r="6"/>
-  <text class="qs-caption" x="90" y="155" text-anchor="start" dominant-baseline="middle">entry</text>
-  <line class="qs-edge qs-edge-ok" x1="84" y1="155" x2="236" y2="155"/>
   <rect class="qs-node" x="236" y="133" width="96" height="44" rx="8"/>
   <text class="qs-label" x="284" y="155" text-anchor="middle" dominant-baseline="middle">child</text>
+  <line class="qs-edge" x1="42" y1="82" x2="64" y2="82"/>
+  <line class="qs-edge qs-edge-ok" x1="504" y1="82" x2="534" y2="82"/>
+  <line class="qs-edge qs-edge-ok" x1="84" y1="155" x2="236" y2="155"/>
   <line class="qs-edge qs-edge-ok" x1="332" y1="155" x2="484" y2="155"/>
-  <circle class="qs-port" cx="490" cy="155" r="6"/>
-  <text class="qs-caption" x="478" y="155" text-anchor="end" dominant-baseline="middle">exit</text>
+  <circle class="qs-port" cx="36" cy="82" r="6"/>
+  <circle class="qs-port" cx="540" cy="82" r="6"/>
+  <path class="qs-port" d="M 78 149 A 6 6 0 0 1 78 161 L 78 149 Z"/>
+  <path class="qs-port" d="M 490 149 A 6 6 0 0 0 490 161 L 490 149 Z"/>
+<text class="qs-caption" x="36" y="112" text-anchor="middle" dominant-baseline="middle">in ×1</text>
+<text class="qs-caption" x="540" y="112" text-anchor="middle" dominant-baseline="middle">complete ×1</text>
+<text class="qs-caption" x="86" y="143" text-anchor="start" dominant-baseline="auto">entry</text>
+<text class="qs-caption" x="482" y="143" text-anchor="end" dominant-baseline="auto">exit</text>
   <text class="qs-mono" x="320" y="230" text-anchor="middle" dominant-baseline="middle">entry = sourceHandle · exit = targetHandle</text>
 </svg>
 <figcaption>Header: outside <code>in</code> → frame, then <code>complete</code> out. Body: <code>entry</code> → child → <code>exit</code> runs once per item.</figcaption>
 </figure>
-
 <!-- qs-frame:end -->
+
 
 ## Wiring
 
