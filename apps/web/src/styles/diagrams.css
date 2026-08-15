@@ -54,7 +54,7 @@
 
 .qs-diagram-frame .qs-svg {
 	min-width: 18rem;
-	max-width: 36rem;
+	max-width: 40rem;
 }
 
 @media (min-width: 640px) {
