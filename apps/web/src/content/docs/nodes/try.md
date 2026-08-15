@@ -7,15 +7,6 @@ description: Framed exception boundary — success / failed handles
 
 Soft condition branching belongs on [`if`](../if/), not `try`.
 
-
-
-
-
-
-
-
-
-
 <!-- qs-frame:start -->
 <figure class="qs-diagram qs-diagram-frame">
 <svg class="qs-svg" viewBox="0 0 620 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="try frame ports and wiring">
@@ -28,6 +19,17 @@ Soft condition branching belongs on [`if`](../if/), not `try`.
   <line class="qs-edge" x1="8" y1="58" x2="72" y2="58"/>
   <circle class="qs-port" cx="72" cy="58" r="6"/>
   <text class="qs-caption" x="64" y="76" text-anchor="end">in</text>
+  <rect class="qs-node qs-node-accent" x="72" y="36" width="420" height="148" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
+  <rect x="72" y="36" width="420" height="36" rx="10" fill="color-mix(in oklch, var(--qs-accent) 12%, var(--qs-surface))" stroke="none"/>
+  <line x1="72" y1="72" x2="492" y2="72" stroke="var(--qs-line)" stroke-width="1"/>
+  <text class="qs-label" x="86" y="58">try</text>
+  <text class="qs-caption" x="478" y="58" text-anchor="end">header</text>
+  <circle class="qs-port" cx="492" cy="48" r="6"/>
+  <text class="qs-caption" x="506" y="52">success</text>
+  <line class="qs-edge qs-edge-ok" x1="498" y1="48" x2="538" y2="48"/>
+  <circle class="qs-port" cx="492" cy="68" r="6"/>
+  <text class="qs-caption" x="506" y="72">failed</text>
+  <line class="qs-edge " x1="498" y1="68" x2="538" y2="68"/>
   <rect class="qs-node" x="86" y="84" width="392" height="84" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 3%, var(--qs-surface))"/>
   <text class="qs-caption" x="282" y="100" text-anchor="middle">body · parentId children</text>
   <circle class="qs-port" cx="86" cy="132" r="6"/>

@@ -9,13 +9,6 @@ Unlike [`input`](../input/), forms are interactive mid-flow wait points. Field d
 
 Author forms under `forms/*.form.json` — see [Workspace files](../../workspace/#forms-formjson).
 
-
-
-
-
-
-
-
 <!-- qs-ports:start -->
 <figure class="qs-diagram">
 <svg class="qs-svg" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="form pause ports">
