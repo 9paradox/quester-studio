@@ -39,7 +39,7 @@ export function CanvasControls({
 
 	return (
 		<div className="pointer-events-none absolute right-3 top-3 z-10">
-			<div className="pointer-events-auto flex items-center gap-2 rounded-md border bg-background/95 px-2 py-1.5 shadow-sm backdrop-blur-sm">
+			<div className="pointer-events-auto flex items-end gap-2 rounded-md border bg-background/95 px-2 py-1.5 shadow-sm backdrop-blur-sm">
 				<div className="flex flex-col gap-0.5">
 					<span
 						id="canvas-env-label"
@@ -71,7 +71,7 @@ export function CanvasControls({
 						type="button"
 						variant="outline"
 						size="sm"
-						className="mt-3 h-7"
+						className="h-7"
 						onClick={onSave}
 					>
 						<IconDeviceFloppy data-icon="inline-start" />
@@ -83,7 +83,7 @@ export function CanvasControls({
 						type="button"
 						variant="destructive"
 						size="sm"
-						className="mt-3 h-7"
+						className="h-7"
 						onClick={onStop}
 					>
 						<IconPlayerStop data-icon="inline-start" />
@@ -93,7 +93,7 @@ export function CanvasControls({
 					<Button
 						type="button"
 						size="sm"
-						className="mt-3 h-7"
+						className="h-7"
 						onClick={onRun}
 						disabled={!canRun}
 					>
