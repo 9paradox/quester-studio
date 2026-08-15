@@ -848,6 +848,7 @@ function FileListItem({
 			<button
 				type="button"
 				draggable={draggable}
+				aria-current={selected ? "true" : undefined}
 				className={cn(
 					"flex h-8 min-w-0 flex-1 items-center gap-1.5 px-2 text-left text-sm font-normal",
 					draggable && "cursor-grab active:cursor-grabbing",
@@ -865,7 +866,11 @@ function FileListItem({
 				<Icon className="size-3.5 shrink-0 opacity-70" />
 				<span className="truncate">{label}</span>
 				{dirty ? (
-					<span className="size-1.5 shrink-0 rounded-full bg-primary" />
+					<span
+						className="size-1.5 shrink-0 rounded-full bg-primary"
+						role="img"
+						aria-label="Unsaved changes"
+					/>
 				) : null}
 			</button>
 			{onRename || onDelete ? (
@@ -953,6 +958,7 @@ function RequestListItem({
 			<button
 				type="button"
 				draggable
+				aria-current={selected ? "true" : undefined}
 				className="flex h-8 min-w-0 flex-1 cursor-grab items-center gap-1.5 px-2 text-left text-sm font-normal active:cursor-grabbing"
 				onClick={onSelect}
 				onDragStart={(event) => {
@@ -963,7 +969,11 @@ function RequestListItem({
 				<IconWorld className="size-3.5 shrink-0 opacity-70" />
 				<span className="truncate">{request.name}</span>
 				{dirty ? (
-					<span className="size-1.5 shrink-0 rounded-full bg-primary" />
+					<span
+						className="size-1.5 shrink-0 rounded-full bg-primary"
+						role="img"
+						aria-label="Unsaved changes"
+					/>
 				) : null}
 			</button>
 		</div>
