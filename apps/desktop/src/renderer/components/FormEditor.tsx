@@ -1,4 +1,5 @@
 import { TemplateField } from "@/components/TemplateField.js";
+import { CodeChip } from "@/components/Typography.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
@@ -220,10 +221,7 @@ export function FormEditor({
 						/>
 					</SettingsField>
 					<p className="text-xs text-muted-foreground">
-						Id:{" "}
-						<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-							{form.id}
-						</code>
+						Id: <CodeChip>{form.id}</CodeChip>
 					</p>
 				</SettingsSection>
 			) : null}

@@ -16,6 +16,7 @@ import { KeyValueEditor } from "./KeyValueEditor.js";
 import { RequestEditor } from "./RequestEditor.js";
 import { ResponseViewerPage } from "./ResponseViewerPage.js";
 import { RunLogViewerPage } from "./RunLogViewerPage.js";
+import { CodeChip } from "./Typography.js";
 import { WorkspaceSettingsEditor } from "./WorkspaceSettingsEditor.js";
 import { WorkspaceWelcome } from "./WorkspaceWelcome.js";
 
@@ -88,30 +89,14 @@ export function EditorArea() {
 					description={
 						<>
 							<p>
-								Use in flows as{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-									{"{{env.KEY}}"}
-								</code>
+								Use in flows as <CodeChip>{"{{env.KEY}}"}</CodeChip>
 								{" — "}
-								e.g.{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-									{"{{env.API_BASE}}"}
-								</code>
-								.
+								e.g. <CodeChip>{"{{env.API_BASE}}"}</CodeChip>.
 							</p>
 							<p>
-								Linked to env{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-									{envName}
-								</code>
-								. Pair with{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-									{envName}.secrets.json
-								</code>{" "}
-								(
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-									{"{{secrets.KEY}}"}
-								</code>
+								Linked to env <CodeChip>{envName}</CodeChip>. Pair with{" "}
+								<CodeChip>{envName}.secrets.json</CodeChip> (
+								<CodeChip>{"{{secrets.KEY}}"}</CodeChip>
 								). Select this env when running.
 							</p>
 						</>
@@ -134,30 +119,15 @@ export function EditorArea() {
 					description={
 						<>
 							<p>
-								Use in flows as{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-									{"{{secrets.KEY}}"}
-								</code>
+								Use in flows as <CodeChip>{"{{secrets.KEY}}"}</CodeChip>
 								{" — "}
-								e.g.{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-									{"{{secrets.password}}"}
-								</code>
-								. Loaded at runtime; never committed to git.
+								e.g. <CodeChip>{"{{secrets.password}}"}</CodeChip>. Loaded at
+								runtime; never committed to git.
 							</p>
 							<p>
-								Linked to env{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-									{envName}
-								</code>
-								. Pair with{" "}
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-									{envName}.json
-								</code>{" "}
-								(
-								<code className="rounded bg-muted px-1 py-0.5 font-mono text-2xs">
-									{"{{env.KEY}}"}
-								</code>
+								Linked to env <CodeChip>{envName}</CodeChip>. Pair with{" "}
+								<CodeChip>{envName}.json</CodeChip> (
+								<CodeChip>{"{{env.KEY}}"}</CodeChip>
 								). Select this env when running.
 							</p>
 						</>
