@@ -7,81 +7,42 @@ description: Framed exception boundary — success / failed handles
 
 Soft condition branching belongs on [`if`](../if/), not `try`.
 
-
-
-
-
-<!-- qs-ports:start -->
-<figure class="qs-diagram">
-<svg class="qs-svg" viewBox="0 0 540 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="try outer frame ports">
-<defs>
-  <marker id="qs-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-    <path d="M0,0 L8,4 L0,8 Z" fill="var(--qs-faint)"/>
-  </marker>
-</defs>
-  <text class="qs-caption" x="270" y="18" text-anchor="middle">Outside wires use header ports only — not body entry/exit</text>
-  <line class="qs-edge" x1="36" y1="58" x2="88" y2="58"/>
-  <circle class="qs-port" cx="30" cy="58" r="5"/>
-  <text class="qs-caption" x="30" y="82" text-anchor="middle">in</text>
-  <rect class="qs-node qs-node-accent" x="88" y="36" width="330" height="118" rx="8" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
-  <rect class="qs-node qs-node-accent" x="88" y="36" width="330" height="30" rx="8"/>
-  <rect x="88" y="54" width="330" height="12" fill="color-mix(in oklch, var(--qs-accent) 8%, var(--qs-surface))" stroke="none"/>
-  <text class="qs-label" x="110" y="56">try</text>
-  <circle class="qs-port" cx="88" cy="58" r="5"/>
-  <circle class="qs-port" cx="418" cy="46" r="5"/>
-  <text class="qs-caption" x="448" y="50">success</text>
-  <line class="qs-edge qs-edge-ok" x1="424" y1="46" x2="470" y2="46"/>
-  <circle class="qs-port" cx="476" cy="46" r="5"/>
-  <circle class="qs-port" cx="418" cy="72" r="5"/>
-  <text class="qs-caption" x="448" y="76">failed</text>
-  <line class="qs-edge " x1="424" y1="72" x2="470" y2="72"/>
-  <circle class="qs-port" cx="476" cy="72" r="5"/>
-  <rect class="qs-node" x="104" y="78" width="298" height="60" rx="6" stroke-dasharray="4 3" fill="none"/>
-  <text class="qs-caption" x="253" y="112" text-anchor="middle">inner body · entry → … → exit</text>
-</svg>
-<figcaption>Framed exception boundary — outer ports on the header; entry/exit on the inner body border. See the frame wiring diagram below.</figcaption>
-</figure>
-<!-- qs-ports:end -->
-
 <!-- qs-frame:start -->
-<figure class="qs-diagram">
-<svg class="qs-svg" viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="try framed container wiring">
+<figure class="qs-diagram qs-diagram-frame">
+<svg class="qs-svg" viewBox="0 0 620 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="try frame ports and wiring">
 <defs>
   <marker id="qs-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
     <path d="M0,0 L8,4 L0,8 Z" fill="var(--qs-faint)"/>
   </marker>
 </defs>
-  <text class="qs-caption" x="360" y="18" text-anchor="middle">Matches desktop: header ports outside · entry/exit on inner body border</text>
-  <line class="qs-edge" x1="24" y1="56" x2="88" y2="56"/>
-  <circle class="qs-port" cx="18" cy="56" r="6"/>
-  <text class="qs-caption" x="18" y="78" text-anchor="middle">in</text>
-  <rect class="qs-node qs-node-accent" x="88" y="32" width="460" height="188" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
-  <rect class="qs-node qs-node-accent" x="88" y="32" width="460" height="32" rx="10"/>
-  <rect x="88" y="52" width="460" height="12" fill="color-mix(in oklch, var(--qs-accent) 10%, var(--qs-surface))" stroke="none"/>
-  <text class="qs-label" x="110" y="54">try</text>
-  <circle class="qs-port" cx="88" cy="56" r="6"/>
-  <circle class="qs-port" cx="542" cy="44" r="6"/>
-  <line class="qs-edge qs-edge-ok" x1="548" y1="44" x2="598" y2="44"/>
-  <circle class="qs-port" cx="604" cy="44" r="6"/>
-  <text class="qs-caption" x="648" y="48">success</text>
-  <line class="qs-edge " x1="548" y1="70" x2="598" y2="70"/>
-  <circle class="qs-port" cx="604" cy="70" r="6"/>
-  <text class="qs-caption" x="648" y="74">failed</text>
-  <rect class="qs-node" x="104" y="78" width="428" height="128" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 4%, var(--qs-surface))"/>
-  <text class="qs-caption" x="318" y="96" text-anchor="middle">body area (children use parentId)</text>
-  <circle class="qs-port" cx="118" cy="158" r="6"/>
-  <text class="qs-caption" x="118" y="182" text-anchor="middle">entry</text>
-  <text class="qs-caption" x="118" y="196" text-anchor="middle">source →</text>
-  <line class="qs-edge qs-edge-ok" x1="124" y1="158" x2="248" y2="158"/>
-  <rect class="qs-node" x="248" y="134" width="120" height="48" rx="8"/>
-  <text class="qs-label" x="308" y="164" text-anchor="middle">child</text>
-  <line class="qs-edge qs-edge-ok" x1="368" y1="158" x2="492" y2="158"/>
-  <circle class="qs-port" cx="518" cy="158" r="6"/>
-  <text class="qs-caption" x="518" y="182" text-anchor="middle">exit</text>
-  <text class="qs-caption" x="518" y="196" text-anchor="middle">← target</text>
-  <text class="qs-mono" x="360" y="228" text-anchor="middle" style="font-size:10px">sourceHandle: "entry" · targetHandle: "exit"</text>
+  <text class="qs-caption" x="310" y="16" text-anchor="middle">Header ports = outside flow · entry/exit = inside body only</text>
+  <line class="qs-edge" x1="8" y1="58" x2="72" y2="58"/>
+  <circle class="qs-port" cx="72" cy="58" r="6"/>
+  <text class="qs-caption" x="64" y="76" text-anchor="end">in</text>
+  <rect class="qs-node qs-node-accent" x="72" y="36" width="420" height="148" rx="10" fill="color-mix(in oklch, var(--qs-accent) 5%, var(--qs-surface))"/>
+  <rect x="72" y="36" width="420" height="36" rx="10" fill="color-mix(in oklch, var(--qs-accent) 12%, var(--qs-surface))" stroke="none"/>
+  <line x1="72" y1="72" x2="492" y2="72" stroke="var(--qs-line)" stroke-width="1"/>
+  <text class="qs-label" x="86" y="58">try</text>
+  <text class="qs-caption" x="478" y="58" text-anchor="end">header</text>
+  <circle class="qs-port" cx="492" cy="48" r="6"/>
+  <text class="qs-caption" x="506" y="52">success</text>
+  <line class="qs-edge qs-edge-ok" x1="498" y1="48" x2="538" y2="48"/>
+  <circle class="qs-port" cx="492" cy="68" r="6"/>
+  <text class="qs-caption" x="506" y="72">failed</text>
+  <line class="qs-edge " x1="498" y1="68" x2="538" y2="68"/>
+  <rect class="qs-node" x="86" y="84" width="392" height="84" rx="8" stroke-dasharray="5 4" fill="color-mix(in oklch, var(--qs-accent) 3%, var(--qs-surface))"/>
+  <text class="qs-caption" x="282" y="100" text-anchor="middle">body · parentId children</text>
+  <circle class="qs-port" cx="86" cy="132" r="6"/>
+  <text class="qs-caption" x="86" y="150" text-anchor="middle">entry</text>
+  <line class="qs-edge qs-edge-ok" x1="92" y1="132" x2="228" y2="132"/>
+  <rect class="qs-node" x="228" y="110" width="96" height="44" rx="8"/>
+  <text class="qs-label" x="276" y="138" text-anchor="middle">child</text>
+  <line class="qs-edge qs-edge-ok" x1="324" y1="132" x2="472" y2="132"/>
+  <circle class="qs-port" cx="478" cy="132" r="6"/>
+  <text class="qs-caption" x="478" y="150" text-anchor="middle">exit</text>
+  <text class="qs-mono" x="310" y="198" text-anchor="middle" style="font-size:10px">entry = sourceHandle · exit = targetHandle</text>
 </svg>
-<figcaption><code>in</code> and header <code>success</code>/<code>failed</code> are outside. Body wires use inner <code>entry</code> (source) → child → <code>exit</code> (target).</figcaption>
+<figcaption>Header: outside <code>in</code> → frame, then <code>success</code> or <code>failed</code> out. Body: one <code>entry</code> → child → <code>exit</code> path on the inner border.</figcaption>
 </figure>
 <!-- qs-frame:end -->
 

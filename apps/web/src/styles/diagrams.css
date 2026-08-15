@@ -52,6 +52,17 @@
 	max-width: 14rem;
 }
 
+.qs-diagram-frame .qs-svg {
+	min-width: 18rem;
+	max-width: 36rem;
+}
+
+@media (min-width: 640px) {
+	.qs-diagram-frame .qs-svg {
+		min-width: 24rem;
+	}
+}
+
 .qs-diagram figcaption {
 	margin: 0.7rem 0.15rem 0;
 	font-size: 0.875rem;
