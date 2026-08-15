@@ -46,6 +46,7 @@ import {
 	Panel,
 	ReactFlow,
 	ReactFlowProvider,
+	type Viewport,
 	addEdge,
 	applyEdgeChanges,
 	applyNodeChanges,
@@ -57,6 +58,13 @@ import {
 import "reactflow/dist/style.css";
 import { toast } from "sonner";
 import { flowNodeTypes } from "./nodes/FlowNodes.js";
+
+const DELETE_KEYS = ["Backspace", "Delete"];
+const DEFAULT_EDGE_OPTIONS = {
+	interactionWidth: EDGE_INTERACTION_WIDTH,
+	reconnectable: true,
+} as const;
+const PRO_OPTIONS = { hideAttribution: true } as const;
 
 type FlowCanvasProps = {
 	flow: FlowV1 | null;
@@ -606,6 +614,26 @@ function FlowCanvasInner({
 		event.dataTransfer.dropEffect = "copy";
 	}, []);
 
+	const onEdgeContextMenu = useCallback((_: React.MouseEvent, edge: Edge) => {
+		setContextTarget({ kind: "edge", id: edge.id });
+	}, []);
+
+	const onNodeContextMenu = useCallback((_: React.MouseEvent, node: Node) => {
+		setContextTarget({ kind: "node", id: node.id });
+	}, []);
+
+	const onPaneContextMenu = useCallback(() => {
+		setContextTarget({ kind: "pane" });
+	}, []);
+
+	const onMoveEnd = useCallback(
+		(_: unknown, viewport: Viewport) => {
+			writeCanvasViewport(workspacePath, flow.id, viewport);
+			onZoomChange?.(viewport.zoom);
+		},
+		[workspacePath, flow.id, onZoomChange],
+	);
+
 	const onDrop = useCallback(
 		(event: React.DragEvent) => {
 			event.preventDefault();
@@ -660,32 +688,20 @@ function FlowCanvasInner({
 					onReconnectEnd={onReconnectEnd}
 					isValidConnection={isValidConnection}
 					onNodeDragStop={onNodeDragStop}
-					onEdgeContextMenu={(_, edge) => {
-						setContextTarget({ kind: "edge", id: edge.id });
-					}}
-					onNodeContextMenu={(_, node) => {
-						setContextTarget({ kind: "node", id: node.id });
-					}}
-					onPaneContextMenu={() => {
-						setContextTarget({ kind: "pane" });
-					}}
+					onEdgeContextMenu={onEdgeContextMenu}
+					onNodeContextMenu={onNodeContextMenu}
+					onPaneContextMenu={onPaneContextMenu}
 					onDragOver={onDragOver}
 					onDrop={onDrop}
-					onMoveEnd={(_, viewport) => {
-						writeCanvasViewport(workspacePath, flow.id, viewport);
-						onZoomChange?.(viewport.zoom);
-					}}
+					onMoveEnd={onMoveEnd}
 					nodesDraggable
 					nodesConnectable
 					elementsSelectable
 					edgesUpdatable
 					edgesFocusable
-					deleteKeyCode={typingInUi ? null : (["Backspace", "Delete"] as const)}
-					defaultEdgeOptions={{
-						interactionWidth: EDGE_INTERACTION_WIDTH,
-						reconnectable: true,
-					}}
-					proOptions={{ hideAttribution: true }}
+					deleteKeyCode={typingInUi ? null : DELETE_KEYS}
+					defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
+					proOptions={PRO_OPTIONS}
 					className="bg-muted/50"
 					minZoom={CANVAS_MIN_ZOOM}
 					maxZoom={CANVAS_MAX_ZOOM}
