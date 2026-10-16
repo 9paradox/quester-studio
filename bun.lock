@@ -14,7 +14,7 @@
     },
     "apps/api": {
       "name": "@quester-studio/api",
-      "version": "0.4.6",
+      "version": "0.4.7",
       "dependencies": {
         "@quester-studio/api-contract": "workspace:*",
         "@quester-studio/workspace-service": "workspace:*",
@@ -28,7 +28,7 @@
     },
     "apps/desktop": {
       "name": "@quester-studio/desktop",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "dependencies": {
         "@base-ui/react": "^1.6.0",
         "@codemirror/autocomplete": "^6.20.3",
@@ -52,7 +52,7 @@
         "clsx": "^2.1.1",
         "electrobun": "^1.18.1",
         "react": "^19.1.0",
-        "react-dom": "^19.1.0",
+        "react-dom": "^19.2.8",
         "react-json-view-lite": "^2.5.0",
         "reactflow": "^11.11.4",
         "shadcn": "^4.13.0",
@@ -71,7 +71,7 @@
         "@testing-library/user-event": "^14.6.1",
         "@types/node": "^22.15.3",
         "@types/react": "^19.1.2",
-        "@types/react-dom": "^19.1.2",
+        "@types/react-dom": "^19.2.4",
         "@types/three": "^0.165.0",
         "@vitejs/plugin-react": "^4.4.1",
         "concurrently": "^9.2.1",
@@ -84,7 +84,7 @@
     },
     "apps/web": {
       "name": "@quester-studio/web",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@fontsource-variable/geist": "^5.3.0",
         "astro": "^5.7.10",
@@ -96,7 +96,7 @@
     },
     "packages/api-contract": {
       "name": "@quester-studio/api-contract",
-      "version": "0.4.6",
+      "version": "0.4.7",
       "dependencies": {
         "@quester-studio/engine": "workspace:*",
         "@quester-studio/schema": "workspace:*",
@@ -109,7 +109,7 @@
     },
     "packages/cli": {
       "name": "@quester-studio/cli",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "bin": {
         "quester": "./dist/cli.js",
       },
@@ -126,7 +126,7 @@
     },
     "packages/engine": {
       "name": "@quester-studio/engine",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "dependencies": {
         "@quester-studio/nodes": "workspace:*",
         "@quester-studio/schema": "workspace:*",
@@ -139,7 +139,7 @@
     },
     "packages/nodes": {
       "name": "@quester-studio/nodes",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "dependencies": {
         "@quester-studio/schema": "workspace:*",
         "eta": "^3.5.0",
@@ -154,7 +154,7 @@
     },
     "packages/schema": {
       "name": "@quester-studio/schema",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "dependencies": {
         "zod": "^3.24.2",
         "zod-to-json-schema": "^3.24.5",
@@ -171,7 +171,7 @@
     },
     "packages/workspace-service": {
       "name": "@quester-studio/workspace-service",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "dependencies": {
         "@quester-studio/api-contract": "workspace:*",
         "@quester-studio/engine": "workspace:*",
@@ -774,7 +774,7 @@
 
     "@types/react": ["@types/react@19.2.17", "", { "dependencies": { "csstype": "^3.2.2" } }, "sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw=="],
 
-    "@types/react-dom": ["@types/react-dom@19.2.3", "", { "peerDependencies": { "@types/react": "^19.2.0" } }, "sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ=="],
+    "@types/react-dom": ["@types/react-dom@19.2.4", "", { "peerDependencies": { "@types/react": "^19.2.0" } }, "sha512-Bsc+QHgp+P/F02XDzNCY9jnZNCUuLki36KT7VKrTXXLdHf+vHMNZnW1rVu5DNW/rCK+fya3DATySbLM4yhtKUw=="],
 
     "@types/stats.js": ["@types/stats.js@0.17.4", "", {}, "sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA=="],
 
@@ -1630,7 +1630,7 @@
 
     "react": ["react@19.2.7", "", {}, "sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ=="],
 
-    "react-dom": ["react-dom@19.2.7", "", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.7" } }, "sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ=="],
+    "react-dom": ["react-dom@19.2.8", "", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.8" } }, "sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ=="],
 
     "react-is": ["react-is@17.0.2", "", {}, "sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w=="],
 
