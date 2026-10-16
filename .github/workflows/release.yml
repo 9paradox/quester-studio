@@ -61,7 +61,7 @@ jobs:
           MAKENSIS: ${{ runner.os == 'Windows' && 'C:\Program Files (x86)\NSIS\makensis.exe' || '' }}
         run: bun run --filter @quester-studio/desktop build:app
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: desktop-${{ matrix.os }}
           path: apps/desktop/artifacts/**
